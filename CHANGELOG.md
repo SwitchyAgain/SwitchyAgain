@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.0.2
+
+Review and compatibility updates for SwitchyAgain.
+
+- Updated bundled AngularJS libraries to 1.8.3.
+- Updated bundled jQuery to 3.7.1 and jQuery UI to 1.13.3.
+- Added Firefox data collection permission metadata.
+- Removed AMO-only Chrome manifest fields from the AMO package.
+- Updated browser action tooltip branding to SwitchyAgain.
+- Removed Report issues and Save error log from the extension action context
+  menu.
+- Cleared stale context menu entries before recreating the current menu.
+
 ## v1.0.1
 
 Maintenance release for SwitchyAgain.

@@ -21,11 +21,13 @@
     "tests"
   ],
   "dependencies": {
-    "angular": "~1.7.2",
-    "angular-animate": "~1.7.2",
-    "angular-loader": "~1.7.2",
-    "angular-i18n": "~1.7.2",
-    "angular-sanitize": "~1.7.2",
+    "angular": "~1.8.3",
+    "angular-animate": "~1.8.3",
+    "angular-loader": "~1.8.3",
+    "angular-i18n": "~1.8.3",
+    "angular-sanitize": "~1.8.3",
+    "jquery": "~3.7.1",
+    "jquery-ui": "~1.13.3",
 
     "angular-bootstrap": "~0.12.0",
     "angular-ui-router": "~0.2.18",
@@ -127,6 +129,8 @@
     }
   },
   "resolutions": {
-    "angular": "~1.7.2"
+    "angular": "~1.8.3",
+    "jquery": "~3.7.1",
+    "jquery-ui": "~1.13.3"
   }
 }

@@ -1343,11 +1343,11 @@ msgstr "(перемикання за списком правил)"
 
 #, fuzzy
 msgid "browserAction_titleNormal"
-msgstr "SwitchyOmega :: $PROFILE$"
+msgstr "SwitchyAgain:: $PROFILE$"
 
 #, fuzzy
 msgid "browserAction_titleWithResult"
-msgstr "SwitchyOmega :: $1: PROFILE$ $3: DETAILS$"
+msgstr "SwitchyAgain:: $1: PROFILE$ $3: DETAILS$"
 
 msgid "browserAction_titleNewerOptions"
 msgstr ""

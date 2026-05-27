@@ -1201,11 +1201,11 @@ msgid "browserAction_profileDetails_RuleListProfile"
 msgstr "(přepínání na základě seznamu pravidel)"
 
 msgid "browserAction_titleNormal"
-msgstr "Switchy Omega:: $PROFILE$"
+msgstr "SwitchyAgain:: $PROFILE$"
 
 msgid "browserAction_titleWithResult"
 msgstr ""
-"Switchy Omega:: $1:PROFILE$\n"
+"SwitchyAgain:: $1:PROFILE$\n"
 "$3:DETAILS$"
 
 msgid "browserAction_titleNewerOptions"

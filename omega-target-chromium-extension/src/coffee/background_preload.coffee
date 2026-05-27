@@ -20,27 +20,22 @@ if chrome.contextMenus?.onClicked?
     window.OmegaContextMenuClickHandlers[info.menuItemId]?(info, tab)
 
 if chrome.contextMenus?
-  # We don't need this API. However its presence indicates that Chrome >= 35
-  # which provides info.checked we need in contextMenu callback.
-  # https://developer.chrome.com/extensions/contextMenus
-  if chrome.i18n.getUILanguage?
-    # We must create the menu item here before others to make it first in menu.
-    addContextMenu({
-      id: 'enableQuickSwitch'
-      title: chrome.i18n.getMessage('contextMenu_enableQuickSwitch')
-      type: 'checkbox'
-      checked: false
-      contexts: [actionContext]
-    }, (info) -> window.OmegaContextMenuQuickSwitchHandler(info))
+  createContextMenus = ->
+    # We don't need this API. However its presence indicates that Chrome >= 35
+    # which provides info.checked we need in contextMenu callback.
+    # https://developer.chrome.com/extensions/contextMenus
+    if chrome.i18n.getUILanguage?
+      # We must create the menu item here before others to make it first in
+      # menu.
+      addContextMenu({
+        id: 'enableQuickSwitch'
+        title: chrome.i18n.getMessage('contextMenu_enableQuickSwitch')
+        type: 'checkbox'
+        checked: false
+        contexts: [actionContext]
+      }, (info) -> window.OmegaContextMenuQuickSwitchHandler(info))
 
-  addContextMenu({
-    id: 'reportIssues'
-    title: chrome.i18n.getMessage('popup_reportIssues')
-    contexts: [actionContext]
-  }, OmegaDebug.reportIssue)
-
-  addContextMenu({
-    id: 'errorLog'
-    title: chrome.i18n.getMessage('popup_errorLog')
-    contexts: [actionContext]
-  }, OmegaDebug.downloadLog)
+  if chrome.contextMenus.removeAll?
+    chrome.contextMenus.removeAll(createContextMenus)
+  else
+    createContextMenus()
