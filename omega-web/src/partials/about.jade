@@ -14,11 +14,6 @@ section
       p {{'about_app_description' | tr}}
 section
   p
-    button.btn.btn-info(ng-click='reportIssue()')
-      span.glyphicon.glyphicon-comment
-      = ' '
-      | {{'popup_reportIssues' | tr}}
-    = ' '
     button.btn.btn-default(ng-click='downloadLog()')
       span.glyphicon.glyphicon-download
       = ' '
@@ -31,25 +26,18 @@ section
 section
   p
     | {{'about_version' | tr:[version]}}
-  p.text-warning
-    span.glyphicon.glyphicon-info-sign
-    = ' '
-    span(ng-bind-html='"about_disclaimer_networkService" | tr')
-  p.text-success
-    span.glyphicon.glyphicon-eye-close
-    = ' '
-    span(ng-bind-html='"about_disclaimer_privacy" | tr')
-  p.text-info
-    span.glyphicon.glyphicon-question-sign
-    = ' '
-    span(ng-bind-html='"about_help" | tr')
-
-section(style='margin-top: 7em')
-  p
-    | {{'appNameShort' | tr}}
     br
-    span(ng-bind-html='"about_copyright" | tr')
+    a(href='https://github.com/iklh/SwitchyAgain') Project homepage
     br
-    span(ng-bind-html='"about_license" | tr')
     br
-    span(ng-bind-html='"about_credits" | tr')
+    | Based on SwitchyOmega, Copyright 2012-2017 
+    a(href='https://github.com/FelisCatus/SwitchyOmega/blob/master/AUTHORS') The SwitchyOmega Authors
+    | .
+    br
+    | SwitchyAgain changes Copyright 2026 
+    a(href='https://github.com/iklh/SwitchyAgain/graphs/contributors') The SwitchyAgain Authors
+    | .
+    br
+    | Licensed under the 
+    a(href='https://www.gnu.org/licenses/gpl.html') GNU General Public License
+    |  Version 3 or later.

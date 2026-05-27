@@ -1,6 +1,8 @@
 SwitchyAgain
 ============
 
+Current version: 1.0.1
+
 SwitchyAgain is a fork of [SwitchyOmega](https://github.com/FelisCatus/SwitchyOmega) focused on keeping the proxy switching
 workflow available on modern browsers.
 
@@ -12,8 +14,8 @@ Changes from SwitchyOmega
   background scripts.
 - Kept the classic profile switching workflow, including fixed, direct, system,
   and PAC/rule-based profiles.
-- Renamed the extension to SwitchyAgain and reset this fork's version line to
-  1.0.0.
+- Renamed the extension to SwitchyAgain and maintains a separate version line
+  for this fork.
 
 Status
 ------
