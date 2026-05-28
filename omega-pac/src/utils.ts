@@ -86,3 +86,5 @@ exports.wildcardForUrl = function(url: string): string {
   const domain = Url.parse(url).hostname;
   return exports.wildcardForDomain(domain);
 };
+
+export {};

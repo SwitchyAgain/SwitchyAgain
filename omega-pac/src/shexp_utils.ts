@@ -74,3 +74,5 @@ const ShexpUtils = {
 };
 
 module.exports = ShexpUtils;
+
+export {};

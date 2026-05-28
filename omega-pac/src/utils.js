@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var Url = require('url');
 var tld = require('tldjs');
 var Revision = {
