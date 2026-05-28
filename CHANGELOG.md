@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.1.2
+
+Maintenance release for the PAC rule engine TypeScript migration.
+
+- Added TypeScript build and typecheck configuration for omega-pac.
+- Converted omega-pac source modules from JavaScript to TypeScript while
+  preserving the generated JavaScript build output.
+- Fixed a latent omega-pac regex helper typo surfaced by TypeScript checking.
+
 ## v1.1.1
 
 Maintenance release for the PAC rule engine migration.
