@@ -2,7 +2,12 @@ module.exports =
   web:
     expand: true
     cwd: '../omega-web/build'
-    src: ['**/*']
+    src: [
+      '**/*'
+      '!lib/bootstrap/fonts/*.eot'
+      '!lib/bootstrap/fonts/*.svg'
+      '!lib/bootstrap/fonts/*.ttf'
+    ]
     dest: 'build/'
   target:
     files:

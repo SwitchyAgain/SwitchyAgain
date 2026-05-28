@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.1.0
+
+Maintenance and packaging updates for SwitchyAgain.
+
+- Replaced Bower-managed frontend dependencies with npm-managed copies.
+- Updated FileSaver to 2.0.5.
+- Added npm build and release scripts for common extension build tasks.
+- Removed obsolete FTP scheme selection from the proxy server UI.
+- Reduced packaged Bootstrap font files to modern browser formats.
+- Updated browser action status title prefixes from Omega to Again.
+
 ## v1.0.2
 
 Review and compatibility updates for SwitchyAgain.

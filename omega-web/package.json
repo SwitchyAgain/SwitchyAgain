@@ -46,6 +46,7 @@
     "spin.js": "2.3.2"
   },
   "scripts": {
+    "build": "node ../omega-pac/node_modules/grunt-cli/bin/grunt default",
     "dev": "npm link omega-pac && npm link"
   }
 }

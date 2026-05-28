@@ -160,7 +160,7 @@ actionForUrl = (url) ->
 
     icon ?= drawIcon(resultColor, profileColor)
 
-    shortTitle = 'Omega: ' + currentName # TODO: I18n.
+    shortTitle = 'Again: ' + currentName # TODO: I18n.
     if profile.name != currentName
       shortTitle += ' => ' + profile.name # TODO: I18n.
 
@@ -293,15 +293,15 @@ options.currentProfileChanged = (reason) ->
   if currentName
     title = chrome.i18n.getMessage('browserAction_titleWithResult', [
       currentName, '', details])
-    shortTitle = 'Omega: ' + currentName # TODO: I18n.
+    shortTitle = 'Again: ' + currentName # TODO: I18n.
   else
     title = details
-    shortTitle = 'Omega: ' + details # TODO: I18n.
+    shortTitle = 'Again: ' + details # TODO: I18n.
 
   if external and current.profileType != 'SystemProfile'
     message = chrome.i18n.getMessage('browserAction_titleExternalProxy')
     title = message + '\n' + title
-    shortTitle = 'Omega-Extern: ' + details # TODO: I18n.
+    shortTitle = 'Again-Extern: ' + details # TODO: I18n.
     options.setBadge()
 
   if not current.name or not OmegaPac.Profiles.isInclusive(current)

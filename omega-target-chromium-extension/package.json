@@ -31,6 +31,8 @@
     "omega-target": "./omega_target_shim.js"
   },
   "scripts": {
-    "dev": "npm link omega-target && npm link omega-web && npm link omega-pac"
+    "build": "node ../omega-pac/node_modules/grunt-cli/bin/grunt default",
+    "dev": "npm link omega-target && npm link omega-web && npm link omega-pac",
+    "release": "node ../omega-pac/node_modules/grunt-cli/bin/grunt release"
   }
 }

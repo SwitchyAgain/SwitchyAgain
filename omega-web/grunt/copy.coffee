@@ -80,7 +80,10 @@ module.exports =
   bootstrap_fonts:
     expand: true
     cwd: 'node_modules/bootstrap/fonts'
-    src: ['glyphicons-halflings-regular.*']
+    src: [
+      'glyphicons-halflings-regular.woff'
+      'glyphicons-halflings-regular.woff2'
+    ]
     dest: 'build/lib/bootstrap/fonts/'
   filesaver:
     expand: true
