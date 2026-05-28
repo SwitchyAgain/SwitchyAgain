@@ -2,7 +2,7 @@ chai = require 'chai'
 should = chai.should()
 
 describe 'PacGenerator', ->
-  PacGenerator = require '../src/pac_generator.coffee'
+  PacGenerator = require '../src/pac_generator'
 
   options =
     '+auto':
