@@ -30,6 +30,7 @@
     "uglify-js-real": "./uglifyjs.js"
   },
   "scripts": {
+    "build:ts": "tsc -p tsconfig.build.json",
     "dev": "npm link",
     "test": "TZ=Europe/London _mocha --reporter spec --require coffee-script/register test/*.coffee",
     "typecheck": "tsc -p tsconfig.json --noEmit"
