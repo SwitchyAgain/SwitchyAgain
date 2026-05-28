@@ -17,7 +17,8 @@
     "load-grunt-config": "^0.13.1",
     "minifyify": "^4.1.1",
     "sinon": "^1.12.2",
-    "sinon-chai": "^2.6.0"
+    "sinon-chai": "^2.6.0",
+    "typescript": "^6.0.3"
   },
   "dependencies": {
     "bluebird": "^2.3.2",
@@ -29,7 +30,9 @@
     "omega-pac": "./omega_pac_shim.js"
   },
   "scripts": {
+    "build:ts": "tsc -p tsconfig.build.json",
     "dev": "npm link omega-pac && npm link",
-    "test": "grunt test"
+    "test": "grunt test",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   }
 }
