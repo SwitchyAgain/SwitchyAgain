@@ -84,7 +84,7 @@ module.exports =
     dest: 'build/lib/bootstrap/fonts/'
   filesaver:
     expand: true
-    cwd: 'node_modules/file-saver'
+    cwd: 'node_modules/file-saver/dist'
     src: ['FileSaver.min.js']
     dest: 'build/lib/FileSaver/'
   jquery:

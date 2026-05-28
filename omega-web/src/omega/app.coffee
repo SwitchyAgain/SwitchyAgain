@@ -105,5 +105,4 @@ angular.module('omega').factory 'downloadFile', ->
         browser.downloads.download({url: url})
   else
     return (blob, filename) ->
-      noAutoBom = true
-      saveAs(blob, filename, noAutoBom)
+      saveAs(blob, filename, {autoBom: false})

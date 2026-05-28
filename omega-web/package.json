@@ -33,7 +33,7 @@
     "angular-ui-utils": "0.1.1",
     "blob-polyfill": "9.0.20240710",
     "bootstrap": "3.3.7",
-    "file-saver": "1.3.3",
+    "file-saver": "2.0.5",
     "jquery": "3.7.1",
     "jquery-ui-dist": "1.13.3",
     "jquery-ui-touch-punch": "0.2.3",
