@@ -4,13 +4,9 @@
   "private": true,
   "main": "./index",
   "devDependencies": {
+    "archiver": "~0.11.0",
+    "browserify": "^10.2.6",
     "chai": "~1.9.1",
-    "grunt": "^0.4.5",
-    "grunt-browserify": "^3.0.0",
-    "grunt-contrib-compress": "^0.12.0",
-    "grunt-contrib-copy": "^0.5.0",
-    "grunt-contrib-watch": "^0.6.1",
-    "load-grunt-config": "^0.13.1",
     "minifyify": "^4.1.1",
     "po2json": "^0.3.2",
     "typescript": "^6.0.3"
@@ -26,10 +22,10 @@
     "omega-target": "./omega_target_shim.js"
   },
   "scripts": {
-    "build": "npm --prefix ../omega-pac run build && npm --prefix ../omega-target run build && npm --prefix ../omega-web run build && node ../omega-pac/node_modules/grunt-cli/bin/grunt default",
+    "build": "npm --prefix ../omega-pac run build && npm --prefix ../omega-target run build && npm --prefix ../omega-web run build && node build.js",
     "build:ts": "tsc -p tsconfig.build.json",
     "dev": "npm link omega-target && npm link omega-web && npm link omega-pac",
-    "release": "npm --prefix ../omega-pac run build && npm --prefix ../omega-target run build && npm --prefix ../omega-web run build && node ../omega-pac/node_modules/grunt-cli/bin/grunt release",
+    "release": "npm --prefix ../omega-pac run build && npm --prefix ../omega-target run build && npm --prefix ../omega-web run build && node build.js release",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   }
 }
