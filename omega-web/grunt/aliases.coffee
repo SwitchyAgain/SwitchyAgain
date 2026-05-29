@@ -5,6 +5,6 @@ module.exports =
     'less'
     'autoprefixer'
     'coffeelint'
-    'coffee'
+    'coffee:web_omega'
   ]
   test: ['mochaTest']

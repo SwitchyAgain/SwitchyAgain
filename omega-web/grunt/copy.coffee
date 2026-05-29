@@ -10,6 +10,7 @@ module.exports =
       'omega_decoration.js'
       'options.js'
       'options_guide.js'
+      'popup.js'
       'switch_profile_guide.js'
     ]
     dest: 'build/js/'
