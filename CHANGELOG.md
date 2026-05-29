@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.1.3
+
+Maintenance release for the omega-target TypeScript migration.
+
+- Converted omega-target source modules from CoffeeScript to JavaScript.
+- Added TypeScript build and typecheck configuration for omega-target.
+- Converted omega-target source modules from JavaScript to TypeScript while
+  preserving the generated JavaScript build output.
+
 ## v1.1.2
 
 Maintenance release for the PAC rule engine TypeScript migration.
