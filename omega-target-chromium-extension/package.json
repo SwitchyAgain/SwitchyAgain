@@ -10,7 +10,6 @@
     "grunt-contrib-compress": "^0.12.0",
     "grunt-contrib-copy": "^0.5.0",
     "grunt-contrib-watch": "^0.6.1",
-    "grunt-mocha-test": "~0.11.0",
     "load-grunt-config": "^0.13.1",
     "minifyify": "^4.1.1",
     "po2json": "^0.3.2",
@@ -27,10 +26,10 @@
     "omega-target": "./omega_target_shim.js"
   },
   "scripts": {
-    "build": "node ../omega-pac/node_modules/grunt-cli/bin/grunt default",
+    "build": "npm --prefix ../omega-pac run build && npm --prefix ../omega-target run build && npm --prefix ../omega-web run build && node ../omega-pac/node_modules/grunt-cli/bin/grunt default",
     "build:ts": "tsc -p tsconfig.build.json",
     "dev": "npm link omega-target && npm link omega-web && npm link omega-pac",
-    "release": "node ../omega-pac/node_modules/grunt-cli/bin/grunt release",
+    "release": "npm --prefix ../omega-pac run build && npm --prefix ../omega-target run build && npm --prefix ../omega-web run build && node ../omega-pac/node_modules/grunt-cli/bin/grunt release",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   }
 }

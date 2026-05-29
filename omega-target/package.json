@@ -5,10 +5,10 @@
   "main": "./index.js",
   "devDependencies": {
     "chai": "^1.10.0",
+    "browserify": "^10.2.6",
     "grunt": "^0.4.5",
     "grunt-browserify": "^3.0.0",
     "grunt-contrib-watch": "^0.6.1",
-    "grunt-mocha-test": "~0.11.0",
     "load-grunt-config": "^0.13.1",
     "minifyify": "^4.1.1",
     "sinon": "^1.12.2",
@@ -25,9 +25,10 @@
     "omega-pac": "./omega_pac_shim.js"
   },
   "scripts": {
-    "build:ts": "tsc -p tsconfig.build.json",
+    "build": "npm run build:ts && browserify index.source.js --standalone OmegaTarget --exclude bluebird --exclude jsondiffpatch --exclude omega-pac -o index.js && browserify index.source.js --standalone OmegaTarget --exclude bluebird --exclude jsondiffpatch --exclude omega-pac | uglifyjs -c -m -o omega_target.min.js",
+    "build:ts": "../omega-pac/node_modules/.bin/tsc -p tsconfig.build.json",
     "dev": "npm link omega-pac && npm link",
-    "test": "node ../omega-pac/node_modules/grunt-cli/bin/grunt test",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "test": "NODE_PATH=.. TZ=Europe/London _mocha --reporter spec test/*.js",
+    "typecheck": "../omega-pac/node_modules/.bin/tsc -p tsconfig.json --noEmit"
   }
 }

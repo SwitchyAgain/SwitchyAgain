@@ -5,11 +5,11 @@
   "main": "./index.js",
   "devDependencies": {
     "chai": "~1.9.1",
+    "browserify": "^10.2.6",
     "grunt": "^0.4.5",
     "grunt-browserify": "^3.0.0",
     "grunt-cli": "^1.5.0",
     "grunt-contrib-watch": "^0.6.1",
-    "grunt-mocha-test": "~0.11.0",
     "load-grunt-config": "^0.13.1",
     "lolex": "^1.4.0",
     "minifyify": "^4.1.1",
@@ -25,6 +25,7 @@
     "uglify-js-real": "./uglifyjs.js"
   },
   "scripts": {
+    "build": "npm run build:ts && browserify index.source.js --standalone OmegaPac --exclude uglify-js --exclude ip-address -o index.js && browserify index.source.js --standalone OmegaPac --exclude uglify-js --exclude ip-address | uglifyjs -c -m -o omega_pac.min.js",
     "build:ts": "tsc -p tsconfig.build.json",
     "dev": "npm link",
     "test": "TZ=Europe/London _mocha --reporter spec test/*.js",
