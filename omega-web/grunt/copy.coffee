@@ -2,6 +2,17 @@ module.exports =
   pac:
     files:
       'build/js/omega_pac.min.js': '../omega-pac/omega_pac.min.js'
+  web_scripts:
+    expand: true
+    cwd: 'src/js'
+    src: [
+      'log_error.js'
+      'omega_decoration.js'
+      'options.js'
+      'options_guide.js'
+      'switch_profile_guide.js'
+    ]
+    dest: 'build/js/'
   angular:
     expand: true
     cwd: 'node_modules/angular'

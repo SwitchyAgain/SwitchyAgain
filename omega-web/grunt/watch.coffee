@@ -30,6 +30,7 @@ module.exports =
   coffee:
     files: [
       'src/coffee/**/*.coffee'
+      'src/js/**/*.js'
       'src/omega/**/*.coffee'
     ]
-    tasks: ['coffee']
+    tasks: ['copy:web_scripts', 'coffee']

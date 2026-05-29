@@ -2,7 +2,7 @@ module.exports =
   web:
     expand: true
     cwd: 'src/coffee'
-    src: ['**/*.coffee']
+    src: ['popup.coffee']
     dest: 'build/js/'
     ext: '.js'
   web_omega:
