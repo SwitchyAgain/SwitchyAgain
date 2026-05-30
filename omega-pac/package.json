@@ -3,13 +3,6 @@
   "version": "0.0.1",
   "private": true,
   "main": "./index.js",
-  "devDependencies": {
-    "chai": "~1.9.1",
-    "browserify": "^10.2.6",
-    "lolex": "^1.4.0",
-    "minifyify": "^4.1.1",
-    "typescript": "^6.0.3"
-  },
   "dependencies": {
     "ip-address": "^4.0.0",
     "tldjs": "^1.5.2",
@@ -20,10 +13,10 @@
     "uglify-js-real": "./uglifyjs.js"
   },
   "scripts": {
-    "build": "npm run build:ts && browserify index.source.js --standalone OmegaPac --exclude uglify-js --exclude ip-address -o index.js && browserify index.source.js --standalone OmegaPac | uglifyjs -c -m -o omega_pac.min.js",
-    "build:ts": "tsc -p tsconfig.build.json",
+    "build": "npm run build:ts && ../node_modules/.bin/browserify index.source.js --standalone OmegaPac --exclude uglify-js --exclude ip-address -o index.js && ../node_modules/.bin/browserify index.source.js --standalone OmegaPac | ../node_modules/.bin/uglifyjs -c -m -o omega_pac.min.js",
+    "build:ts": "../node_modules/.bin/tsc -p tsconfig.build.json",
     "dev": "npm link",
-    "test": "TZ=Europe/London _mocha --reporter spec test/*.js",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "test": "TZ=Europe/London ../node_modules/.bin/_mocha --reporter spec test/*.js",
+    "typecheck": "../node_modules/.bin/tsc -p tsconfig.json --noEmit"
   }
 }

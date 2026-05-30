@@ -3,14 +3,6 @@
   "version": "0.0.1",
   "private": true,
   "main": "./index",
-  "devDependencies": {
-    "archiver": "~0.11.0",
-    "browserify": "^10.2.6",
-    "chai": "~1.9.1",
-    "minifyify": "^4.1.1",
-    "po2json": "^0.3.2",
-    "typescript": "^6.0.3"
-  },
   "dependencies": {
     "heap": "^0.2.6",
     "omega-target": "../omega-target",
@@ -23,9 +15,9 @@
   },
   "scripts": {
     "build": "npm --prefix ../omega-pac run build && npm --prefix ../omega-target run build && npm --prefix ../omega-web run build && node build.js",
-    "build:ts": "tsc -p tsconfig.build.json",
+    "build:ts": "../node_modules/.bin/tsc -p tsconfig.build.json",
     "dev": "npm link omega-target && npm link omega-web && npm link omega-pac",
     "release": "npm --prefix ../omega-pac run build && npm --prefix ../omega-target run build && npm --prefix ../omega-web run build && node build.js release",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "../node_modules/.bin/tsc -p tsconfig.json --noEmit"
   }
 }

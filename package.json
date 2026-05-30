@@ -1,0 +1,32 @@
+{
+  "name": "switchyagain-workspace",
+  "private": true,
+  "workspaces": [
+    "omega-pac",
+    "omega-target",
+    "omega-web",
+    "omega-target-chromium-extension"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace omega-target-chromium-extension",
+    "build:pac": "npm run build --workspace omega-pac",
+    "build:target": "npm run build --workspace omega-target",
+    "build:web": "npm run build --workspace omega-web",
+    "release": "npm run release --workspace omega-target-chromium-extension",
+    "test": "npm run test --workspace omega-pac && npm run test --workspace omega-target",
+    "typecheck": "npm run typecheck --workspace omega-pac && npm run typecheck --workspace omega-target && npm run typecheck --workspace omega-target-chromium-extension"
+  },
+  "devDependencies": {
+    "archiver": "~0.11.0",
+    "browserify": "^10.2.6",
+    "chai": "^1.10.0",
+    "lolex": "^1.4.0",
+    "minifyify": "^4.1.1",
+    "mocha": "~1.20.1",
+    "po2json": "^0.3.2",
+    "sinon": "^1.12.2",
+    "sinon-chai": "^2.6.0",
+    "typescript": "^6.0.3",
+    "uglify-js": "^2.8.29"
+  }
+}

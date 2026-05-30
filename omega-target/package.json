@@ -3,14 +3,6 @@
   "version": "0.0.1",
   "private": true,
   "main": "./index.js",
-  "devDependencies": {
-    "chai": "^1.10.0",
-    "browserify": "^10.2.6",
-    "minifyify": "^4.1.1",
-    "sinon": "^1.12.2",
-    "sinon-chai": "^2.6.0",
-    "typescript": "^6.0.3"
-  },
   "dependencies": {
     "bluebird": "^2.3.2",
     "jsondiffpatch": "^0.1.8",
@@ -21,10 +13,10 @@
     "omega-pac": "./omega_pac_shim.js"
   },
   "scripts": {
-    "build": "npm run build:ts && browserify index.source.js --standalone OmegaTarget --exclude bluebird --exclude jsondiffpatch --exclude omega-pac -o index.js && browserify index.source.js --standalone OmegaTarget | uglifyjs -c -m -o omega_target.min.js",
-    "build:ts": "../omega-pac/node_modules/.bin/tsc -p tsconfig.build.json",
+    "build": "npm run build:ts && ../node_modules/.bin/browserify index.source.js --standalone OmegaTarget --exclude bluebird --exclude jsondiffpatch --exclude omega-pac -o index.js && ../node_modules/.bin/browserify index.source.js --standalone OmegaTarget | ../node_modules/.bin/uglifyjs -c -m -o omega_target.min.js",
+    "build:ts": "../node_modules/.bin/tsc -p tsconfig.build.json",
     "dev": "npm link omega-pac && npm link",
-    "test": "NODE_PATH=.. TZ=Europe/London _mocha --reporter spec test/*.js",
-    "typecheck": "../omega-pac/node_modules/.bin/tsc -p tsconfig.json --noEmit"
+    "test": "NODE_PATH=.. TZ=Europe/London ../node_modules/.bin/_mocha --reporter spec test/*.js",
+    "typecheck": "../node_modules/.bin/tsc -p tsconfig.json --noEmit"
   }
 }
