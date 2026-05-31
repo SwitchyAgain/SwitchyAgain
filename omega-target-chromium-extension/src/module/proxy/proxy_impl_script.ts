@@ -52,14 +52,8 @@ ScriptProxyImpl = (function(superClass) {
       this._proxyScriptDisabled = true;
     } else {
       this._proxyScriptState = state;
-      Promise.all([browser.runtime.getBrowserInfo(), this._initWebextProxyScript()]).then((function(_this) {
-        return function(arg) {
-          var info;
-          info = arg[0];
-          if (info.vendor === 'Mozilla' && info.buildID < '20170918220054') {
-            _this.log.error('Your browser is outdated! SOCKS5 DNS/Auth unsupported! ' + ("Please update your browser ASAP! (Current Build " + info.buildID + ")"));
-            _this._proxyScriptState.useLegacyStringReturn = true;
-          }
+      this._initWebextProxyScript().then((function(_this) {
+        return function() {
           return _this._proxyScriptStateChanged();
         };
       })(this));
@@ -72,16 +66,8 @@ ScriptProxyImpl = (function(superClass) {
     if (!this._proxyScriptInitialized) {
       browser.proxy.onProxyError.addListener((function(_this) {
         return function(err) {
-          if ((err != null ? err.message : void 0) != null) {
-            if (err.message.indexOf('Invalid Proxy Rule: DIRECT') >= 0) {
-              return;
-            }
-            if (err.message.indexOf('Return type must be a string') >= 0) {
-              _this.log.error('Your browser is outdated! SOCKS5 DNS/Auth unsupported! ' + 'Please update your browser ASAP!');
-              _this._proxyScriptState.useLegacyStringReturn = true;
-              _this._proxyScriptStateChanged();
-              return;
-            }
+          if (((err != null ? err.message : void 0) != null) && err.message.indexOf('Invalid Proxy Rule: DIRECT') >= 0) {
+            return;
           }
           return _this.log.error(err);
         };

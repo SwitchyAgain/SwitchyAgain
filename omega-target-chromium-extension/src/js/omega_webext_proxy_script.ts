@@ -37,7 +37,7 @@
         next = matchResult[0];
         var proxy = matchResult[2];
         var auth = matchResult[3];
-        if (proxy && !state.useLegacyStringReturn) {
+        if (proxy) {
           var proxyInfo: any = {
             type: proxy.scheme,
             host: proxy.host,
@@ -56,14 +56,6 @@
             proxyInfo.password = auth.password;
           }
           return [proxyInfo];
-        } else if (next.charCodeAt(0) !== 43) {
-          // MOZ: Legacy proxy support expects PAC-like string return type.
-          // TODO(catus): Remove support for string return type.
-          // MOZ: SOCKS5 proxies are supported under the prefix SOCKS.
-          // https://dxr.mozilla.org/mozilla-central/rev/ffe6cc09ccf38cca6f0e727837bbc6cb722d1e71/toolkit/components/extensions/ProxyScriptContext.jsm#51
-          // Note: We have to replace this because MOZ won't process the rest of
-          //       the list if the syntax of the first item is not recognized.
-          return next.replace(/SOCKS5 /g, 'SOCKS ');
         }
       } else if (matchResult.profileName) {
         next = OmegaPac.Profiles.nameAsKey(matchResult.profileName)
