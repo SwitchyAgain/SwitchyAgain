@@ -42,6 +42,9 @@ async function writeReactHtml(dest, title, script) {
     '<html>',
     '<head>',
     '  <meta charset="utf-8">',
+    '  <link rel="stylesheet" href="../lib/bootstrap/css/bootstrap.min.css">',
+    '  <link rel="stylesheet" href="../css/options.css">',
+    '  <link rel="stylesheet" href="react_options.css">',
     `  <title>${title}</title>`,
     '</head>',
     '<body>',
@@ -150,7 +153,8 @@ async function main() {
     ['node_modules/spectrum-colorpicker/spectrum.js', 'build/lib/spectrum/spectrum.js'],
     ['node_modules/spin.js/spin.js', 'build/lib/spin.js/spin.js'],
     ['img', 'build/img'],
-    ['src/popup', 'build/popup']
+    ['src/popup', 'build/popup'],
+    ['src/react/react_options.css', 'build/react/react_options.css']
   ];
 
   for (const [src, dest] of staticCopies) {
@@ -167,6 +171,8 @@ async function main() {
   await renderJade('src/popup.jade', 'build/popup.html');
   await writeReactHtml('build/react/options_experiment.html', 'SwitchyAgain', 'options_experiment.js');
   await bundleReact('src/react/options_experiment.tsx', 'build/react/options_experiment.js');
+  await writeReactHtml('build/react/general.html', 'SwitchyAgain General', 'general.js');
+  await bundleReact('src/react/general_settings.tsx', 'build/react/general.js');
 
   const partials = [
     'about',

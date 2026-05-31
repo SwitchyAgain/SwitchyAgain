@@ -1,0 +1,27 @@
+.react-options {
+  max-width: 980px;
+  padding-bottom: 32px;
+}
+
+.react-options .page-header {
+  margin-top: 24px;
+}
+
+.react-actions {
+  border-top: 1px solid #eee;
+  margin-top: 24px;
+  padding-top: 16px;
+}
+
+.react-actions .btn + .btn {
+  margin-left: 8px;
+}
+
+.react-conflict-badge {
+  background: #da4f49;
+  box-shadow: #ccc 1px 1px 1px 1px;
+  color: #fff;
+  display: inline-block;
+  padding: 1px 4px;
+}
+
