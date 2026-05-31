@@ -1,14 +1,14 @@
 var utils;
 
 module.exports = {
-  Conditions: require('./src/conditions'),
-  PacGenerator: require('./src/pac_generator'),
-  Profiles: require('./src/profiles'),
-  RuleList: require('./src/rule_list'),
-  ShexpUtils: require('./src/shexp_utils')
+  Conditions: require('./build-ts/conditions'),
+  PacGenerator: require('./build-ts/pac_generator'),
+  Profiles: require('./build-ts/profiles'),
+  RuleList: require('./build-ts/rule_list'),
+  ShexpUtils: require('./build-ts/shexp_utils')
 };
 
-utils = require('./src/utils');
+utils = require('./build-ts/utils');
 for (var name in utils) {
   if (!Object.prototype.hasOwnProperty.call(utils, name)) {
     continue;

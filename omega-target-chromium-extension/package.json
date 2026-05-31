@@ -14,10 +14,10 @@
     "omega-target": "./omega_target_shim.js"
   },
   "scripts": {
-    "build": "npm --prefix ../omega-pac run build && npm --prefix ../omega-target run build && npm --prefix ../omega-web run build && node build.js",
-    "build:ts": "../node_modules/.bin/tsc -p tsconfig.build.json",
+    "build": "npm --prefix ../omega-pac run build && npm --prefix ../omega-target run build && npm --prefix ../omega-web run build && npm run build:ts && node build.js",
+    "build:ts": "../node_modules/.bin/tsc -p tsconfig.build.json && ../node_modules/.bin/tsc -p tsconfig.scripts.json",
     "dev": "npm link omega-target && npm link omega-web && npm link omega-pac",
-    "release": "npm --prefix ../omega-pac run build && npm --prefix ../omega-target run build && npm --prefix ../omega-web run build && node build.js release",
-    "typecheck": "../node_modules/.bin/tsc -p tsconfig.json --noEmit"
+    "release": "npm --prefix ../omega-pac run build && npm --prefix ../omega-target run build && npm --prefix ../omega-web run build && npm run build:ts && node build.js release",
+    "typecheck": "../node_modules/.bin/tsc -p tsconfig.json --noEmit && ../node_modules/.bin/tsc -p tsconfig.scripts.json --noEmit"
   }
 }

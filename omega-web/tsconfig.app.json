@@ -6,7 +6,7 @@
     "module": "none",
     "noEmit": false,
     "noImplicitAny": false,
-    "outDir": "src/omega",
+    "outDir": "build-ts/omega",
     "rootDir": "src/omega",
     "skipLibCheck": true,
     "sourceMap": false,

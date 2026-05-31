@@ -187,7 +187,7 @@ async function main() {
     minify: true
   });
   await writeBundle(path.join(root, 'build/js/omega_webext_proxy_script.min.js'), {
-    entries: [path.join(root, 'src/js/omega_webext_proxy_script.js')],
+    entries: [path.join(root, 'build-ts/js/omega_webext_proxy_script.js')],
     require: [{
       file: path.resolve(root, '../omega-pac/omega_pac.min.js'),
       expose: 'omega-pac'
@@ -205,10 +205,10 @@ async function main() {
   await copyTree(path.resolve(root, '../omega-web/build'), path.join(root, 'build'), fontFilter(path.resolve(root, '../omega-web/build')));
   await copyFile(path.resolve(root, '../omega-target/omega_target.min.js'), path.join(root, 'build/js/omega_target.min.js'));
   await copyFile(path.join(root, 'omega_target_chromium_extension.min.js'), path.join(root, 'build/js/omega_target_chromium_extension.min.js'));
-  await copyFile(path.join(root, 'src/js/omega_target_popup.js'), path.join(root, 'build/js/omega_target_popup.js'));
-  await copyFile(path.join(root, 'src/js/mv3_compat.js'), path.join(root, 'build/js/mv3_compat.js'));
+  await copyFile(path.join(root, 'build-ts/js/omega_target_popup.js'), path.join(root, 'build/js/omega_target_popup.js'));
+  await copyFile(path.join(root, 'build-ts/js/mv3_compat.js'), path.join(root, 'build/js/mv3_compat.js'));
   for (const script of ['background.js', 'background_preload.js', 'omega_debug.js', 'omega_target_web.js']) {
-    await copyFile(path.join(root, 'src/js', script), path.join(root, 'build/js', script));
+    await copyFile(path.join(root, 'build-ts/js', script), path.join(root, 'build/js', script));
   }
   await copyTree(path.join(root, 'overlay'), path.join(root, 'build'));
   await copyFile(path.resolve(root, '../COPYING'), path.join(root, 'build/COPYING'));

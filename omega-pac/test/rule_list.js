@@ -7,7 +7,7 @@ should = chai.should();
 
 describe('RuleList', function() {
   var RuleList;
-  RuleList = require('../src/rule_list');
+  RuleList = require('../build-ts/rule_list');
   describe('AutoProxy', function() {
     var parse;
     parse = RuleList['AutoProxy'].parse;

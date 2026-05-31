@@ -5,7 +5,7 @@
     "declaration": false,
     "ignoreDeprecations": "6.0",
     "noEmit": false,
-    "outDir": "src",
+    "outDir": "build-ts",
     "rootDir": "src",
     "sourceMap": false,
     "target": "es5"

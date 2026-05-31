@@ -7,7 +7,7 @@ should = chai.should();
 
 describe('PacGenerator', function() {
   var PacGenerator, options;
-  PacGenerator = require('../src/pac_generator');
+  PacGenerator = require('../build-ts/pac_generator');
   options = {
     '+auto': {
       name: 'auto',

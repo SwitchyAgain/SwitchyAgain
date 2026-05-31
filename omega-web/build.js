@@ -68,12 +68,12 @@ async function main() {
 
   const staticCopies = [
     ['../omega-pac/omega_pac.min.js', 'build/js/omega_pac.min.js'],
-    ['src/js/log_error.js', 'build/js/log_error.js'],
-    ['src/js/omega_decoration.js', 'build/js/omega_decoration.js'],
-    ['src/js/options.js', 'build/js/options.js'],
-    ['src/js/options_guide.js', 'build/js/options_guide.js'],
+    ['build-ts/js/log_error.js', 'build/js/log_error.js'],
+    ['build-ts/js/omega_decoration.js', 'build/js/omega_decoration.js'],
+    ['build-ts/js/options.js', 'build/js/options.js'],
+    ['build-ts/js/options_guide.js', 'build/js/options_guide.js'],
     ['src/js/popup.js', 'build/js/popup.js'],
-    ['src/js/switch_profile_guide.js', 'build/js/switch_profile_guide.js'],
+    ['build-ts/js/switch_profile_guide.js', 'build/js/switch_profile_guide.js'],
     ['node_modules/angular/angular.min.js', 'build/lib/angular/angular.min.js'],
     ['node_modules/angular-animate/angular-animate.min.js', 'build/lib/angular-animate/angular-animate.min.js'],
     ['node_modules/angular-ui-bootstrap/ui-bootstrap-tpls.min.js', 'build/lib/angular-bootstrap/ui-bootstrap-tpls.min.js'],
@@ -159,18 +159,18 @@ async function main() {
   await renderLess('src/less/popup.less', 'tmp/css/popup.css', 'build/css/popup.css');
 
   await concat([
-    'src/omega/app.js',
-    'src/omega/filters.js',
-    'src/omega/directives.js',
-    'src/omega/controllers/about.js',
-    'src/omega/controllers/fixed_profile.js',
-    'src/omega/controllers/io.js',
-    'src/omega/controllers/master.js',
-    'src/omega/controllers/pac_profile.js',
-    'src/omega/controllers/profile.js',
-    'src/omega/controllers/quick_switch.js',
-    'src/omega/controllers/rule_list_profile.js',
-    'src/omega/controllers/switch_profile.js'
+    'build-ts/omega/app.js',
+    'build-ts/omega/filters.js',
+    'build-ts/omega/directives.js',
+    'build-ts/omega/controllers/about.js',
+    'build-ts/omega/controllers/fixed_profile.js',
+    'build-ts/omega/controllers/io.js',
+    'build-ts/omega/controllers/master.js',
+    'build-ts/omega/controllers/pac_profile.js',
+    'build-ts/omega/controllers/profile.js',
+    'build-ts/omega/controllers/quick_switch.js',
+    'build-ts/omega/controllers/rule_list_profile.js',
+    'build-ts/omega/controllers/switch_profile.js'
   ], 'build/js/omega.js');
 }
 

@@ -16,7 +16,7 @@
     "build": "npm run build:ts && ../node_modules/.bin/browserify index.source.js --standalone OmegaTarget --exclude bluebird --exclude jsondiffpatch --exclude omega-pac -o index.js && ../node_modules/.bin/browserify index.source.js --standalone OmegaTarget | ../node_modules/.bin/esbuild --loader=js --minify > omega_target.min.js",
     "build:ts": "../node_modules/.bin/tsc -p tsconfig.build.json",
     "dev": "npm link omega-pac && npm link",
-    "test": "NODE_PATH=.. TZ=Europe/London ../node_modules/.bin/_mocha --reporter spec test/*.js",
+    "test": "npm run build:ts && NODE_PATH=.. TZ=Europe/London ../node_modules/.bin/_mocha --reporter spec test/*.js",
     "typecheck": "../node_modules/.bin/tsc -p tsconfig.json --noEmit"
   }
 }

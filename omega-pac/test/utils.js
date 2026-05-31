@@ -5,7 +5,7 @@ chai = require('chai');
 
 should = chai.should();
 
-Utils = require('../src/utils');
+Utils = require('../build-ts/utils');
 
 describe('getBaseDomain', function() {
   var getBaseDomain;

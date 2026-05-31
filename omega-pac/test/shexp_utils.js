@@ -7,7 +7,7 @@ should = chai.should();
 
 describe('ShexpUtils', function() {
   var ShexpUtils;
-  ShexpUtils = require('../src/shexp_utils');
+  ShexpUtils = require('../build-ts/shexp_utils');
   describe('#escapeSlash', function() {
     it('should escape all forward slashes', function() {
       var regex;

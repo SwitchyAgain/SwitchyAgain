@@ -29,7 +29,9 @@
     "spin.js": "2.3.2"
   },
   "scripts": {
-    "build": "node build.js",
-    "dev": "npm link omega-pac && npm link"
+    "build": "npm run build:ts && node build.js",
+    "build:ts": "../node_modules/.bin/tsc -p tsconfig.app.json && ../node_modules/.bin/tsc -p tsconfig.scripts.json",
+    "dev": "npm link omega-pac && npm link",
+    "typecheck": "../node_modules/.bin/tsc -p tsconfig.app.json --noEmit && ../node_modules/.bin/tsc -p tsconfig.scripts.json --noEmit"
   }
 }

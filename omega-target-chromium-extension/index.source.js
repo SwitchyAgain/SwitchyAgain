@@ -1,1 +1,1 @@
-module.exports = require('./src/module');
+module.exports = require('./build-ts/module');

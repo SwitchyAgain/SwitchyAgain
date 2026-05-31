@@ -7,8 +7,8 @@ should = chai.should();
 
 describe('Profiles', function() {
   var Conditions, Profiles, U2, ruleListResult, testProfile;
-  Profiles = require('../src/profiles');
-  Conditions = require('../src/conditions');
+  Profiles = require('../build-ts/profiles');
+  Conditions = require('../build-ts/conditions');
   U2 = require('uglify-js');
   ruleListResult = function(profileName, source) {
     return {

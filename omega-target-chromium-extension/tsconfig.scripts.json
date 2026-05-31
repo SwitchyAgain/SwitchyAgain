@@ -6,7 +6,7 @@
     "ignoreDeprecations": "6.0",
     "module": "none",
     "noEmit": false,
-    "outDir": "src/js",
+    "outDir": "build-ts/js",
     "rootDir": "src/js",
     "sourceMap": false,
     "target": "es5"

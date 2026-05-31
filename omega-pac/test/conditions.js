@@ -9,7 +9,7 @@ lolex = require('lolex');
 
 describe('Conditions', function() {
   var Conditions, U2, testCond;
-  Conditions = require('../src/conditions');
+  Conditions = require('../build-ts/conditions');
   U2 = require('uglify-js');
   testCond = function(condition, request, should_match) {
     var compileResult, condExpr, friendlyError, matchResult, o_request, testFunc;

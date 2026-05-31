@@ -12,9 +12,9 @@ chai.use(require('sinon-chai'));
 
 describe('OptionsSync', function() {
   var Log, OptionsSync, Promise, Storage, hookPost, hookPostBasic;
-  OptionsSync = require('../src/options_sync');
-  Storage = require('../src/storage');
-  Log = require('../src/log');
+  OptionsSync = require('../build-ts/options_sync');
+  Storage = require('../build-ts/storage');
+  Log = require('../build-ts/log');
   Promise = require('bluebird');
   before(function() {
     return sinon.stub(Log, 'log');
