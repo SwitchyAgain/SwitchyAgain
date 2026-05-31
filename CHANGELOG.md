@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.1.8
+
+Maintenance release for workspace build and extension packaging cleanup.
+
+- Centralized workspace build dependencies and script binary usage.
+- Moved TypeScript build output out of source trees.
+- Switched bundle minification to esbuild while keeping Browserify bundling.
+- Kept PAC generation on the vendored UglifyJS implementation.
+- Split Chromium and Firefox release artifacts with browser-specific
+  manifests.
+- Removed legacy Firefox proxy string-return fallback.
+
 ## v1.1.7
 
 Maintenance release for removing the legacy CoffeeScript and Grunt build
