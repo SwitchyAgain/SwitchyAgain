@@ -9,7 +9,7 @@ describe('Profiles', function() {
   var Conditions, Profiles, U2, ruleListResult, testProfile;
   Profiles = require('../build-ts/profiles');
   Conditions = require('../build-ts/conditions');
-  U2 = require('uglify-js');
+  U2 = require('../uglifyjs-shim');
   ruleListResult = function(profileName, source) {
     return {
       profileName: profileName,

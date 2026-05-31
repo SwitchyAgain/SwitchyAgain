@@ -5,15 +5,10 @@
   "main": "./index.js",
   "dependencies": {
     "ip-address": "^4.0.0",
-    "tldjs": "^1.5.2",
-    "uglify-js": "^2.4.15"
-  },
-  "browser": {
-    "uglify-js": "./uglifyjs-shim.js",
-    "uglify-js-real": "./uglifyjs.js"
+    "tldjs": "^1.5.2"
   },
   "scripts": {
-    "build": "npm run build:ts && ../node_modules/.bin/browserify index.source.js --standalone OmegaPac --exclude uglify-js --exclude ip-address -o index.js && ../node_modules/.bin/browserify index.source.js --standalone OmegaPac | ../node_modules/.bin/esbuild --loader=js --minify > omega_pac.min.js",
+    "build": "npm run build:ts && ../node_modules/.bin/browserify index.source.js --standalone OmegaPac --exclude ip-address -o index.js && ../node_modules/.bin/browserify index.source.js --standalone OmegaPac | ../node_modules/.bin/esbuild --loader=js --minify > omega_pac.min.js",
     "build:ts": "../node_modules/.bin/tsc -p tsconfig.build.json",
     "dev": "npm link",
     "test": "npm run build:ts && TZ=Europe/London ../node_modules/.bin/_mocha --reporter spec test/*.js",

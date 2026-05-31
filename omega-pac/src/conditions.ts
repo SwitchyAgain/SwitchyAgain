@@ -3,7 +3,7 @@ export {};
 var AttachedCache, IP, U2, Url, escapeSlash, ref, shExp2RegExp,
   hasProp = {}.hasOwnProperty;
 
-U2 = require('uglify-js');
+U2 = require('../uglifyjs-shim');
 
 IP = require('ip-address');
 

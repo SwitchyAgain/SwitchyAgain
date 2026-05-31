@@ -1,2 +1,2 @@
-require('uglify-js-real');
+require('./uglifyjs');
 module.exports = UglifyJS;

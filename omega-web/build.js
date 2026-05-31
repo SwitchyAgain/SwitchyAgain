@@ -4,6 +4,7 @@ const jade = require('jade');
 const less = require('less');
 const autoprefixer = require('autoprefixer-core');
 const root = __dirname;
+const workspaceRoot = path.join(root, '..');
 
 async function ensureDir(filePath) {
   await fs.mkdir(path.dirname(filePath), {recursive: true});
@@ -11,13 +12,20 @@ async function ensureDir(filePath) {
 
 async function copyFile(src, dest) {
   await ensureDir(dest);
-  await fs.copyFile(path.join(root, src), path.join(root, dest));
+  await fs.copyFile(resolveSource(src), path.join(root, dest));
 }
 
 async function copyTree(src, dest) {
-  await fs.cp(path.join(root, src), path.join(root, dest), {
+  await fs.cp(resolveSource(src), path.join(root, dest), {
     recursive: true
   });
+}
+
+function resolveSource(src) {
+  if (src.startsWith('node_modules/')) {
+    return path.join(workspaceRoot, src);
+  }
+  return path.join(root, src);
 }
 
 async function renderJade(src, dest) {
