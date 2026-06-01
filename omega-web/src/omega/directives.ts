@@ -101,27 +101,85 @@
     return {
       restrict: 'A',
       link: function(scope, element) {
-        var bridge, mounted;
+        var bridge, mounted, props, unwatch;
+        props = function() {
+          return {
+            embedded: true,
+            options: scope.$root.options,
+            onOptionsChange: function(nextOptions) {
+              return scope.$evalAsync(function() {
+                var key, results;
+                results = [];
+                for (key in nextOptions) {
+                  results.push(scope.$root.options[key] = nextOptions[key]);
+                }
+                return results;
+              });
+            }
+          };
+        };
         $timeout(function() {
           bridge = window.OmegaReactGeneralSettings;
           if (bridge != null ? bridge.mount : void 0) {
-            mounted = bridge.mount(element[0], {
-              embedded: true,
-              options: scope.$root.options,
-              onOptionsChange: function(nextOptions) {
-                return scope.$evalAsync(function() {
-                  var key, results;
-                  results = [];
-                  for (key in nextOptions) {
-                    results.push(scope.$root.options[key] = nextOptions[key]);
-                  }
-                  return results;
-                });
+            mounted = bridge.mount(element[0], props());
+            unwatch = scope.$root.$watch('options', function(options, oldOptions) {
+              if (options !== oldOptions && (mounted != null ? mounted.render : void 0)) {
+                return mounted.render(props());
               }
             });
           }
         });
         return scope.$on('$destroy', function() {
+          if (unwatch) {
+            unwatch();
+          }
+          if (mounted != null ? mounted.unmount : void 0) {
+            return mounted.unmount();
+          }
+        });
+      }
+    };
+  });
+
+  angular.module('omega').directive('omegaReactUiSettings', function($timeout, omegaTarget) {
+    return {
+      restrict: 'A',
+      link: function(scope, element) {
+        var bridge, mounted, props, unwatch;
+        props = function() {
+          return {
+            embedded: true,
+            options: scope.$root.options,
+            onOpenShortcutConfig: function() {
+              return omegaTarget.openShortcutConfig();
+            },
+            onOptionsChange: function(nextOptions) {
+              return scope.$evalAsync(function() {
+                var key, results;
+                results = [];
+                for (key in nextOptions) {
+                  results.push(scope.$root.options[key] = nextOptions[key]);
+                }
+                return results;
+              });
+            }
+          };
+        };
+        $timeout(function() {
+          bridge = window.OmegaReactUiSettings;
+          if (bridge != null ? bridge.mount : void 0) {
+            mounted = bridge.mount(element[0], props());
+            unwatch = scope.$root.$watch('options', function(options, oldOptions) {
+              if (options !== oldOptions && (mounted != null ? mounted.render : void 0)) {
+                return mounted.render(props());
+              }
+            });
+          }
+        });
+        return scope.$on('$destroy', function() {
+          if (unwatch) {
+            unwatch();
+          }
           if (mounted != null ? mounted.unmount : void 0) {
             return mounted.unmount();
           }

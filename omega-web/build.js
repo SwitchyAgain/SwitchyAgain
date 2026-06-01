@@ -173,6 +173,8 @@ async function main() {
   await bundleReact('src/react/options_experiment.tsx', 'build/react/options_experiment.js');
   await writeReactHtml('build/react/general.html', 'SwitchyAgain General', 'general.js');
   await bundleReact('src/react/general_settings.tsx', 'build/react/general.js');
+  await writeReactHtml('build/react/ui.html', 'SwitchyAgain Interface', 'ui.js');
+  await bundleReact('src/react/ui_settings.tsx', 'build/react/ui.js');
   await writeReactHtml('build/react/backup_restore.html', 'SwitchyAgain Backup / Restore', 'backup_restore.js');
   await bundleReact('src/react/backup_restore.tsx', 'build/react/backup_restore.js');
 

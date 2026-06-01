@@ -32,6 +32,7 @@ function OptionsExperiment() {
           <dd>{runtimeInfo.version}</dd>
         </dl>
         <p className="react-preview__links">
+          <a className="btn btn-default" href="ui.html">Interface</a>{' '}
           <a className="btn btn-default" href="general.html">General</a>{' '}
           <a className="btn btn-default" href="backup_restore.html">Backup / Restore</a>
         </p>
