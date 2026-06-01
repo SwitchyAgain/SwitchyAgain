@@ -10,6 +10,12 @@ declare var saveAs: any;
 declare var Shepherd: any;
 
 interface Window {
+  OmegaReactGeneralSettings?: {
+    mount: (element: Element, props?: any) => {
+      render: (props?: any) => void;
+      unmount: () => void;
+    };
+  };
   OmegaReactBackupRestore?: {
     mount: (element: Element, props?: any) => () => void;
   };

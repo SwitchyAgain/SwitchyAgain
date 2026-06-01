@@ -97,6 +97,39 @@
     };
   });
 
+  angular.module('omega').directive('omegaReactGeneralSettings', function($timeout) {
+    return {
+      restrict: 'A',
+      link: function(scope, element) {
+        var bridge, mounted;
+        $timeout(function() {
+          bridge = window.OmegaReactGeneralSettings;
+          if (bridge != null ? bridge.mount : void 0) {
+            mounted = bridge.mount(element[0], {
+              embedded: true,
+              options: scope.$root.options,
+              onOptionsChange: function(nextOptions) {
+                return scope.$evalAsync(function() {
+                  var key, results;
+                  results = [];
+                  for (key in nextOptions) {
+                    results.push(scope.$root.options[key] = nextOptions[key]);
+                  }
+                  return results;
+                });
+              }
+            });
+          }
+        });
+        return scope.$on('$destroy', function() {
+          if (mounted != null ? mounted.unmount : void 0) {
+            return mounted.unmount();
+          }
+        });
+      }
+    };
+  });
+
   angular.module('omega').directive('omegaIp2str', function() {
     return {
       restrict: 'A',

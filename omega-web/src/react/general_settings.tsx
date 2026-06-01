@@ -18,6 +18,12 @@ const GENERAL_KEYS = [
 
 const DOWNLOAD_INTERVALS = [15, 60, 180, 360, 720, 1440, -1];
 
+type GeneralSettingsProps = {
+  embedded?: boolean;
+  options?: Options | null;
+  onOptionsChange?: (options: Options) => void;
+};
+
 function htmlMessage(key: string, fallback: string, substitutions?: string | string[]) {
   return {__html: message(key, fallback, substitutions)};
 }
@@ -26,15 +32,49 @@ function cloneOptions(options: Options) {
   return JSON.parse(JSON.stringify(options));
 }
 
-function GeneralSettings() {
+function ProfileBadge({label, icon, color}: {label: string; icon: string; color: string}) {
+  return (
+    <span className="profile-inline react-profile-inline">
+      <span className={`glyphicon ${icon}`} style={{color}} />{' '}
+      {label}
+    </span>
+  );
+}
+
+function messageWithBadges(
+  key: string,
+  fallback: string,
+  substitutions: string[],
+  badges: Record<string, React.ReactNode>
+) {
+  const text = message(key, fallback, substitutions);
+  const tokens = Object.keys(badges);
+  if (!tokens.length) {
+    return text;
+  }
+  const pattern = new RegExp(`(${tokens.map((token) => token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g');
+  return text.split(pattern).map((part, index) => badges[part] ? (
+    <React.Fragment key={`${part}-${index}`}>{badges[part]}</React.Fragment>
+  ) : part);
+}
+
+function GeneralSettings({embedded = false, options, onOptionsChange}: GeneralSettingsProps) {
   const [savedOptions, setSavedOptions] = useState<Options | null>(null);
   const [draftOptions, setDraftOptions] = useState<Options | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'saving' | 'saved' | 'error'>('loading');
   const [error, setError] = useState('');
 
   useEffect(() => {
-    loadOptions().then((options) => {
+    if (embedded && options) {
       const cloned = cloneOptions(options);
+      setSavedOptions(cloned);
+      setDraftOptions(cloneOptions(cloned));
+      setStatus('ready');
+      return;
+    }
+
+    loadOptions().then((loadedOptions) => {
+      const cloned = cloneOptions(loadedOptions);
       setSavedOptions(cloned);
       setDraftOptions(cloneOptions(cloned));
       setStatus('ready');
@@ -42,7 +82,7 @@ function GeneralSettings() {
       setError(err?.message || String(err));
       setStatus('error');
     });
-  }, []);
+  }, [embedded, options]);
 
   const dirty = useMemo(() => {
     if (!savedOptions || !draftOptions) {
@@ -52,7 +92,16 @@ function GeneralSettings() {
   }, [savedOptions, draftOptions]);
 
   function updateOption(key: string, value: any) {
-    setDraftOptions((current) => current ? {...current, [key]: value} : current);
+    setDraftOptions((current) => {
+      if (!current) {
+        return current;
+      }
+      const next = {...current, [key]: value};
+      if (embedded && onOptionsChange) {
+        onOptionsChange(next);
+      }
+      return next;
+    });
     if (status === 'saved') {
       setStatus('ready');
     }
@@ -67,13 +116,13 @@ function GeneralSettings() {
   }
 
   function applyChanges() {
-    if (!savedOptions || !draftOptions || !dirty) {
+    if (!savedOptions || !draftOptions || !dirty || embedded) {
       return;
     }
     const patch = optionPatch(savedOptions, draftOptions, GENERAL_KEYS);
     setStatus('saving');
-    patchOptions(patch).then((options) => {
-      const cloned = cloneOptions(options);
+    patchOptions(patch).then((loadedOptions) => {
+      const cloned = cloneOptions(loadedOptions);
       setSavedOptions(cloned);
       setDraftOptions(cloneOptions(cloned));
       setStatus('saved');
@@ -84,6 +133,9 @@ function GeneralSettings() {
   }
 
   if (status === 'loading' || !draftOptions) {
+    if (embedded) {
+      return <p className="text-muted">Loading options...</p>;
+    }
     return (
       <main className="container-fluid react-options">
         <div className="page-header">
@@ -94,15 +146,8 @@ function GeneralSettings() {
     );
   }
 
-  return (
-    <main className="container-fluid react-options">
-      <div className="page-header">
-        <h2>{message('options_tab_general', 'General')}</h2>
-        <p className="text-muted">
-          React preview · {message('manifest_app_name', 'SwitchyAgain')} {manifestVersion()} · runtime {runtimeAvailable() ? 'available' : 'unavailable'}
-        </p>
-      </div>
-
+  const settings = (
+    <>
       {status === 'error' && (
         <div className="alert alert-danger" role="alert">
           <span className="glyphicon glyphicon-remove" /> {error}
@@ -160,17 +205,22 @@ function GeneralSettings() {
         <h3>{message('options_group_conflicts', 'Conflicts')}</h3>
         <p>{message('options_conflicts_introduction', 'Other apps may also try to control proxy settings, resulting in conflicts.')}</p>
         <p className="help-text text-danger">
-          <span className="react-conflict-badge">=</span>{' '}
+          <span style={{padding: '1px 4px', background: '#da4f49', color: '#fff', boxShadow: '#ccc 1px 1px 1px 1px'}}>=</span>{' '}
           {message('options_conflicts_lowerPriority', 'A red badge indicates that another app has higher priority.')}
         </p>
-        <p
-          className="help-text text-info"
-          dangerouslySetInnerHTML={htmlMessage(
-            'options_conflicts_higherPriority',
-            'If SwitchyAgain has higher priority, you can give control back to other apps or system settings by selecting system in the popup menu.',
-            ['system']
-          )}
-        />
+        <p className="help-text text-info">
+          <span className="glyphicon glyphicon-info-sign" />{' '}
+          <span>
+            {messageWithBadges(
+              'options_conflicts_higherPriority',
+              'If SwitchyAgain has higher priority, you can give control back to other apps or system settings by selecting __SYSTEM_PROFILE__ in the popup menu.',
+              ['__SYSTEM_PROFILE__'],
+              {
+                __SYSTEM_PROFILE__: <ProfileBadge label={message('profile_system', '[System Proxy]')} icon="glyphicon-off" color="#000" />
+              }
+            )}
+          </span>
+        </p>
         <div className="checkbox">
           <label>
             <input
@@ -182,32 +232,70 @@ function GeneralSettings() {
             <span> {message('options_showExternalProfile', 'Show popup menu item to import proxy settings from other apps.')}</span>
           </label>
         </div>
-        <p
-          className="help-block"
-          dangerouslySetInnerHTML={htmlMessage(
+        <p className="help-block">
+          {messageWithBadges(
             'options_showExternalProfileHelp',
-            'When system is selected, you can import the effective proxy settings from other apps.',
-            ['system', 'external profile']
+            'When __SYSTEM_PROFILE__ is selected, you can import the effective proxy settings from other apps by selecting __EXTERNAL_PROFILE__ on the popup menu.',
+            ['__SYSTEM_PROFILE__', '__EXTERNAL_PROFILE__'],
+            {
+              __SYSTEM_PROFILE__: <ProfileBadge label={message('profile_system', '[System Proxy]')} icon="glyphicon-off" color="#000" />,
+              __EXTERNAL_PROFILE__: <ProfileBadge label={message('popup_externalProfile', '(External Profile)')} icon="glyphicon-globe" color="#49afcd" />
+            }
           )}
-        />
+        </p>
       </section>
 
-      <div className="react-actions">
-        <button type="button" className={`btn ${dirty ? 'btn-success' : 'btn-default'}`} disabled={!dirty || status === 'saving'} onClick={applyChanges}>
-          <span className="glyphicon glyphicon-ok-circle" /> {status === 'saving' ? 'Saving...' : message('options_apply', 'Apply changes')}
-        </button>
-        <button type="button" className="btn btn-link text-danger" disabled={!dirty || status === 'saving'} onClick={discardChanges}>
-          <span className="glyphicon glyphicon-remove-circle" /> {message('options_discard', 'Discard changes')}
-        </button>
+      {!embedded && (
+        <div className="react-actions">
+          <button type="button" className={`btn ${dirty ? 'btn-success' : 'btn-default'}`} disabled={!dirty || status === 'saving'} onClick={applyChanges}>
+            <span className="glyphicon glyphicon-ok-circle" /> {status === 'saving' ? 'Saving...' : message('options_apply', 'Apply changes')}
+          </button>
+          <button type="button" className="btn btn-link text-danger" disabled={!dirty || status === 'saving'} onClick={discardChanges}>
+            <span className="glyphicon glyphicon-remove-circle" /> {message('options_discard', 'Discard changes')}
+          </button>
+        </div>
+      )}
+    </>
+  );
+
+  if (embedded) {
+    return settings;
+  }
+
+  return (
+    <main className="container-fluid react-options">
+      <div className="page-header">
+        <h2>{message('options_tab_general', 'General')}</h2>
+        <p className="text-muted">
+          React preview · {message('manifest_app_name', 'SwitchyAgain')} {manifestVersion()} · runtime {runtimeAvailable() ? 'available' : 'unavailable'}
+        </p>
       </div>
+
+      {settings}
     </main>
   );
 }
 
-const rootElement = document.getElementById('react-root');
-
-if (!rootElement) {
-  throw new Error('Missing React root element.');
+function mount(element: Element, props: GeneralSettingsProps = {}) {
+  const root = createRoot(element);
+  root.render(<GeneralSettings {...props} />);
+  return {
+    render(nextProps: GeneralSettingsProps = {}) {
+      root.render(<GeneralSettings {...nextProps} />);
+    },
+    unmount() {
+      root.unmount();
+    }
+  };
 }
 
-createRoot(rootElement).render(<GeneralSettings />);
+const globalWindow = window as any;
+globalWindow.OmegaReactGeneralSettings = {
+  mount
+};
+
+const rootElement = document.getElementById('react-root');
+
+if (rootElement) {
+  mount(rootElement);
+}
