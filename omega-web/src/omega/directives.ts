@@ -238,13 +238,20 @@
           bridge = window.OmegaReactConfirmModal;
           if (bridge != null ? bridge.mount : void 0) {
             mounted = bridge.mount(element[0], {
+              attached: scope.attached,
+              dispName: scope.dispNameFilter,
               kind: attrs.modalKind,
               onClose: function() {
                 return scope.$close('ok');
               },
               onDismiss: function() {
                 return scope.$dismiss();
-              }
+              },
+              options: scope.options,
+              profile: scope.profile,
+              refs: scope.refs,
+              rule: scope.rule,
+              ruleProfile: scope.ruleProfile
             });
           }
         });
