@@ -23,6 +23,10 @@ interface Window {
     };
   };
   OmegaReactProfileModals?: {
+    mountNewProfile: (element: Element, props?: any) => {
+      render: (props?: any) => void;
+      unmount: () => void;
+    };
     mountRenameProfile: (element: Element, props?: any) => {
       render: (props?: any) => void;
       unmount: () => void;

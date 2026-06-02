@@ -297,6 +297,37 @@
     };
   });
 
+  angular.module('omega').directive('omegaReactNewProfile', function($timeout) {
+    return {
+      restrict: 'A',
+      link: function(scope, element) {
+        var bridge, mounted;
+        $timeout(function() {
+          bridge = window.OmegaReactProfileModals;
+          if (bridge != null ? bridge.mountNewProfile : void 0) {
+            mounted = bridge.mountNewProfile(element[0], {
+              isProfileNameHidden: scope.isProfileNameHidden,
+              isProfileNameReserved: scope.isProfileNameReserved,
+              onClose: function(profile) {
+                return scope.$close(profile);
+              },
+              onDismiss: function() {
+                return scope.$dismiss();
+              },
+              pacProfilesUnsupported: scope.pacProfilesUnsupported,
+              profileByName: scope.profileByName
+            });
+          }
+        });
+        return scope.$on('$destroy', function() {
+          if (mounted != null ? mounted.unmount : void 0) {
+            return mounted.unmount();
+          }
+        });
+      }
+    };
+  });
+
   angular.module('omega').directive('omegaIp2str', function() {
     return {
       restrict: 'A',
