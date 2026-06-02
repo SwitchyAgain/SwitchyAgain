@@ -240,9 +240,10 @@
             mounted = bridge.mount(element[0], {
               attached: scope.attached,
               dispName: scope.dispNameFilter,
+              fromName: scope.fromName,
               kind: attrs.modalKind,
-              onClose: function() {
-                return scope.$close('ok');
+              onClose: function(value) {
+                return scope.$close(value || 'ok');
               },
               onDismiss: function() {
                 return scope.$dismiss();
@@ -251,7 +252,8 @@
               profile: scope.profile,
               refs: scope.refs,
               rule: scope.rule,
-              ruleProfile: scope.ruleProfile
+              ruleProfile: scope.ruleProfile,
+              toName: scope.toName
             });
           }
         });

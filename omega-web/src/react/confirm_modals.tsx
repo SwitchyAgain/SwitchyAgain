@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import {Options, message} from './options_client';
 
@@ -8,6 +8,7 @@ type ConfirmKind =
   | 'deleteAttached'
   | 'deleteProfile'
   | 'reset'
+  | 'replaceProfile'
   | 'ruleRemove'
   | 'ruleReset';
 
@@ -27,14 +28,16 @@ type Rule = {
 type ConfirmModalProps = {
   attached?: any;
   dispName?: (profile: Profile) => string;
+  fromName?: string;
   kind: ConfirmKind;
-  onClose?: () => void;
+  onClose?: (value?: any) => void;
   onDismiss?: () => void;
   options?: Options | null;
   profile?: Profile | null;
   refs?: Profile[];
   rule?: Rule | null;
   ruleProfile?: Profile | null;
+  toName?: string;
 };
 
 const PROFILE_ICONS: Record<string, string> = {
@@ -70,6 +73,66 @@ function ProfileInline({profile, dispName}: {profile?: Profile | null; dispName?
   );
 }
 
+function profilesFromOptions(options?: Options | null) {
+  if (!options) {
+    return [];
+  }
+  return Object.keys(options).filter((key) => key.charAt(0) === '+').map((key) => options[key]).filter((profile) => {
+    const name = profile?.name || '';
+    return !(name.charAt(0) === '_' && name.charAt(1) === '_');
+  }) as Profile[];
+}
+
+function profileByName(options: Options | null | undefined, name: string) {
+  return profilesFromOptions(options).find((profile) => profile.name === name) || null;
+}
+
+function ProfileSelect({
+  dispName,
+  name,
+  onChange,
+  options
+}: {
+  dispName?: (profile: Profile) => string;
+  name: string;
+  onChange: (name: string) => void;
+  options?: Options | null;
+}) {
+  const [open, setOpen] = useState(false);
+  const profiles = useMemo(() => profilesFromOptions(options), [options]);
+  const selectedProfile = profiles.find((profile) => profile.name === name) || null;
+  return (
+    <div className={`btn-group omega-profile-select ${open ? 'open' : ''}`} style={{display: 'inline-block'}}>
+      <button
+        type="button"
+        className="btn btn-default dropdown-toggle"
+        aria-expanded={open ? 'true' : 'false'}
+        aria-haspopup="true"
+        role="listbox"
+        onClick={() => setOpen(!open)}
+      >
+        <ProfileIcon profile={selectedProfile} />{' '}
+        <span>{profileName(selectedProfile, dispName)}</span>{' '}
+        <span className="caret" />
+      </button>
+      {open && (
+        <ul className="dropdown-menu" role="listbox">
+          {profiles.map((profile) => (
+            <li key={profile.name} role="option" className={name === profile.name ? 'active' : ''}>
+              <a onClick={() => {
+                onChange(profile.name || '');
+                setOpen(false);
+              }}>
+                <ProfileIcon profile={profile} /> {profileName(profile, dispName)}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function attachedLabel(attached: any) {
   if (!attached) {
     return '';
@@ -93,6 +156,8 @@ function titleFor(kind: ConfirmKind) {
       return message('options_modalHeader_deleteProfile', 'Delete Profile');
     case 'reset':
       return message('options_modalHeader_resetOptions', 'Reset Options');
+    case 'replaceProfile':
+      return message('options_modalHeader_replaceProfile', 'Replace Profile');
     case 'ruleRemove':
       return message('options_modalHeader_deleteRule', 'Delete Rule');
     case 'ruleReset':
@@ -100,8 +165,35 @@ function titleFor(kind: ConfirmKind) {
   }
 }
 
-function bodyFor(props: ConfirmModalProps) {
+function messageWithNodes(
+  key: string,
+  fallback: string,
+  substitutions: string[],
+  nodes: Record<string, React.ReactNode>
+) {
+  const text = message(key, fallback, substitutions);
+  const tokens = Object.keys(nodes);
+  if (!tokens.length) {
+    return text;
+  }
+  const pattern = new RegExp(`(${tokens.map((token) => token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g');
+  return text.split(pattern).map((part, index) => nodes[part] ? (
+    <React.Fragment key={`${part}-${index}`}>{nodes[part]}</React.Fragment>
+  ) : part);
+}
+
+function bodyFor(
+  props: ConfirmModalProps,
+  replaceState: {
+    fromName: string;
+    setFromName: (name: string) => void;
+    setToName: (name: string) => void;
+    toName: string;
+  }
+) {
   const {attached, dispName, kind, profile, refs = [], rule, ruleProfile} = props;
+  const fromProfile = profileByName(props.options, replaceState.fromName);
+  const toProfile = profileByName(props.options, replaceState.toName);
   switch (kind) {
     case 'apply':
       return (
@@ -146,6 +238,52 @@ function bodyFor(props: ConfirmModalProps) {
       );
     case 'reset':
       return <p className="text-danger">{message('options_resetOptionsConfirm', 'Do you really want to reset the options? All profiles and settings will be LOST!')}</p>;
+    case 'replaceProfile':
+      return (
+        <>
+          <p>
+            {messageWithNodes(
+              'options_replaceProfileConfirm',
+              'Do you really want to replace __FROM_PROFILE__ with __TO_PROFILE__?',
+              ['__FROM_PROFILE__', '__TO_PROFILE__'],
+              {
+                __FROM_PROFILE__: (
+                  <ProfileSelect
+                    dispName={dispName}
+                    name={replaceState.fromName}
+                    onChange={replaceState.setFromName}
+                    options={props.options}
+                  />
+                ),
+                __TO_PROFILE__: (
+                  <ProfileSelect
+                    dispName={dispName}
+                    name={replaceState.toName}
+                    onChange={replaceState.setToName}
+                    options={props.options}
+                  />
+                )
+              }
+            )}
+          </p>
+          <div className="well">
+            <ProfileInline profile={fromProfile} dispName={dispName} />{' '}
+            <span className="glyphicon glyphicon-chevron-right" />{' '}
+            <ProfileInline profile={toProfile} dispName={dispName} />
+          </div>
+          <div className="help-block">
+            {messageWithNodes(
+              'options_replaceProfileHelp',
+              'If you proceed, all rules pointing to __FROM_PROFILE__ will be updated to use __TO_PROFILE__ instead. Other options, such as startup profile and Quick Switch will also be modified as appropriate. However, the two profile themselves will NOT be changed or deleted.',
+              ['__FROM_PROFILE__', '__TO_PROFILE__'],
+              {
+                __FROM_PROFILE__: <ProfileInline profile={fromProfile} dispName={dispName} />,
+                __TO_PROFILE__: <ProfileInline profile={toProfile} dispName={dispName} />
+              }
+            )}
+          </div>
+        </>
+      );
     case 'ruleRemove':
       return (
         <>
@@ -199,6 +337,12 @@ function closeButtonFor(kind: ConfirmKind) {
         label: message('options_reset', 'Reset'),
         value: 'ok'
       };
+    case 'replaceProfile':
+      return {
+        className: 'btn-warning',
+        label: message('options_replaceProfile', 'Replace Profile'),
+        value: 'replace'
+      };
     case 'ruleRemove':
       return {
         className: 'btn-danger',
@@ -216,7 +360,20 @@ function closeButtonFor(kind: ConfirmKind) {
 
 function ConfirmModal(props: ConfirmModalProps) {
   const {kind, onClose, onDismiss} = props;
+  const [fromName, setFromName] = useState(props.fromName || '');
+  const [toName, setToName] = useState(props.toName || '');
+  useEffect(() => {
+    setFromName(props.fromName || '');
+    setToName(props.toName || '');
+  }, [props.fromName, props.toName]);
   const closeButton = closeButtonFor(kind);
+  const handleClose = () => {
+    if (kind === 'replaceProfile') {
+      onClose?.({fromName, toName});
+      return;
+    }
+    onClose?.('ok');
+  };
   return (
     <>
       <div className="modal-header">
@@ -227,14 +384,14 @@ function ConfirmModal(props: ConfirmModalProps) {
         <h4 className="modal-title">{titleFor(kind)}</h4>
       </div>
       <div className="modal-body">
-        {bodyFor(props)}
+        {bodyFor(props, {fromName, setFromName, setToName, toName})}
       </div>
       <div className="modal-footer">
         <button type="button" className="btn btn-default" onClick={onDismiss}>
           {message('dialog_cancel', 'Cancel')}
         </button>
         {closeButton && (
-          <button type="button" className={`btn ${closeButton.className}`} onClick={onClose}>
+          <button type="button" className={`btn ${closeButton.className}`} onClick={handleClose}>
             {closeButton.label}
           </button>
         )}
