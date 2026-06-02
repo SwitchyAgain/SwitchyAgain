@@ -128,6 +128,11 @@ type SwitchRulesHeaderProps = {
   } | null;
 };
 
+type SwitchRuleTableHeaderProps = {
+  onToggleConditionHelp?: () => void;
+  showNotes?: boolean;
+};
+
 type SwitchRuleFooterProps = {
   attached?: RuleListProfileModel | null;
   attachedOptions?: {
@@ -761,6 +766,32 @@ function SwitchRulesHeader({
   );
 }
 
+function SwitchRuleTableHeader({
+  onToggleConditionHelp,
+  showNotes = false
+}: SwitchRuleTableHeaderProps) {
+  return (
+    <tr>
+      <th style={{whiteSpace: 'nowrap'}}>{message('options_sort', 'Sort')}</th>
+      <th className="condition-type-th">
+        {message('options_conditionType', 'Condition Type')}{' '}
+        <button
+          type="button"
+          className="btn btn-link btn-sm clear-padding toggle-condition-help"
+          title={message('options_showConditionTypeHelp', 'Show condition type help')}
+          onClick={() => onToggleConditionHelp?.()}
+        >
+          <span className="glyphicon glyphicon-question-sign" />
+        </button>
+      </th>
+      <th>{message('options_conditionDetails', 'Condition Details')}</th>
+      <th>{message('options_resultProfile', 'Result Profile')}</th>
+      <th>{message('options_conditionActions', 'Actions')}</th>
+      {showNotes && <th>{message('options_ruleNote', 'Note')}</th>}
+    </tr>
+  );
+}
+
 function SwitchRuleFooter({
   attached,
   attachedOptions = {},
@@ -1125,6 +1156,19 @@ function mountSwitchRulesHeader(element: Element, props: SwitchRulesHeaderProps 
   };
 }
 
+function mountSwitchRuleTableHeader(element: Element, props: SwitchRuleTableHeaderProps = {}) {
+  const root = createRoot(element);
+  root.render(<SwitchRuleTableHeader {...props} />);
+  return {
+    render(nextProps: SwitchRuleTableHeaderProps = {}) {
+      root.render(<SwitchRuleTableHeader {...nextProps} />);
+    },
+    unmount() {
+      root.unmount();
+    }
+  };
+}
+
 function mountSwitchRuleFooter(element: Element, props: SwitchRuleFooterProps = {}) {
   const root = createRoot(element);
   root.render(<SwitchRuleFooter {...props} />);
@@ -1146,6 +1190,7 @@ globalWindow.OmegaReactProfileContent = {
   mountSwitchAttachedProfile,
   mountSwitchConditionHelp,
   mountSwitchRuleFooter,
+  mountSwitchRuleTableHeader,
   mountSwitchRulesHeader,
   mountUnsupportedProfile,
   mountVirtualProfile

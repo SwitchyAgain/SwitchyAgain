@@ -826,6 +826,45 @@
     };
   });
 
+  angular.module('omega').directive('omegaReactSwitchRuleTableHeader', function($timeout) {
+    return {
+      restrict: 'A',
+      link: function(scope, element) {
+        var bridge, mounted, props, render, unwatchShowNotes;
+        props = function() {
+          return {
+            onToggleConditionHelp: function() {
+              return scope.$evalAsync(function() {
+                return scope.conditionHelp.show = !scope.conditionHelp.show;
+              });
+            },
+            showNotes: scope.showNotes
+          };
+        };
+        render = function() {
+          if (mounted != null ? mounted.render : void 0) {
+            return mounted.render(props());
+          }
+        };
+        $timeout(function() {
+          bridge = window.OmegaReactProfileContent;
+          if (bridge != null ? bridge.mountSwitchRuleTableHeader : void 0) {
+            mounted = bridge.mountSwitchRuleTableHeader(element[0], props());
+            unwatchShowNotes = scope.$watch('showNotes', render);
+          }
+        });
+        return scope.$on('$destroy', function() {
+          if (unwatchShowNotes) {
+            unwatchShowNotes();
+          }
+          if (mounted != null ? mounted.unmount : void 0) {
+            return mounted.unmount();
+          }
+        });
+      }
+    };
+  });
+
   angular.module('omega').directive('omegaReactSwitchRuleFooter', function($timeout, $filter) {
     return {
       restrict: 'A',

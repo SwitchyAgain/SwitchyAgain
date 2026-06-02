@@ -4,20 +4,7 @@ div(ng-controller='SwitchProfileCtrl')
     div(omega-react-switch-rules-header)
     .table-responsive.switch-rules-wrapper(ng-if='loadRules' ng-show='!editSource')
       table.switch-rules.table.table-bordered.table-condensed.width-limit-xl
-        thead
-          tr
-            th(style='white-space: nowrap') {{'options_sort' | tr}}
-            th.condition-type-th
-              | {{'options_conditionType' | tr}}
-              = ' '
-              button.btn.btn-link.btn-sm.clear-padding.toggle-condition-help(
-                title='{{"options_showConditionTypeHelp" | tr}}'
-                ng-click='conditionHelp.show = !conditionHelp.show')
-                span.glyphicon.glyphicon-question-sign
-            th {{'options_conditionDetails' | tr}}
-            th {{'options_resultProfile' | tr}}
-            th {{'options_conditionActions' | tr}}
-            th(ng-if='showNotes') {{'options_ruleNote' | tr}}
+        thead(omega-react-switch-rule-table-header)
         tbody(ui-sortable='sortableOptions' ng-model='profile.rules')
           tr.switch-rule-row(ng-repeat='rule in profile.rules')
             td.sort-bar
