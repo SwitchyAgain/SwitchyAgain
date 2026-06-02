@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.1.9
+
+React options migration preview.
+
+- Added hidden React options preview pages for isolated testing.
+- Embedded React implementations for General, Import/Export, UI settings,
+  About, confirmation modals, profile creation/rename/auth modals, and small
+  profile content views while preserving the legacy Bootstrap options shell.
+- Added shared React profile widgets for profile icon, inline display, and
+  profile selection.
+- Updated About page copy and locale entries for the current SwitchyAgain
+  project information.
+- Corrected settings branding copy to SwitchyAgain.
+
 ## v1.1.8
 
 Maintenance release for workspace build and extension packaging cleanup.
