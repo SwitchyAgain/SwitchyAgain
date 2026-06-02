@@ -128,6 +128,25 @@ type SwitchRulesHeaderProps = {
   } | null;
 };
 
+type SwitchRuleFooterProps = {
+  attached?: RuleListProfileModel | null;
+  attachedOptions?: {
+    defaultProfileName?: string;
+    enabled?: boolean;
+  };
+  dispName?: (profile: Profile) => string;
+  onAddRule?: () => void;
+  onAttachedEnabledChange?: (enabled: boolean) => void;
+  onAttachedMatchProfileChange?: (name: string) => void;
+  onDefaultProfileChange?: (name: string) => void;
+  onRemoveAttached?: () => void;
+  onResetRules?: () => void;
+  options?: Options | null;
+  resultProfiles?: Profile[];
+  ruleListIcon?: string;
+  showNotes?: boolean;
+};
+
 function messageWithNodes(
   key: string,
   fallback: string,
@@ -742,6 +761,97 @@ function SwitchRulesHeader({
   );
 }
 
+function SwitchRuleFooter({
+  attached,
+  attachedOptions = {},
+  dispName,
+  onAddRule,
+  onAttachedEnabledChange,
+  onAttachedMatchProfileChange,
+  onDefaultProfileChange,
+  onRemoveAttached,
+  onResetRules,
+  options,
+  resultProfiles,
+  ruleListIcon = 'glyphicon-list',
+  showNotes = false
+}: SwitchRuleFooterProps) {
+  return (
+    <>
+      <tr>
+        <td style={{borderRight: 'none'}} />
+        <td style={{borderLeft: 'none'}} colSpan={showNotes ? 5 : 4}>
+          <button type="button" className="btn btn-default btn-sm" onClick={() => onAddRule?.()}>
+            <span className="glyphicon glyphicon-plus" /> <span>{message('options_addCondition', 'Add Condition')}</span>
+          </button>
+        </td>
+      </tr>
+      {attached && (
+        <tr className="switch-attached">
+          <td style={{borderRight: 'none'}}>
+            <span className={`glyphicon ${ruleListIcon}`} />
+          </td>
+          <td style={{borderLeft: 'none'}}>
+            <span className="checkbox">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={!!attachedOptions.enabled}
+                  onChange={(event) => onAttachedEnabledChange?.(event.currentTarget.checked)}
+                />
+                {message('options_switchAttachedProfileInCondition', 'Use attached rule list in conditions')}
+              </label>
+            </span>
+          </td>
+          <td>
+            {attachedOptions.enabled ? (
+              <span>{message('options_switchAttachedProfileInConditionDetails', 'Rules from the attached profile are included.')}</span>
+            ) : (
+              <span>{message('options_switchAttachedProfileInConditionDisabled', 'Rules from the attached profile are disabled.')}</span>
+            )}
+          </td>
+          <td>
+            <div className={!attachedOptions.enabled ? 'disabled' : ''}>
+              <ProfileSelect
+                dispName={dispName}
+                name={attached.matchProfileName || ''}
+                onChange={(name) => onAttachedMatchProfileChange?.(name)}
+                options={options}
+                profiles={resultProfiles}
+              />
+            </div>
+          </td>
+          <td>
+            <button type="button" className="btn btn-danger btn-sm" title={message('options_deleteAttached', 'Delete attached profile')} onClick={() => onRemoveAttached?.()}>
+              <span className="glyphicon glyphicon-trash" />
+            </button>
+          </td>
+          {showNotes && <td />}
+        </tr>
+      )}
+      <tr className="switch-default-row">
+        <td />
+        <td colSpan={2}>{message('options_switchDefaultProfile', 'Default Profile')}</td>
+        <td>
+          <ProfileSelect
+            dispName={dispName}
+            name={attachedOptions.defaultProfileName || ''}
+            onChange={(name) => onDefaultProfileChange?.(name)}
+            options={options}
+            profiles={resultProfiles}
+          />
+        </td>
+        <td>
+          <button type="button" className="btn btn-info btn-sm" title={message('options_resetRules_help', 'Reset rules')} onClick={() => onResetRules?.()}>
+            <span className="glyphicon glyphicon-chevron-up" />
+          </button>
+        </td>
+        {showNotes && <td />}
+      </tr>
+    </>
+  );
+}
+
 function RuleListProfile({
   dispName,
   onDownload,
@@ -1015,6 +1125,19 @@ function mountSwitchRulesHeader(element: Element, props: SwitchRulesHeaderProps 
   };
 }
 
+function mountSwitchRuleFooter(element: Element, props: SwitchRuleFooterProps = {}) {
+  const root = createRoot(element);
+  root.render(<SwitchRuleFooter {...props} />);
+  return {
+    render(nextProps: SwitchRuleFooterProps = {}) {
+      root.render(<SwitchRuleFooter {...nextProps} />);
+    },
+    unmount() {
+      root.unmount();
+    }
+  };
+}
+
 const globalWindow = window as any;
 globalWindow.OmegaReactProfileContent = {
   mountFixedProfile,
@@ -1022,6 +1145,7 @@ globalWindow.OmegaReactProfileContent = {
   mountRuleListProfile,
   mountSwitchAttachedProfile,
   mountSwitchConditionHelp,
+  mountSwitchRuleFooter,
   mountSwitchRulesHeader,
   mountUnsupportedProfile,
   mountVirtualProfile

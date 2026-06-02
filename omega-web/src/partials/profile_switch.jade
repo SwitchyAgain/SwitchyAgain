@@ -69,44 +69,5 @@ div(ng-controller='SwitchProfileCtrl')
                 span.glyphicon.glyphicon-comment
             td(ng-if='showNotes')
               input.form-control(ng-model='rule.note')
-        tbody
-          tr
-            td(style='border-right: none;')
-            td(style='border-left: none;' colspan='4' ng-attr-colspan='{{showNotes ? 5 : 4}}')
-              button.btn.btn-default.btn-sm(ng-click='addRule()')
-                span.glyphicon.glyphicon-plus
-                = ' '
-                span {{'options_addCondition' | tr}}
-        tbody.switch-attached(ng-if='attached')
-          tr
-            td(style='border-right: none;')
-              span.glyphicon(class='{{profileIcons["RuleListProfile"]}}')
-            td(style='border-left: none;')
-              span.checkbox
-                label
-                  input(type='checkbox' ng-model='attachedOptions.enabled')
-                  | {{'options_switchAttachedProfileInCondition' | tr}}
-            td
-              span(ng-show='!!attachedOptions.enabled')
-                | {{'options_switchAttachedProfileInConditionDetails' | tr}}
-              span(ng-show='!attachedOptions.enabled')
-                | {{'options_switchAttachedProfileInConditionDisabled' | tr}}
-            td
-              div(omega-profile-select='options | profiles:profile' ng-model='attached.matchProfileName'
-                disp-name='dispNameFilter' options='options' ng-class='{disabled: !attachedOptions.enabled}')
-            td
-              button.btn.btn-danger.btn-sm(title="{{'options_deleteAttached' | tr}}" ng-click='removeAttached()')
-                span.glyphicon.glyphicon-trash
-            td(ng-if='showNotes')
-        tbody
-          tr.switch-default-row
-            td
-            td(colspan='2') {{'options_switchDefaultProfile' | tr}}
-            td
-              div(omega-profile-select='options | profiles:profile' ng-model='attachedOptions.defaultProfileName'
-                disp-name='dispNameFilter' options='options')
-            td
-              button.btn.btn-info.btn-sm(title="{{'options_resetRules_help' | tr}}" ng-click='resetRules()')
-                span.glyphicon.glyphicon-chevron-up
-            td(ng-if='showNotes')
+        tbody(omega-react-switch-rule-footer)
   div(omega-react-switch-attached-profile)

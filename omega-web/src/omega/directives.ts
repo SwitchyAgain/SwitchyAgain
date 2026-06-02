@@ -826,6 +826,80 @@
     };
   });
 
+  angular.module('omega').directive('omegaReactSwitchRuleFooter', function($timeout, $filter) {
+    return {
+      restrict: 'A',
+      link: function(scope, element) {
+        var bridge, mounted, props, render, unwatchAttached, unwatchAttachedOptions, unwatchShowNotes;
+        props = function() {
+          return {
+            attached: scope.attached,
+            attachedOptions: scope.attachedOptions,
+            dispName: scope.dispNameFilter,
+            onAddRule: function() {
+              return scope.addRule();
+            },
+            onAttachedEnabledChange: function(enabled) {
+              return scope.$evalAsync(function() {
+                return scope.attachedOptions.enabled = enabled;
+              });
+            },
+            onAttachedMatchProfileChange: function(name) {
+              return scope.$evalAsync(function() {
+                if (scope.attached) {
+                  return scope.attached.matchProfileName = name;
+                }
+              });
+            },
+            onDefaultProfileChange: function(name) {
+              return scope.$evalAsync(function() {
+                return scope.attachedOptions.defaultProfileName = name;
+              });
+            },
+            onRemoveAttached: function() {
+              return scope.removeAttached();
+            },
+            onResetRules: function() {
+              return scope.resetRules();
+            },
+            options: scope.options,
+            resultProfiles: $filter('profiles')(scope.options, scope.profile),
+            ruleListIcon: scope.profileIcons['RuleListProfile'],
+            showNotes: scope.showNotes
+          };
+        };
+        render = function() {
+          if (mounted != null ? mounted.render : void 0) {
+            return mounted.render(props());
+          }
+        };
+        $timeout(function() {
+          bridge = window.OmegaReactProfileContent;
+          if (bridge != null ? bridge.mountSwitchRuleFooter : void 0) {
+            mounted = bridge.mountSwitchRuleFooter(element[0], props());
+            unwatchAttached = scope.$watch('attached', render, true);
+            unwatchAttachedOptions = scope.$watch('attachedOptions', render, true);
+            unwatchShowNotes = scope.$watch('showNotes', render);
+          }
+        });
+        return scope.$on('$destroy', function() {
+          if (unwatchAttached) {
+            unwatchAttached();
+          }
+          if (unwatchAttachedOptions) {
+            unwatchAttachedOptions();
+          }
+          if (unwatchShowNotes) {
+            unwatchShowNotes();
+          }
+          if (mounted != null ? mounted.unmount : void 0) {
+            return mounted.unmount();
+          }
+        });
+      }
+    };
+  });
+
   angular.module('omega').directive('omegaReactOptionsWelcome', function($timeout) {
     return {
       restrict: 'A',
