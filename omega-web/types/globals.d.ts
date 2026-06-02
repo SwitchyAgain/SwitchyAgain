@@ -36,6 +36,12 @@ interface Window {
       unmount: () => void;
     };
   };
+  OmegaReactProfileContent?: {
+    mountUnsupportedProfile: (element: Element, props?: any) => {
+      render: (props?: any) => void;
+      unmount: () => void;
+    };
+  };
   OmegaReactUiSettings?: {
     mount: (element: Element, props?: any) => {
       render: (props?: any) => void;

@@ -358,6 +358,28 @@
     };
   });
 
+  angular.module('omega').directive('omegaReactUnsupportedProfile', function($timeout) {
+    return {
+      restrict: 'A',
+      link: function(scope, element) {
+        var bridge, mounted;
+        $timeout(function() {
+          bridge = window.OmegaReactProfileContent;
+          if (bridge != null ? bridge.mountUnsupportedProfile : void 0) {
+            mounted = bridge.mountUnsupportedProfile(element[0], {
+              profile: scope.profile
+            });
+          }
+        });
+        return scope.$on('$destroy', function() {
+          if (mounted != null ? mounted.unmount : void 0) {
+            return mounted.unmount();
+          }
+        });
+      }
+    };
+  });
+
   angular.module('omega').directive('omegaIp2str', function() {
     return {
       restrict: 'A',
