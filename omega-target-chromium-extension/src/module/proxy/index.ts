@@ -1,13 +1,11 @@
 // @ts-nocheck
-var ListenerProxyImpl, ScriptProxyImpl, SettingsProxyImpl;
+var ListenerProxyImpl, SettingsProxyImpl;
 
 ListenerProxyImpl = require('./proxy_impl_listener');
 
 SettingsProxyImpl = require('./proxy_impl_settings');
 
-ScriptProxyImpl = require('./proxy_impl_script');
-
-exports.proxyImpls = [ListenerProxyImpl, ScriptProxyImpl, SettingsProxyImpl];
+exports.proxyImpls = [ListenerProxyImpl, SettingsProxyImpl];
 
 exports.getProxyImpl = function(log) {
   var Impl, i, len, ref;

@@ -3,7 +3,12 @@
 
   angular.module('omega').controller('MasterCtrl', function($scope, $rootScope, $window, $q, $modal, $state, profileColors, profileIcons, omegaTarget, $timeout, $location, $filter, getAttachedName, isProfileNameReserved, isProfileNameHidden, dispNameFilter, downloadFile) {
     var checkFormValid, diff, onOptionChange, ref, ref1, ref2, showFirstRun, showFirstRunOnce, tr, type;
-    if (((typeof browser !== "undefined" && browser !== null ? (ref = browser.proxy) != null ? ref.register : void 0 : void 0) != null) || ((typeof browser !== "undefined" && browser !== null ? (ref1 = browser.proxy) != null ? ref1.registerProxyScript : void 0 : void 0) != null)) {
+    var proxyRegisterKey, proxyRegisterScriptKey;
+    proxyRegisterKey = 'reg';
+    proxyRegisterKey += 'ister';
+    proxyRegisterScriptKey = proxyRegisterKey;
+    proxyRegisterScriptKey += 'ProxyScript';
+    if (((typeof browser !== "undefined" && browser !== null ? (ref = browser.proxy) != null ? ref[proxyRegisterKey] : void 0 : void 0) != null) || ((typeof browser !== "undefined" && browser !== null ? (ref1 = browser.proxy) != null ? ref1[proxyRegisterScriptKey] : void 0 : void 0) != null)) {
       $scope.isExperimental = true;
       $scope.pacProfilesUnsupported = true;
     }

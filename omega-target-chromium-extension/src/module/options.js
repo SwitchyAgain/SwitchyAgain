@@ -127,7 +127,7 @@ ChromeOptions = (function (superClass) {
                     if (info.checked && !_this._quickSwitchCanEnable) {
                         return setOptions.then(function () {
                             return chrome.tabs.create({
-                                url: chrome.extension.getURL('options.html#/ui')
+                                url: chrome.runtime.getURL('options.html#/ui')
                             });
                         });
                     }
@@ -387,7 +387,7 @@ ChromeOptions = (function (superClass) {
     };
     ChromeOptions.prototype.onFirstRun = function (reason) {
         return chrome.tabs.create({
-            url: chrome.extension.getURL('options.html')
+            url: chrome.runtime.getURL('options.html')
         });
     };
     ChromeOptions.prototype.getPageInfo = function (arg) {

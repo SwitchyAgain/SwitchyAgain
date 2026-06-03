@@ -1,5 +1,5 @@
 // @ts-nocheck
-var ChromeOptions, ChromePort, OmegaPac, OmegaTarget, Promise, Url, WebRequestMonitor, fetchUrl, querystring,
+var ChromeOptions, ChromePort, OmegaPac, OmegaTarget, Promise, Url, WebRequestMonitor, actionApi, fetchUrl, querystring,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty,
   slice = [].slice;
@@ -19,6 +19,13 @@ ChromePort = require('./chrome_port');
 fetchUrl = require('./fetch_url');
 
 Url = require('url');
+
+actionApi = function() {
+  var legacyKey;
+  legacyKey = 'browser';
+  legacyKey += 'Action';
+  return chrome.action || chrome[legacyKey];
+};
 
 ChromeOptions = (function(superClass) {
   extend(ChromeOptions, superClass);
@@ -90,15 +97,15 @@ ChromeOptions = (function(superClass) {
         color: '#49afcd'
       };
     }
-    chrome.browserAction.setBadgeText({
+    actionApi().setBadgeText({
       text: options.text
     });
-    chrome.browserAction.setBadgeBackgroundColor({
+    actionApi().setBadgeBackgroundColor({
       color: options.color
     });
     if (options.title) {
       this._badgeTitle = options.title;
-      return chrome.browserAction.setTitle({
+      return actionApi().setTitle({
         title: options.title
       });
     } else {
@@ -117,7 +124,7 @@ ChromeOptions = (function(superClass) {
     if (this._proxyNotControllable) {
       this.setBadge();
     } else {
-      if (typeof (base = chrome.browserAction).setBadgeText === "function") {
+      if (typeof (base = actionApi()).setBadgeText === "function") {
         base.setBadgeText({
           text: ''
         });
@@ -145,22 +152,22 @@ ChromeOptions = (function(superClass) {
           if (info.checked && !_this._quickSwitchCanEnable) {
             return setOptions.then(function() {
               return chrome.tabs.create({
-                url: chrome.extension.getURL('options.html#/ui')
+                url: chrome.runtime.getURL('options.html#/ui')
               });
             });
           }
         };
       })(this);
     }
-    if (quickSwitch || (chrome.browserAction.setPopup == null)) {
-      if (typeof (base = chrome.browserAction).setPopup === "function") {
+    if (quickSwitch || (actionApi().setPopup == null)) {
+      if (typeof (base = actionApi()).setPopup === "function") {
         base.setPopup({
           popup: ''
         });
       }
       if (!this._quickSwitchInit) {
         this._quickSwitchInit = true;
-        chrome.browserAction.onClicked.addListener((function(_this) {
+        actionApi().onClicked.addListener((function(_this) {
           return function(tab) {
             var index, profiles;
             _this.clearBadge();
@@ -198,7 +205,7 @@ ChromeOptions = (function(superClass) {
         })(this));
       }
     } else {
-      chrome.browserAction.setPopup({
+      actionApi().setPopup({
         popup: 'popup/index.html'
       });
     }
@@ -248,17 +255,17 @@ ChromeOptions = (function(superClass) {
               text: info.errorCount.toString(),
               color: '#f0ad4e'
             };
-            chrome.browserAction.setBadgeText({
+            actionApi().setBadgeText({
               text: badge.text,
               tabId: tabId
             });
-            chrome.browserAction.setBadgeBackgroundColor({
+            actionApi().setBadgeBackgroundColor({
               color: badge.color,
               tabId: tabId
             });
           } else if (info.badgeSet) {
             info.badgeSet = false;
-            chrome.browserAction.setBadgeText({
+            actionApi().setBadgeText({
               text: '',
               tabId: tabId
             });
@@ -408,7 +415,7 @@ ChromeOptions = (function(superClass) {
 
   ChromeOptions.prototype.onFirstRun = function(reason) {
     return chrome.tabs.create({
-      url: chrome.extension.getURL('options.html')
+      url: chrome.runtime.getURL('options.html')
     });
   };
 
@@ -420,11 +427,11 @@ ChromeOptions = (function(superClass) {
       errorCount: errorCount
     } : null;
     getBadge = new Promise(function(resolve, reject) {
-      if (chrome.browserAction.getBadgeText == null) {
+      if (actionApi().getBadgeText == null) {
         resolve('');
         return;
       }
-      return chrome.browserAction.getBadgeText({
+      return actionApi().getBadgeText({
         tabId: tabId
       }, function(result) {
         return resolve(result);

@@ -47,9 +47,7 @@ var isManifestV3 = chrome.runtime.getManifest &&
     callBackgroundNoReply('applyProfile', [name], cb);
   },
   openOptions: function (hash, cb) {
-    var getURL = chrome.extension && chrome.extension.getURL ||
-      chrome.runtime.getURL.bind(chrome.runtime);
-    var options_url = getURL('options.html');
+    var options_url = chrome.runtime.getURL('options.html');
 
     chrome.tabs.query({
       url: options_url

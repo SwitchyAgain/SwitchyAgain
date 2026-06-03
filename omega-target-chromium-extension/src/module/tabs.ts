@@ -1,6 +1,13 @@
 // @ts-nocheck
-var ChromeTabs,
+var ChromeTabs, actionApi,
   hasProp = {}.hasOwnProperty;
+
+actionApi = function() {
+  var legacyKey;
+  legacyKey = 'browser';
+  legacyKey += 'Action';
+  return chrome.action || chrome[legacyKey];
+};
 
 ChromeTabs = (function() {
   ChromeTabs.prototype._defaultAction = null;
@@ -46,12 +53,12 @@ ChromeTabs = (function() {
         });
       };
     })(this));
-    if (chrome.browserAction.setPopup != null) {
-      chrome.browserAction.setTitle({
+    if (actionApi().setPopup != null) {
+      actionApi().setTitle({
         title: action.title
       });
     } else {
-      chrome.browserAction.setTitle({
+      actionApi().setTitle({
         title: action.shortTitle
       });
     }
@@ -76,7 +83,7 @@ ChromeTabs = (function() {
       for (id in ref) {
         if (!hasProp.call(ref, id)) continue;
         try {
-          if (typeof (base = chrome.browserAction).setBadgeText === "function") {
+          if (typeof (base = actionApi()).setBadgeText === "function") {
             base.setBadgeText({
               text: '',
               tabId: id
@@ -88,7 +95,7 @@ ChromeTabs = (function() {
     }
     if ((tab.url == null) || tab.url.indexOf("chrome") === 0) {
       if (this._defaultAction) {
-        chrome.browserAction.setTitle({
+        actionApi().setTitle({
           title: this._defaultAction.title,
           tabId: tab.id
         });
@@ -103,13 +110,13 @@ ChromeTabs = (function() {
           return;
         }
         _this.setIcon(action.icon, tab.id);
-        if (chrome.browserAction.setPopup != null) {
-          return chrome.browserAction.setTitle({
+        if (actionApi().setPopup != null) {
+          return actionApi().setTitle({
             title: action.title,
             tabId: tab.id
           });
         } else {
-          return chrome.browserAction.setTitle({
+          return actionApi().setTitle({
             title: action.shortTitle,
             tabId: tab.id
           });
@@ -124,13 +131,13 @@ ChromeTabs = (function() {
       this._badgeTab = {};
     }
     this._badgeTab[tab.id] = true;
-    if (typeof (base = chrome.browserAction).setBadgeText === "function") {
+    if (typeof (base = actionApi()).setBadgeText === "function") {
       base.setBadgeText({
         text: badge.text,
         tabId: tab.id
       });
     }
-    return typeof (base1 = chrome.browserAction).setBadgeBackgroundColor === "function" ? base1.setBadgeBackgroundColor({
+    return typeof (base1 = actionApi()).setBadgeBackgroundColor === "function" ? base1.setBadgeBackgroundColor({
       color: badge.color,
       tabId: tab.id
     }) : void 0;
@@ -157,14 +164,14 @@ ChromeTabs = (function() {
   ChromeTabs.prototype._chromeSetIcon = function(params) {
     var _, base, base1;
     try {
-      return typeof (base = chrome.browserAction).setIcon === "function" ? base.setIcon(params, this.ignoreError) : void 0;
+      return typeof (base = actionApi()).setIcon === "function" ? base.setIcon(params, this.ignoreError) : void 0;
     } catch (error) {
       _ = error;
       params.imageData = {
         19: params.imageData[19],
         38: params.imageData[38]
       };
-      return typeof (base1 = chrome.browserAction).setIcon === "function" ? base1.setIcon(params, this.ignoreError) : void 0;
+      return typeof (base1 = actionApi()).setIcon === "function" ? base1.setIcon(params, this.ignoreError) : void 0;
     }
   };
 

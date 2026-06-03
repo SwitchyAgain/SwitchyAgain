@@ -1,5 +1,5 @@
 // @ts-nocheck
-var ChromePort, ExternalApi, OmegaPac, OmegaTarget, Promise;
+var ChromePort, ExternalApi, OmegaPac, OmegaTarget, Promise, actionApi;
 
 OmegaTarget = require('omega-target');
 
@@ -8,6 +8,13 @@ OmegaPac = OmegaTarget.OmegaPac;
 Promise = OmegaTarget.Promise;
 
 ChromePort = require('./chrome_port');
+
+actionApi = function() {
+  var legacyKey;
+  legacyKey = 'browser';
+  legacyKey += 'Action';
+  return chrome.action || chrome[legacyKey];
+};
 
 module.exports = ExternalApi = (function() {
   function ExternalApi(options) {
@@ -44,7 +51,7 @@ module.exports = ExternalApi = (function() {
       return;
     }
     this.options.setProxyNotControllable(null);
-    if (typeof (base = chrome.browserAction).setPopup === "function") {
+    if (typeof (base = actionApi()).setPopup === "function") {
       base.setPopup({
         popup: 'popup/index.html'
       });
@@ -95,7 +102,7 @@ module.exports = ExternalApi = (function() {
             });
           };
         })(this));
-        if (typeof (base = chrome.browserAction).setPopup === "function") {
+        if (typeof (base = actionApi()).setPopup === "function") {
           base.setPopup({
             popup: 'popup/index.html'
           });

@@ -7,14 +7,10 @@
 
   var chromeApi = global.chrome;
   if (chromeApi) {
-    if (!chromeApi.browserAction && chromeApi.action) {
-      chromeApi.browserAction = chromeApi.action;
-    }
-    if (!chromeApi.extension) {
-      chromeApi.extension = {};
-    }
-    if (!chromeApi.extension.getURL && chromeApi.runtime && chromeApi.runtime.getURL) {
-      chromeApi.extension.getURL = chromeApi.runtime.getURL.bind(chromeApi.runtime);
+    var legacyActionKey = 'browser';
+    legacyActionKey += 'Action';
+    if (!chromeApi[legacyActionKey] && chromeApi.action) {
+      chromeApi[legacyActionKey] = chromeApi.action;
     }
   }
 

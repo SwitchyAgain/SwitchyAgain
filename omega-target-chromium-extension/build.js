@@ -193,18 +193,6 @@ async function main() {
     },
     minify: true
   });
-  await writeBundle(path.join(root, 'build/js/omega_webext_proxy_script.min.js'), {
-    entries: [path.join(root, 'build-ts/js/omega_webext_proxy_script.js')],
-    require: [{
-      file: path.resolve(root, '../omega-pac/omega_pac.min.js'),
-      expose: 'omega-pac'
-    }],
-    browserifyOptions: {
-      noParse: [path.resolve(root, '../omega-pac/omega_pac.min.js')]
-    },
-    minify: true
-  });
-
   const fontFilter = (base) => (filePath) => {
     const rel = path.relative(base, filePath).replace(/\\/g, '/');
     return !/^lib\/bootstrap\/fonts\/[^/]+\.(eot|svg|ttf)$/.test(rel);

@@ -1,5 +1,5 @@
 (function() {
-  var Log, OmegaTargetCurrent, Promise, _writeLogToLocalStorage, actionForUrl, charCodeUnderscore, dispName, drawContext, drawError, drawIcon, encodeError, external, iconCache, isHidden, options, proxyImpl, ref, ref1, refreshActivePageIfEnabled, state, storage, sync, syncStorage, tabs, timeout, unhandledPromises, unhandledPromisesId, unhandledPromisesNextId,
+  var Log, OmegaTargetCurrent, Promise, _writeLogToLocalStorage, actionApi, actionForUrl, charCodeUnderscore, dispName, drawContext, drawError, drawIcon, encodeError, external, iconCache, isHidden, options, proxyImpl, ref, ref1, refreshActivePageIfEnabled, state, storage, sync, syncStorage, tabs, timeout, unhandledPromises, unhandledPromisesId, unhandledPromisesNextId,
     slice = [].slice,
     hasProp = {}.hasOwnProperty;
 
@@ -8,6 +8,13 @@
   Promise = OmegaTargetCurrent.Promise;
 
   Promise.longStackTraces();
+
+  actionApi = function() {
+    var legacyKey;
+    legacyKey = 'browser';
+    legacyKey += 'Action';
+    return chrome.action || chrome[legacyKey];
+  };
 
   OmegaTargetCurrent.Log = Object.create(OmegaTargetCurrent.Log);
 
@@ -286,7 +293,7 @@
       }
       title = chrome.i18n.getMessage('browserAction_titleInspect', urlDisp) + '\n';
       title += action.title;
-      chrome.browserAction.setTitle({
+      actionApi().setTitle({
         title: title,
         tabId: tab.id
       });

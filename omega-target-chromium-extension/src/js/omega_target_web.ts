@@ -140,7 +140,7 @@
       openOptions: function(hash) {
         var d, options_url;
         d = $q['defer']();
-        options_url = chrome.extension.getURL('options.html');
+        options_url = chrome.runtime.getURL('options.html');
         chrome.tabs.query({
           url: options_url
         }, function(tabs) {
