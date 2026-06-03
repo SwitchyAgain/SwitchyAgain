@@ -20,9 +20,10 @@ const RESTORE_URL_STATE = 'web.restoreOnlineUrl';
 
 type ImportExportProps = {
   embedded?: boolean;
-  onApplyOptionsConfirm?: () => Promise<any> | any;
+  onApplyOptions?: () => Promise<any> | any;
   onOptionsReplace?: (nextOptions: Options, options?: {dirty?: boolean}) => void;
   options?: Options | null;
+  optionsDirty?: boolean;
 };
 
 function htmlMessage(key: string, fallback: string) {
@@ -48,9 +49,10 @@ function storedRestoreUrl() {
 
 function ImportExport({
   embedded = false,
-  onApplyOptionsConfirm,
+  onApplyOptions,
   onOptionsReplace,
   options: initialOptions,
+  optionsDirty = false,
 }: ImportExportProps) {
   const [options, setOptions] = useState<Options | null>(() => embedded && initialOptions ? initialOptions : null);
   const [restoreUrl, setRestoreUrl] = useState(storedRestoreUrl);
@@ -96,12 +98,13 @@ function ImportExport({
       return;
     }
     setStatus('exporting');
-    Promise.resolve(onApplyOptionsConfirm?.()).then(() => {
+    confirmCurrentOptions().then(() => {
       const plainOptions = JSON.parse(JSON.stringify(options));
       const blob = new Blob([JSON.stringify(plainOptions)], {
         type: 'text/plain;charset=utf-8'
       });
       downloadBlob(blob, 'OmegaOptions.bak');
+    }).catch(() => {
     }).finally(() => {
       setStatus('ready');
     });
@@ -179,7 +182,17 @@ function ImportExport({
   }
 
   function confirmCurrentOptions() {
-    return Promise.resolve(onApplyOptionsConfirm?.());
+    if (!optionsDirty) {
+      return Promise.resolve(true);
+    }
+    const confirmed = window.confirm([
+      message('options_applyOptionsRequired', 'Your changes to the options must be applied before you proceed.'),
+      message('options_applyOptionsConfirm', 'Do you want to save and apply the options?')
+    ].join('\n\n'));
+    if (!confirmed) {
+      return Promise.reject(new Error('cancelled'));
+    }
+    return Promise.resolve(onApplyOptions?.());
   }
 
   function enableOptionsSync(args?: {force?: boolean}) {

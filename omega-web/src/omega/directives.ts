@@ -34,7 +34,7 @@
     return {
       restrict: 'A',
       link: function(scope, element) {
-        var invoke, mount, mounted, props, render, unwatchOptions;
+        var invoke, mount, mounted, props, render, unwatchOptions, unwatchOptionsDirty;
         invoke = function(action) {
           return new Promise(function(resolve, reject) {
             return scope.$evalAsync(function() {
@@ -50,9 +50,15 @@
           return {
             embedded: true,
             options: scope.$root.options,
-            onApplyOptionsConfirm: function() {
+            optionsDirty: scope.$root.optionsDirty,
+            onApplyOptions: function() {
               return invoke(function() {
-                return scope.$root.applyOptionsConfirm();
+                var result;
+                result = scope.$root.applyOptions();
+                if (!result) {
+                  return Promise.reject('form_invalid');
+                }
+                return result;
               });
             },
             onOptionsReplace: function(nextOptions, options) {
@@ -77,6 +83,7 @@
           bridge = window.OmegaReactImportExport;
           if (bridge != null ? bridge.mount : void 0) {
             mounted = bridge.mount(element[0], props());
+            unwatchOptionsDirty = scope.$root.$watch('optionsDirty', render);
             unwatchOptions = scope.$root.$watch('options', render);
           }
         };
@@ -87,6 +94,9 @@
         return scope.$on('$destroy', function() {
           if (unwatchOptions) {
             unwatchOptions();
+          }
+          if (unwatchOptionsDirty) {
+            unwatchOptionsDirty();
           }
           if (mounted != null ? mounted.unmount : void 0) {
             return mounted.unmount();
