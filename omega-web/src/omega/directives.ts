@@ -30,7 +30,7 @@
     };
   });
 
-  angular.module('omega').directive('omegaReactImportExport', function($timeout, omegaTarget) {
+  angular.module('omega').directive('omegaReactImportExport', function($timeout) {
     return {
       restrict: 'A',
       link: function(scope, element) {
@@ -55,23 +55,24 @@
                 return scope.$root.applyOptionsConfirm();
               });
             },
-            onOptionsChange: function(nextOptions) {
+            onOptionsChange: function(nextOptions, options) {
               return scope.$evalAsync(function() {
-                var key, results;
+                var dirty, key, replace, results;
+                options || (options = {});
+                replace = options.replace;
+                dirty = options.dirty;
+                if (replace) {
+                  scope.$root.options = nextOptions;
+                  scope.$root.optionsOld = angular.copy(nextOptions);
+                  scope.$root.optionsDirty = dirty != null ? dirty : false;
+                  return;
+                }
                 results = [];
                 for (key in nextOptions) {
                   scope.$root.options[key] = nextOptions[key];
-                  results.push(scope.$root.optionsDirty = true);
+                  results.push(scope.$root.optionsDirty = dirty != null ? dirty : true);
                 }
                 return results;
-              });
-            },
-            onOptionsReset: function() {
-              return omegaTarget.refresh();
-            },
-            showAlert: function(alert) {
-              return scope.$evalAsync(function() {
-                return scope.$root.showAlert(alert);
               });
             }
           };

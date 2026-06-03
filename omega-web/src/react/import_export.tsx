@@ -17,19 +17,11 @@ import {
 
 const RESTORE_URL_STATE = 'web.restoreOnlineUrl';
 
-type Alert = {
-  type: 'success' | 'error';
-  i18n?: string;
-  message?: string;
-};
-
 type ImportExportProps = {
   embedded?: boolean;
   onApplyOptionsConfirm?: () => Promise<any> | any;
-  onOptionsChange?: (nextOptions: Options) => void;
-  onOptionsReset?: (options: Options) => Promise<any> | any;
+  onOptionsChange?: (nextOptions: Options, options?: {dirty?: boolean; replace?: boolean}) => void;
   options?: Options | null;
-  showAlert?: (alert: Alert) => void;
 };
 
 function htmlMessage(key: string, fallback: string) {
@@ -57,9 +49,7 @@ function ImportExport({
   embedded = false,
   onApplyOptionsConfirm,
   onOptionsChange,
-  onOptionsReset,
   options: initialOptions,
-  showAlert
 }: ImportExportProps) {
   const [options, setOptions] = useState<Options | null>(() => embedded && initialOptions ? initialOptions : null);
   const [restoreUrl, setRestoreUrl] = useState(storedRestoreUrl);
@@ -90,30 +80,12 @@ function ImportExport({
   }, [embedded, initialOptions]);
 
   function showSuccess() {
-    if (embedded && showAlert) {
-      showAlert({
-        type: 'success',
-        i18n: 'options_importSuccess',
-        message: 'Options imported.'
-      });
-      setStatus('ready');
-      return;
-    }
     setError('');
     setStatus('success');
   }
 
   function showError(err: any, fallbackKey: string, fallback: string) {
     const messageText = errorMessage(err) || message(fallbackKey, fallback);
-    if (embedded && showAlert) {
-      showAlert({
-        type: 'error',
-        i18n: fallbackKey,
-        message: messageText
-      });
-      setStatus('ready');
-      return;
-    }
     setError(messageText);
     setStatus('error');
   }
@@ -138,7 +110,10 @@ function ImportExport({
     setStatus(restoringStatus);
     resetOptions(content).then((loadedOptions) => {
       setOptions(loadedOptions);
-      return Promise.resolve(onOptionsReset ? onOptionsReset(loadedOptions) : null);
+      return Promise.resolve(onOptionsChange?.(loadedOptions, {
+        dirty: false,
+        replace: true
+      }));
     }).then(() => {
       showSuccess();
     }).catch((err) => {
