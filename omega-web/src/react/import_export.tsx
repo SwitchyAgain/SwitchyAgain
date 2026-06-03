@@ -8,6 +8,7 @@ import {
   manifestVersion,
   message,
   Options,
+  patchOptions,
   resetOptions,
   resetOptionsSync,
   runtimeAvailable,
@@ -197,6 +198,28 @@ function ImportExport({
     return resetOptionsSync().then(() => confirmCurrentOptions().then(reloadOptionsPage));
   }
 
+  function saveExportLegacyRuleList(checked: boolean) {
+    const currentOptions = options || {};
+    const previous = currentOptions['-exportLegacyRuleList'];
+    const nextOptions = {
+      ...currentOptions,
+      '-exportLegacyRuleList': checked
+    };
+    setOptions(nextOptions);
+    patchOptions({
+      '-exportLegacyRuleList': [previous, checked]
+    }).then((loadedOptions) => {
+      setOptions(loadedOptions);
+      onOptionsChange?.(loadedOptions, {
+        dirty: false,
+        replace: true
+      });
+    }).catch((err) => {
+      setOptions(currentOptions);
+      showError(err, 'options_saveError', 'Unable to save options.');
+    });
+  }
+
   const profileSection = (
     <section className="settings-group">
       <h3>{message('options_group_importExportProfile', 'Profile')}</h3>
@@ -211,16 +234,7 @@ function ImportExport({
             <input
               type="checkbox"
               checked={Boolean(options?.['-exportLegacyRuleList'])}
-              onChange={(event) => {
-                const nextOptions = {
-                  ...(options || {}),
-                  '-exportLegacyRuleList': event.currentTarget.checked
-                };
-                setOptions(nextOptions);
-                onOptionsChange?.({
-                  '-exportLegacyRuleList': event.currentTarget.checked
-                });
-              }}
+              onChange={(event) => saveExportLegacyRuleList(event.currentTarget.checked)}
             />{' '}
             <span>{message('options_exportLegacyRuleList', 'Export legacy rule lists')}</span>
           </label>
