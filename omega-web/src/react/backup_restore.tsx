@@ -21,8 +21,13 @@ type Alert = {
 
 type BackupRestoreProps = {
   embedded?: boolean;
+  onExportOptions?: () => Promise<any> | any;
   onOptionsReset?: (options: Options) => Promise<any> | any;
+  onRestoreLocal?: (content: string) => Promise<any> | any;
+  onRestoreOnline?: (url: string) => Promise<any> | any;
+  onRestoreOnlineUrlChange?: (url: string) => void;
   options?: Options | null;
+  restoreOnlineUrl?: string;
   showAlert?: (alert: Alert) => void;
 };
 
@@ -52,12 +57,28 @@ function storedRestoreUrl() {
   }
 }
 
-function BackupRestore({embedded = false, onOptionsReset, options: initialOptions, showAlert}: BackupRestoreProps) {
+function BackupRestore({
+  embedded = false,
+  onExportOptions,
+  onOptionsReset,
+  onRestoreLocal,
+  onRestoreOnline,
+  onRestoreOnlineUrlChange,
+  options: initialOptions,
+  restoreOnlineUrl,
+  showAlert
+}: BackupRestoreProps) {
   const [options, setOptions] = useState<Options | null>(() => embedded && initialOptions ? initialOptions : null);
-  const [restoreUrl, setRestoreUrl] = useState(storedRestoreUrl);
+  const [restoreUrl, setRestoreUrl] = useState(() => restoreOnlineUrl || storedRestoreUrl());
   const [status, setStatus] = useState<'loading' | 'ready' | 'exporting' | 'restoringLocal' | 'restoringOnline' | 'success' | 'error'>(() => embedded && initialOptions ? 'ready' : 'loading');
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (embedded && restoreOnlineUrl != null) {
+      setRestoreUrl(restoreOnlineUrl || '');
+    }
+  }, [embedded, restoreOnlineUrl]);
 
   useEffect(() => {
     if (embedded && initialOptions) {
@@ -109,6 +130,14 @@ function BackupRestore({embedded = false, onOptionsReset, options: initialOption
       return;
     }
     setStatus('exporting');
+    if (onExportOptions) {
+      Promise.resolve(onExportOptions()).then(() => {
+        setStatus('ready');
+      }).catch(() => {
+        setStatus('ready');
+      });
+      return;
+    }
     const plainOptions = JSON.parse(JSON.stringify(options));
     const blob = new Blob([JSON.stringify(plainOptions)], {
       type: 'text/plain;charset=utf-8'
@@ -119,6 +148,14 @@ function BackupRestore({embedded = false, onOptionsReset, options: initialOption
 
   function restoreFromContent(content: string, restoringStatus: 'restoringLocal' | 'restoringOnline') {
     setStatus(restoringStatus);
+    if (onRestoreLocal && restoringStatus === 'restoringLocal') {
+      Promise.resolve(onRestoreLocal(content)).then(() => {
+        setStatus('ready');
+      }).catch((err) => {
+        showError(err, 'options_importFormatError', 'Invalid backup file!');
+      });
+      return;
+    }
     resetOptions(content).then((loadedOptions) => {
       setOptions(loadedOptions);
       return Promise.resolve(onOptionsReset ? onOptionsReset(loadedOptions) : null);
@@ -146,6 +183,15 @@ function BackupRestore({embedded = false, onOptionsReset, options: initialOption
   function restoreOnline() {
     const url = restoreUrl.trim();
     if (!url) {
+      return;
+    }
+    if (onRestoreOnline) {
+      setStatus('restoringOnline');
+      Promise.resolve(onRestoreOnline(url)).then(() => {
+        setStatus('ready');
+      }).catch((err) => {
+        showError(err, 'options_importDownloadError', 'Error downloading backup file!');
+      });
       return;
     }
     try {
@@ -212,7 +258,11 @@ function BackupRestore({embedded = false, onOptionsReset, options: initialOption
             type="url"
             value={restoreUrl}
             placeholder={message('options_restoreOnlinePlaceholder', "Options file URL (e.g. 'http://example.com/switchy.bak')")}
-            onChange={(event) => setRestoreUrl(event.currentTarget.value)}
+            onChange={(event) => {
+              const url = event.currentTarget.value;
+              setRestoreUrl(url);
+              onRestoreOnlineUrlChange?.(url);
+            }}
           />
           <span className="input-group-btn">
             <button type="button" className="btn btn-default" disabled={busy || !restoreUrl.trim()} onClick={restoreOnline}>
@@ -260,10 +310,17 @@ function BackupRestore({embedded = false, onOptionsReset, options: initialOption
 
 function mount(element: Element, props: BackupRestoreProps = {}) {
   const root = createRoot(element);
-  flushSync(() => {
-    root.render(<BackupRestore {...props} />);
-  });
-  return () => root.unmount();
+  function render(nextProps: BackupRestoreProps = props) {
+    props = nextProps;
+    flushSync(() => {
+      root.render(<BackupRestore {...props} />);
+    });
+  }
+  render(props);
+  return {
+    render,
+    unmount: () => root.unmount()
+  };
 }
 
 const globalWindow = window as any;

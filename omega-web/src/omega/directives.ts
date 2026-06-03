@@ -70,32 +70,81 @@
     return {
       restrict: 'A',
       link: function(scope, element) {
-        var mount, unmount;
+        var invoke, mount, mounted, props, render, unwatchOptions, unwatchRestoreUrl;
+        invoke = function(action) {
+          return new Promise(function(resolve, reject) {
+            return scope.$evalAsync(function() {
+              try {
+                return Promise.resolve(action()).then(resolve, reject);
+              } catch (error) {
+                return reject(error);
+              }
+            });
+          });
+        };
+        props = function() {
+          return {
+            embedded: true,
+            options: scope.$root.options,
+            restoreOnlineUrl: scope.restoreOnlineUrl,
+            onExportOptions: function() {
+              return invoke(function() {
+                return scope.exportOptions();
+              });
+            },
+            onRestoreLocal: function(content) {
+              return invoke(function() {
+                return scope.restoreLocal(content);
+              });
+            },
+            onRestoreOnline: function(url) {
+              return invoke(function() {
+                scope.restoreOnlineUrl = url;
+                return scope.restoreOnline();
+              });
+            },
+            onRestoreOnlineUrlChange: function(url) {
+              return scope.$evalAsync(function() {
+                return scope.restoreOnlineUrl = url;
+              });
+            },
+            onOptionsReset: function() {
+              return omegaTarget.refresh();
+            },
+            showAlert: function(alert) {
+              return scope.$evalAsync(function() {
+                return scope.$root.showAlert(alert);
+              });
+            }
+          };
+        };
+        render = function() {
+          if (mounted != null ? mounted.render : void 0) {
+            return mounted.render(props());
+          }
+        };
         mount = function() {
           var bridge;
           bridge = window.OmegaReactBackupRestore;
           if (bridge != null ? bridge.mount : void 0) {
-            unmount = bridge.mount(element[0], {
-              embedded: true,
-              options: scope.$root.options,
-              onOptionsReset: function() {
-                return omegaTarget.refresh();
-              },
-              showAlert: function(alert) {
-                return scope.$evalAsync(function() {
-                  return scope.$root.showAlert(alert);
-                });
-              }
-            });
+            mounted = bridge.mount(element[0], props());
+            unwatchRestoreUrl = scope.$watch('restoreOnlineUrl', render);
+            unwatchOptions = scope.$root.$watch('options', render);
           }
         };
         mount();
-        if (!unmount) {
+        if (!mounted) {
           $timeout(mount);
         }
         return scope.$on('$destroy', function() {
-          if (typeof unmount === 'function') {
-            return unmount();
+          if (unwatchRestoreUrl) {
+            unwatchRestoreUrl();
+          }
+          if (unwatchOptions) {
+            unwatchOptions();
+          }
+          if (mounted != null ? mounted.unmount : void 0) {
+            return mounted.unmount();
           }
         });
       }
