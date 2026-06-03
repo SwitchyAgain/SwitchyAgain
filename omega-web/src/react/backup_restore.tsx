@@ -21,15 +21,19 @@ type Alert = {
 
 type BackupRestoreProps = {
   embedded?: boolean;
+  onDisableOptionsSync?: () => Promise<any> | any;
+  onEnableOptionsSync?: (args?: {force?: boolean}) => Promise<any> | any;
   onExportOptions?: () => Promise<any> | any;
   onOptionsChange?: (nextOptions: Options) => void;
   onOptionsReset?: (options: Options) => Promise<any> | any;
   onRestoreLocal?: (content: string) => Promise<any> | any;
   onRestoreOnline?: (url: string) => Promise<any> | any;
   onRestoreOnlineUrlChange?: (url: string) => void;
+  onResetOptionsSync?: () => Promise<any> | any;
   options?: Options | null;
   restoreOnlineUrl?: string;
   showAlert?: (alert: Alert) => void;
+  syncOptions?: 'pristine' | 'disabled' | 'sync' | 'conflict' | 'unsupported' | string;
 };
 
 function htmlMessage(key: string, fallback: string) {
@@ -60,19 +64,24 @@ function storedRestoreUrl() {
 
 function BackupRestore({
   embedded = false,
+  onDisableOptionsSync,
+  onEnableOptionsSync,
   onExportOptions,
   onOptionsChange,
   onOptionsReset,
   onRestoreLocal,
   onRestoreOnline,
   onRestoreOnlineUrlChange,
+  onResetOptionsSync,
   options: initialOptions,
   restoreOnlineUrl,
-  showAlert
+  showAlert,
+  syncOptions
 }: BackupRestoreProps) {
   const [options, setOptions] = useState<Options | null>(() => embedded && initialOptions ? initialOptions : null);
   const [restoreUrl, setRestoreUrl] = useState(() => restoreOnlineUrl || storedRestoreUrl());
   const [status, setStatus] = useState<'loading' | 'ready' | 'exporting' | 'restoringLocal' | 'restoringOnline' | 'success' | 'error'>(() => embedded && initialOptions ? 'ready' : 'loading');
+  const [syncStatus, setSyncStatus] = useState<'ready' | 'enabling' | 'disabling' | 'resetting'>('ready');
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -215,6 +224,19 @@ function BackupRestore({
   }
 
   const busy = status === 'loading' || status === 'exporting' || status === 'restoringLocal' || status === 'restoringOnline';
+  const syncBusy = syncStatus !== 'ready';
+
+  function runSyncAction(nextStatus: typeof syncStatus, action?: () => Promise<any> | any) {
+    if (!action) {
+      return;
+    }
+    setSyncStatus(nextStatus);
+    Promise.resolve(action()).then(() => {
+      setSyncStatus('ready');
+    }).catch(() => {
+      setSyncStatus('ready');
+    });
+  }
 
   const profileSection = (
     <section className="settings-group">
@@ -315,6 +337,54 @@ function BackupRestore({
     </section>
   );
 
+  const syncSection = (
+    <section className="settings-group">
+      <h3>{message('options_group_syncing', 'Syncing')}</h3>
+      {(syncOptions === 'pristine' || syncOptions === 'disabled') && (
+        <>
+          <p className="help-block" dangerouslySetInnerHTML={htmlMessage('options_syncPristineHelp', 'Sync your options using browser storage.')} />
+          <p>
+            <button type="button" className="btn btn-default" disabled={syncBusy} onClick={() => runSyncAction('enabling', () => onEnableOptionsSync?.())}>
+              <span className="glyphicon glyphicon-cloud-upload" /> {message('options_syncEnable', 'Enable sync')}
+            </button>
+          </p>
+        </>
+      )}
+      {syncOptions === 'sync' && (
+        <>
+          <p className="alert alert-success width-limit">
+            <span className="glyphicon glyphicon-ok" /> {message('options_syncSyncAlert', 'Options sync is enabled.')}
+          </p>
+          <p className="help-block" dangerouslySetInnerHTML={htmlMessage('options_syncSyncHelp', 'Your options are synchronized.')} />
+          <p>
+            <button type="button" className="btn btn-warning" disabled={syncBusy} onClick={() => runSyncAction('disabling', () => onDisableOptionsSync?.())}>
+              <span className="glyphicon glyphicon-remove-sign" /> {message('options_syncDisable', 'Disable sync')}
+            </button>
+          </p>
+        </>
+      )}
+      {syncOptions === 'conflict' && (
+        <>
+          <p className="alert alert-info width-limit">
+            <span className="glyphicon glyphicon-info-sign" /> {message('options_syncConflictAlert', 'Options sync conflict detected.')}
+          </p>
+          <p className="help-block" dangerouslySetInnerHTML={htmlMessage('options_syncConflictHelp', 'Choose which options should be used for syncing.')} />
+          <p>
+            <button type="button" className="btn btn-danger" disabled={syncBusy} onClick={() => runSyncAction('enabling', () => onEnableOptionsSync?.({force: true}))}>
+              <span className="glyphicon glyphicon-cloud-download" /> {message('options_syncEnableForce', 'Use synced options')}
+            </button>{' '}
+            <button type="button" className="btn btn-link" disabled={syncBusy} onClick={() => runSyncAction('resetting', () => onResetOptionsSync?.())}>
+              <span className="glyphicon glyphicon-erase" /> {message('options_syncReset', 'Reset sync')}
+            </button>
+          </p>
+        </>
+      )}
+      {syncOptions === 'unsupported' && (
+        <p className="help-block" dangerouslySetInnerHTML={htmlMessage('options_syncUnsupportedHelp', 'Options sync is not supported in this browser.')} />
+      )}
+    </section>
+  );
+
   if (embedded) {
     return (
       <>
@@ -323,6 +393,7 @@ function BackupRestore({
         </div>
         {profileSection}
         {settingsSection}
+        {syncSection}
       </>
     );
   }
@@ -338,6 +409,7 @@ function BackupRestore({
 
       {profileSection}
       {settingsSection}
+      {syncSection}
     </main>
   );
 }

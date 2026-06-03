@@ -70,7 +70,7 @@
     return {
       restrict: 'A',
       link: function(scope, element) {
-        var invoke, mount, mounted, props, render, unwatchOptions, unwatchRestoreUrl;
+        var invoke, mount, mounted, props, render, unwatchOptions, unwatchRestoreUrl, unwatchSyncOptions;
         invoke = function(action) {
           return new Promise(function(resolve, reject) {
             return scope.$evalAsync(function() {
@@ -90,6 +90,16 @@
             onExportOptions: function() {
               return invoke(function() {
                 return scope.exportOptions();
+              });
+            },
+            onDisableOptionsSync: function() {
+              return invoke(function() {
+                return scope.disableOptionsSync();
+              });
+            },
+            onEnableOptionsSync: function(args) {
+              return invoke(function() {
+                return scope.enableOptionsSync(args);
               });
             },
             onOptionsChange: function(nextOptions) {
@@ -119,9 +129,15 @@
                 return scope.restoreOnlineUrl = url;
               });
             },
+            onResetOptionsSync: function() {
+              return invoke(function() {
+                return scope.resetOptionsSync();
+              });
+            },
             onOptionsReset: function() {
               return omegaTarget.refresh();
             },
+            syncOptions: scope.syncOptions,
             showAlert: function(alert) {
               return scope.$evalAsync(function() {
                 return scope.$root.showAlert(alert);
@@ -140,6 +156,7 @@
           if (bridge != null ? bridge.mount : void 0) {
             mounted = bridge.mount(element[0], props());
             unwatchRestoreUrl = scope.$watch('restoreOnlineUrl', render);
+            unwatchSyncOptions = scope.$watch('syncOptions', render);
             unwatchOptions = scope.$root.$watch('options', render);
           }
         };
@@ -153,6 +170,9 @@
           }
           if (unwatchOptions) {
             unwatchOptions();
+          }
+          if (unwatchSyncOptions) {
+            unwatchSyncOptions();
           }
           if (mounted != null ? mounted.unmount : void 0) {
             return mounted.unmount();
