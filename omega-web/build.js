@@ -209,7 +209,6 @@ async function main() {
     'delete_profile',
     'fixed_auth_edit',
     'input_group_clear',
-    'io',
     'new_profile',
     'omega_profile_select',
     'options_welcome',
