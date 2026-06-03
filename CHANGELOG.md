@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.1.11
+
+React options migration fixes.
+
+- Migrated the remaining Interface switch options and quick switch settings to
+  React while preserving the legacy profile ordering and startup profile
+  behavior.
+- Removed the legacy Import/Export Angular controller and completed the React
+  Import/Export settings, restore, sync, and feedback flows.
+- Fixed React options bootstrapping, profile dropdown dismissal, import success
+  feedback, and imported-options dirty state handling.
+
 ## v1.1.10
 
 React options migration and Chrome runtime cleanup.
