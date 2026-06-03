@@ -934,6 +934,198 @@
     };
   });
 
+  angular.module('omega').directive('omegaReactSwitchRuleRows', function($timeout, $filter) {
+    return {
+      restrict: 'A',
+      link: function(scope, element) {
+        var bridge, mount, mounted, props, refreshSortable, render, sortStartIndex, unwatchConditionTypes, unwatchOptions, unwatchRules, unwatchShowNotes, unwatchVisibleRuleCount;
+        props = function() {
+          return {
+            conditionHasWarning: function(condition) {
+              return scope.conditionHasWarning(condition);
+            },
+            conditionTypes: scope.conditionTypes,
+            dispName: scope.dispNameFilter,
+            formatIpCondition: function(condition) {
+              if (condition != null ? condition.ip : void 0) {
+                return OmegaPac.Conditions.str(condition).split(' ', 2)[1];
+              }
+              return '';
+            },
+            getWeekdayList: function(condition) {
+              return scope.getWeekdayList(condition);
+            },
+            isUrlConditionType: scope.isUrlConditionType,
+            onAddNote: function(index) {
+              return scope.addNote(index);
+            },
+            onCloneRule: function(index) {
+              return scope.cloneRule(index);
+            },
+            onConditionFieldChange: function(index, field, value) {
+              return scope.$evalAsync(function() {
+                var numberValue, rule;
+                rule = scope.profile.rules[index];
+                if (!rule) {
+                  return;
+                }
+                if (field === 'minValue' || field === 'maxValue' || field === 'startHour' || field === 'endHour') {
+                  numberValue = value === '' ? null : Number(value);
+                  rule.condition[field] = numberValue;
+                } else {
+                  rule.condition[field] = value;
+                }
+                return scope.$root.optionsDirty = true;
+              });
+            },
+            onConditionTypeChange: function(index, type) {
+              return scope.$evalAsync(function() {
+                var rule;
+                rule = scope.profile.rules[index];
+                if (!rule) {
+                  return;
+                }
+                rule.condition.conditionType = type;
+                return scope.$root.optionsDirty = true;
+              });
+            },
+            onIpConditionInputChange: function(index, value) {
+              return scope.$evalAsync(function() {
+                var rule;
+                rule = scope.profile.rules[index];
+                if (!rule) {
+                  return;
+                }
+                rule.condition = value ? OmegaPac.Conditions.fromStr('Ip: ' + value) : {
+                  conditionType: 'IpCondition',
+                  ip: '0.0.0.0',
+                  prefixLength: 0
+                };
+                return scope.$root.optionsDirty = true;
+              });
+            },
+            onNoteChange: function(index, note) {
+              return scope.$evalAsync(function() {
+                var rule;
+                rule = scope.profile.rules[index];
+                if (!rule) {
+                  return;
+                }
+                rule.note = note;
+                return scope.$root.optionsDirty = true;
+              });
+            },
+            onProfileChange: function(index, name) {
+              return scope.$evalAsync(function() {
+                var rule;
+                rule = scope.profile.rules[index];
+                if (!rule) {
+                  return;
+                }
+                rule.profileName = name;
+                return scope.$root.optionsDirty = true;
+              });
+            },
+            onRemoveRule: function(index) {
+              return scope.removeRule(index);
+            },
+            onWeekdayChange: function(index, dayIndex, selected) {
+              return scope.$evalAsync(function() {
+                var rule;
+                rule = scope.profile.rules[index];
+                if (!rule) {
+                  return;
+                }
+                scope.updateDay(rule.condition, dayIndex, selected);
+                return scope.$root.optionsDirty = true;
+              });
+            },
+            options: scope.options,
+            resultProfiles: $filter('profiles')(scope.options, scope.profile),
+            rules: scope.profile.rules,
+            showNotes: scope.showNotes,
+            visibleRuleCount: scope.visibleRuleCount
+          };
+        };
+        refreshSortable = function() {
+          return $timeout(function() {
+            if (element.data('ui-sortable')) {
+              return element.sortable('refresh');
+            }
+          }, 0, false);
+        };
+        render = function() {
+          if (mounted != null ? mounted.render : void 0) {
+            mounted.render(props());
+            return refreshSortable();
+          }
+        };
+        mount = function() {
+          bridge = window.OmegaReactProfileContent;
+          if ((bridge != null ? bridge.mountSwitchRuleRows : void 0) && !mounted) {
+            mounted = bridge.mountSwitchRuleRows(element[0], props());
+            element.sortable({
+              handle: '.sort-bar',
+              tolerance: 'pointer',
+              axis: 'y',
+              forceHelperSize: true,
+              forcePlaceholderSize: true,
+              containment: 'parent',
+              start: function(event, ui) {
+                return sortStartIndex = ui.item.index();
+              },
+              stop: function(event, ui) {
+                var sortEndIndex;
+                sortEndIndex = ui.item.index();
+                if (sortStartIndex === sortEndIndex) {
+                  return;
+                }
+                return scope.$evalAsync(function() {
+                  var rule;
+                  rule = scope.profile.rules.splice(sortStartIndex, 1)[0];
+                  scope.profile.rules.splice(sortEndIndex, 0, rule);
+                  return scope.$root.optionsDirty = true;
+                });
+              }
+            });
+            unwatchRules = scope.$watch('profile.rules', render, true);
+            unwatchConditionTypes = scope.$watch('conditionTypes', render);
+            unwatchOptions = scope.$watch('options', render, true);
+            unwatchShowNotes = scope.$watch('showNotes', render);
+            unwatchVisibleRuleCount = scope.$watch('visibleRuleCount', render);
+          }
+        };
+        mount();
+        if (!mounted) {
+          $timeout(mount);
+        }
+        return scope.$on('$destroy', function() {
+          if (unwatchRules) {
+            unwatchRules();
+          }
+          if (unwatchConditionTypes) {
+            unwatchConditionTypes();
+          }
+          if (unwatchOptions) {
+            unwatchOptions();
+          }
+          if (unwatchShowNotes) {
+            unwatchShowNotes();
+          }
+          if (unwatchVisibleRuleCount) {
+            unwatchVisibleRuleCount();
+          }
+          if (element.data('ui-sortable')) {
+            element.sortable('destroy');
+          }
+          if (mounted != null ? mounted.unmount : void 0) {
+            return mounted.unmount();
+          }
+        });
+      }
+    };
+  });
+
   angular.module('omega').directive('omegaReactSwitchRuleFooter', function($timeout, $filter) {
     return {
       restrict: 'A',

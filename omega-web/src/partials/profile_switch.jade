@@ -5,56 +5,6 @@ div(ng-controller='SwitchProfileCtrl')
     .table-responsive.switch-rules-wrapper(ng-show='!editSource' ng-class='{"switch-rules-wrapper-loading": !loadRules}')
       table.switch-rules.table.table-bordered.table-condensed.width-limit-xl(ng-if='loadRules')
         thead(omega-react-switch-rule-table-header)
-        tbody(ui-sortable='sortableOptions' ng-model='profile.rules')
-          tr.switch-rule-row(ng-repeat='rule in profile.rules | limitTo:visibleRuleCount')
-            td.sort-bar
-              span.glyphicon.glyphicon-sort
-            td(ng-class='{"has-icon": isUrlConditionType[rule.condition.conditionType]}')
-              select.form-control(ng-model='rule.condition.conditionType'
-                ng-options='type.type as ("condition_" + type.type | tr) group by (type.group | tr) for type in conditionTypes')
-              a.icon-wrapper(ng-href='{{"condition_alert_fullUrlLimitationLink" | tr}}' target='_blank' ng-if='isUrlConditionType[rule.condition.conditionType]')
-                span.glyphicon.glyphicon-alert.text-danger
-            td(ng-switch='rule.condition.conditionType' ng-class='{"has-warning": conditionHasWarning(rule.condition)}')
-              span(ng-switch-when='FalseCondition')
-                span(ng-show='!!rule.condition.pattern')
-                  input.form-control(ng-model='rule.condition.pattern' disabled title="{{'condition_details_FalseCondition' | tr}}")
-                span(ng-show='!rule.condition.pattern') {{'condition_details_FalseCondition' | tr}}
-              span.host-levels-details(ng-switch-when='HostLevelsCondition')
-                input.form-control(type='number' min='1' max='99' ng-model='rule.condition.minValue' required)
-                = ' '
-                span {{'options_hostLevelsBetween' | tr}}
-                = ' '
-                input.form-control(type='number' max='99' min='1' ng-model='rule.condition.maxValue' required)
-              span(ng-switch-when='IpCondition')
-                input.form-control(type='text' ng-model='rule.condition' required
-                  omega-ip2str placeholder='127.0.0.1/8'
-                  ui-validate='{pattern: "validateIpCondition(rule.condition, $value)"}')
-              span.host-levels-details(ng-switch-when='TimeCondition')
-                input.form-control(type='number' min='0' max='23' ng-model='rule.condition.startHour' required)
-                = ' '
-                span {{'options_hourBetween' | tr}}
-                = ' '
-                input.form-control(type='number' min='0' max='23'
-                  ng-model='rule.condition.endHour' required)
-              span.host-levels-details(ng-switch-when='WeekdayCondition')
-                label.checkbox-inline(ng-repeat='selected in getWeekdayList(rule.condition) track by $index')
-                  input(type='checkbox' ng-model='selected' ng-change='updateDay(rule.condition, $index, selected)')
-                  = '{{"options_weekDayShort_" + $index | tr}} '
-              input.form-control(ng-model='rule.condition.pattern' ng-switch-default required
-                ui-validate='{pattern: "validateCondition(rule.condition, $value)"}')
-            td.switch-rule-row-target
-              div(omega-profile-select='options | profiles:profile' ng-model='rule.profileName'
-                disp-name='dispNameFilter' options='options'
-                ng-class='{disabled: rule.condition.conditionType == "NeverCondition"}')
-            td
-              button.btn.btn-danger.btn-sm(title="{{'options_deleteRule' | tr}}" ng-click='removeRule($index)')
-                span.glyphicon.glyphicon-trash
-              = ' '
-              button.btn.btn-default.btn-sm(title="{{'options_cloneRule' | tr}}" ng-click='cloneRule($index)')
-                span.glyphicon.glyphicon-duplicate
-              button.btn.btn-default.btn-sm(title="{{'options_ruleNote' | tr}}" ng-if='!showNotes' ng-click='addNote($index)')
-                span.glyphicon.glyphicon-comment
-            td(ng-if='showNotes')
-              input.form-control(ng-model='rule.note')
+        tbody(omega-react-switch-rule-rows)
         tbody(omega-react-switch-rule-footer)
   div(omega-react-switch-attached-profile)
