@@ -34,7 +34,7 @@
     return {
       restrict: 'A',
       link: function(scope, element) {
-        var invoke, mount, mounted, props, render, unwatchOptions, unwatchRestoreUrl, unwatchSyncOptions;
+        var invoke, mount, mounted, props, render, unwatchOptions;
         invoke = function(action) {
           return new Promise(function(resolve, reject) {
             return scope.$evalAsync(function() {
@@ -50,7 +50,6 @@
           return {
             embedded: true,
             options: scope.$root.options,
-            restoreOnlineUrl: scope.restoreOnlineUrl,
             onApplyOptionsConfirm: function() {
               return invoke(function() {
                 return scope.$root.applyOptionsConfirm();
@@ -67,16 +66,9 @@
                 return results;
               });
             },
-            onRestoreOnlineUrlChange: function(url) {
-              return scope.$evalAsync(function() {
-                scope.restoreOnlineUrl = url;
-                return omegaTarget.state('web.restoreOnlineUrl', url);
-              });
-            },
             onOptionsReset: function() {
               return omegaTarget.refresh();
             },
-            syncOptions: scope.syncOptions,
             showAlert: function(alert) {
               return scope.$evalAsync(function() {
                 return scope.$root.showAlert(alert);
@@ -89,20 +81,11 @@
             return mounted.render(props());
           }
         };
-        omegaTarget.state('web.restoreOnlineUrl').then(function(url) {
-          if (url) {
-            return scope.$evalAsync(function() {
-              return scope.restoreOnlineUrl = url;
-            });
-          }
-        });
         mount = function() {
           var bridge;
           bridge = window.OmegaReactImportExport;
           if (bridge != null ? bridge.mount : void 0) {
             mounted = bridge.mount(element[0], props());
-            unwatchRestoreUrl = scope.$watch('restoreOnlineUrl', render);
-            unwatchSyncOptions = scope.$watch('syncOptions', render);
             unwatchOptions = scope.$root.$watch('options', render);
           }
         };
@@ -111,14 +94,8 @@
           $timeout(mount);
         }
         return scope.$on('$destroy', function() {
-          if (unwatchRestoreUrl) {
-            unwatchRestoreUrl();
-          }
           if (unwatchOptions) {
             unwatchOptions();
-          }
-          if (unwatchSyncOptions) {
-            unwatchSyncOptions();
           }
           if (mounted != null ? mounted.unmount : void 0) {
             return mounted.unmount();

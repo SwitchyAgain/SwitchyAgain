@@ -66,6 +66,19 @@ export function resetOptionsSync() {
   return callBackground<void>('resetOptionsSync');
 }
 
+export function getLocalState<T = any>(name: string) {
+  try {
+    const value = window.localStorage.getItem(`omega.local.${name}`);
+    return value == null ? undefined : JSON.parse(value) as T;
+  } catch (err) {
+    return undefined;
+  }
+}
+
+export function setLocalState(name: string, value: any) {
+  window.localStorage.setItem(`omega.local.${name}`, JSON.stringify(value));
+}
+
 export function optionPatch(before: Options, after: Options, keys: string[]) {
   const patch: Options = {};
   for (const key of keys) {

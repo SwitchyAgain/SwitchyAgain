@@ -3,6 +3,7 @@ import {flushSync} from 'react-dom';
 import {createRoot} from 'react-dom/client';
 import {
   downloadBlob,
+  getLocalState,
   loadOptions,
   manifestVersion,
   message,
@@ -10,10 +11,11 @@ import {
   resetOptions,
   resetOptionsSync,
   runtimeAvailable,
+  setLocalState,
   setOptionsSync
 } from './options_client';
 
-const RESTORE_URL_STATE = 'omega.local.web.restoreOnlineUrl';
+const RESTORE_URL_STATE = 'web.restoreOnlineUrl';
 
 type Alert = {
   type: 'success' | 'error';
@@ -26,11 +28,8 @@ type ImportExportProps = {
   onApplyOptionsConfirm?: () => Promise<any> | any;
   onOptionsChange?: (nextOptions: Options) => void;
   onOptionsReset?: (options: Options) => Promise<any> | any;
-  onRestoreOnlineUrlChange?: (url: string) => void;
   options?: Options | null;
-  restoreOnlineUrl?: string;
   showAlert?: (alert: Alert) => void;
-  syncOptions?: 'pristine' | 'disabled' | 'sync' | 'conflict' | 'unsupported' | string;
 };
 
 function htmlMessage(key: string, fallback: string) {
@@ -51,12 +50,7 @@ function readTextFile(file: File) {
 }
 
 function storedRestoreUrl() {
-  try {
-    const storedUrl = window.localStorage.getItem(RESTORE_URL_STATE);
-    return storedUrl ? JSON.parse(storedUrl) : '';
-  } catch (err) {
-    return '';
-  }
+  return getLocalState<string>(RESTORE_URL_STATE) || '';
 }
 
 function ImportExport({
@@ -64,24 +58,20 @@ function ImportExport({
   onApplyOptionsConfirm,
   onOptionsChange,
   onOptionsReset,
-  onRestoreOnlineUrlChange,
   options: initialOptions,
-  restoreOnlineUrl,
-  showAlert,
-  syncOptions
+  showAlert
 }: ImportExportProps) {
   const [options, setOptions] = useState<Options | null>(() => embedded && initialOptions ? initialOptions : null);
-  const [restoreUrl, setRestoreUrl] = useState(() => restoreOnlineUrl || storedRestoreUrl());
+  const [restoreUrl, setRestoreUrl] = useState(storedRestoreUrl);
   const [status, setStatus] = useState<'loading' | 'ready' | 'exporting' | 'restoringLocal' | 'restoringOnline' | 'success' | 'error'>(() => embedded && initialOptions ? 'ready' : 'loading');
   const [syncStatus, setSyncStatus] = useState<'ready' | 'enabling' | 'disabling' | 'resetting'>('ready');
+  const [syncOptions, setSyncOptions] = useState<'pristine' | 'disabled' | 'sync' | 'conflict' | 'unsupported' | string | undefined>(() => getLocalState('syncOptions'));
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (embedded && restoreOnlineUrl != null) {
-      setRestoreUrl(restoreOnlineUrl || '');
-    }
-  }, [embedded, restoreOnlineUrl]);
+    setSyncOptions(getLocalState('syncOptions'));
+  }, []);
 
   useEffect(() => {
     if (embedded && initialOptions) {
@@ -175,10 +165,7 @@ function ImportExport({
     if (!url) {
       return;
     }
-    onRestoreOnlineUrlChange?.(url);
-    try {
-      window.localStorage.setItem(RESTORE_URL_STATE, JSON.stringify(url));
-    } catch (err) {}
+    setLocalState(RESTORE_URL_STATE, url);
     setStatus('restoringOnline');
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 10000);
@@ -321,7 +308,7 @@ function ImportExport({
             onChange={(event) => {
               const url = event.currentTarget.value;
               setRestoreUrl(url);
-              onRestoreOnlineUrlChange?.(url);
+              setLocalState(RESTORE_URL_STATE, url);
             }}
           />
           <span className="input-group-btn">

@@ -17,9 +17,6 @@
     omegaTarget.addOptionsChangeCallback(function(newOptions) {
       $rootScope.options = angular.copy(newOptions);
       $rootScope.optionsOld = angular.copy(newOptions);
-      omegaTarget.state('syncOptions').then(function(syncOptions) {
-        return $scope.syncOptions = syncOptions;
-      });
       return $timeout(function() {
         $rootScope.optionsDirty = false;
         return showFirstRun();
