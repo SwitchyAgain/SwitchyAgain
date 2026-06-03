@@ -60,7 +60,7 @@
     });
     return $stateProvider.state('ui', {
       url: '/ui',
-      templateUrl: 'partials/ui.html'
+      template: '<div class="react-settings-host-ui" omega-react-ui-settings></div>'
     }).state('general', {
       url: '/general',
       templateUrl: 'partials/general.html'

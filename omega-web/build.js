@@ -226,8 +226,7 @@ async function main() {
     'replace_profile',
     'reset_options_confirm',
     'rule_remove_confirm',
-    'rule_reset_confirm',
-    'ui'
+    'rule_reset_confirm'
   ];
   for (const name of partials) {
     await renderJade(`src/partials/${name}.jade`, `build/partials/${name}.html`);
