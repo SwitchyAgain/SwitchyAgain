@@ -236,6 +236,16 @@ function groupedConditionTypes(conditionTypes: ConditionTypeOption[] = []) {
   return order.map((group) => ({group, types: groups[group]}));
 }
 
+const switchRuleKeys = new WeakMap<object, number>();
+let nextSwitchRuleKey = 1;
+
+function switchRuleKey(rule: SwitchRuleModel) {
+  if (!switchRuleKeys.has(rule)) {
+    switchRuleKeys.set(rule, nextSwitchRuleKey++);
+  }
+  return switchRuleKeys.get(rule);
+}
+
 function messageWithNodes(
   key: string,
   fallback: string,
@@ -344,6 +354,7 @@ function DraftInput({
       required={required}
       disabled={disabled}
       placeholder={placeholder}
+      spellCheck={false}
       title={title}
       value={draft}
       onChange={(event) => change(event.currentTarget.value)}
@@ -576,7 +587,7 @@ function SwitchRuleRows({
           formatIpCondition={formatIpCondition}
           index={index}
           isUrlConditionType={isUrlConditionType}
-          key={index}
+          key={switchRuleKey(rule)}
           onAddNote={onAddNote}
           onCloneRule={onCloneRule}
           onConditionFieldChange={onConditionFieldChange}
@@ -1567,7 +1578,9 @@ function mountSwitchRuleRows(element: Element, props: SwitchRuleRowsProps = {}) 
   });
   return {
     render(nextProps: SwitchRuleRowsProps = {}) {
-      root.render(<SwitchRuleRows {...nextProps} />);
+      flushSync(() => {
+        root.render(<SwitchRuleRows {...nextProps} />);
+      });
     },
     unmount() {
       root.unmount();

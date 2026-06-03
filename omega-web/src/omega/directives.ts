@@ -960,7 +960,9 @@
               return scope.addNote(index);
             },
             onCloneRule: function(index) {
-              return scope.cloneRule(index);
+              return scope.$evalAsync(function() {
+                return scope.cloneRule(index);
+              });
             },
             onConditionFieldChange: function(index, field, value) {
               return scope.$evalAsync(function() {
