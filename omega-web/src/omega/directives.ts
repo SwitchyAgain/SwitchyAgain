@@ -55,24 +55,14 @@
                 return scope.$root.applyOptionsConfirm();
               });
             },
-            onOptionsChange: function(nextOptions, options) {
+            onOptionsReplace: function(nextOptions, options) {
               return scope.$evalAsync(function() {
-                var dirty, key, replace, results;
+                var dirty;
                 options || (options = {});
-                replace = options.replace;
                 dirty = options.dirty;
-                if (replace) {
-                  scope.$root.options = nextOptions;
-                  scope.$root.optionsOld = angular.copy(nextOptions);
-                  scope.$root.optionsDirty = dirty != null ? dirty : false;
-                  return;
-                }
-                results = [];
-                for (key in nextOptions) {
-                  scope.$root.options[key] = nextOptions[key];
-                  results.push(scope.$root.optionsDirty = dirty != null ? dirty : true);
-                }
-                return results;
+                scope.$root.options = nextOptions;
+                scope.$root.optionsOld = angular.copy(nextOptions);
+                return scope.$root.optionsDirty = dirty != null ? dirty : false;
               });
             }
           };

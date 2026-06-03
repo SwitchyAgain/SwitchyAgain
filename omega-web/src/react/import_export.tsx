@@ -21,7 +21,7 @@ const RESTORE_URL_STATE = 'web.restoreOnlineUrl';
 type ImportExportProps = {
   embedded?: boolean;
   onApplyOptionsConfirm?: () => Promise<any> | any;
-  onOptionsChange?: (nextOptions: Options, options?: {dirty?: boolean; replace?: boolean}) => void;
+  onOptionsReplace?: (nextOptions: Options, options?: {dirty?: boolean}) => void;
   options?: Options | null;
 };
 
@@ -49,7 +49,7 @@ function storedRestoreUrl() {
 function ImportExport({
   embedded = false,
   onApplyOptionsConfirm,
-  onOptionsChange,
+  onOptionsReplace,
   options: initialOptions,
 }: ImportExportProps) {
   const [options, setOptions] = useState<Options | null>(() => embedded && initialOptions ? initialOptions : null);
@@ -111,10 +111,7 @@ function ImportExport({
     setStatus(restoringStatus);
     resetOptions(content).then((loadedOptions) => {
       setOptions(loadedOptions);
-      return Promise.resolve(onOptionsChange?.(loadedOptions, {
-        dirty: false,
-        replace: true
-      }));
+      return Promise.resolve(onOptionsReplace?.(loadedOptions, {dirty: false}));
     }).then(() => {
       showSuccess();
     }).catch((err) => {
@@ -210,10 +207,7 @@ function ImportExport({
       '-exportLegacyRuleList': [previous, checked]
     }).then((loadedOptions) => {
       setOptions(loadedOptions);
-      onOptionsChange?.(loadedOptions, {
-        dirty: false,
-        replace: true
-      });
+      onOptionsReplace?.(loadedOptions, {dirty: false});
     }).catch((err) => {
       setOptions(currentOptions);
       showError(err, 'options_saveError', 'Unable to save options.');
