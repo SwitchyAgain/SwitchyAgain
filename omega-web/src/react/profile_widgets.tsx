@@ -2,10 +2,34 @@ import React, {useMemo, useState} from 'react';
 import {Options} from './options_client';
 
 export type Profile = {
+  builtin?: boolean;
   color?: string;
   name?: string;
   profileType?: string;
 };
+
+const PROFILE_TYPE_ORDER: Record<string, number> = {
+  FixedProfile: -2000,
+  PacProfile: -1000,
+  VirtualProfile: 1000,
+  SwitchProfile: 2000,
+  RuleListProfile: 3000
+};
+
+const BUILTIN_PROFILES: Profile[] = [
+  {
+    name: 'direct',
+    profileType: 'DirectProfile',
+    color: '#aaaaaa',
+    builtin: true
+  },
+  {
+    name: 'system',
+    profileType: 'SystemProfile',
+    color: '#000000',
+    builtin: true
+  }
+];
 
 export const PROFILE_ICONS: Record<string, string> = {
   AutoDetectProfile: 'glyphicon-file',
@@ -50,17 +74,34 @@ export function profilesFromOptions(options?: Options | null) {
   }) as Profile[];
 }
 
+function profileOrder(a: Profile, b: Profile) {
+  const diff = (PROFILE_TYPE_ORDER[a.profileType || ''] || 0) - (PROFILE_TYPE_ORDER[b.profileType || ''] || 0);
+  if (diff !== 0) {
+    return diff;
+  }
+  return (a.name || '').localeCompare(b.name || '');
+}
+
+export function allProfilesFromOptions(options?: Options | null) {
+  return profilesFromOptions(options).filter((profile) => {
+    const name = profile.name || '';
+    return name.charAt(0) !== '_';
+  }).concat(BUILTIN_PROFILES).sort(profileOrder);
+}
+
 export function profileByName(options: Options | null | undefined, name: string) {
-  return profilesFromOptions(options).find((profile) => profile.name === name) || null;
+  return profilesFromOptions(options).concat(BUILTIN_PROFILES).find((profile) => profile.name === name) || null;
 }
 
 export function ProfileSelect({
+  defaultText,
   dispName,
   name,
   onChange,
   options,
   profiles
 }: {
+  defaultText?: string;
   dispName?: (profile: Profile) => string;
   name: string;
   onChange: (name: string) => void;
@@ -70,6 +111,7 @@ export function ProfileSelect({
   const [open, setOpen] = useState(false);
   const profileList = useMemo(() => profiles || profilesFromOptions(options), [options, profiles]);
   const selectedProfile = profileList.find((profile) => profile.name === name) || null;
+  const buttonLabel = selectedProfile ? profileName(selectedProfile, dispName) : defaultText || '';
   return (
     <div className={`btn-group omega-profile-select ${open ? 'open' : ''}`} style={{display: 'inline-block'}}>
       <button
@@ -81,11 +123,21 @@ export function ProfileSelect({
         onClick={() => setOpen(!open)}
       >
         <ProfileIcon profile={selectedProfile} />{' '}
-        <span>{profileName(selectedProfile, dispName)}</span>{' '}
+        <span>{buttonLabel}</span>{' '}
         <span className="caret" />
       </button>
       {open && (
         <ul className="dropdown-menu" role="listbox">
+          {defaultText != null && (
+            <li role="option" className={name ? '' : 'active'}>
+              <a onClick={() => {
+                onChange('');
+                setOpen(false);
+              }}>
+                {defaultText}
+              </a>
+            </li>
+          )}
           {profileList.map((profile) => (
             <li key={profile.name} role="option" className={name === profile.name ? 'active' : ''}>
               <a onClick={() => {

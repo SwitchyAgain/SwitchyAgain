@@ -6,12 +6,22 @@ import {
   loadOptions,
   manifestVersion,
   message,
-  optionPatch,
   patchOptions,
   runtimeAvailable
 } from './options_client';
+import {
+  Profile,
+  ProfileInline,
+  ProfileSelect,
+  allProfilesFromOptions,
+  profileByName
+} from './profile_widgets';
 
 const UI_KEYS = [
+  '-startupProfileName',
+  '-showConditionTypes',
+  '-enableQuickSwitch',
+  '-quickSwitchProfiles',
   '-confirmDeletion',
   '-refreshOnProfileChange',
   '-showInspectMenu',
@@ -29,6 +39,23 @@ function cloneOptions(options: Options) {
   return JSON.parse(JSON.stringify(options));
 }
 
+function sameOptionValue(a: any, b: any) {
+  if (Array.isArray(a) || Array.isArray(b)) {
+    return JSON.stringify(a || []) === JSON.stringify(b || []);
+  }
+  return a === b;
+}
+
+function uiOptionPatch(before: Options, after: Options) {
+  const patch: Options = {};
+  for (const key of UI_KEYS) {
+    if (!sameOptionValue(before[key], after[key])) {
+      patch[key] = [before[key], after[key]];
+    }
+  }
+  return patch;
+}
+
 function openShortcutConfig() {
   const tabs = (chrome as any)?.tabs;
   if (tabs?.create) {
@@ -36,6 +63,13 @@ function openShortcutConfig() {
       url: 'chrome://extensions/configureCommands'
     });
   }
+}
+
+function displayProfileName(profile: Profile) {
+  if (profile.builtin && profile.name) {
+    return message(`profile_${profile.name}`, profile.name);
+  }
+  return profile.name || '';
 }
 
 function UiSettings({embedded = false, options, onOptionsChange, onOpenShortcutConfig}: UiSettingsProps) {
@@ -68,15 +102,15 @@ function UiSettings({embedded = false, options, onOptionsChange, onOpenShortcutC
     if (!savedOptions || !draftOptions) {
       return false;
     }
-    return UI_KEYS.some((key) => savedOptions[key] !== draftOptions[key]);
+    return UI_KEYS.some((key) => !sameOptionValue(savedOptions[key], draftOptions[key]));
   }, [savedOptions, draftOptions]);
 
-  function updateOption(key: string, value: any) {
+  function updateOptions(updater: (current: Options) => Options) {
     setDraftOptions((current) => {
       if (!current) {
         return current;
       }
-      const next = {...current, [key]: value};
+      const next = updater(current);
       if (embedded && onOptionsChange) {
         onOptionsChange(next);
       }
@@ -85,6 +119,59 @@ function UiSettings({embedded = false, options, onOptionsChange, onOpenShortcutC
     if (status === 'saved') {
       setStatus('ready');
     }
+  }
+
+  function updateOption(key: string, value: any) {
+    updateOptions((current) => ({...current, [key]: value}));
+  }
+
+  function updateQuickSwitchProfiles(profiles: string[]) {
+    updateOption('-quickSwitchProfiles', profiles);
+  }
+
+  function moveQuickSwitchProfile(name: string, enabled: boolean) {
+    const quickSwitchProfiles = (draftOptions?.['-quickSwitchProfiles'] || []) as string[];
+    if (enabled) {
+      if (quickSwitchProfiles.indexOf(name) >= 0) {
+        return;
+      }
+      updateQuickSwitchProfiles(quickSwitchProfiles.concat(name));
+      return;
+    }
+    updateQuickSwitchProfiles(quickSwitchProfiles.filter((profileName) => profileName !== name));
+  }
+
+  function reorderQuickSwitchProfile(name: string, targetName: string, enabled: boolean) {
+    if (!enabled) {
+      return;
+    }
+    const source = ((enabled ? draftOptions?.['-quickSwitchProfiles'] : notCycledProfiles) || []) as string[];
+    const fromIndex = source.indexOf(name);
+    const toIndex = source.indexOf(targetName);
+    if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) {
+      return;
+    }
+    const next = source.slice();
+    next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, name);
+    updateQuickSwitchProfiles(next);
+  }
+
+  function quickSwitchDragData(event: React.DragEvent) {
+    try {
+      return JSON.parse(event.dataTransfer.getData('text/plain') || '{}') as {name?: string; enabled?: boolean};
+    } catch (_error) {
+      return {};
+    }
+  }
+
+  function dropOnQuickSwitchList(event: React.DragEvent, enabled: boolean) {
+    event.preventDefault();
+    const data = quickSwitchDragData(event);
+    if (!data.name || data.enabled === enabled) {
+      return;
+    }
+    moveQuickSwitchProfile(data.name, enabled);
   }
 
   function discardChanges() {
@@ -99,7 +186,7 @@ function UiSettings({embedded = false, options, onOptionsChange, onOpenShortcutC
     if (!savedOptions || !draftOptions || !dirty || embedded) {
       return;
     }
-    const patch = optionPatch(savedOptions, draftOptions, UI_KEYS);
+    const patch = uiOptionPatch(savedOptions, draftOptions);
     setStatus('saving');
     patchOptions(patch).then((loadedOptions) => {
       const cloned = cloneOptions(loadedOptions);
@@ -143,6 +230,52 @@ function UiSettings({embedded = false, options, onOptionsChange, onOpenShortcutC
     );
   }
 
+  const allProfiles = allProfilesFromOptions(draftOptions);
+  const quickSwitchProfiles = (draftOptions['-quickSwitchProfiles'] || []) as string[];
+  const quickSwitchProfileSet = new Set(quickSwitchProfiles);
+  const notCycledProfiles = allProfiles.map((profile) => profile.name || '').filter((name) => {
+    return name && !quickSwitchProfileSet.has(name);
+  });
+
+  function QuickSwitchList({enabled, names}: {enabled: boolean; names: string[]}) {
+    return (
+      <ul
+        className={`cycle-profile-container ${enabled ? 'cycle-enabled' : ''}`}
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => dropOnQuickSwitchList(event, enabled)}
+      >
+        {names.map((name) => (
+          <li
+            key={name}
+            className={enabled ? '' : 'bg-success'}
+            draggable
+            onDragStart={(event) => {
+              event.dataTransfer.setData('text/plain', JSON.stringify({name, enabled}));
+            }}
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              const data = quickSwitchDragData(event);
+              if (data.enabled === enabled) {
+                reorderQuickSwitchProfile(data.name || '', name, enabled);
+              } else {
+                moveQuickSwitchProfile(data.name || '', enabled);
+              }
+            }}
+          >
+            <ProfileInline profile={profileByName(draftOptions, name)} dispName={displayProfileName} />
+          </li>
+        ))}
+        {!names.length && (
+          <li className="text-muted" aria-hidden="true">
+            &nbsp;
+          </li>
+        )}
+      </ul>
+    );
+  }
+
   const settings = (
     <>
       {status === 'error' && (
@@ -155,6 +288,55 @@ function UiSettings({embedded = false, options, onOptionsChange, onOpenShortcutC
           <span className="glyphicon glyphicon-ok" /> {message('options_saveSuccess', 'Options saved.')}
         </div>
       )}
+
+      <section className="settings-group">
+        <h3>{message('options_group_switchOptions', 'Switch Options')}</h3>
+        <div className="form-group">
+          <label htmlFor="react-startup-profile">{message('options_startupProfile', 'Startup Profile')}</label>{' '}
+          <ProfileSelect
+            defaultText={message('options_startupProfile_none', '(Current Profile)')}
+            dispName={displayProfileName}
+            name={draftOptions['-startupProfileName'] || ''}
+            onChange={(name) => updateOption('-startupProfileName', name)}
+            profiles={allProfiles}
+          />
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={Boolean(draftOptions['-showConditionTypes'])}
+              onChange={(event) => updateOption('-showConditionTypes', event.currentTarget.checked ? 1 : 0)}
+            />
+            <span> {message('options_showConditionTypesAdvanced', 'Show advanced condition types')}</span>
+          </label>
+          <p className="help-block">{message('options_showConditionTypesAdvancedHelp', 'Unlock advanced condition types.')}</p>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={Boolean(draftOptions['-enableQuickSwitch'])}
+              onChange={(event) => updateOption('-enableQuickSwitch', event.currentTarget.checked)}
+            />
+            <span> {message('options_quickSwitch', 'Quick Switch')}</span>
+          </label>
+        </div>
+        {Boolean(draftOptions['-enableQuickSwitch']) && (
+          <div id="quick-switch-settings" className="settings-group">
+            <h4>{message('options_cycledProfiles', 'Cycled Profiles')}</h4>
+            <p className="help-block">{message('options_cycledProfilesHelp', 'Cycle through these profiles when using Quick Switch.')}</p>
+            {quickSwitchProfiles.length < 2 && (
+              <div className="has-error">
+                <p className="help-block">{message('options_cycledProfilesTooFew', 'At least 2 profiles are required for cycling.')}</p>
+              </div>
+            )}
+            <QuickSwitchList enabled names={quickSwitchProfiles} />
+            <h4>{message('options_notCycledProfiles', 'Not Cycled Profiles')}</h4>
+            <QuickSwitchList enabled={false} names={notCycledProfiles} />
+          </div>
+        )}
+      </section>
 
       <section className="settings-group">
         <h3>{message('options_group_miscOptions', 'Misc Options')}</h3>
