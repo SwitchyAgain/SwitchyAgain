@@ -133,15 +133,24 @@ function GeneralSettings({embedded = false, options, onOptionsChange}: GeneralSe
     });
   }
 
+  const pageHeader = (
+    <div className="page-header">
+      <h2>{message('options_tab_general', 'General')}</h2>
+    </div>
+  );
+
   if (status === 'loading' || !draftOptions) {
     if (embedded) {
-      return <p className="text-muted">Loading options...</p>;
+      return (
+        <>
+          {pageHeader}
+          <p className="text-muted">Loading options...</p>
+        </>
+      );
     }
     return (
       <main className="container-fluid react-options">
-        <div className="page-header">
-          <h2>{message('options_tab_general', 'General')}</h2>
-        </div>
+        {pageHeader}
         <p className="text-muted">Loading options...</p>
       </main>
     );
@@ -260,7 +269,12 @@ function GeneralSettings({embedded = false, options, onOptionsChange}: GeneralSe
   );
 
   if (embedded) {
-    return settings;
+    return (
+      <>
+        {pageHeader}
+        {settings}
+      </>
+    );
   }
 
   return (
