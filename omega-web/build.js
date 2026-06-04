@@ -217,6 +217,7 @@ async function main() {
     'build-ts/omega/switch_profile_options.js',
     'build-ts/omega/switch_profile_actions.js',
     'build-ts/omega/switch_profile_attached.js',
+    'build-ts/omega/switch_profile_export.js',
     'build-ts/omega/switch_profile_session.js',
     'build-ts/omega/switch_profile_bridge.js',
     'build-ts/omega/filters.js',

@@ -1,24 +1,8 @@
 (function() {
   angular.module('omega').controller('SwitchProfileCtrl', function($scope, $rootScope, $location, $timeout, $q, $modal, profileIcons, getAttachedName, omegaTarget, trFilter, downloadFile, reactModalTemplates) {
     var attachedReady, attachedReadyDefer, attachedSourceCache, conditionModeState, exportLegacyRuleList, exportRuleList, rulesReady, rulesReadyDefer, stateEditorKey, stopWatchingForRules, unwatchRules, unwatchRulesShowNote;
-    exportRuleList = function() {
-      var blob, fileName, text;
-      text = OmegaSwitchProfileRules.composeOmegaRuleList($scope.profile.rules, $scope.attachedOptions.defaultProfileName, trFilter('ruleList_usageUrl'), new Date().toLocaleDateString());
-      blob = new Blob([text], {
-        type: "text/plain;charset=utf-8"
-      });
-      fileName = $scope.profile.name.replace(/\W+/g, '_');
-      return downloadFile(blob, "OmegaRules_" + fileName + ".sorl");
-    };
-    exportLegacyRuleList = function() {
-      var blob, fileName, text;
-      text = OmegaSwitchProfileRules.composeLegacyRuleList($scope.profile.rules, $scope.attachedOptions.defaultProfileName, trFilter('ruleList_usageUrl'), new Date().toLocaleDateString());
-      blob = new Blob([text], {
-        type: "text/plain;charset=utf-8"
-      });
-      fileName = $scope.profile.name.replace(/\W+/g, '_');
-      return downloadFile(blob, "SwitchyRules_" + fileName + ".ssrl");
-    };
+    exportRuleList = OmegaSwitchProfileExport.createExportRuleListAction($scope, trFilter, downloadFile);
+    exportLegacyRuleList = OmegaSwitchProfileExport.createExportLegacyRuleListAction($scope, trFilter, downloadFile);
     $scope.conditionHelp = {
       show: $location.search().help === 'condition'
     };
