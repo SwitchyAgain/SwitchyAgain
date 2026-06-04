@@ -873,29 +873,16 @@
             },
             onConditionFieldChange: function(index, field, value) {
               return scope.$evalAsync(function() {
-                var numberValue, rule;
-                rule = scope.profile.rules[index];
-                if (!rule) {
-                  return;
+                if (OmegaSwitchProfileState.updateConditionField(scope.profile.rules[index], field, value)) {
+                  return scope.$root.optionsDirty = true;
                 }
-                if (field === 'minValue' || field === 'maxValue' || field === 'startHour' || field === 'endHour') {
-                  numberValue = value === '' ? null : Number(value);
-                  rule.condition[field] = numberValue;
-                } else {
-                  rule.condition[field] = value;
-                }
-                return scope.$root.optionsDirty = true;
               });
             },
             onConditionTypeChange: function(index, type) {
               return scope.$evalAsync(function() {
-                var rule;
-                rule = scope.profile.rules[index];
-                if (!rule) {
-                  return;
+                if (OmegaSwitchProfileState.updateConditionType(scope.profile.rules[index], type)) {
+                  return scope.$root.optionsDirty = true;
                 }
-                rule.condition.conditionType = type;
-                return scope.$root.optionsDirty = true;
               });
             },
             onDefaultProfileChange: function(name) {
@@ -908,50 +895,30 @@
             },
             onIpConditionInputChange: function(index, value) {
               return scope.$evalAsync(function() {
-                var rule;
-                rule = scope.profile.rules[index];
-                if (!rule) {
-                  return;
+                if (OmegaSwitchProfileState.updateIpCondition(scope.profile.rules[index], value)) {
+                  return scope.$root.optionsDirty = true;
                 }
-                rule.condition = value ? OmegaPac.Conditions.fromStr('Ip: ' + value) : {
-                  conditionType: 'IpCondition',
-                  ip: '0.0.0.0',
-                  prefixLength: 0
-                };
-                return scope.$root.optionsDirty = true;
               });
             },
             onMoveRule: function(fromIndex, toIndex) {
               return scope.$evalAsync(function() {
-                var rule;
-                if (fromIndex === toIndex) {
-                  return;
+                if (OmegaSwitchProfileState.moveRule(scope.profile.rules, fromIndex, toIndex)) {
+                  return scope.$root.optionsDirty = true;
                 }
-                rule = scope.profile.rules.splice(fromIndex, 1)[0];
-                scope.profile.rules.splice(toIndex, 0, rule);
-                return scope.$root.optionsDirty = true;
               });
             },
             onNoteChange: function(index, note) {
               return scope.$evalAsync(function() {
-                var rule;
-                rule = scope.profile.rules[index];
-                if (!rule) {
-                  return;
+                if (OmegaSwitchProfileState.updateRuleNote(scope.profile.rules[index], note)) {
+                  return scope.$root.optionsDirty = true;
                 }
-                rule.note = note;
-                return scope.$root.optionsDirty = true;
               });
             },
             onProfileChange: function(index, name) {
               return scope.$evalAsync(function() {
-                var rule;
-                rule = scope.profile.rules[index];
-                if (!rule) {
-                  return;
+                if (OmegaSwitchProfileState.updateRuleProfile(scope.profile.rules[index], name)) {
+                  return scope.$root.optionsDirty = true;
                 }
-                rule.profileName = name;
-                return scope.$root.optionsDirty = true;
               });
             },
             onRemoveAttached: function() {

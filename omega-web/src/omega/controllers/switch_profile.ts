@@ -1,6 +1,6 @@
 (function() {
   angular.module('omega').controller('SwitchProfileCtrl', function($scope, $rootScope, $location, $timeout, $q, $modal, profileIcons, getAttachedName, omegaTarget, trFilter, downloadFile, $window, reactModalTemplates) {
-    var attachedReady, attachedReadyDefer, basicConditionTypeSet, basicConditionTypesExpanded, cancelRuleBatchSchedule, exportLegacyRuleList, exportRuleList, initialRuleBatchSize, isUrlConditionType, oldLastUpdate, oldRuleList, oldSourceUrl, onAttachedChange, parseOmegaRules, parseSource, renderRuleBatch, renderRuleBatchSize, renderRuleBatchTimer, resetVisibleRules, rulesReady, rulesReadyDefer, scheduleRuleBatch, stateEditorKey, stopWatchingForRules, unwatchRules, unwatchRulesShowNote, updateHasConditionTypes;
+    var attachedReady, attachedReadyDefer, attachedSourceCache, basicConditionTypeSet, basicConditionTypesExpanded, cancelRuleBatchSchedule, exportLegacyRuleList, exportRuleList, initialRuleBatchSize, isUrlConditionType, onAttachedChange, parseOmegaRules, parseSource, renderRuleBatch, renderRuleBatchSize, renderRuleBatchTimer, resetVisibleRules, rulesReady, rulesReadyDefer, scheduleRuleBatch, stateEditorKey, stopWatchingForRules, unwatchRules, unwatchRulesShowNote, updateHasConditionTypes;
     $scope.ruleListFormats = OmegaPac.Profiles.ruleListFormats;
     exportRuleList = function() {
       var blob, fileName, text;
@@ -82,8 +82,7 @@
       return rulesReadyDefer.resolve(rules);
     });
     $scope.addRule = function() {
-      OmegaSwitchProfileRules.addRule($scope.profile.rules, $scope.attachedOptions.defaultProfileName);
-      return $scope.visibleRuleCount = $scope.profile.rules.length;
+      return $scope.visibleRuleCount = OmegaSwitchProfileState.addRule($scope.profile, $scope.attachedOptions.defaultProfileName);
     };
     $scope.validateCondition = function(condition, pattern) {
       return OmegaSwitchProfileRules.validateCondition(condition, pattern);
@@ -102,8 +101,7 @@
     $scope.removeRule = function(index) {
       var removeForReal, scope;
       removeForReal = function() {
-        OmegaSwitchProfileRules.removeRule($scope.profile.rules, index);
-        return $scope.visibleRuleCount = Math.min($scope.visibleRuleCount, $scope.profile.rules.length);
+        return $scope.visibleRuleCount = OmegaSwitchProfileState.removeRule($scope.profile, index, $scope.visibleRuleCount);
       };
       if ($scope.options['-confirmDeletion']) {
         scope = $scope.$new('isolate');
@@ -120,8 +118,7 @@
       }
     };
     $scope.cloneRule = function(index) {
-      OmegaSwitchProfileRules.cloneRule($scope.profile.rules, index);
-      $scope.visibleRuleCount = $scope.profile.rules.length;
+      $scope.visibleRuleCount = OmegaSwitchProfileState.cloneRule($scope.profile, index);
       return $timeout(function() {
         var input, ref, ref1;
         input = angular.element(".switch-rule-row:nth-child(" + (index + 2) + ") input");
@@ -166,86 +163,38 @@
     attachedReadyDefer = $q.defer();
     attachedReady = attachedReadyDefer.promise;
     $scope.$watch('profile.name', function(name) {
-      $scope.attachedName = getAttachedName(name);
-      return $scope.attachedKey = OmegaPac.Profiles.nameAsKey($scope.attachedName);
+      var identity;
+      identity = OmegaSwitchProfileState.createAttachedIdentity(name, getAttachedName);
+      $scope.attachedName = identity.attachedName;
+      return $scope.attachedKey = identity.attachedKey;
     });
     $scope.$watch('options[attachedKey]', function(attached) {
       return $scope.attached = attached;
     });
     $scope.watchAndUpdateRevision('options[attachedKey]');
-    oldSourceUrl = null;
-    oldLastUpdate = null;
-    oldRuleList = null;
+    attachedSourceCache = {};
     onAttachedChange = function(attached, oldAttached) {
-      if (!(attached && oldAttached)) {
-        return;
-      }
-      if (attached.sourceUrl !== oldAttached.sourceUrl) {
-        if (attached.lastUpdate) {
-          oldSourceUrl = oldAttached.sourceUrl;
-          oldLastUpdate = attached.lastUpdate;
-          oldRuleList = oldAttached.ruleList;
-          return attached.lastUpdate = null;
-        } else if (oldSourceUrl && attached.sourceUrl === oldSourceUrl) {
-          attached.lastUpdate = oldLastUpdate;
-          return attached.ruleList = oldRuleList;
-        }
-      }
+      return attachedSourceCache = OmegaSwitchProfileState.preserveAttachedUpdateOnSourceChange(attached, oldAttached, attachedSourceCache);
     };
     $scope.$watch('options[attachedKey]', onAttachedChange, true);
     $scope.attachedOptions = {
       enabled: false
     };
     $scope.$watch('profile.defaultProfileName', function(name) {
-      $scope.attachedOptions.enabled = name === $scope.attachedName;
-      if (!$scope.attached || !$scope.attachedOptions.enabled) {
-        return $scope.attachedOptions.defaultProfileName = name;
-      }
+      return OmegaSwitchProfileState.syncOptionsFromProfileDefault(name, $scope.attachedName, $scope.attached, $scope.attachedOptions);
     });
     $scope.$watch('attachedOptions.enabled', function(enabled, oldValue) {
-      if (enabled === oldValue) {
-        return;
-      }
-      if (enabled) {
-        if ($scope.profile.defaultProfileName !== $scope.attachedName) {
-          return $scope.profile.defaultProfileName = $scope.attachedName;
-        }
-      } else {
-        if ($scope.profile.defaultProfileName === $scope.attachedName) {
-          if ($scope.attached) {
-            $scope.profile.defaultProfileName = $scope.attached.defaultProfileName;
-            return $scope.attachedOptions.defaultProfileName = $scope.attached.defaultProfileName;
-          } else {
-            $scope.profile.defaultProfileName = 'direct';
-            return $scope.attachedOptions.defaultProfileName = 'direct';
-          }
-        }
-      }
+      return OmegaSwitchProfileState.setAttachedEnabled($scope.profile, $scope.attached, $scope.attachedName, $scope.attachedOptions, enabled, oldValue);
     });
     $scope.$watch('attached.defaultProfileName', function(name) {
-      if (name && $scope.attachedOptions.enabled) {
-        return $scope.attachedOptions.defaultProfileName = name;
-      }
+      return OmegaSwitchProfileState.syncDefaultFromAttached($scope.attachedOptions, $scope.attachedOptions.enabled, name);
     });
     $scope.$watch('attachedOptions.defaultProfileName', function(name) {
       attachedReadyDefer.resolve();
-      if ($scope.attached && $scope.attachedOptions.enabled) {
-        return $scope.attached.defaultProfileName = name;
-      } else {
-        return $scope.profile.defaultProfileName = name;
-      }
+      return OmegaSwitchProfileState.setDefaultProfile($scope.profile, $scope.attached, $scope.attachedOptions, name);
     });
     $scope.attachNew = function() {
-      $scope.attached = OmegaPac.Profiles.create({
-        name: $scope.attachedName,
-        defaultProfileName: $scope.profile.defaultProfileName,
-        profileType: 'RuleListProfile',
-        color: $scope.profile.color
-      });
-      OmegaPac.Profiles.updateRevision($scope.attached);
-      $scope.options[$scope.attachedKey] = $scope.attached;
-      $scope.attachedOptions.enabled = true;
-      return $scope.profile.defaultProfileName = $scope.attachedName;
+      return $scope.attached = OmegaSwitchProfileState.attachNew($scope.options, $scope.attachedKey, $scope.profile, $scope.attachedName, $scope.attachedOptions);
     };
     $scope.removeAttached = function() {
       var scope;
@@ -260,8 +209,7 @@
         template: reactModalTemplates.deleteAttached,
         scope: scope
       }).result.then(function() {
-        $scope.profile.defaultProfileName = $scope.attached.defaultProfileName;
-        return delete $scope.options[$scope.attachedKey];
+        return OmegaSwitchProfileState.removeAttached($scope.options, $scope.attachedKey, $scope.profile, $scope.attached);
       });
     };
     stateEditorKey = 'web._profileEditor.' + $scope.profile.name;
@@ -335,7 +283,7 @@
       });
     };
     parseSource = function() {
-      var diff, error, oldRules, patch, ref, rules;
+      var error, ref, rules;
       if (!$scope.source) {
         return true;
       }
@@ -349,32 +297,15 @@
       } else {
         $scope.source.error = void 0;
       }
-      $scope.attachedOptions.defaultProfileName = rules.pop().profileName;
-      diff = jsondiffpatch.create({
-        objectHash: function(obj) {
-          return JSON.stringify(obj);
-        },
-        textDiff: {
-          minLength: 1 / 0
-        }
-      });
-      oldRules = angular.fromJson(angular.toJson($scope.profile.rules));
-      patch = diff.diff(oldRules, rules);
-      jsondiffpatch.patch($scope.profile.rules, patch);
+      OmegaSwitchProfileState.applyParsedSource($scope.profile, $scope.attachedOptions, rules);
       return true;
     };
     $scope.toggleSource = function() {
       return $q.all([attachedReady, rulesReady]).then(function() {
-        var args, code;
+        var code;
         $scope.editSource = !$scope.editSource;
         if ($scope.editSource) {
-          args = {
-            rules: $scope.profile.rules,
-            defaultProfileName: $scope.attachedOptions.defaultProfileName
-          };
-          code = OmegaPac.RuleList.Switchy.compose(args, {
-            withResult: true
-          });
+          code = OmegaSwitchProfileState.composeSource($scope.profile, $scope.attachedOptions.defaultProfileName);
           $scope.source = {
             code: code
           };
