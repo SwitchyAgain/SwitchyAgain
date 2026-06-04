@@ -15,9 +15,8 @@ namespace OmegaSwitchProfileBridge {
   }
 
   export function buildProps(scope: any) {
-    var currentRules, visibleRuleCount;
+    var currentRules;
     currentRules = rules(scope);
-    visibleRuleCount = Math.min(scope.visibleRuleCount || 0, currentRules.length);
     return {
       attached: scope.attached,
       attachedRuleListError: scope.attachedRuleListError,
@@ -138,8 +137,7 @@ namespace OmegaSwitchProfileBridge {
       showConditionTypes: scope.showConditionTypes,
       showNotes: scope.showNotes,
       source: scope.source,
-      updating: !!(scope.updatingProfile && scope.updatingProfile[attachedName(scope)]),
-      visibleRuleCount: visibleRuleCount
+      updating: !!(scope.updatingProfile && scope.updatingProfile[attachedName(scope)])
     };
   }
 
@@ -156,7 +154,6 @@ namespace OmegaSwitchProfileBridge {
       scope.$watch('showConditionTypes', render),
       scope.$watch('showNotes', render),
       scope.$watch('source', render, true),
-      scope.$watch('visibleRuleCount', render),
       scope.$watch(function() {
         return scope.updatingProfile && scope.updatingProfile[attachedName(scope)];
       }, render)

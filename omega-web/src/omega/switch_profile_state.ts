@@ -153,9 +153,9 @@ namespace OmegaSwitchProfileState {
     return profile.rules.length;
   }
 
-  export function removeRule(profile: SwitchProfile, index: number, visibleRuleCount: number) {
+  export function removeRule(profile: SwitchProfile, index: number) {
     OmegaSwitchProfileRules.removeRule(profile.rules, index);
-    return Math.min(visibleRuleCount, profile.rules.length);
+    return profile.rules.length;
   }
 
   export function cloneRule(profile: SwitchProfile, index: number) {
