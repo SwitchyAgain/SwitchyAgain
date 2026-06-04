@@ -51,9 +51,9 @@ export function ProfileIcon({profile}: {profile?: Profile | null}) {
 
 export function ProfileInline({profile, dispName}: {profile?: Profile | null; dispName?: (profile: Profile) => string}) {
   return (
-    <span className="profile-inline">
+    <>
       <ProfileIcon profile={profile} /> {profileName(profile, dispName)}
-    </span>
+    </>
   );
 }
 
