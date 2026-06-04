@@ -1,21 +1,14 @@
 (function() {
   angular.module('omega').controller('SwitchProfileCtrl', function($scope, $rootScope, $location, $timeout, $q, $modal, profileIcons, getAttachedName, omegaTarget, trFilter, downloadFile, reactModalTemplates) {
-    var attachedReady, attachedReadyDefer, attachedSourceCache, exportLegacyRuleList, exportRuleList, rulesReady, rulesReadyDefer, stateEditorKey, stopWatchingForRules, unwatchRules, unwatchRulesShowNote;
+    var attachedSourceCache, exportLegacyRuleList, exportRuleList, readyState, stateEditorKey, stopWatchingForRules, unwatchRules, unwatchRulesShowNote;
     exportRuleList = OmegaSwitchProfileExport.createExportRuleListAction($scope, trFilter, downloadFile);
     exportLegacyRuleList = OmegaSwitchProfileExport.createExportLegacyRuleListAction($scope, trFilter, downloadFile);
     $scope.conditionHelp = {
       show: $location.search().help === 'condition'
     };
     unwatchRules = OmegaSwitchProfileOptions.watchConditionMode($scope, exportRuleList, exportLegacyRuleList);
-    rulesReadyDefer = $q.defer();
-    rulesReady = rulesReadyDefer.promise;
-    stopWatchingForRules = $scope.$watch('profile.rules', function(rules) {
-      if (!rules) {
-        return;
-      }
-      stopWatchingForRules();
-      return rulesReadyDefer.resolve(rules);
-    });
+    readyState = OmegaSwitchProfileSession.createReadyState($q);
+    stopWatchingForRules = OmegaSwitchProfileSession.watchRulesReady($scope, readyState);
     $scope.addRule = function() {
       return OmegaSwitchProfileActions.addRule($scope.profile, $scope.attachedOptions);
     };
@@ -62,15 +55,13 @@
         return OmegaSwitchProfileActions.resetRuleProfiles($scope.profile, $scope.attachedOptions);
       });
     };
-    attachedReadyDefer = $q.defer();
-    attachedReady = attachedReadyDefer.promise;
     OmegaSwitchProfileAttached.watchAttachedIdentity($scope, getAttachedName);
     OmegaSwitchProfileAttached.watchAttachedProfile($scope);
     $scope.watchAndUpdateRevision('options[attachedKey]');
     attachedSourceCache = {};
     OmegaSwitchProfileAttached.watchAttachedSourceChanges($scope, attachedSourceCache);
     $scope.attachedOptions = OmegaSwitchProfileAttached.createAttachedOptions();
-    OmegaSwitchProfileAttached.watchAttachedOptionSync($scope, attachedReadyDefer);
+    OmegaSwitchProfileAttached.watchAttachedOptionSync($scope, readyState);
     $scope.attachNew = function() {
       return OmegaSwitchProfileAttached.attachNew($scope);
     };
@@ -91,9 +82,7 @@
     $scope.loadRules = false;
     $scope.editSource = false;
     $scope.toggleSource = function() {
-      return $q.all([attachedReady, rulesReady]).then(function() {
-        return OmegaSwitchProfileSession.toggleSource($scope, stateEditorKey, omegaTarget, trFilter);
-      });
+      return OmegaSwitchProfileSession.toggleSourceWhenReady($scope, $q, readyState, stateEditorKey, omegaTarget, trFilter);
     };
     $rootScope.$on('$stateChangeStart', function(event, _, __, fromState) {
       if (OmegaSwitchProfileSession.shouldBlockStateChange($scope, trFilter)) {
@@ -117,13 +106,12 @@
       }
     });
     return omegaTarget.state(stateEditorKey).then(function(opts) {
-      var getState, restored;
+      var restored;
       restored = OmegaSwitchProfileSession.restoreInitialState($scope, opts);
       if (restored.editSource) {
         return $scope.toggleSource();
       } else {
-        getState = omegaTarget.state(['web.switchGuide', 'firstRun']);
-        return $q.all([rulesReady, getState]).then(function(arg) {
+        return OmegaSwitchProfileSession.getSwitchGuideState($q, readyState, omegaTarget).then(function(arg) {
           var _, firstRun, ref, switchGuide;
           _ = arg[0], (ref = arg[1], switchGuide = ref[0], firstRun = ref[1]);
           if (!OmegaSwitchProfileSession.shouldShowSwitchGuide($scope, firstRun, switchGuide)) {

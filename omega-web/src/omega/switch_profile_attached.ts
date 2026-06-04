@@ -26,7 +26,7 @@ namespace OmegaSwitchProfileAttached {
     };
   }
 
-  export function watchAttachedOptionSync(scope: any, attachedReadyDefer: any) {
+  export function watchAttachedOptionSync(scope: any, readyState: any) {
     return [
       scope.$watch('profile.defaultProfileName', function(name) {
         return OmegaSwitchProfileState.syncOptionsFromProfileDefault(name, scope.attachedName, scope.attached, scope.attachedOptions);
@@ -38,7 +38,7 @@ namespace OmegaSwitchProfileAttached {
         return OmegaSwitchProfileState.syncDefaultFromAttached(scope.attachedOptions, scope.attachedOptions.enabled, name);
       }),
       scope.$watch('attachedOptions.defaultProfileName', function(name) {
-        attachedReadyDefer.resolve();
+        readyState.attachedReadyDefer.resolve();
         return OmegaSwitchProfileState.setDefaultProfile(scope.profile, scope.attached, scope.attachedOptions, name);
       })
     ];

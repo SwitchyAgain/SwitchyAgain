@@ -1,4 +1,32 @@
 namespace OmegaSwitchProfileSession {
+  export function createReadyState($q: any) {
+    var attachedReadyDefer, rulesReadyDefer;
+    attachedReadyDefer = $q.defer();
+    rulesReadyDefer = $q.defer();
+    return {
+      attachedReady: attachedReadyDefer.promise,
+      attachedReadyDefer: attachedReadyDefer,
+      rulesReady: rulesReadyDefer.promise,
+      rulesReadyDefer: rulesReadyDefer
+    };
+  }
+
+  export function watchRulesReady(scope: any, readyState: any) {
+    var stopWatchingForRules;
+    stopWatchingForRules = scope.$watch('profile.rules', function(rules) {
+      if (!rules) {
+        return;
+      }
+      stopWatchingForRules();
+      return readyState.rulesReadyDefer.resolve(rules);
+    });
+    return stopWatchingForRules;
+  }
+
+  export function whenReady($q: any, readyState: any) {
+    return $q.all([readyState.attachedReady, readyState.rulesReady]);
+  }
+
   export function parseSource(scope: any, trFilter: (key: string, args?: any[]) => string) {
     var valid;
     valid = OmegaSwitchProfileSource.parseSource(scope.profile, scope.attachedOptions, scope.source, scope.options, trFilter);
@@ -24,6 +52,12 @@ namespace OmegaSwitchProfileSession {
       editSource: scope.editSource
     });
     return true;
+  }
+
+  export function toggleSourceWhenReady(scope: any, $q: any, readyState: any, stateEditorKey: string, omegaTarget: any, trFilter: (key: string, args?: any[]) => string) {
+    return whenReady($q, readyState).then(function() {
+      return toggleSource(scope, stateEditorKey, omegaTarget, trFilter);
+    });
   }
 
   export function validateBeforeApply(scope: any, trFilter: (key: string, args?: any[]) => string) {
@@ -69,5 +103,9 @@ namespace OmegaSwitchProfileSession {
 
   export function shouldShowSwitchGuide(scope: any, firstRun: any, switchGuide: any) {
     return OmegaSwitchProfileStartup.shouldShowSwitchGuide(scope.profile, firstRun, switchGuide);
+  }
+
+  export function getSwitchGuideState($q: any, readyState: any, omegaTarget: any) {
+    return $q.all([readyState.rulesReady, omegaTarget.state(['web.switchGuide', 'firstRun'])]);
   }
 }
