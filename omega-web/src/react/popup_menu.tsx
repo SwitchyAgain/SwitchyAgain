@@ -15,6 +15,15 @@ type PopupProfileLabelProps = {
   icon?: string;
   options?: ProfileMap | null;
   profile?: Profile | null;
+  text?: string;
+};
+
+type PopupActionLabelProps = {
+  caret?: boolean;
+  icon?: string;
+  iconClass?: string;
+  text?: string;
+  textClass?: string;
 };
 
 const PROFILE_ICONS: Record<string, string> = {
@@ -56,18 +65,30 @@ function profileName(profile?: Profile | null, dispName?: (profile: Profile) => 
   return dispName ? dispName(profile) : profile.name || '';
 }
 
-function PopupProfileLabel({dispName, icon, options, profile}: PopupProfileLabelProps) {
+function PopupProfileLabel({dispName, icon, options, profile, text}: PopupProfileLabelProps) {
   const iconProfile = getIconProfile(profile, options);
   const iconClass = icon || PROFILE_ICONS[iconProfile?.profileType || ''] || 'glyphicon-question-sign';
   const isVirtual = !!getVirtualTarget(profile, options);
+  const label = text != null ? text : profileName(profile, dispName);
 
   return (
     <>
       <span
         className={`glyphicon ${iconClass}${isVirtual ? ' virtual-profile-icon' : ''}`}
         style={{color: getProfileColor(profile, options)}}
-      />{' '}
-      {profileName(profile, dispName)}
+      />
+      {label && <> {label}</>}
+    </>
+  );
+}
+
+function PopupActionLabel({caret = false, icon, iconClass, text = '', textClass}: PopupActionLabelProps) {
+  return (
+    <>
+      {icon && <span className={`glyphicon ${icon}${iconClass ? ` ${iconClass}` : ''}`} />}
+      {icon && ' '}
+      {textClass ? <span className={textClass}>{text}</span> : <span>{text}</span>}
+      {caret && <span className="caret" />}
     </>
   );
 }
@@ -85,7 +106,21 @@ function mountPopupProfileLabel(element: Element, props: PopupProfileLabelProps 
   };
 }
 
+function mountPopupActionLabel(element: Element, props: PopupActionLabelProps = {}) {
+  const root = createRoot(element);
+  root.render(<PopupActionLabel {...props} />);
+  return {
+    render(nextProps: PopupActionLabelProps = {}) {
+      root.render(<PopupActionLabel {...nextProps} />);
+    },
+    unmount() {
+      root.unmount();
+    }
+  };
+}
+
 const globalWindow = window as any;
 globalWindow.OmegaReactPopupMenu = {
+  mountPopupActionLabel,
   mountPopupProfileLabel
 };

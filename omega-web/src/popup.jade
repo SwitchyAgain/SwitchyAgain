@@ -33,16 +33,16 @@ html(lang='en' ng-app='omegaPopup' ng-controller='PopupCtrl' ng-csp)
       li.profile.external-profile(ng-show='!requestInfoProvided && !!externalProfile' ng-class='{active: isActive(""), "bg-info": isEffective("")}')
         a(href='#' role='button' ng-click='nameExternal.open = true' title='{{getProfileTitle(externalProfile)}}' data-shortcut='external')
           form(name='nameExternalForm' ng-submit='nameExternalForm.$valid && saveExternal()')
-            span(omega-profile-icon='externalProfile' icon='getIcon(externalProfile, "normal")' options='availableProfiles' disp-name='dispNameFilter')
-            = ' '
-            span(ng-show='!nameExternal.open') {{'popup_externalProfile' | tr}}
+            span(omega-react-popup-profile-label profile='externalProfile' icon='getIcon(externalProfile, "normal")'
+              options='availableProfiles' text="{{'popup_externalProfile' | tr}}" ng-show='!nameExternal.open')
+            span(omega-react-popup-profile-label profile='externalProfile' icon='getIcon(externalProfile, "normal")'
+              options='availableProfiles' text='' ng-show='!!nameExternal.open')
             input.form-control(ng-show='!!nameExternal.open' ng-model='externalProfile.name' ng-blur='nameExternalForm.$valid && saveExternal()'
               placeholder='{{"popup_externalProfileName" | tr}}' ui-validate='validateProfileName' autofocus)
       li.request-info(ng-show='!!requestInfoProvided' class='bg-warning')
         a(href='#' role='button' ng-click='showRequestInfo = true' data-shortcut='requestInfo')
-          span.glyphicon.glyphicon-warning-sign.text-warning
-          = ' '
-          | {{'popup_requestErrorCount' | tr:[requestInfo.errorCount]}}
+          span(omega-react-popup-action-label icon='glyphicon-warning-sign' icon-class='text-warning'
+            text="{{'popup_requestErrorCount' | tr:[requestInfo.errorCount]}}")
       li.divider
       li.profile.custom-profile(ng-repeat='profile in customProfiles' ng-class='{active: isActive(profile.name), "bg-info": isEffective(profile.name)}'
         dropdown)
@@ -61,15 +61,10 @@ html(lang='en' ng-app='omegaPopup' ng-controller='PopupCtrl' ng-csp)
       li.divider(ng-show='!!currentDomain && validResultProfiles.length')
       li(ng-show='!!currentProfileCanAddRule && !!currentDomain')
         a(href='#' role='button' ng-click='prepareConditionForm()' data-shortcut='addRule')
-          span.glyphicon.glyphicon-plus
-          = ' '
-          span {{'popup_addCondition' | tr}}
+          span(omega-react-popup-action-label icon='glyphicon-plus' text="{{'popup_addCondition' | tr}}")
       li(ng-show='!!currentDomain && validResultProfiles.length' dropdown is-open="tempRuleMenu.open")
         a.dropdown-toggle(href='#' role='button' dropdown-toggle data-shortcut='tempRule')
-          span.glyphicon.glyphicon-filter
-          = ' '
-          span.current-domain {{currentDomain}}
-          span.caret
+          span(omega-react-popup-action-label icon='glyphicon-filter' text='{{currentDomain}}' text-class='current-domain' caret='true')
         ul.dropdown-menu
           li(ng-repeat='profile in validResultProfiles' ng-class='{active: profile.name == currentTempRuleProfile}'
             ng-show='!!currentTempRuleProfile || validResultProfiles.length == 1 || profile.name != currentProfileName')
@@ -78,9 +73,7 @@ html(lang='en' ng-app='omegaPopup' ng-controller='PopupCtrl' ng-csp)
       li.divider
       li
         a(href='#' role='button' ng-click='openOptions()' data-shortcut='option')
-          span.glyphicon.glyphicon-wrench
-          = ' '
-          span {{'popup_showOptions' | tr}}
+          span(omega-react-popup-action-label icon='glyphicon-wrench' text="{{'popup_showOptions' | tr}}")
     form.condition-form(name='conditionForm' style='display: none;'
       ng-style='{display: showConditionForm ? "block" : "none"}'
       ng-submit='addCondition(rule.condition, rule.profileName)')
@@ -161,6 +154,7 @@ html(lang='en' ng-app='omegaPopup' ng-controller='PopupCtrl' ng-csp)
     script(src='lib/angular-bootstrap/ui-bootstrap-tpls.min.js')
     script(src='lib/angular-ui-utils/validate.min.js')
     script(src='js/omega_target_web.js')
+    script(src='react/profile_widgets.js')
     script(src='js/omega_decoration.js')
     script(src='react/popup_menu.js')
     script(src='js/popup.js')

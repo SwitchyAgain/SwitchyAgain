@@ -198,6 +198,7 @@ async function main() {
   await bundleReact('src/react/confirm_modals.tsx', 'build/react/confirm_modals.js');
   await bundleReact('src/react/profile_modals.tsx', 'build/react/profile_modals.js');
   await bundleReact('src/react/profile_content.tsx', 'build/react/profile_content.js');
+  await bundleReact('src/react/profile_widgets.tsx', 'build/react/profile_widgets.js');
   await bundleReact('src/react/options_modals.tsx', 'build/react/options_modals.js');
   await bundleReact('src/react/options_shell.tsx', 'build/react/options_shell.js');
   await bundleReact('src/react/popup_menu.tsx', 'build/react/popup_menu.js');

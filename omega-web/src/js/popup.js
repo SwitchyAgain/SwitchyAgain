@@ -24,7 +24,8 @@
         profile: '=profile',
         icon: '&?icon',
         options: '=options',
-        dispName: '=?dispName'
+        dispName: '=?dispName',
+        text: '@?text'
       },
       link: function(scope, element) {
         var bridge, mount, mounted, props, render, unwatchers;
@@ -34,7 +35,8 @@
             dispName: scope.dispName,
             icon: scope.icon ? scope.icon() : void 0,
             options: scope.options,
-            profile: scope.profile
+            profile: scope.profile,
+            text: scope.text
           };
         };
         render = function() {
@@ -52,6 +54,65 @@
             }, render));
             unwatchers.push(scope.$watch('options', render, true));
             unwatchers.push(scope.$watch('dispName', render));
+            unwatchers.push(scope.$watch('text', render));
+          }
+        };
+        mount();
+        if (!mounted) {
+          $timeout(mount);
+        }
+        return scope.$on('$destroy', function() {
+          var k, len, unwatch;
+          for (k = 0, len = unwatchers.length; k < len; k++) {
+            unwatch = unwatchers[k];
+            if (unwatch) {
+              unwatch();
+            }
+          }
+          if (mounted && mounted.unmount) {
+            return mounted.unmount();
+          }
+        });
+      }
+    };
+  });
+
+  module.directive('omegaReactPopupActionLabel', function($timeout) {
+    return {
+      restrict: 'A',
+      scope: {
+        caret: '@?caret',
+        icon: '@?icon',
+        iconClass: '@?iconClass',
+        text: '@?text',
+        textClass: '@?textClass'
+      },
+      link: function(scope, element) {
+        var bridge, mount, mounted, props, render, unwatchers;
+        unwatchers = [];
+        props = function() {
+          return {
+            caret: scope.caret === 'true',
+            icon: scope.icon,
+            iconClass: scope.iconClass,
+            text: scope.text,
+            textClass: scope.textClass
+          };
+        };
+        render = function() {
+          if (mounted && mounted.render) {
+            return mounted.render(props());
+          }
+        };
+        mount = function() {
+          bridge = window.OmegaReactPopupMenu;
+          if (bridge && bridge.mountPopupActionLabel) {
+            mounted = bridge.mountPopupActionLabel(element[0], props());
+            unwatchers.push(scope.$watch('caret', render));
+            unwatchers.push(scope.$watch('icon', render));
+            unwatchers.push(scope.$watch('iconClass', render));
+            unwatchers.push(scope.$watch('text', render));
+            unwatchers.push(scope.$watch('textClass', render));
           }
         };
         mount();
