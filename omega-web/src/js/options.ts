@@ -23,6 +23,8 @@
 
   $script('react/options_modals.js', 'react-options-modals');
 
+  $script('react/options_shell.js', 'react-options-shell');
+
   $script('react/general.js', 'react-general');
 
   $script('react/import_export.js', 'react-import-export');
@@ -76,7 +78,7 @@
     return $script('lib/angular-i18n/angular-locale_' + locale + '.js', 'angular-i18n');
   });
 
-  $script.ready(['angular', 'omega', 'omega-deps', 'angular-ui-router', 'jquery-ui', 'spectrum', 'filesaver', 'blob', 'angular-ladda', 'angular-sanitize', 'angular-i18n', 'react-ui', 'react-about', 'react-confirm-modals', 'react-profile-modals', 'react-profile-content', 'react-options-modals', 'react-general', 'react-import-export'], function() {
+  $script.ready(['angular', 'omega', 'omega-deps', 'angular-ui-router', 'jquery-ui', 'spectrum', 'filesaver', 'blob', 'angular-ladda', 'angular-sanitize', 'angular-i18n', 'react-ui', 'react-about', 'react-confirm-modals', 'react-profile-modals', 'react-profile-content', 'react-options-modals', 'react-options-shell', 'react-general', 'react-import-export'], function() {
     return angular.bootstrap(document, ['omega']);
   });
 

@@ -199,6 +199,7 @@ async function main() {
   await bundleReact('src/react/profile_modals.tsx', 'build/react/profile_modals.js');
   await bundleReact('src/react/profile_content.tsx', 'build/react/profile_content.js');
   await bundleReact('src/react/options_modals.tsx', 'build/react/options_modals.js');
+  await bundleReact('src/react/options_shell.tsx', 'build/react/options_shell.js');
   await writeReactHtml('build/react/import_export.html', 'SwitchyAgain Import / Export', 'import_export.js');
   await bundleReact('src/react/import_export.tsx', 'build/react/import_export.js');
 

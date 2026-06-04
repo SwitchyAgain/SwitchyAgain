@@ -1327,6 +1327,81 @@
     };
   });
 
+  angular.module('omega').directive('omegaReactOptionsShell', function($timeout, $state, $stateParams, $filter) {
+    return {
+      restrict: 'A',
+      link: function(scope, element) {
+        var bridge, mount, mounted, props, render, unwatchers;
+        unwatchers = [];
+        props = function() {
+          return {
+            currentProfileName: $stateParams.name || '',
+            currentState: ($state.current && $state.current.name) || '',
+            dispName: scope.dispNameFilter,
+            generalHref: $state.href('general'),
+            importExportHref: $state.href('io'),
+            isExperimental: !!scope.isExperimental,
+            newProfileHref: '#',
+            onApply: function() {
+              return scope.applyOptions();
+            },
+            onDiscard: function() {
+              return scope.revertOptions();
+            },
+            onNavigate: function(state, params) {
+              return scope.$evalAsync(function() {
+                return $state.go(state, params);
+              });
+            },
+            onNewProfile: function() {
+              return scope.newProfile();
+            },
+            options: scope.options,
+            optionsDirty: !!scope.optionsDirty,
+            profileHref: function(profile) {
+              return $state.href('profile', {
+                name: profile.name
+              });
+            },
+            profiles: scope.options ? $filter('profiles')(scope.options, 'sorted') : [],
+            uiHref: $state.href('ui')
+          };
+        };
+        render = function() {
+          if (mounted != null ? mounted.render : void 0) {
+            return mounted.render(props());
+          }
+        };
+        mount = function() {
+          bridge = (window as any).OmegaReactOptionsShell;
+          if (bridge != null ? bridge.mountOptionsShell : void 0) {
+            mounted = bridge.mountOptionsShell(element[0], props());
+            unwatchers.push(scope.$watch('options', render, true));
+            unwatchers.push(scope.$watch('optionsDirty', render));
+            unwatchers.push(scope.$watch('isExperimental', render));
+            unwatchers.push(scope.$on('$stateChangeSuccess', render));
+          }
+        };
+        mount();
+        if (!mounted) {
+          $timeout(mount);
+        }
+        return scope.$on('$destroy', function() {
+          var i, len, unwatch;
+          for (i = 0, len = unwatchers.length; i < len; i++) {
+            unwatch = unwatchers[i];
+            if (unwatch) {
+              unwatch();
+            }
+          }
+          if (mounted != null ? mounted.unmount : void 0) {
+            return mounted.unmount();
+          }
+        });
+      }
+    };
+  });
+
   angular.module('omega').directive('omegaIp2str', function() {
     return {
       restrict: 'A',
