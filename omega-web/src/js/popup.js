@@ -135,6 +135,120 @@
     };
   });
 
+  module.directive('omegaReactPopupConditionForm', function($timeout, trFilter) {
+    return {
+      restrict: 'A',
+      link: function(scope, element) {
+        var bridge, conditionTypeKeys, conditionTypes, messages, mount, mounted, props, render, unwatchers;
+        unwatchers = [];
+        conditionTypeKeys = [
+          'HostWildcardCondition',
+          'HostRegexCondition',
+          'UrlWildcardCondition',
+          'UrlRegexCondition',
+          'KeywordCondition'
+        ];
+        conditionTypes = conditionTypeKeys.map(function(type) {
+          return {
+            label: trFilter('condition_' + type),
+            value: type
+          };
+        });
+        messages = {
+          addCondition: trFilter('popup_addCondition'),
+          addConditionTo: trFilter('popup_addConditionTo'),
+          cancel: trFilter('dialog_cancel'),
+          conditionDetails: trFilter('options_conditionDetails'),
+          conditionType: trFilter('options_conditionType'),
+          resultProfile: trFilter('options_resultProfile'),
+          showConditionTypeHelp: trFilter('options_showConditionTypeHelp')
+        };
+        props = function() {
+          return {
+            availableProfiles: scope.availableProfiles,
+            conditionTypes: conditionTypes,
+            currentProfile: scope.currentProfile,
+            dispName: scope.dispNameFilter,
+            messages: messages,
+            onCancel: function() {
+              return scope.$evalAsync(function() {
+                return scope.returnToMenu();
+              });
+            },
+            onConditionTypeChange: function(type) {
+              return scope.$evalAsync(function() {
+                if (scope.rule && scope.rule.condition) {
+                  return scope.rule.condition.conditionType = type;
+                }
+              });
+            },
+            onHelp: function() {
+              return scope.$evalAsync(function() {
+                return scope.openConditionHelp();
+              });
+            },
+            onPatternChange: function(pattern) {
+              return scope.$evalAsync(function() {
+                if (scope.rule && scope.rule.condition) {
+                  return scope.rule.condition.pattern = pattern;
+                }
+              });
+            },
+            onProfileNameChange: function(name) {
+              return scope.$evalAsync(function() {
+                if (scope.rule) {
+                  return scope.rule.profileName = name;
+                }
+              });
+            },
+            onSubmit: function() {
+              return scope.$evalAsync(function() {
+                if (scope.rule) {
+                  return scope.addCondition(scope.rule.condition, scope.rule.profileName);
+                }
+              });
+            },
+            resultProfiles: scope.validResultProfiles,
+            rule: scope.rule,
+            shown: !!scope.showConditionForm
+          };
+        };
+        render = function() {
+          if (mounted && mounted.render) {
+            return mounted.render(props());
+          }
+        };
+        mount = function() {
+          bridge = window.OmegaReactPopupMenu;
+          if (bridge && bridge.mountPopupConditionForm) {
+            mounted = bridge.mountPopupConditionForm(element[0], props());
+            unwatchers.push(scope.$watch('showConditionForm', render));
+            unwatchers.push(scope.$watch('rule', render, true));
+            unwatchers.push(scope.$watch('currentProfile', render, true));
+            unwatchers.push(scope.$watch('availableProfiles', render, true));
+            unwatchers.push(scope.$watch('validResultProfiles', render, true));
+          }
+        };
+        mount();
+        if (!mounted) {
+          $timeout(mount);
+        }
+        return scope.$on('$destroy', function() {
+          var k, len, unwatch;
+          for (k = 0, len = unwatchers.length; k < len; k++) {
+            unwatch = unwatchers[k];
+            if (unwatch) {
+              unwatch();
+            }
+          }
+          if (mounted && mounted.unmount) {
+            return mounted.unmount();
+          }
+        });
+      }
+    };
+  });
+
   moveUp = function(activeIndex, items) {
     var i, ref;
     i = activeIndex - 1;

@@ -74,40 +74,7 @@ html(lang='en' ng-app='omegaPopup' ng-controller='PopupCtrl' ng-csp)
       li
         a(href='#' role='button' ng-click='openOptions()' data-shortcut='option')
           span(omega-react-popup-action-label icon='glyphicon-wrench' text="{{'popup_showOptions' | tr}}")
-    form.condition-form(name='conditionForm' style='display: none;'
-      ng-style='{display: showConditionForm ? "block" : "none"}'
-      ng-submit='addCondition(rule.condition, rule.profileName)')
-      fieldset
-        legend
-          | {{'popup_addConditionTo' | tr}}
-          = ' '
-          span.profile-inline
-            span(omega-react-popup-profile-label profile='currentProfile' options='availableProfiles' disp-name='dispNameFilter')
-        div.form-group
-          label
-            | {{'options_conditionType' | tr}}
-            = ' '
-            button.btn.btn-link.btn-sm.clear-padding(type='button' ng-click='openConditionHelp()')
-              | {{"options_showConditionTypeHelp" | tr}}
-              = ' '
-              span.glyphicon.glyphicon-new-window
-          select.form-control(ng-model='rule.condition.conditionType')
-            option(value='HostWildcardCondition') {{'condition_HostWildcardCondition' | tr}}
-            option(value='HostRegexCondition') {{'condition_HostRegexCondition' | tr}}
-            option(value='UrlWildcardCondition') {{'condition_UrlWildcardCondition' | tr}}
-            option(value='UrlRegexCondition') {{'condition_UrlRegexCondition' | tr}}
-            option(value='KeywordCondition') {{'condition_KeywordCondition' | tr}}
-        div.form-group
-          label {{'options_conditionDetails' | tr}}
-          input.form-control.condition-details(type='text' required ng-model='rule.condition.pattern' autofocus)
-        div.form-group
-          label {{'options_resultProfile' | tr}}
-          div(omega-profile-select='validResultProfiles' ng-model='rule.profileName'
-            disp-name='dispNameFilter' options='availableProfiles')
-        div.condition-controls
-          button.btn.btn-default(type='button' ng-click='returnToMenu()')
-            | {{'dialog_cancel' | tr}}
-          button.btn.btn-primary(type='submit' ng-disabled='conditionForm.$invalid') {{'popup_addCondition' | tr}}
+    div(omega-react-popup-condition-form)
     div.proxy-not-controllable(ng-show='proxyNotControllable')
       p.text-danger {{'popup_proxyNotControllable_' + proxyNotControllable | tr}}
       p.help-block {{('popup_proxyNotControllableDetails_' + proxyNotControllable | tr) || ('popup_proxyNotControllableDetails' | tr)}}
