@@ -74,7 +74,7 @@ html(lang='en' ng-app='omegaPopup' ng-controller='PopupCtrl' ng-csp)
           li(ng-repeat='profile in validResultProfiles' ng-class='{active: profile.name == currentTempRuleProfile}'
             ng-show='!!currentTempRuleProfile || validResultProfiles.length == 1 || profile.name != currentProfileName')
             a(href='#' role='button' ng-click='addTempRule(currentDomain, profile.name)' title='{{getProfileTitle(profile)}}')
-              span(omega-profile-inline='profile' options='availableProfiles' disp-name='dispNameFilter')
+              span(omega-react-popup-profile-label profile='profile' options='availableProfiles' disp-name='dispNameFilter')
       li.divider
       li
         a(href='#' role='button' ng-click='openOptions()' data-shortcut='option')
@@ -89,7 +89,7 @@ html(lang='en' ng-app='omegaPopup' ng-controller='PopupCtrl' ng-csp)
           | {{'popup_addConditionTo' | tr}}
           = ' '
           span.profile-inline
-            span(omega-profile-inline='currentProfile' options='availableProfiles' disp-name='dispNameFilter')
+            span(omega-react-popup-profile-label profile='currentProfile' options='availableProfiles' disp-name='dispNameFilter')
         div.form-group
           label
             | {{'options_conditionType' | tr}}
@@ -130,7 +130,7 @@ html(lang='en' ng-app='omegaPopup' ng-controller='PopupCtrl' ng-csp)
           | {{'popup_addConditionTo' | tr}}
           = ' '
           span.profile-inline
-            span(omega-profile-inline='currentProfile' options='availableProfiles' disp-name='dispNameFilter')
+            span(omega-react-popup-profile-label profile='currentProfile' options='availableProfiles' disp-name='dispNameFilter')
         legend(ng-show='!currentProfileCanAddRule')
           | {{'popup_requestErrorHeading' | tr}} 
         .text-warning {{'popup_requestErrorWarning' | tr}}
