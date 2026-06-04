@@ -54,19 +54,15 @@
       return rulesReadyDefer.resolve(rules);
     });
     $scope.addRule = function() {
-      return OmegaSwitchProfileState.addRule($scope.profile, $scope.attachedOptions.defaultProfileName);
+      return OmegaSwitchProfileActions.addRule($scope.profile, $scope.attachedOptions);
     };
     $scope.removeRule = function(index) {
       var removeForReal, scope;
       removeForReal = function() {
-        return OmegaSwitchProfileState.removeRule($scope.profile, index);
+        return OmegaSwitchProfileActions.removeRule($scope.profile, index);
       };
       if ($scope.options['-confirmDeletion']) {
-        scope = $scope.$new('isolate');
-        scope.rule = $scope.profile.rules[index];
-        scope.ruleProfile = $scope.profileByName(scope.rule.profileName);
-        scope.dispNameFilter = $scope.dispNameFilter;
-        scope.options = $scope.options;
+        scope = OmegaSwitchProfileActions.createRuleRemoveScope($scope, $scope.profile.rules[index]);
         return $modal.open({
           template: reactModalTemplates.ruleRemoveConfirm,
           scope: scope
@@ -76,10 +72,10 @@
       }
     };
     $scope.cloneRule = function(index) {
-      OmegaSwitchProfileState.cloneRule($scope.profile, index);
+      OmegaSwitchProfileActions.cloneRule($scope.profile, index);
       return $timeout(function() {
         var input, ref, ref1;
-        input = angular.element(".switch-rule-row:nth-child(" + (index + 2) + ") input");
+        input = angular.element(OmegaSwitchProfileActions.cloneRuleInputSelector(index));
         if ((ref = input[0]) != null) {
           ref.focus();
         }
@@ -88,26 +84,19 @@
     };
     $scope.showNotes = false;
     $scope.addNote = function(index) {
-      $scope.showNotes = true;
-      return unwatchRulesShowNote();
+      return OmegaSwitchProfileActions.addNote($scope, unwatchRulesShowNote);
     };
     unwatchRulesShowNote = $scope.$watch('profile.rules', (function(rules) {
-      if (OmegaSwitchProfileRules.hasNotes(rules)) {
-        $scope.showNotes = true;
-        return unwatchRulesShowNote();
-      }
+      return OmegaSwitchProfileActions.syncShowNotes($scope, rules, unwatchRulesShowNote);
     }), true);
     $scope.resetRules = function() {
       var scope;
-      scope = $scope.$new('isolate');
-      scope.ruleProfile = $scope.profileByName($scope.attachedOptions.defaultProfileName);
-      scope.dispNameFilter = $scope.dispNameFilter;
-      scope.options = $scope.options;
+      scope = OmegaSwitchProfileActions.createRuleResetScope($scope);
       return $modal.open({
         template: reactModalTemplates.ruleResetConfirm,
         scope: scope
       }).result.then(function() {
-        return OmegaSwitchProfileRules.resetRuleProfiles($scope.profile.rules, $scope.attachedOptions.defaultProfileName);
+        return OmegaSwitchProfileActions.resetRuleProfiles($scope.profile, $scope.attachedOptions);
       });
     };
     attachedReadyDefer = $q.defer();
