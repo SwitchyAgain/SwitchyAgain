@@ -220,6 +220,7 @@ async function main() {
     'build-ts/omega/switch_profile_export.js',
     'build-ts/omega/switch_profile_session.js',
     'build-ts/omega/switch_profile_bindings.js',
+    'build-ts/omega/switch_profile_lifecycle.js',
     'build-ts/omega/switch_profile_bridge.js',
     'build-ts/omega/filters.js',
     'build-ts/omega/directives.js',

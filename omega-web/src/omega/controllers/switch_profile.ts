@@ -29,43 +29,13 @@
       stateEditorKey: stateEditorKey,
       trFilter: trFilter
     });
-    $rootScope.$on('$stateChangeStart', function(event, _, __, fromState) {
-      if (OmegaSwitchProfileSession.shouldBlockStateChange($scope, trFilter)) {
-        return event.preventDefault();
-      }
-    });
-    $scope.$on('omegaApplyOptions', function(event) {
-      var validation;
-      validation = OmegaSwitchProfileSession.validateBeforeApply($scope, trFilter);
-      if (!validation.attachedValid) {
-        event.preventDefault();
-        angular.element('#attached-rulelist')[0].focus();
-      }
-      if (validation.sourceTouched) {
-        event.preventDefault();
-        if (validation.sourceValid) {
-          return $timeout(function() {
-            return $rootScope.applyOptions();
-          });
-        }
-      }
-    });
-    return omegaTarget.state(stateEditorKey).then(function(opts) {
-      var restored;
-      restored = OmegaSwitchProfileSession.restoreInitialState($scope, opts);
-      if (restored.editSource) {
-        return $scope.toggleSource();
-      } else {
-        return OmegaSwitchProfileSession.getSwitchGuideState($q, readyState, omegaTarget).then(function(arg) {
-          var _, firstRun, ref, switchGuide;
-          _ = arg[0], (ref = arg[1], switchGuide = ref[0], firstRun = ref[1]);
-          if (!OmegaSwitchProfileSession.shouldShowSwitchGuide($scope, firstRun, switchGuide)) {
-            return;
-          }
-          omegaTarget.state('web.switchGuide', 'shown');
-          return $script('js/switch_profile_guide.js');
-        });
-      }
+    OmegaSwitchProfileLifecycle.registerStateChangeGuard($scope, $rootScope, trFilter);
+    OmegaSwitchProfileLifecycle.registerApplyOptionsGuard($scope, $rootScope, $timeout, trFilter);
+    return OmegaSwitchProfileLifecycle.restoreEditorState($scope, {
+      $q: $q,
+      omegaTarget: omegaTarget,
+      readyState: readyState,
+      stateEditorKey: stateEditorKey
     });
   });
 
