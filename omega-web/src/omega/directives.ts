@@ -907,9 +907,6 @@
         var bridge, mount, mounted, props, render, unwatchShow, unwatchTypes;
         props = function() {
           return {
-            advancedConditionTypes: scope.advancedConditionTypes,
-            basicConditionTypes: scope.basicConditionTypes,
-            isUrlConditionType: scope.isUrlConditionType,
             onClose: function() {
               return scope.$evalAsync(function() {
                 return scope.conditionHelp.show = false;
@@ -955,11 +952,10 @@
     return {
       restrict: 'A',
       link: function(scope, element) {
-        var bridge, mount, mounted, props, render, unwatchEditSource, unwatchSource, unwatchUrlConditions;
+        var bridge, mount, mounted, props, render, unwatchEditSource, unwatchRules, unwatchSource;
         props = function() {
           return {
             editSource: scope.editSource,
-            hasUrlConditions: scope.hasUrlConditions,
             onSourceChange: function(code) {
               return scope.$evalAsync(function() {
                 if (scope.source) {
@@ -972,6 +968,7 @@
             onToggleSource: function() {
               return scope.toggleSource();
             },
+            rules: scope.profile && scope.profile.rules,
             source: scope.source
           };
         };
@@ -985,8 +982,8 @@
           if (bridge != null ? bridge.mountSwitchRulesHeader : void 0) {
             mounted = bridge.mountSwitchRulesHeader(element[0], props());
             unwatchEditSource = scope.$watch('editSource', render);
+            unwatchRules = scope.$watch('profile.rules', render, true);
             unwatchSource = scope.$watch('source', render, true);
-            unwatchUrlConditions = scope.$watch('hasUrlConditions', render);
           }
         };
         mount();
@@ -1000,8 +997,8 @@
           if (unwatchSource) {
             unwatchSource();
           }
-          if (unwatchUrlConditions) {
-            unwatchUrlConditions();
+          if (unwatchRules) {
+            unwatchRules();
           }
           if (mounted != null ? mounted.unmount : void 0) {
             return mounted.unmount();
@@ -1061,21 +1058,8 @@
         var bridge, mount, mounted, props, refreshSortable, render, sortStartIndex, unwatchConditionTypes, unwatchOptions, unwatchRules, unwatchShowNotes, unwatchVisibleRuleCount;
         props = function() {
           return {
-            conditionHasWarning: function(condition) {
-              return scope.conditionHasWarning(condition);
-            },
             conditionTypes: scope.conditionTypes,
             dispName: scope.dispNameFilter,
-            formatIpCondition: function(condition) {
-              if (condition != null ? condition.ip : void 0) {
-                return OmegaPac.Conditions.str(condition).split(' ', 2)[1];
-              }
-              return '';
-            },
-            getWeekdayList: function(condition) {
-              return scope.getWeekdayList(condition);
-            },
-            isUrlConditionType: scope.isUrlConditionType,
             onAddNote: function(index) {
               return scope.addNote(index);
             },

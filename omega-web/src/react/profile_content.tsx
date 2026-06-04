@@ -10,6 +10,8 @@ import {
   profileByName
 } from './profile_widgets';
 
+declare const OmegaSwitchProfileRules: any;
+
 type UnsupportedProfileProps = {
   profile?: {
     profileType?: string;
@@ -102,15 +104,7 @@ type SwitchAttachedProfileProps = {
   updating?: boolean;
 };
 
-type ConditionHelpGroup = {
-  group: string;
-  types: string[];
-};
-
 type SwitchConditionHelpProps = {
-  advancedConditionTypes?: ConditionHelpGroup[];
-  basicConditionTypes?: ConditionHelpGroup[];
-  isUrlConditionType?: Record<string, boolean>;
   onClose?: () => void;
   show?: boolean;
   showConditionTypes?: number;
@@ -118,9 +112,9 @@ type SwitchConditionHelpProps = {
 
 type SwitchRulesHeaderProps = {
   editSource?: boolean;
-  hasUrlConditions?: boolean;
   onSourceChange?: (code: string) => void;
   onToggleSource?: () => void;
+  rules?: SwitchRuleModel[];
   source?: {
     code?: string;
     error?: {
@@ -157,12 +151,9 @@ type ConditionTypeOption = {
 };
 
 type SwitchRuleRowProps = {
-  conditionHasWarning?: (condition: SwitchRuleCondition) => boolean;
   conditionTypes?: ConditionTypeOption[];
   dispName?: (profile: Profile) => string;
-  formatIpCondition?: (condition: SwitchRuleCondition) => string;
   index: number;
-  isUrlConditionType?: Record<string, boolean>;
   onAddNote?: (index: number) => void;
   onCloneRule?: (index: number) => void;
   onConditionFieldChange?: (index: number, field: string, value: any) => void;
@@ -181,12 +172,8 @@ type SwitchRuleRowProps = {
 };
 
 type SwitchRuleRowsProps = {
-  conditionHasWarning?: (condition: SwitchRuleCondition) => boolean;
   conditionTypes?: ConditionTypeOption[];
   dispName?: (profile: Profile) => string;
-  formatIpCondition?: (condition: SwitchRuleCondition) => string;
-  getWeekdayList?: (condition: SwitchRuleCondition) => boolean[];
-  isUrlConditionType?: Record<string, boolean>;
   onAddNote?: (index: number) => void;
   onCloneRule?: (index: number) => void;
   onConditionFieldChange?: (index: number, field: string, value: any) => void;
@@ -471,12 +458,9 @@ function DraftInput({
 }
 
 function SwitchRuleRow({
-  conditionHasWarning,
   conditionTypes = [],
   dispName,
-  formatIpCondition,
   index,
-  isUrlConditionType = {},
   onAddNote,
   onCloneRule,
   onConditionFieldChange,
@@ -495,8 +479,16 @@ function SwitchRuleRow({
   const condition = rule.condition || {};
   const conditionType = condition.conditionType || '';
   const conditionGroups = groupedConditionTypes(conditionTypes);
+  const isUrlConditionType = OmegaSwitchProfileRules.getUrlConditionTypeMap();
   const hasUrlIcon = !!isUrlConditionType[conditionType];
-  const hasWarning = conditionHasWarning?.(condition);
+  const hasWarning = OmegaSwitchProfileRules.conditionHasWarning(condition);
+
+  function formatIpCondition(condition: SwitchRuleCondition) {
+    if (condition?.ip) {
+      return OmegaPac.Conditions.str(condition).split(' ', 2)[1];
+    }
+    return '';
+  }
 
   function changeField(field: string, value: any) {
     onConditionFieldChange?.(index, field, value);
@@ -663,12 +655,8 @@ function SwitchRuleRow({
 }
 
 function SwitchRuleRows({
-  conditionHasWarning,
   conditionTypes = [],
   dispName,
-  formatIpCondition,
-  getWeekdayList,
-  isUrlConditionType = {},
   onAddNote,
   onCloneRule,
   onConditionFieldChange,
@@ -689,12 +677,9 @@ function SwitchRuleRows({
     <>
       {rules.slice(0, visibleRuleCount).map((rule, index) => (
         <SwitchRuleRow
-          conditionHasWarning={conditionHasWarning}
           conditionTypes={conditionTypes}
           dispName={dispName}
-          formatIpCondition={formatIpCondition}
           index={index}
-          isUrlConditionType={isUrlConditionType}
           key={switchRuleKey(rule)}
           onAddNote={onAddNote}
           onCloneRule={onCloneRule}
@@ -710,7 +695,7 @@ function SwitchRuleRows({
           resultProfiles={resultProfiles}
           rule={rule}
           showNotes={showNotes}
-          weekdayList={getWeekdayList?.(rule.condition) || []}
+          weekdayList={OmegaPac.Conditions.getWeekdayList(rule.condition) || []}
         />
       ))}
     </>
@@ -1143,15 +1128,15 @@ function htmlMessage(key: string, fallback = key) {
 }
 
 function SwitchConditionHelp({
-  advancedConditionTypes = [],
-  basicConditionTypes = [],
-  isUrlConditionType = {},
   onClose,
   show = false,
   showConditionTypes = 0
 }: SwitchConditionHelpProps) {
   const [expandedId, setExpandedId] = useState(0);
-  const groups = showConditionTypes === 0 ? basicConditionTypes : advancedConditionTypes;
+  const groups = showConditionTypes === 0
+    ? OmegaSwitchProfileRules.getBasicConditionGroups()
+    : OmegaSwitchProfileRules.getAdvancedConditionGroups();
+  const isUrlConditionType = OmegaSwitchProfileRules.getUrlConditionTypeMap();
 
   if (!show) {
     return null;
@@ -1204,12 +1189,17 @@ function SwitchConditionHelp({
 
 function SwitchRulesHeader({
   editSource = false,
-  hasUrlConditions = false,
   onSourceChange,
   onToggleSource,
+  rules = [],
   source
 }: SwitchRulesHeaderProps) {
   const [sourceCode, setSourceCode] = useState(source?.code || '');
+  const isUrlConditionType = OmegaSwitchProfileRules.getUrlConditionTypeMap();
+  const hasUrlConditions = rules.some((rule) => {
+    const conditionType = rule?.condition?.conditionType;
+    return !!(conditionType && isUrlConditionType[conditionType]);
+  });
 
   useEffect(() => {
     setSourceCode(source?.code || '');
