@@ -1,6 +1,6 @@
 (function() {
   angular.module('omega').controller('SwitchProfileCtrl', function($scope, $rootScope, $location, $timeout, $q, $modal, profileIcons, getAttachedName, omegaTarget, trFilter, downloadFile, reactModalTemplates) {
-    var attachedReady, attachedReadyDefer, attachedSourceCache, conditionModeState, exportLegacyRuleList, exportRuleList, parseSource, rulesReady, rulesReadyDefer, stateEditorKey, stopWatchingForRules, unwatchRules, unwatchRulesShowNote;
+    var attachedReady, attachedReadyDefer, attachedSourceCache, conditionModeState, exportLegacyRuleList, exportRuleList, rulesReady, rulesReadyDefer, stateEditorKey, stopWatchingForRules, unwatchRules, unwatchRulesShowNote;
     exportRuleList = function() {
       var blob, fileName, text;
       text = OmegaSwitchProfileRules.composeOmegaRuleList($scope.profile.rules, $scope.attachedOptions.defaultProfileName, trFilter('ruleList_usageUrl'), new Date().toLocaleDateString());
@@ -127,55 +127,26 @@
     stateEditorKey = 'web._profileEditor.' + $scope.profile.name;
     $scope.loadRules = false;
     $scope.editSource = false;
-    parseSource = function() {
-      var valid;
-      valid = OmegaSwitchProfileSource.parseSource($scope.profile, $scope.attachedOptions, $scope.source, $scope.options, trFilter);
-      if (!valid) {
-        $scope.editSource = true;
-        return false;
-      }
-      return true;
-    };
     $scope.toggleSource = function() {
       return $q.all([attachedReady, rulesReady]).then(function() {
-        $scope.editSource = !$scope.editSource;
-        if ($scope.editSource) {
-          $scope.source = OmegaSwitchProfileSource.createSource($scope.profile, $scope.attachedOptions);
-        } else {
-          if (!parseSource()) {
-            return;
-          }
-          $scope.source = null;
-          OmegaSwitchProfileStartup.markRulesLoaded($scope);
-        }
-        return omegaTarget.state(stateEditorKey, {
-          editSource: $scope.editSource
-        });
+        return OmegaSwitchProfileSession.toggleSource($scope, stateEditorKey, omegaTarget, trFilter);
       });
     };
     $rootScope.$on('$stateChangeStart', function(event, _, __, fromState) {
-      var sourceValid;
-      if ($scope.editSource && $scope.source.touched) {
-        sourceValid = parseSource();
-        if (!sourceValid) {
-          return event.preventDefault();
-        }
+      if (OmegaSwitchProfileSession.shouldBlockStateChange($scope, trFilter)) {
+        return event.preventDefault();
       }
     });
     $scope.$on('omegaApplyOptions', function(event) {
-      var attachedValidation;
-      attachedValidation = OmegaSwitchProfileSource.validateAttachedRuleList($scope.attached, $scope.options, trFilter);
-      $scope.attachedRuleListError = attachedValidation.error;
-      if (!attachedValidation.valid) {
+      var validation;
+      validation = OmegaSwitchProfileSession.validateBeforeApply($scope, trFilter);
+      if (!validation.attachedValid) {
         event.preventDefault();
         angular.element('#attached-rulelist')[0].focus();
-      } else if (attachedValidation.format) {
-        $scope.attached.format = attachedValidation.format;
       }
-      if (OmegaSwitchProfileSource.shouldApplyTouchedSource($scope.editSource, $scope.source)) {
+      if (validation.sourceTouched) {
         event.preventDefault();
-        if (parseSource()) {
-          $scope.source.touched = false;
+        if (validation.sourceValid) {
           return $timeout(function() {
             return $rootScope.applyOptions();
           });
@@ -183,16 +154,16 @@
       }
     });
     return omegaTarget.state(stateEditorKey).then(function(opts) {
-      var getState;
-      if (opts != null ? opts.editSource : void 0) {
+      var getState, restored;
+      restored = OmegaSwitchProfileSession.restoreInitialState($scope, opts);
+      if (restored.editSource) {
         return $scope.toggleSource();
       } else {
-        OmegaSwitchProfileStartup.markRulesLoaded($scope);
         getState = omegaTarget.state(['web.switchGuide', 'firstRun']);
         return $q.all([rulesReady, getState]).then(function(arg) {
           var _, firstRun, ref, switchGuide;
           _ = arg[0], (ref = arg[1], switchGuide = ref[0], firstRun = ref[1]);
-          if (!OmegaSwitchProfileStartup.shouldShowSwitchGuide($scope.profile, firstRun, switchGuide)) {
+          if (!OmegaSwitchProfileSession.shouldShowSwitchGuide($scope, firstRun, switchGuide)) {
             return;
           }
           omegaTarget.state('web.switchGuide', 'shown');
