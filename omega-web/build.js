@@ -204,21 +204,9 @@ async function main() {
   await bundleReact('src/react/import_export.tsx', 'build/react/import_export.js');
 
   const partials = [
-    'apply_options_confirm',
-    'cannot_delete_profile',
-    'delete_attached',
-    'delete_profile',
-    'fixed_auth_edit',
     'input_group_clear',
-    'new_profile',
     'omega_profile_select',
-    'options_welcome',
     'profile',
-    'rename_profile',
-    'replace_profile',
-    'reset_options_confirm',
-    'rule_remove_confirm',
-    'rule_reset_confirm'
   ];
   for (const name of partials) {
     await renderJade(`src/partials/${name}.jade`, `build/partials/${name}.html`);

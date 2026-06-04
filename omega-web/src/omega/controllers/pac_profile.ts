@@ -1,5 +1,5 @@
 (function() {
-  angular.module('omega').controller('PacProfileCtrl', function($scope, $modal) {
+  angular.module('omega').controller('PacProfileCtrl', function($scope, $modal, reactModalTemplates) {
     var oldLastUpdate, oldPacScript, oldPacUrl, onProfileChange, set;
     $scope.urlRegex = /^(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?$/;
     $scope.urlWithFile = /^(ftp|http|https|file):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?$/;
@@ -37,7 +37,7 @@
       scope = $scope.$new('isolate');
       scope.auth = auth && angular.copy(auth);
       return $modal.open({
-        templateUrl: 'partials/fixed_auth_edit.html',
+        template: reactModalTemplates.proxyAuth,
         scope: scope,
         size: 'sm'
       }).result.then(function(auth) {

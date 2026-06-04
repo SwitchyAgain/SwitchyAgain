@@ -1,5 +1,5 @@
 (function() {
-  angular.module('omega').controller('FixedProfileCtrl', function($scope, $modal, trFilter) {
+  angular.module('omega').controller('FixedProfileCtrl', function($scope, $modal, trFilter, reactModalTemplates) {
     var defaultLabel, defaultPort, fn, i, j, len, len1, onBypassListChange, onProxyChange, proxyProperties, ref, ref1, ref2, scheme, socks5AuthSupported;
     $scope.urlSchemes = ['', 'http', 'https'];
     $scope.urlSchemeDefault = 'fallbackProxy';
@@ -66,7 +66,7 @@
       scope.authSupported = $scope.authSupported[proxy.scheme];
       scope.protocolDisp = proxy.scheme;
       return $modal.open({
-        templateUrl: 'partials/fixed_auth_edit.html',
+        template: reactModalTemplates.proxyAuth,
         scope: scope,
         size: scope.authSupported ? 'sm' : 'lg'
       }).result.then(function(auth) {

@@ -1,7 +1,7 @@
 (function() {
   var hasProp = {}.hasOwnProperty;
 
-  angular.module('omega').controller('ProfileCtrl', function($scope, $stateParams, $location, $rootScope, $timeout, $state, $modal, profileColorPalette, getAttachedName, getParentName, getVirtualTarget) {
+  angular.module('omega').controller('ProfileCtrl', function($scope, $stateParams, $location, $rootScope, $timeout, $state, $modal, profileColorPalette, getAttachedName, getParentName, getVirtualTarget, reactModalTemplates) {
     var name, unwatch;
     name = $stateParams.name;
     $scope.spectrumOptions = {
@@ -52,12 +52,12 @@
         }
         scope.refs = refProfiles;
         $modal.open({
-          templateUrl: 'partials/cannot_delete_profile.html',
+          template: reactModalTemplates.cannotDeleteProfile,
           scope: scope
         });
       } else {
         return $modal.open({
-          templateUrl: 'partials/delete_profile.html',
+          template: reactModalTemplates.deleteProfile,
           scope: scope
         }).result.then(function() {
           var attachedName, i, j, quickSwitch, ref;

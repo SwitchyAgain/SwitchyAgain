@@ -38,6 +38,21 @@
 
   angular.module('omega').constant('charCodeUnderscore', charCodeUnderscore);
 
+  angular.module('omega').constant('reactModalTemplates', {
+    applyOptionsConfirm: '<div omega-react-confirm-modal modal-kind="apply"></div>',
+    cannotDeleteProfile: '<div omega-react-confirm-modal modal-kind="cannotDeleteProfile"></div>',
+    deleteAttached: '<div omega-react-confirm-modal modal-kind="deleteAttached"></div>',
+    deleteProfile: '<div omega-react-confirm-modal modal-kind="deleteProfile"></div>',
+    newProfile: '<div omega-react-new-profile></div>',
+    optionsWelcome: '<div omega-react-options-welcome></div>',
+    proxyAuth: '<div omega-react-proxy-auth></div>',
+    renameProfile: '<div omega-react-rename-profile></div>',
+    replaceProfile: '<div omega-react-confirm-modal modal-kind="replaceProfile"></div>',
+    resetOptionsConfirm: '<div omega-react-confirm-modal modal-kind="reset"></div>',
+    ruleRemoveConfirm: '<div omega-react-confirm-modal modal-kind="ruleRemove"></div>',
+    ruleResetConfirm: '<div omega-react-confirm-modal modal-kind="ruleReset"></div>'
+  });
+
   angular.module('omega').constant('isProfileNameHidden', function(name) {
     return name.charCodeAt(0) === charCodeUnderscore;
   });

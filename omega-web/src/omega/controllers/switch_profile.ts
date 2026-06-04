@@ -1,5 +1,5 @@
 (function() {
-  angular.module('omega').controller('SwitchProfileCtrl', function($scope, $rootScope, $location, $timeout, $q, $modal, profileIcons, getAttachedName, omegaTarget, trFilter, downloadFile, $window) {
+  angular.module('omega').controller('SwitchProfileCtrl', function($scope, $rootScope, $location, $timeout, $q, $modal, profileIcons, getAttachedName, omegaTarget, trFilter, downloadFile, $window, reactModalTemplates) {
     var advancedConditionTypesExpanded, attachedReady, attachedReadyDefer, basicConditionTypeSet, basicConditionTypesExpanded, cancelRuleBatchSchedule, exportLegacyRuleList, exportRuleList, initialRuleBatchSize, oldLastUpdate, oldRuleList, oldSourceUrl, onAttachedChange, parseOmegaRules, parseSource, renderRuleBatch, renderRuleBatchSize, renderRuleBatchTimer, resetVisibleRules, rulesReady, rulesReadyDefer, scheduleRuleBatch, stateEditorKey, stopWatchingForRules, unwatchRules, unwatchRulesShowNote, updateHasConditionTypes;
     $scope.ruleListFormats = OmegaPac.Profiles.ruleListFormats;
     exportRuleList = function() {
@@ -125,7 +125,7 @@
         scope.dispNameFilter = $scope.dispNameFilter;
         scope.options = $scope.options;
         return $modal.open({
-          templateUrl: 'partials/rule_remove_confirm.html',
+          template: reactModalTemplates.ruleRemoveConfirm,
           scope: scope
         }).result.then(removeForReal);
       } else {
@@ -162,7 +162,7 @@
       scope.dispNameFilter = $scope.dispNameFilter;
       scope.options = $scope.options;
       return $modal.open({
-        templateUrl: 'partials/rule_reset_confirm.html',
+        template: reactModalTemplates.ruleResetConfirm,
         scope: scope
       }).result.then(function() {
         return OmegaSwitchProfileRules.resetRuleProfiles($scope.profile.rules, $scope.attachedOptions.defaultProfileName);
@@ -270,7 +270,7 @@
       scope.dispNameFilter = $scope.dispNameFilter;
       scope.options = $scope.options;
       return $modal.open({
-        templateUrl: 'partials/delete_attached.html',
+        template: reactModalTemplates.deleteAttached,
         scope: scope
       }).result.then(function() {
         $scope.profile.defaultProfileName = $scope.attached.defaultProfileName;

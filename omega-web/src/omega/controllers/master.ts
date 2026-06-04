@@ -1,7 +1,7 @@
 (function() {
   var hasProp = {}.hasOwnProperty;
 
-  angular.module('omega').controller('MasterCtrl', function($scope, $rootScope, $window, $q, $modal, $state, profileColors, profileIcons, omegaTarget, $timeout, $location, $filter, getAttachedName, isProfileNameReserved, isProfileNameHidden, dispNameFilter, downloadFile) {
+  angular.module('omega').controller('MasterCtrl', function($scope, $rootScope, $window, $q, $modal, $state, profileColors, profileIcons, omegaTarget, $timeout, $location, $filter, getAttachedName, isProfileNameReserved, isProfileNameHidden, dispNameFilter, downloadFile, reactModalTemplates) {
     var checkFormValid, diff, onOptionChange, ref, ref1, ref2, showFirstRun, showFirstRunOnce, tr, type;
     var proxyRegisterKey, proxyRegisterScriptKey;
     proxyRegisterKey = 'reg';
@@ -154,7 +154,7 @@
         return $q.when(true);
       }
       return $modal.open({
-        templateUrl: 'partials/apply_options_confirm.html'
+        template: reactModalTemplates.applyOptionsConfirm
       }).result.then(function() {
         return $rootScope.applyOptions();
       });
@@ -175,7 +175,7 @@
       scope.options = $scope.options;
       scope.pacProfilesUnsupported = $scope.pacProfilesUnsupported;
       return $modal.open({
-        templateUrl: 'partials/new_profile.html',
+        template: reactModalTemplates.newProfile,
         scope: scope
       }).result.then(function(profile) {
         var choice;
@@ -205,7 +205,7 @@
           return "<div omega-profile-select=\"options | profiles:profile\"\n  ng-model=\"" + model + "\" options=\"options\"\n  disp-name=\"dispNameFilter\" style=\"display: inline-block;\">\n</div>";
         };
         return $modal.open({
-          templateUrl: 'partials/replace_profile.html',
+          template: reactModalTemplates.replaceProfile,
           scope: scope
         }).result.then(function(arg) {
           var fromName, toName;
@@ -241,7 +241,7 @@
         scope.dispNameFilter = $scope.dispNameFilter;
         scope.options = $scope.options;
         return $modal.open({
-          templateUrl: 'partials/rename_profile.html',
+          template: reactModalTemplates.renameProfile,
           scope: scope
         }).result.then(function(toName) {
           var attachedName, defaultProfileName, rename, toAttachedName;
@@ -411,7 +411,7 @@
         scope = $rootScope.$new('isolate');
         scope.upgrade = firstRun === 'upgrade';
         return $modal.open({
-          templateUrl: 'partials/options_welcome.html',
+          template: reactModalTemplates.optionsWelcome,
           keyboard: false,
           scope: scope,
           backdrop: 'static',

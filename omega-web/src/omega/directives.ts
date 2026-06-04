@@ -216,7 +216,7 @@
     };
   });
 
-  angular.module('omega').directive('omegaReactAbout', function($timeout, $modal, omegaDebug) {
+  angular.module('omega').directive('omegaReactAbout', function($timeout, $modal, omegaDebug, reactModalTemplates) {
     return {
       restrict: 'A',
       link: function(scope, element) {
@@ -235,7 +235,7 @@
             onDownloadLog: omegaDebug.downloadLog,
             onResetOptions: function() {
               return $modal.open({
-                templateUrl: 'partials/reset_options_confirm.html'
+                template: reactModalTemplates.resetOptionsConfirm
               }).result.then(function() {
                 return omegaDebug.resetOptions();
               });
@@ -608,7 +608,7 @@
     };
   });
 
-  angular.module('omega').directive('omegaReactPacProfile', function($timeout, $modal, $filter) {
+  angular.module('omega').directive('omegaReactPacProfile', function($timeout, $modal, $filter, reactModalTemplates) {
     return {
       restrict: 'A',
       link: function(scope, element) {
@@ -636,7 +636,7 @@
               modalScope = scope.$new('isolate');
               modalScope.auth = auth && angular.copy(auth);
               return $modal.open({
-                templateUrl: 'partials/fixed_auth_edit.html',
+                template: reactModalTemplates.proxyAuth,
                 scope: modalScope,
                 size: 'sm'
               }).result.then(function(auth) {
