@@ -482,8 +482,7 @@
       RuleListProfile: '<div omega-react-rule-list-profile></div>',
       SwitchProfile: [
         '<div ng-controller="SwitchProfileCtrl">',
-        '  <div omega-react-switch-rules-section></div>',
-        '  <div omega-react-switch-attached-profile></div>',
+        '  <div omega-react-switch-profile></div>',
         '</div>'
       ].join(''),
       UnsupportedProfile: '<div omega-react-unsupported-profile></div>',
@@ -817,17 +816,29 @@
     };
   });
 
-  angular.module('omega').directive('omegaReactSwitchAttachedProfile', function($timeout) {
+  angular.module('omega').directive('omegaReactSwitchProfile', function($timeout) {
     return {
       restrict: 'A',
       link: function(scope, element) {
-        var bridge, mount, mounted, props, render, unwatchAttached, unwatchError, unwatchUpdating;
+        var bridge, mount, mounted, props, render, unwatchers;
+        unwatchers = [];
         props = function() {
-          var name, ref;
+          var name, ref, rules, visibleRuleCount;
+          rules = scope.profile && scope.profile.rules || [];
+          visibleRuleCount = Math.min(scope.visibleRuleCount || 0, rules.length);
           name = ((ref = scope.attached) != null ? ref.name : void 0) || '';
           return {
             attached: scope.attached,
             attachedRuleListError: scope.attachedRuleListError,
+            attachedOptions: scope.attachedOptions,
+            editSource: scope.editSource,
+            loadRules: scope.loadRules,
+            onAddNote: function(index) {
+              return scope.addNote(index);
+            },
+            onAddRule: function() {
+              return scope.addRule();
+            },
             onAttachNew: function() {
               return scope.attachNew();
             },
@@ -837,73 +848,6 @@
                   return scope.attached[field] = value;
                 }
               });
-            },
-            onDownload: function(profileName) {
-              return scope.updateProfile(profileName);
-            },
-            updating: !!(scope.updatingProfile && scope.updatingProfile[name])
-          };
-        };
-        render = function() {
-          if (mounted != null ? mounted.render : void 0) {
-            return mounted.render(props());
-          }
-        };
-        mount = function() {
-          bridge = window.OmegaReactProfileContent;
-          if (bridge != null ? bridge.mountSwitchAttachedProfile : void 0) {
-            mounted = bridge.mountSwitchAttachedProfile(element[0], props());
-            unwatchAttached = scope.$watch('attached', render, true);
-            unwatchError = scope.$watch('attachedRuleListError', render);
-            unwatchUpdating = scope.$watch(function() {
-              var name, ref;
-              name = ((ref = scope.attached) != null ? ref.name : void 0) || '';
-              return scope.updatingProfile && scope.updatingProfile[name];
-            }, render);
-          }
-        };
-        mount();
-        if (!mounted) {
-          $timeout(mount);
-        }
-        return scope.$on('$destroy', function() {
-          if (unwatchAttached) {
-            unwatchAttached();
-          }
-          if (unwatchError) {
-            unwatchError();
-          }
-          if (unwatchUpdating) {
-            unwatchUpdating();
-          }
-          if (mounted != null ? mounted.unmount : void 0) {
-            return mounted.unmount();
-          }
-        });
-      }
-    };
-  });
-
-  angular.module('omega').directive('omegaReactSwitchRulesSection', function($timeout) {
-    return {
-      restrict: 'A',
-      link: function(scope, element) {
-        var bridge, mount, mounted, props, render, unwatchers;
-        unwatchers = [];
-        props = function() {
-          var rules, visibleRuleCount;
-          rules = scope.profile && scope.profile.rules || [];
-          visibleRuleCount = Math.min(scope.visibleRuleCount || 0, rules.length);
-          return {
-            attached: scope.attached,
-            attachedOptions: scope.attachedOptions,
-            editSource: scope.editSource,
-            loadRules: scope.loadRules,
-            onAddNote: function(index) {
-              return scope.addNote(index);
-            },
-            onAddRule: function() {
-              return scope.addRule();
             },
             onAttachedEnabledChange: function(enabled) {
               return scope.$evalAsync(function() {
@@ -958,6 +902,9 @@
               return scope.$evalAsync(function() {
                 return scope.attachedOptions.defaultProfileName = name;
               });
+            },
+            onDownload: function(profileName) {
+              return scope.updateProfile(profileName);
             },
             onIpConditionInputChange: function(index, value) {
               return scope.$evalAsync(function() {
@@ -1051,6 +998,7 @@
             showConditionTypes: scope.showConditionTypes,
             showNotes: scope.showNotes,
             source: scope.source,
+            updating: !!(scope.updatingProfile && scope.updatingProfile[name]),
             visibleRuleCount: visibleRuleCount
           };
         };
@@ -1061,9 +1009,10 @@
         };
         mount = function() {
           bridge = window.OmegaReactProfileContent;
-          if (bridge != null ? bridge.mountSwitchRulesSection : void 0) {
-            mounted = bridge.mountSwitchRulesSection(element[0], props());
+          if (bridge != null ? bridge.mountSwitchProfile : void 0) {
+            mounted = bridge.mountSwitchProfile(element[0], props());
             unwatchers.push(scope.$watch('attached', render, true));
+            unwatchers.push(scope.$watch('attachedRuleListError', render));
             unwatchers.push(scope.$watch('attachedOptions', render, true));
             unwatchers.push(scope.$watch('conditionHelp.show', render));
             unwatchers.push(scope.$watch('editSource', render));
@@ -1074,6 +1023,11 @@
             unwatchers.push(scope.$watch('showNotes', render));
             unwatchers.push(scope.$watch('source', render, true));
             unwatchers.push(scope.$watch('visibleRuleCount', render));
+            unwatchers.push(scope.$watch(function() {
+              var name, ref;
+              name = ((ref = scope.attached) != null ? ref.name : void 0) || '';
+              return scope.updatingProfile && scope.updatingProfile[name];
+            }, render));
           }
         };
         mount();

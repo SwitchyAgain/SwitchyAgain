@@ -206,6 +206,8 @@ type SwitchRulesSectionProps = SwitchConditionHelpProps & SwitchRulesHeaderProps
   onMoveRule?: (fromIndex: number, toIndex: number) => void;
 };
 
+type SwitchProfileContentProps = SwitchRulesSectionProps & SwitchAttachedProfileProps;
+
 type ProfileShellProps = {
   exportRuleListAvailable?: boolean;
   exportRuleListWarning?: boolean;
@@ -1597,6 +1599,22 @@ function SwitchRulesSection({
   );
 }
 
+function SwitchProfileContent(props: SwitchProfileContentProps) {
+  return (
+    <>
+      <SwitchRulesSection {...props} />
+      <SwitchAttachedProfile
+        attached={props.attached}
+        attachedRuleListError={props.attachedRuleListError}
+        onAttachNew={props.onAttachNew}
+        onAttachedChange={props.onAttachedChange}
+        onDownload={props.onDownload}
+        updating={props.updating}
+      />
+    </>
+  );
+}
+
 function RuleListProfile({
   onDownload,
   onProfileChange,
@@ -1841,30 +1859,15 @@ function mountFixedProfile(element: Element, props: FixedProfileProps = {}) {
   };
 }
 
-function mountSwitchAttachedProfile(element: Element, props: SwitchAttachedProfileProps = {}) {
+function mountSwitchProfile(element: Element, props: SwitchProfileContentProps = {}) {
   const root = createRoot(element);
   flushSync(() => {
-    root.render(<SwitchAttachedProfile {...props} />);
+    root.render(<SwitchProfileContent {...props} />);
   });
   return {
-    render(nextProps: SwitchAttachedProfileProps = {}) {
-      root.render(<SwitchAttachedProfile {...nextProps} />);
-    },
-    unmount() {
-      root.unmount();
-    }
-  };
-}
-
-function mountSwitchRulesSection(element: Element, props: SwitchRulesSectionProps = {}) {
-  const root = createRoot(element);
-  flushSync(() => {
-    root.render(<SwitchRulesSection {...props} />);
-  });
-  return {
-    render(nextProps: SwitchRulesSectionProps = {}) {
+    render(nextProps: SwitchProfileContentProps = {}) {
       flushSync(() => {
-        root.render(<SwitchRulesSection {...nextProps} />);
+        root.render(<SwitchProfileContent {...nextProps} />);
       });
     },
     unmount() {
@@ -1879,8 +1882,7 @@ globalWindow.OmegaReactProfileContent = {
   mountPacProfile,
   mountProfileShell,
   mountRuleListProfile,
-  mountSwitchAttachedProfile,
-  mountSwitchRulesSection,
+  mountSwitchProfile,
   mountUnsupportedProfile,
   mountVirtualProfile
 };
