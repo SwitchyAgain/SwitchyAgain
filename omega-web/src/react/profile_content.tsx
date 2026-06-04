@@ -20,7 +20,6 @@ type UnsupportedProfileProps = {
 };
 
 type VirtualProfileProps = {
-  dispName?: (profile: Profile) => string;
   onReplaceProfile?: (fromName: string, toName: string) => void;
   onTargetChange?: (name: string) => void;
   options?: Options | null;
@@ -28,7 +27,6 @@ type VirtualProfileProps = {
     defaultProfileName?: string;
     name?: string;
   } | null;
-  targetProfiles?: Profile[];
 };
 
 type RuleListProfileModel = Profile & {
@@ -41,7 +39,6 @@ type RuleListProfileModel = Profile & {
 };
 
 type RuleListProfileProps = {
-  dispName?: (profile: Profile) => string;
   onDownload?: (name: string) => void;
   onProfileChange?: (field: keyof RuleListProfileModel, value: string) => void;
   options?: Options | null;
@@ -58,7 +55,6 @@ type PacProfileModel = Profile & {
 };
 
 type PacProfileProps = {
-  formattedLastUpdate?: string;
   onDownload?: (name: string) => void;
   onEditProxyAuth?: () => void;
   onProfileChange?: (field: keyof PacProfileModel, value: string) => void;
@@ -96,7 +92,6 @@ type FixedProfileProps = {
 type SwitchAttachedProfileProps = {
   attached?: RuleListProfileModel | null;
   attachedRuleListError?: {message?: string} | null;
-  formattedLastUpdate?: string;
   onAttachNew?: () => void;
   onAttachedChange?: (field: keyof RuleListProfileModel, value: string) => void;
   onDownload?: (name: string) => void;
@@ -152,7 +147,6 @@ type ConditionTypeOption = {
 
 type SwitchRuleRowProps = {
   conditionTypes?: ConditionTypeOption[];
-  dispName?: (profile: Profile) => string;
   index: number;
   onAddNote?: (index: number) => void;
   onCloneRule?: (index: number) => void;
@@ -172,7 +166,6 @@ type SwitchRuleRowProps = {
 };
 
 type SwitchRuleRowsProps = {
-  dispName?: (profile: Profile) => string;
   onAddNote?: (index: number) => void;
   onCloneRule?: (index: number) => void;
   onConditionFieldChange?: (index: number, field: string, value: any) => void;
@@ -197,7 +190,6 @@ type SwitchRuleFooterProps = {
     defaultProfileName?: string;
     enabled?: boolean;
   };
-  dispName?: (profile: Profile) => string;
   onAddRule?: () => void;
   onAttachedEnabledChange?: (enabled: boolean) => void;
   onAttachedMatchProfileChange?: (name: string) => void;
@@ -466,7 +458,6 @@ function DraftInput({
 
 function SwitchRuleRow({
   conditionTypes = [],
-  dispName,
   index,
   onAddNote,
   onCloneRule,
@@ -628,7 +619,6 @@ function SwitchRuleRow({
       <td className="switch-rule-row-target">
         <div className={conditionType === 'NeverCondition' ? 'disabled' : undefined}>
           <ProfileSelect
-            dispName={dispName}
             name={rule.profileName || ''}
             onChange={(name) => onProfileChange?.(index, name)}
             options={options}
@@ -662,7 +652,6 @@ function SwitchRuleRow({
 }
 
 function SwitchRuleRows({
-  dispName,
   onAddNote,
   onCloneRule,
   onConditionFieldChange,
@@ -688,7 +677,6 @@ function SwitchRuleRows({
       {rules.slice(0, visibleRuleCount).map((rule, index) => (
         <SwitchRuleRow
           conditionTypes={conditionTypes}
-          dispName={dispName}
           index={index}
           key={switchRuleKey(rule)}
           onAddNote={onAddNote}
@@ -731,8 +719,25 @@ function isFileUrl(url: string) {
   return /^file:\/\//i.test(url || '');
 }
 
+function formatMediumDate(value?: string | number | null) {
+  if (!value) {
+    return '';
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return String(value);
+  }
+  return new Intl.DateTimeFormat(undefined, {
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    month: 'short',
+    second: '2-digit',
+    year: 'numeric'
+  }).format(date);
+}
+
 function PacProfile({
-  formattedLastUpdate = '',
   onDownload,
   onEditProxyAuth,
   onProfileChange,
@@ -741,6 +746,7 @@ function PacProfile({
   referenced = false,
   updating = false
 }: PacProfileProps) {
+  const formattedLastUpdate = formatMediumDate(profile?.lastUpdate);
   const [draft, setDraft] = useState({
     pacScript: profile?.pacScript || '',
     pacUrl: profile?.pacUrl || ''
@@ -1022,13 +1028,13 @@ function FixedProfileContent({
 function SwitchAttachedProfile({
   attached,
   attachedRuleListError,
-  formattedLastUpdate = '',
   onAttachNew,
   onAttachedChange,
   onDownload,
   ruleListFormats = [],
   updating = false
 }: SwitchAttachedProfileProps) {
+  const formattedLastUpdate = formatMediumDate(attached?.lastUpdate);
   const [draft, setDraft] = useState({
     format: attached?.format || '',
     ruleList: attached?.ruleList || '',
@@ -1297,7 +1303,6 @@ function SwitchRuleTableHeader({
 function SwitchRuleFooter({
   attached,
   attachedOptions = {},
-  dispName,
   onAddRule,
   onAttachedEnabledChange,
   onAttachedMatchProfileChange,
@@ -1348,7 +1353,6 @@ function SwitchRuleFooter({
           <td>
             <div className={!attachedOptions.enabled ? 'disabled' : ''}>
               <ProfileSelect
-                dispName={dispName}
                 name={attached.matchProfileName || ''}
                 onChange={(name) => onAttachedMatchProfileChange?.(name)}
                 options={options}
@@ -1369,7 +1373,6 @@ function SwitchRuleFooter({
         <td colSpan={2}>{message('options_switchDefaultProfile', 'Default Profile')}</td>
         <td>
           <ProfileSelect
-            dispName={dispName}
             name={attachedOptions.defaultProfileName || ''}
             onChange={(name) => onDefaultProfileChange?.(name)}
             options={options}
@@ -1388,7 +1391,6 @@ function SwitchRuleFooter({
 }
 
 function RuleListProfile({
-  dispName,
   onDownload,
   onProfileChange,
   options,
@@ -1434,7 +1436,6 @@ function RuleListProfile({
         <div className="form-group">
           <label>{message('options_ruleListMatchProfile', 'Match Profile')}</label>{' '}
           <ProfileSelect
-            dispName={dispName}
             name={draft.matchProfileName}
             onChange={(name) => changeField('matchProfileName', name)}
             options={options}
@@ -1444,7 +1445,6 @@ function RuleListProfile({
         <div className="form-group">
           <label>{message('options_ruleListDefaultProfile', 'Default Profile')}</label>{' '}
           <ProfileSelect
-            dispName={dispName}
             name={draft.defaultProfileName}
             onChange={(name) => changeField('defaultProfileName', name)}
             options={options}
@@ -1504,12 +1504,13 @@ function RuleListProfile({
   );
 }
 
-function VirtualProfile({dispName, onReplaceProfile, onTargetChange, options, profile, targetProfiles}: VirtualProfileProps) {
+function VirtualProfile({onReplaceProfile, onTargetChange, options, profile}: VirtualProfileProps) {
   const [targetName, setTargetName] = useState(profile?.defaultProfileName || '');
   useEffect(() => {
     setTargetName(profile?.defaultProfileName || '');
   }, [profile?.defaultProfileName]);
   const targetProfile = profileByName(options, targetName);
+  const targetProfiles = resultProfilesFor(options, profile as Profile | null);
 
   function changeTarget(name: string) {
     setTargetName(name);
@@ -1526,7 +1527,6 @@ function VirtualProfile({dispName, onReplaceProfile, onTargetChange, options, pr
         <div className="form-group">
           <label>{message('options_virtualProfileTarget', 'Target')}</label>{' '}
           <ProfileSelect
-            dispName={dispName}
             name={targetName}
             onChange={changeTarget}
             options={options}
@@ -1542,7 +1542,7 @@ function VirtualProfile({dispName, onReplaceProfile, onTargetChange, options, pr
             'You can migrate existing options to use this virtual profile instead of __PROFILE__. Doing so will update all existing rules concerning __PROFILE__ and point them to this virtual profile, so that their result profile can be controlled here.',
             ['__PROFILE__'],
             {
-              __PROFILE__: <ProfileInline profile={targetProfile} dispName={dispName} />
+              __PROFILE__: <ProfileInline profile={targetProfile} />
             }
           )}
         </p>

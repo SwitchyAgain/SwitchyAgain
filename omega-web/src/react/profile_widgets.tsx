@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {createRoot} from 'react-dom/client';
-import {Options} from './options_client';
+import {Options, message} from './options_client';
 
 export type Profile = {
   builtin?: boolean;
@@ -47,7 +47,17 @@ export function profileName(profile?: Profile | null, dispName?: (profile: Profi
   if (!profile) {
     return '';
   }
-  return dispName ? dispName(profile) : profile.name;
+  return dispName ? dispName(profile) : displayProfileName(profile);
+}
+
+export function displayProfileName(profile?: Profile | null) {
+  if (!profile) {
+    return '';
+  }
+  if (profile.builtin && profile.name) {
+    return message(`profile_${profile.name}`, profile.name);
+  }
+  return profile.name || '';
 }
 
 export function ProfileIcon({profile}: {profile?: Profile | null}) {

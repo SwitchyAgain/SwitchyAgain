@@ -240,7 +240,6 @@
           if (bridge != null ? bridge.mount : void 0) {
             mounted = bridge.mount(element[0], {
               attached: scope.attached,
-              dispName: scope.dispNameFilter,
               fromName: scope.fromName,
               kind: attrs.modalKind,
               onClose: function(value) {
@@ -537,14 +536,13 @@
     };
   });
 
-  angular.module('omega').directive('omegaReactVirtualProfile', function($timeout, $filter) {
+  angular.module('omega').directive('omegaReactVirtualProfile', function($timeout) {
     return {
       restrict: 'A',
       link: function(scope, element) {
         var bridge, mount, mounted, props;
         props = function() {
           return {
-            dispName: scope.dispNameFilter,
             onReplaceProfile: function(fromName, toName) {
               return scope.replaceProfile(fromName, toName);
             },
@@ -554,8 +552,7 @@
               });
             },
             options: scope.options,
-            profile: scope.profile,
-            targetProfiles: $filter('profiles')(scope.options, scope.profile)
+            profile: scope.profile
           };
         };
         mount = function() {
@@ -577,7 +574,7 @@
     };
   });
 
-  angular.module('omega').directive('omegaReactPacProfile', function($timeout, $modal, $filter, reactModalTemplates) {
+  angular.module('omega').directive('omegaReactPacProfile', function($timeout, $modal, reactModalTemplates) {
     return {
       restrict: 'A',
       link: function(scope, element) {
@@ -594,7 +591,6 @@
           var name, ref;
           name = ((ref = scope.profile) != null ? ref.name : void 0) || '';
           return {
-            formattedLastUpdate: scope.profile && scope.profile.lastUpdate ? $filter('date')(scope.profile.lastUpdate, 'medium') : '',
             onDownload: function(profileName) {
               return scope.updateProfile(profileName);
             },
@@ -777,7 +773,6 @@
           var name, ref;
           name = ((ref = scope.profile) != null ? ref.name : void 0) || '';
           return {
-            dispName: scope.dispNameFilter,
             onDownload: function(profileName) {
               return scope.updateProfile(profileName);
             },
@@ -830,7 +825,7 @@
     };
   });
 
-  angular.module('omega').directive('omegaReactSwitchAttachedProfile', function($timeout, $filter) {
+  angular.module('omega').directive('omegaReactSwitchAttachedProfile', function($timeout) {
     return {
       restrict: 'A',
       link: function(scope, element) {
@@ -841,7 +836,6 @@
           return {
             attached: scope.attached,
             attachedRuleListError: scope.attachedRuleListError,
-            formattedLastUpdate: scope.attached && scope.attached.lastUpdate ? $filter('date')(scope.attached.lastUpdate, 'medium') : '',
             onAttachNew: function() {
               return scope.attachNew();
             },
@@ -1057,7 +1051,6 @@
         var bridge, mount, mounted, props, refreshSortable, render, sortStartIndex, unwatchOptions, unwatchRules, unwatchShowConditionTypes, unwatchShowNotes, unwatchVisibleRuleCount;
         props = function() {
           return {
-            dispName: scope.dispNameFilter,
             onAddNote: function(index) {
               return scope.addNote(index);
             },
@@ -1240,7 +1233,6 @@
           return {
             attached: scope.attached,
             attachedOptions: scope.attachedOptions,
-            dispName: scope.dispNameFilter,
             onAddRule: function() {
               return scope.addRule();
             },
@@ -1341,7 +1333,7 @@
     };
   });
 
-  angular.module('omega').directive('omegaReactOptionsShell', function($timeout, $state, $stateParams, $filter) {
+  angular.module('omega').directive('omegaReactOptionsShell', function($timeout, $state, $stateParams) {
     return {
       restrict: 'A',
       link: function(scope, element) {
@@ -1351,7 +1343,6 @@
           return {
             currentProfileName: $stateParams.name || '',
             currentState: ($state.current && $state.current.name) || '',
-            dispName: scope.dispNameFilter,
             generalHref: $state.href('general'),
             importExportHref: $state.href('io'),
             isExperimental: !!scope.isExperimental,
@@ -1377,7 +1368,6 @@
                 name: profile.name
               });
             },
-            profiles: scope.options ? $filter('profiles')(scope.options, 'sorted') : [],
             uiHref: $state.href('ui')
           };
         };

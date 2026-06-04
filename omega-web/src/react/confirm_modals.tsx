@@ -28,7 +28,6 @@ type Rule = {
 
 type ConfirmModalProps = {
   attached?: any;
-  dispName?: (profile: Profile) => string;
   fromName?: string;
   kind: ConfirmKind;
   onClose?: (value?: any) => void;
@@ -99,7 +98,7 @@ function bodyFor(
     toName: string;
   }
 ) {
-  const {attached, dispName, kind, profile, refs = [], rule, ruleProfile} = props;
+  const {attached, kind, profile, refs = [], rule, ruleProfile} = props;
   const fromProfile = profileByName(props.options, replaceState.fromName);
   const toProfile = profileByName(props.options, replaceState.toName);
   switch (kind) {
@@ -118,7 +117,7 @@ function bodyFor(
             <ul className="list-style-none">
               {refs.map((refProfile, index) => (
                 <li key={`${refProfile.name || 'profile'}-${index}`}>
-                  <ProfileInline profile={refProfile} dispName={dispName} />
+                  <ProfileInline profile={refProfile} />
                 </li>
               ))}
             </ul>
@@ -140,7 +139,7 @@ function bodyFor(
         <>
           <p>{message('options_deleteProfileConfirm', 'Do you really want to delete the following profile?')}</p>
           <div className="well">
-            <ProfileInline profile={profile} dispName={dispName} />
+            <ProfileInline profile={profile} />
           </div>
         </>
       );
@@ -157,7 +156,6 @@ function bodyFor(
               {
                 __FROM_PROFILE__: (
                   <ProfileSelect
-                    dispName={dispName}
                     name={replaceState.fromName}
                     onChange={replaceState.setFromName}
                     options={props.options}
@@ -165,7 +163,6 @@ function bodyFor(
                 ),
                 __TO_PROFILE__: (
                   <ProfileSelect
-                    dispName={dispName}
                     name={replaceState.toName}
                     onChange={replaceState.setToName}
                     options={props.options}
@@ -175,9 +172,9 @@ function bodyFor(
             )}
           </p>
           <div className="well">
-            <ProfileInline profile={fromProfile} dispName={dispName} />{' '}
+            <ProfileInline profile={fromProfile} />{' '}
             <span className="glyphicon glyphicon-chevron-right" />{' '}
-            <ProfileInline profile={toProfile} dispName={dispName} />
+            <ProfileInline profile={toProfile} />
           </div>
           <div className="help-block">
             {messageWithNodes(
@@ -185,8 +182,8 @@ function bodyFor(
               'If you proceed, all rules pointing to __FROM_PROFILE__ will be updated to use __TO_PROFILE__ instead. Other options, such as startup profile and Quick Switch will also be modified as appropriate. However, the two profile themselves will NOT be changed or deleted.',
               ['__FROM_PROFILE__', '__TO_PROFILE__'],
               {
-                __FROM_PROFILE__: <ProfileInline profile={fromProfile} dispName={dispName} />,
-                __TO_PROFILE__: <ProfileInline profile={toProfile} dispName={dispName} />
+                __FROM_PROFILE__: <ProfileInline profile={fromProfile} />,
+                __TO_PROFILE__: <ProfileInline profile={toProfile} />
               }
             )}
           </div>
@@ -200,7 +197,7 @@ function bodyFor(
             <span className="label label-info">{message(`condition_${rule?.condition?.conditionType}`, rule?.condition?.conditionType || '')}</span>{' '}
             {rule?.condition?.pattern}
             <span className="pull-right">
-              <ProfileInline profile={ruleProfile} dispName={dispName} />
+              <ProfileInline profile={ruleProfile} />
             </span>
           </div>
         </>
@@ -210,7 +207,7 @@ function bodyFor(
         <>
           <p>{message('options_resetRulesConfirm', 'Are you sure to set the result profile of ALL rules to the following profile?')}</p>
           <div className="well">
-            <ProfileInline profile={ruleProfile} dispName={dispName} />
+            <ProfileInline profile={ruleProfile} />
           </div>
         </>
       );

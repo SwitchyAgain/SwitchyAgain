@@ -1,12 +1,11 @@
 import React from 'react';
 import {createRoot} from 'react-dom/client';
 import {Options, message} from './options_client';
-import {Profile, ProfileInline} from './profile_widgets';
+import {Profile, ProfileInline, profilesForFilter} from './profile_widgets';
 
 type OptionsShellProps = {
   currentProfileName?: string;
   currentState?: string;
-  dispName?: (profile: Profile) => string;
   generalHref?: string;
   importExportHref?: string;
   isExperimental?: boolean;
@@ -18,7 +17,6 @@ type OptionsShellProps = {
   options?: Options | null;
   optionsDirty?: boolean;
   profileHref?: (profile: Profile) => string;
-  profiles?: Profile[];
   uiHref?: string;
 };
 
@@ -76,7 +74,6 @@ function SettingsLink({
 function OptionsShell({
   currentProfileName = '',
   currentState = '',
-  dispName,
   generalHref = '#',
   importExportHref = '#',
   isExperimental = false,
@@ -85,11 +82,13 @@ function OptionsShell({
   onDiscard,
   onNavigate,
   onNewProfile,
+  options,
   optionsDirty = false,
   profileHref,
-  profiles = [],
   uiHref = '#'
 }: OptionsShellProps) {
+  const profiles = profilesForFilter(options, 'sorted');
+
   return (
     <>
       <h1>
@@ -137,7 +136,7 @@ function OptionsShell({
               href={profileHref?.(profile) || '#'}
               onClick={(event) => navClick(event, () => onNavigate?.('profile', {name: profile.name || ''}))}
             >
-              <ProfileInline profile={profile} dispName={dispName} />
+              <ProfileInline profile={profile} />
             </a>
           </li>
         ))}
