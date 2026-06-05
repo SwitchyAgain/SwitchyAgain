@@ -3,7 +3,7 @@ import {createRoot} from 'react-dom/client';
 import {Options, message} from './options_client';
 import {Profile, ProfileInline, profilesForFilter} from './profile_widgets';
 
-type OptionsShellProps = {
+export type OptionsShellProps = {
   currentProfileName?: string;
   currentState?: string;
   generalHref?: string;
@@ -20,7 +20,7 @@ type OptionsShellProps = {
   uiHref?: string;
 };
 
-type OptionsAlertProps = {
+export type OptionsAlertProps = {
   alert?: {
     i18n?: string;
     message?: string;
@@ -76,7 +76,7 @@ function SettingsLink({
   );
 }
 
-function OptionsShell({
+export function OptionsShell({
   currentProfileName = '',
   currentState = '',
   generalHref = '#',
@@ -177,7 +177,7 @@ function OptionsShell({
   );
 }
 
-function OptionsAlert({alert, onClose, shown = false}: OptionsAlertProps) {
+export function OptionsAlert({alert, onClose, shown = false}: OptionsAlertProps) {
   if (!shown || !alert) {
     return null;
   }
@@ -197,7 +197,7 @@ function OptionsAlert({alert, onClose, shown = false}: OptionsAlertProps) {
   );
 }
 
-function mountOptionsShell(element: Element, props: OptionsShellProps = {}) {
+export function mountOptionsShell(element: Element, props: OptionsShellProps = {}) {
   const root = createRoot(element);
   root.render(<OptionsShell {...props} />);
   return {
@@ -210,7 +210,7 @@ function mountOptionsShell(element: Element, props: OptionsShellProps = {}) {
   };
 }
 
-function mountOptionsAlert(element: Element, props: OptionsAlertProps = {}) {
+export function mountOptionsAlert(element: Element, props: OptionsAlertProps = {}) {
   const root = createRoot(element);
   root.render(<OptionsAlert {...props} />);
   return {

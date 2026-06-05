@@ -6,7 +6,7 @@ import {
   runtimeAvailable
 } from './options_client';
 
-type AboutProps = {
+export type AboutProps = {
   embedded?: boolean;
   isExperimental?: boolean;
   version?: string;
@@ -30,7 +30,7 @@ function messageWithNodes(
   ) : part);
 }
 
-function About({
+export function About({
   embedded = false,
   isExperimental = false,
   version,
@@ -140,7 +140,7 @@ function About({
   );
 }
 
-function mount(element: Element, props: AboutProps = {}) {
+export function mount(element: Element, props: AboutProps = {}) {
   const root = createRoot(element);
   root.render(<About {...props} />);
   return {

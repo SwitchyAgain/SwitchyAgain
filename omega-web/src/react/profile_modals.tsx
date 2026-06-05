@@ -3,7 +3,7 @@ import {createRoot} from 'react-dom/client';
 import {message} from './options_client';
 import {PROFILE_ICONS} from './profile_widgets';
 
-type RenameProfileProps = {
+export type RenameProfileProps = {
   fromName?: string;
   isProfileNameHidden?: (name: string) => boolean;
   isProfileNameReserved?: (name: string) => boolean;
@@ -12,7 +12,7 @@ type RenameProfileProps = {
   profileByName?: (name: string) => any;
 };
 
-type NewProfileProps = {
+export type NewProfileProps = {
   isProfileNameHidden?: (name: string) => boolean;
   isProfileNameReserved?: (name: string) => boolean;
   onClose?: (profile: {name: string; profileType: string}) => void;
@@ -21,12 +21,12 @@ type NewProfileProps = {
   profileByName?: (name: string) => any;
 };
 
-type ProxyAuth = {
+export type ProxyAuth = {
   password?: string;
   username?: string;
 };
 
-type ProxyAuthProps = {
+export type ProxyAuthProps = {
   auth?: ProxyAuth | null;
   authSupported?: boolean;
   onClose?: (auth: ProxyAuth) => void;
@@ -106,7 +106,7 @@ function ProfileNameField({
   );
 }
 
-function RenameProfileModal({
+export function RenameProfileModal({
   fromName = '',
   isProfileNameHidden,
   isProfileNameReserved,
@@ -220,7 +220,7 @@ function ProfileTypeOption({
   );
 }
 
-function NewProfileModal({
+export function NewProfileModal({
   isProfileNameHidden,
   isProfileNameReserved,
   onClose,
@@ -361,7 +361,7 @@ function ClearableInput({
   );
 }
 
-function ProxyAuthModal({
+export function ProxyAuthModal({
   auth,
   authSupported = true,
   onClose,
@@ -460,7 +460,7 @@ function ProxyAuthModal({
   );
 }
 
-function mountRenameProfile(element: Element, props: RenameProfileProps = {}) {
+export function mountRenameProfile(element: Element, props: RenameProfileProps = {}) {
   const root = createRoot(element);
   root.render(<RenameProfileModal {...props} />);
   return {
@@ -473,7 +473,7 @@ function mountRenameProfile(element: Element, props: RenameProfileProps = {}) {
   };
 }
 
-function mountNewProfile(element: Element, props: NewProfileProps = {}) {
+export function mountNewProfile(element: Element, props: NewProfileProps = {}) {
   const root = createRoot(element);
   root.render(<NewProfileModal {...props} />);
   return {
@@ -486,7 +486,7 @@ function mountNewProfile(element: Element, props: NewProfileProps = {}) {
   };
 }
 
-function mountProxyAuth(element: Element, props: ProxyAuthProps = {}) {
+export function mountProxyAuth(element: Element, props: ProxyAuthProps = {}) {
   const root = createRoot(element);
   root.render(<ProxyAuthModal {...props} />);
   return {

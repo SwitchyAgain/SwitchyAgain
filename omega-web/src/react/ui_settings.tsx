@@ -6,6 +6,7 @@ import {
   loadOptions,
   manifestVersion,
   message,
+  openShortcutConfig as openDefaultShortcutConfig,
   patchOptions,
   runtimeAvailable
 } from './options_client';
@@ -28,7 +29,7 @@ const UI_KEYS = [
   '-addConditionsToBottom'
 ];
 
-type UiSettingsProps = {
+export type UiSettingsProps = {
   embedded?: boolean;
   options?: Options | null;
   onOptionsChange?: (options: Options) => void;
@@ -56,15 +57,6 @@ function uiOptionPatch(before: Options, after: Options) {
   return patch;
 }
 
-function openShortcutConfig() {
-  const tabs = (chrome as any)?.tabs;
-  if (tabs?.create) {
-    tabs.create({
-      url: 'chrome://extensions/configureCommands'
-    });
-  }
-}
-
 function displayProfileName(profile: Profile) {
   if (profile.builtin && profile.name) {
     return message(`profile_${profile.name}`, profile.name);
@@ -72,7 +64,7 @@ function displayProfileName(profile: Profile) {
   return profile.name || '';
 }
 
-function UiSettings({embedded = false, options, onOptionsChange, onOpenShortcutConfig}: UiSettingsProps) {
+export function UiSettings({embedded = false, options, onOptionsChange, onOpenShortcutConfig}: UiSettingsProps) {
   const [savedOptions, setSavedOptions] = useState<Options | null>(() => embedded && options ? cloneOptions(options) : null);
   const [draftOptions, setDraftOptions] = useState<Options | null>(() => embedded && options ? cloneOptions(options) : null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'saving' | 'saved' | 'error'>(() => embedded && options ? 'ready' : 'loading');
@@ -205,7 +197,7 @@ function UiSettings({embedded = false, options, onOptionsChange, onOpenShortcutC
       onOpenShortcutConfig();
       return;
     }
-    openShortcutConfig();
+    openDefaultShortcutConfig();
   }
 
   const pageHeader = (
@@ -432,7 +424,7 @@ function UiSettings({embedded = false, options, onOptionsChange, onOpenShortcutC
   );
 }
 
-function mount(element: Element, props: UiSettingsProps = {}) {
+export function mount(element: Element, props: UiSettingsProps = {}) {
   const root = createRoot(element);
   flushSync(() => {
     root.render(<UiSettings {...props} />);

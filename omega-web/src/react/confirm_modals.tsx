@@ -9,7 +9,7 @@ import {
   profileByName
 } from './profile_widgets';
 
-type ConfirmKind =
+export type ConfirmKind =
   | 'apply'
   | 'cannotDeleteProfile'
   | 'deleteAttached'
@@ -26,7 +26,7 @@ type Rule = {
   };
 };
 
-type ConfirmModalProps = {
+export type ConfirmModalProps = {
   attached?: any;
   fromName?: string;
   kind: ConfirmKind;
@@ -263,7 +263,7 @@ function closeButtonFor(kind: ConfirmKind) {
   }
 }
 
-function ConfirmModal(props: ConfirmModalProps) {
+export function ConfirmModal(props: ConfirmModalProps) {
   const {kind, onClose, onDismiss} = props;
   const [fromName, setFromName] = useState(props.fromName || '');
   const [toName, setToName] = useState(props.toName || '');
@@ -305,7 +305,7 @@ function ConfirmModal(props: ConfirmModalProps) {
   );
 }
 
-function mount(element: Element, props: ConfirmModalProps) {
+export function mount(element: Element, props: ConfirmModalProps) {
   const root = createRoot(element);
   root.render(<ConfirmModal {...props} />);
   return {

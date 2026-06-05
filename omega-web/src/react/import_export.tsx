@@ -18,7 +18,7 @@ import {
 
 const RESTORE_URL_STATE = 'web.restoreOnlineUrl';
 
-type ImportExportProps = {
+export type ImportExportProps = {
   embedded?: boolean;
   onApplyOptions?: () => Promise<any> | any;
   onImportSuccess?: () => Promise<any> | any;
@@ -48,7 +48,7 @@ function storedRestoreUrl() {
   return getLocalState<string>(RESTORE_URL_STATE) || '';
 }
 
-function ImportExport({
+export function ImportExport({
   embedded = false,
   onApplyOptions,
   onImportSuccess,
@@ -406,7 +406,7 @@ function ImportExport({
   );
 }
 
-function mount(element: Element, props: ImportExportProps = {}) {
+export function mount(element: Element, props: ImportExportProps = {}) {
   const root = createRoot(element);
   function render(nextProps: ImportExportProps = props) {
     props = nextProps;

@@ -14,7 +14,7 @@ import {
 
 declare const OmegaSwitchProfileRules: any;
 
-type UnsupportedProfileProps = {
+export type UnsupportedProfileProps = {
   profile?: {
     profileType?: string;
   } | null;
@@ -24,7 +24,7 @@ type VirtualProfileModel = Profile & {
   defaultProfileName?: string;
 };
 
-type VirtualProfileProps = {
+export type VirtualProfileProps = {
   onReplaceProfile?: (fromName: string, toName: string) => void;
   onTargetChange?: (name: string) => void;
   options?: Options | null;
@@ -40,7 +40,7 @@ type RuleListProfileModel = Profile & {
   sourceUrl?: string;
 };
 
-type RuleListProfileProps = {
+export type RuleListProfileProps = {
   onDownload?: (name: string) => void;
   onProfileChange?: (field: keyof RuleListProfileModel, value: string) => void;
   options?: Options | null;
@@ -55,7 +55,7 @@ type PacProfileModel = Profile & {
   pacUrl?: string;
 };
 
-type PacProfileProps = {
+export type PacProfileProps = {
   onDownload?: (name: string) => void;
   onEditProxyAuth?: () => void;
   onProfileChange?: (field: keyof PacProfileModel, value: string) => void;
@@ -88,14 +88,14 @@ type FixedProfileModel = Profile & {
   proxyForHttps?: ProxyEditor;
 };
 
-type FixedProfileProps = {
+export type FixedProfileProps = {
   onBypassListChange?: (value: FixedProfileBypassCondition[]) => void;
   onEditProxyAuth?: (scheme: FixedProfileScheme) => void;
   onProxyChange?: (field: FixedProfileProxyField, value?: ProxyEditor, options?: {clearAuth?: boolean}) => void;
   profile?: FixedProfileModel | null;
 };
 
-type SwitchAttachedProfileProps = {
+export type SwitchAttachedProfileProps = {
   attached?: RuleListProfileModel | null;
   attachedRuleListError?: {message?: string} | null;
   onAttachNew?: () => void;
@@ -104,13 +104,13 @@ type SwitchAttachedProfileProps = {
   updating?: boolean;
 };
 
-type SwitchConditionHelpProps = {
+export type SwitchConditionHelpProps = {
   onClose?: () => void;
   show?: boolean;
   showConditionTypes?: number;
 };
 
-type SwitchRulesHeaderProps = {
+export type SwitchRulesHeaderProps = {
   editSource?: boolean;
   onSourceChange?: (code: string) => void;
   onToggleSource?: () => void;
@@ -123,7 +123,7 @@ type SwitchRulesHeaderProps = {
   } | null;
 };
 
-type SwitchRuleTableHeaderProps = {
+export type SwitchRuleTableHeaderProps = {
   onToggleConditionHelp?: () => void;
   showNotes?: boolean;
 };
@@ -150,7 +150,7 @@ type ConditionTypeOption = {
   type: string;
 };
 
-type SwitchRuleRowProps = {
+export type SwitchRuleRowProps = {
   conditionTypes?: ConditionTypeOption[];
   index: number;
   onAddNote?: (index: number) => void;
@@ -170,7 +170,7 @@ type SwitchRuleRowProps = {
   weekdayList?: boolean[];
 };
 
-type SwitchRuleRowsProps = {
+export type SwitchRuleRowsProps = {
   onAddNote?: (index: number) => void;
   onCloneRule?: (index: number) => void;
   onConditionFieldChange?: (index: number, field: string, value: any) => void;
@@ -189,7 +189,7 @@ type SwitchRuleRowsProps = {
   visibleRuleCount?: number;
 };
 
-type SwitchRuleFooterProps = {
+export type SwitchRuleFooterProps = {
   attached?: RuleListProfileModel | null;
   attachedOptions?: {
     defaultProfileName?: string;
@@ -206,14 +206,14 @@ type SwitchRuleFooterProps = {
   showNotes?: boolean;
 };
 
-type SwitchRulesSectionProps = SwitchConditionHelpProps & SwitchRulesHeaderProps & SwitchRuleTableHeaderProps & SwitchRuleRowsProps & SwitchRuleFooterProps & {
+export type SwitchRulesSectionProps = SwitchConditionHelpProps & SwitchRulesHeaderProps & SwitchRuleTableHeaderProps & SwitchRuleRowsProps & SwitchRuleFooterProps & {
   loadRules?: boolean;
   onMoveRule?: (fromIndex: number, toIndex: number) => void;
 };
 
-type SwitchProfileContentProps = SwitchRulesSectionProps & SwitchAttachedProfileProps;
+export type SwitchProfileContentProps = SwitchRulesSectionProps & SwitchAttachedProfileProps;
 
-type ProfileShellProps = {
+export type ProfileShellProps = {
   exportRuleListAvailable?: boolean;
   exportRuleListWarning?: boolean;
   onColorChange?: (color: string) => void;
@@ -244,7 +244,7 @@ function normalizeColor(color?: string) {
   return '#000000';
 }
 
-function ProfileShell({
+export function ProfileShell({
   exportRuleListAvailable = false,
   exportRuleListWarning = false,
   onColorChange,
@@ -711,7 +711,7 @@ function SwitchRuleRows({
   );
 }
 
-function UnsupportedProfile({profile}: UnsupportedProfileProps) {
+export function UnsupportedProfile({profile}: UnsupportedProfileProps) {
   const profileType = profile?.profileType || '';
   return (
     <>
@@ -752,7 +752,7 @@ function getRuleListFormats(): string[] {
   return OmegaPac.Profiles.ruleListFormats || [];
 }
 
-function PacProfile({
+export function PacProfile({
   onDownload,
   onEditProxyAuth,
   onProfileChange,
@@ -963,7 +963,7 @@ function fixedProfileAuthActive(profile: FixedProfileModel | null | undefined, s
   return !!profile?.auth?.[FIXED_PROFILE_PROXY_FIELDS[scheme]];
 }
 
-function FixedProfileContent({
+export function FixedProfileContent({
   profile,
   onBypassListChange,
   onEditProxyAuth,
@@ -1171,7 +1171,7 @@ function FixedProfileContent({
   );
 }
 
-function SwitchAttachedProfile({
+export function SwitchAttachedProfile({
   attached,
   attachedRuleListError,
   onAttachNew,
@@ -1289,7 +1289,7 @@ function htmlMessage(key: string, fallback = key) {
   return {__html: message(key, fallback)};
 }
 
-function SwitchConditionHelp({
+export function SwitchConditionHelp({
   onClose,
   show = false,
   showConditionTypes = 0
@@ -1349,7 +1349,7 @@ function SwitchConditionHelp({
   );
 }
 
-function SwitchRulesHeader({
+export function SwitchRulesHeader({
   editSource = false,
   onSourceChange,
   onToggleSource,
@@ -1420,7 +1420,7 @@ function SwitchRulesHeader({
   );
 }
 
-function SwitchRuleTableHeader({
+export function SwitchRuleTableHeader({
   onToggleConditionHelp,
   showNotes = false
 }: SwitchRuleTableHeaderProps) {
@@ -1446,7 +1446,7 @@ function SwitchRuleTableHeader({
   );
 }
 
-function SwitchRuleFooter({
+export function SwitchRuleFooter({
   attached,
   attachedOptions = {},
   onAddRule,
@@ -1536,7 +1536,7 @@ function SwitchRuleFooter({
   );
 }
 
-function SwitchRulesSection({
+export function SwitchRulesSection({
   attached,
   attachedOptions,
   editSource = false,
@@ -1735,7 +1735,7 @@ function SwitchRulesSection({
   );
 }
 
-function SwitchProfileContent(props: SwitchProfileContentProps) {
+export function SwitchProfileContent(props: SwitchProfileContentProps) {
   return (
     <>
       <SwitchRulesSection {...props} />
@@ -1751,7 +1751,7 @@ function SwitchProfileContent(props: SwitchProfileContentProps) {
   );
 }
 
-function RuleListProfile({
+export function RuleListProfile({
   onDownload,
   onProfileChange,
   options,
@@ -1865,7 +1865,7 @@ function RuleListProfile({
   );
 }
 
-function VirtualProfile({onReplaceProfile, onTargetChange, options, profile}: VirtualProfileProps) {
+export function VirtualProfile({onReplaceProfile, onTargetChange, options, profile}: VirtualProfileProps) {
   const [targetName, setTargetName] = useState(profile?.defaultProfileName || '');
   useEffect(() => {
     setTargetName(profile?.defaultProfileName || '');
@@ -1917,7 +1917,7 @@ function VirtualProfile({onReplaceProfile, onTargetChange, options, profile}: Vi
   );
 }
 
-function mountUnsupportedProfile(element: Element, props: UnsupportedProfileProps = {}) {
+export function mountUnsupportedProfile(element: Element, props: UnsupportedProfileProps = {}) {
   const root = createRoot(element);
   root.render(<UnsupportedProfile {...props} />);
   return {
@@ -1930,7 +1930,7 @@ function mountUnsupportedProfile(element: Element, props: UnsupportedProfileProp
   };
 }
 
-function mountProfileShell(element: Element, props: ProfileShellProps = {}) {
+export function mountProfileShell(element: Element, props: ProfileShellProps = {}) {
   const root = createRoot(element);
   root.render(<ProfileShell {...props} />);
   return {
@@ -1943,7 +1943,7 @@ function mountProfileShell(element: Element, props: ProfileShellProps = {}) {
   };
 }
 
-function mountVirtualProfile(element: Element, props: VirtualProfileProps = {}) {
+export function mountVirtualProfile(element: Element, props: VirtualProfileProps = {}) {
   const root = createRoot(element);
   root.render(<VirtualProfile {...props} />);
   return {
@@ -1956,7 +1956,7 @@ function mountVirtualProfile(element: Element, props: VirtualProfileProps = {}) 
   };
 }
 
-function mountRuleListProfile(element: Element, props: RuleListProfileProps = {}) {
+export function mountRuleListProfile(element: Element, props: RuleListProfileProps = {}) {
   const root = createRoot(element);
   root.render(<RuleListProfile {...props} />);
   return {
@@ -1969,7 +1969,7 @@ function mountRuleListProfile(element: Element, props: RuleListProfileProps = {}
   };
 }
 
-function mountPacProfile(element: Element, props: PacProfileProps = {}) {
+export function mountPacProfile(element: Element, props: PacProfileProps = {}) {
   const root = createRoot(element);
   root.render(<PacProfile {...props} />);
   return {
@@ -1982,7 +1982,7 @@ function mountPacProfile(element: Element, props: PacProfileProps = {}) {
   };
 }
 
-function mountFixedProfile(element: Element, props: FixedProfileProps = {}) {
+export function mountFixedProfile(element: Element, props: FixedProfileProps = {}) {
   const root = createRoot(element);
   root.render(<FixedProfileContent {...props} />);
   return {
@@ -1995,7 +1995,7 @@ function mountFixedProfile(element: Element, props: FixedProfileProps = {}) {
   };
 }
 
-function mountSwitchProfile(element: Element, props: SwitchProfileContentProps = {}) {
+export function mountSwitchProfile(element: Element, props: SwitchProfileContentProps = {}) {
   const root = createRoot(element);
   flushSync(() => {
     root.render(<SwitchProfileContent {...props} />);

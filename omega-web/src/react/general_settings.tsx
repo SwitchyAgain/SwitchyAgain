@@ -19,7 +19,7 @@ const GENERAL_KEYS = [
 
 const DOWNLOAD_INTERVALS = [15, 60, 180, 360, 720, 1440, -1];
 
-type GeneralSettingsProps = {
+export type GeneralSettingsProps = {
   embedded?: boolean;
   options?: Options | null;
   onOptionsChange?: (options: Options) => void;
@@ -59,7 +59,7 @@ function messageWithBadges(
   ) : part);
 }
 
-function GeneralSettings({embedded = false, options, onOptionsChange}: GeneralSettingsProps) {
+export function GeneralSettings({embedded = false, options, onOptionsChange}: GeneralSettingsProps) {
   const [savedOptions, setSavedOptions] = useState<Options | null>(() => embedded && options ? cloneOptions(options) : null);
   const [draftOptions, setDraftOptions] = useState<Options | null>(() => embedded && options ? cloneOptions(options) : null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'saving' | 'saved' | 'error'>(() => embedded && options ? 'ready' : 'loading');
@@ -292,7 +292,7 @@ function GeneralSettings({embedded = false, options, onOptionsChange}: GeneralSe
   );
 }
 
-function mount(element: Element, props: GeneralSettingsProps = {}) {
+export function mount(element: Element, props: GeneralSettingsProps = {}) {
   const root = createRoot(element);
   flushSync(() => {
     root.render(<GeneralSettings {...props} />);

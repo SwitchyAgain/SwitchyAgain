@@ -2,13 +2,13 @@ import React from 'react';
 import {createRoot} from 'react-dom/client';
 import {message} from './options_client';
 
-type WelcomeModalProps = {
+export type WelcomeModalProps = {
   onClose?: (result: string) => void;
   onDismiss?: () => void;
   upgrade?: boolean;
 };
 
-function WelcomeModal({onClose, onDismiss, upgrade = false}: WelcomeModalProps) {
+export function WelcomeModal({onClose, onDismiss, upgrade = false}: WelcomeModalProps) {
   return (
     <>
       <div className="modal-header">
@@ -43,7 +43,7 @@ function WelcomeModal({onClose, onDismiss, upgrade = false}: WelcomeModalProps) 
   );
 }
 
-function mountWelcome(element: Element, props: WelcomeModalProps = {}) {
+export function mountWelcome(element: Element, props: WelcomeModalProps = {}) {
   const root = createRoot(element);
   root.render(<WelcomeModal {...props} />);
   return {
