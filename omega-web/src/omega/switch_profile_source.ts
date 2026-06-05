@@ -19,6 +19,10 @@ namespace OmegaSwitchProfileSource {
   }
 
   export function createSource(profile: OmegaSwitchProfileState.SwitchProfile, attachedOptions: OmegaSwitchProfileState.AttachedOptions) {
+    var runtime = (window as any).OmegaReactSwitchProfileRuntime;
+    if (runtime && runtime.createSource) {
+      return runtime.createSource(profile, attachedOptions);
+    }
     return {
       code: OmegaSwitchProfileState.composeSource(profile, attachedOptions.defaultProfileName)
     };
@@ -26,12 +30,15 @@ namespace OmegaSwitchProfileSource {
 
   export function parseSource(
     profile: OmegaSwitchProfileState.SwitchProfile,
+    attached: OmegaSwitchProfileState.RuleListProfile,
+    attachedName: string,
     attachedOptions: OmegaSwitchProfileState.AttachedOptions,
     source: SourceState,
     options: any,
     trFilter: (key: string, args?: any[]) => string
   ) {
     var error, ref, rules;
+    var runtime = (window as any).OmegaReactSwitchProfileRuntime;
     if (!source) {
       return true;
     }
@@ -43,6 +50,9 @@ namespace OmegaSwitchProfileSource {
       return false;
     }
     source.error = void 0;
+    if (runtime && runtime.applyParsedSource) {
+      return runtime.applyParsedSource(profile, attached, attachedOptions, attachedName, rules);
+    }
     OmegaSwitchProfileState.applyParsedSource(profile, attachedOptions, rules);
     return true;
   }

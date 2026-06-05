@@ -1,13 +1,26 @@
 namespace OmegaSwitchProfileActions {
+  function runtime() {
+    return (window as any).OmegaReactSwitchProfileRuntime;
+  }
+
   export function addRule(profile: OmegaSwitchProfileState.SwitchProfile, attachedOptions: OmegaSwitchProfileState.AttachedOptions) {
+    if (runtime() && runtime().addRule) {
+      return runtime().addRule(profile, attachedOptions.defaultProfileName);
+    }
     return OmegaSwitchProfileState.addRule(profile, attachedOptions.defaultProfileName);
   }
 
   export function removeRule(profile: OmegaSwitchProfileState.SwitchProfile, index: number) {
+    if (runtime() && runtime().removeRule) {
+      return runtime().removeRule(profile, index);
+    }
     return OmegaSwitchProfileState.removeRule(profile, index);
   }
 
   export function cloneRule(profile: OmegaSwitchProfileState.SwitchProfile, index: number) {
+    if (runtime() && runtime().cloneRule) {
+      return runtime().cloneRule(profile, index);
+    }
     return OmegaSwitchProfileState.cloneRule(profile, index);
   }
 
@@ -15,19 +28,10 @@ namespace OmegaSwitchProfileActions {
     return ".switch-rule-row:nth-child(" + (index + 2) + ") input";
   }
 
-  export function addNote(scope: any, unwatchRulesShowNote: () => void) {
-    scope.showNotes = true;
-    return unwatchRulesShowNote();
-  }
-
-  export function syncShowNotes(scope: any, rules: any[], unwatchRulesShowNote: () => void) {
-    if (OmegaSwitchProfileRules.hasNotes(rules)) {
-      scope.showNotes = true;
-      return unwatchRulesShowNote();
-    }
-  }
-
   export function resetRuleProfiles(profile: OmegaSwitchProfileState.SwitchProfile, attachedOptions: OmegaSwitchProfileState.AttachedOptions) {
+    if (runtime() && runtime().resetRuleProfiles) {
+      return runtime().resetRuleProfiles(profile, attachedOptions.defaultProfileName);
+    }
     return OmegaSwitchProfileRules.resetRuleProfiles(profile.rules, attachedOptions.defaultProfileName);
   }
 

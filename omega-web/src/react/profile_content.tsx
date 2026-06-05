@@ -1,6 +1,7 @@
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 import {createRoot} from 'react-dom/client';
+import {ConfirmModal} from './confirm_modals';
 import {Options} from './options_client';
 import {message} from './options_client';
 import {
@@ -14,9 +15,11 @@ import {
 import {
   conditionHasWarning,
   conditionTypesForMode as switchConditionTypesForMode,
+  composeSource,
   getAdvancedConditionGroups,
   getBasicConditionGroups,
-  getUrlConditionTypeMap
+  getUrlConditionTypeMap,
+  hasNotes
 } from './switch_profile_runtime';
 
 export type UnsupportedProfileProps = {
@@ -125,6 +128,7 @@ export type SwitchRulesHeaderProps = {
     error?: {
       message?: string;
     };
+    touched?: boolean;
   } | null;
 };
 
@@ -221,6 +225,34 @@ export type SwitchRulesSectionProps = SwitchConditionHelpProps & SwitchRulesHead
 };
 
 export type SwitchProfileContentProps = SwitchRulesSectionProps & SwitchAttachedProfileProps;
+
+type SwitchRulesSourceState = {
+  code?: string;
+  error?: {
+    message?: string;
+  } | null;
+  touched?: boolean;
+};
+
+type SwitchSourceApplyResult = boolean | void | {
+  ok?: boolean;
+  source?: SwitchRulesSourceState | null;
+};
+
+export type SwitchProfileStatefulContentProps = Omit<
+  SwitchProfileContentProps,
+  'onAddNote' | 'onClose' | 'onSourceChange' | 'onToggleConditionHelp' | 'onToggleSource'
+> & {
+  confirmDeletion?: boolean;
+  onAddNote?: (index: number) => void;
+  onApplySource?: (source: SwitchRulesSourceState) => SwitchSourceApplyResult;
+  onConditionHelpChange?: (shown: boolean) => void;
+  onCreateSource?: () => SwitchRulesSourceState | null | undefined;
+  onEditorModeChange?: (editSource: boolean) => void;
+  onEditorStateChange?: (state: {editSource: boolean; source?: SwitchRulesSourceState | null}) => void;
+  onRulesLoaded?: () => void;
+  onSourceDraftChange?: (source: SwitchRulesSourceState) => void;
+};
 
 export type ProfileShellProps = {
   exportRuleListAvailable?: boolean;
@@ -1875,6 +1907,330 @@ export function SwitchProfileContent(props: SwitchProfileContentProps) {
   );
 }
 
+function sourceErrorMessage(source?: SwitchRulesSourceState | null) {
+  return source?.error?.message || '';
+}
+
+function cloneSourceState(source?: SwitchRulesSourceState | null): SwitchRulesSourceState | undefined {
+  if (!source) {
+    return undefined;
+  }
+  return {
+    ...source,
+    error: source.error ? {...source.error} : source.error
+  };
+}
+
+type SwitchProfileConfirmState =
+  | {
+    index: number;
+    kind: 'ruleRemove';
+    rule: SwitchRuleModel;
+  }
+  | {
+    kind: 'ruleReset';
+  }
+  | {
+    kind: 'deleteAttached';
+  }
+  | null;
+
+function SwitchProfileModalFrame({
+  children,
+  onDismiss
+}: {
+  children: React.ReactNode;
+  onDismiss: () => void;
+}) {
+  return (
+    <>
+      <div className="modal-backdrop fade in" />
+      <div
+        className="modal fade in"
+        role="dialog"
+        style={{display: 'block'}}
+        tabIndex={-1}
+        onMouseDown={(event) => {
+          if (event.target === event.currentTarget) {
+            onDismiss();
+          }
+        }}
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">{children}</div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export function SwitchProfileStatefulContent({
+  confirmDeletion = true,
+  editSource: externalEditSource = false,
+  onAddNote,
+  onAddRule,
+  onApplySource,
+  onAttachedChange,
+  onAttachedEnabledChange,
+  onAttachedMatchProfileChange,
+  onCloneRule,
+  onConditionFieldChange,
+  onConditionHelpChange,
+  onConditionReplace,
+  onConditionTypeChange,
+  onCreateSource,
+  onDefaultProfileChange,
+  onEditorModeChange,
+  onEditorStateChange,
+  onIpConditionInputChange,
+  onMoveRule,
+  onNoteChange,
+  onProfileChange,
+  onRemoveAttached,
+  onRemoveRule,
+  onResetRules,
+  onRulesLoaded,
+  onSourceDraftChange,
+  onWeekdayChange,
+  profile,
+  rules = [],
+  show: externalConditionHelpShown = false,
+  showNotes: externalShowNotes = false,
+  source: externalSource,
+  ...props
+}: SwitchProfileStatefulContentProps) {
+  const [conditionHelpShown, setConditionHelpShown] = useState(!!externalConditionHelpShown);
+  const [editSource, setEditSource] = useState(!!externalEditSource);
+  const [source, setSource] = useState<SwitchRulesSourceState | undefined>(() => cloneSourceState(externalSource));
+  const [notesForcedVisible, setNotesForcedVisible] = useState(!!externalShowNotes || hasNotes(rules));
+  const [confirmState, setConfirmState] = useState<SwitchProfileConfirmState>(null);
+  const [, setLocalRevision] = useState(0);
+  const externalSourceError = sourceErrorMessage(externalSource);
+
+  useEffect(() => {
+    setConditionHelpShown(!!externalConditionHelpShown);
+  }, [externalConditionHelpShown]);
+
+  useEffect(() => {
+    setEditSource(!!externalEditSource);
+  }, [externalEditSource]);
+
+  useEffect(() => {
+    setSource(cloneSourceState(externalSource));
+  }, [externalSource?.code, externalSource?.touched, externalSourceError]);
+
+  useEffect(() => {
+    if (externalShowNotes || hasNotes(rules)) {
+      setNotesForcedVisible(true);
+    }
+  }, [externalShowNotes, rules]);
+
+  function forceLocalRender() {
+    setLocalRevision((revision) => revision + 1);
+  }
+
+  function runAction<T extends any[]>(action: ((...args: T) => void) | undefined, ...args: T) {
+    action?.(...args);
+    forceLocalRender();
+  }
+
+  function updateConditionHelp(shown: boolean) {
+    setConditionHelpShown(shown);
+    onConditionHelpChange?.(shown);
+  }
+
+  function updateEditorState(nextEditSource: boolean, nextSource?: SwitchRulesSourceState | null) {
+    onEditorStateChange?.({
+      editSource: nextEditSource,
+      source: nextSource || null
+    });
+  }
+
+  function openSourceEditor() {
+    const nextSource = cloneSourceState(onCreateSource?.()) || {
+      code: composeSource(profile as any, props.attachedOptions?.defaultProfileName)
+    };
+    setSource(nextSource);
+    setEditSource(true);
+    updateEditorState(true, nextSource);
+    onEditorModeChange?.(true);
+  }
+
+  function closeSourceEditor() {
+    const currentSource = source || {code: ''};
+    const result = onApplySource?.(currentSource);
+    let ok = true;
+    let nextSource = currentSource;
+
+    if (result === false) {
+      ok = false;
+    } else if (result && typeof result === 'object') {
+      ok = result.ok !== false;
+      if (result.source !== undefined) {
+        nextSource = cloneSourceState(result.source) || currentSource;
+      }
+    }
+
+    if (!ok) {
+      setSource(nextSource);
+      setEditSource(true);
+      updateEditorState(true, nextSource);
+      onEditorModeChange?.(true);
+      forceLocalRender();
+      return;
+    }
+
+    setSource(undefined);
+    setEditSource(false);
+    updateEditorState(false, null);
+    onEditorModeChange?.(false);
+    onRulesLoaded?.();
+    forceLocalRender();
+  }
+
+  function toggleSourceEditor() {
+    if (editSource) {
+      closeSourceEditor();
+    } else {
+      openSourceEditor();
+    }
+  }
+
+  function updateSourceDraft(code: string) {
+    const nextSource = {
+      ...(source || {}),
+      code,
+      touched: true
+    };
+    setSource(nextSource);
+    if (onSourceDraftChange) {
+      onSourceDraftChange(nextSource);
+    } else {
+      updateEditorState(editSource, nextSource);
+    }
+  }
+
+  function showRuleNotes(index: number) {
+    setNotesForcedVisible(true);
+    onAddNote?.(index);
+  }
+
+  function requestRemoveAttached() {
+    if (confirmDeletion && props.attached) {
+      setConfirmState({kind: 'deleteAttached'});
+      return;
+    }
+    runAction(onRemoveAttached);
+  }
+
+  function requestRemoveRule(index: number) {
+    if (confirmDeletion) {
+      setConfirmState({
+        index,
+        kind: 'ruleRemove',
+        rule: rules[index]
+      });
+      return;
+    }
+    runAction(onRemoveRule, index);
+  }
+
+  function requestResetRules() {
+    setConfirmState({kind: 'ruleReset'});
+  }
+
+  function confirmModalProps() {
+    if (!confirmState) {
+      return null;
+    }
+    switch (confirmState.kind) {
+      case 'deleteAttached':
+        return {
+          attached: props.attached,
+          kind: 'deleteAttached' as const
+        };
+      case 'ruleRemove':
+        return {
+          kind: 'ruleRemove' as const,
+          rule: confirmState.rule,
+          ruleProfile: profileByName(props.options, confirmState.rule?.profileName || '')
+        };
+      case 'ruleReset':
+        return {
+          kind: 'ruleReset' as const,
+          ruleProfile: profileByName(props.options, props.attachedOptions?.defaultProfileName || '')
+        };
+    }
+  }
+
+  function closeConfirm() {
+    if (!confirmState) {
+      return;
+    }
+    switch (confirmState.kind) {
+      case 'deleteAttached':
+        runAction(onRemoveAttached);
+        break;
+      case 'ruleRemove':
+        runAction(onRemoveRule, confirmState.index);
+        break;
+      case 'ruleReset':
+        runAction(onResetRules);
+        break;
+    }
+    setConfirmState(null);
+  }
+
+  const showNotes = notesForcedVisible || hasNotes(rules);
+  const activeConfirmModalProps = confirmModalProps();
+
+  return (
+    <>
+      <SwitchProfileContent
+        {...props}
+        editSource={editSource}
+        onAddNote={showRuleNotes}
+        onAddRule={() => runAction(onAddRule)}
+        onAttachedChange={(field, value) => runAction(onAttachedChange, field, value)}
+        onAttachedEnabledChange={(enabled) => runAction(onAttachedEnabledChange, enabled)}
+        onAttachedMatchProfileChange={(name) => runAction(onAttachedMatchProfileChange, name)}
+        onCloneRule={(index) => runAction(onCloneRule, index)}
+        onClose={() => updateConditionHelp(false)}
+        onConditionFieldChange={(index, field, value) => runAction(onConditionFieldChange, index, field, value)}
+        onConditionReplace={(index, condition) => runAction(onConditionReplace, index, condition)}
+        onConditionTypeChange={(index, type) => runAction(onConditionTypeChange, index, type)}
+        onDefaultProfileChange={(name) => runAction(onDefaultProfileChange, name)}
+        onIpConditionInputChange={(index, value) => runAction(onIpConditionInputChange, index, value)}
+        onMoveRule={(fromIndex, toIndex) => runAction(onMoveRule, fromIndex, toIndex)}
+        onNoteChange={(index, note) => runAction(onNoteChange, index, note)}
+        onProfileChange={(index, name) => runAction(onProfileChange, index, name)}
+        onRemoveAttached={requestRemoveAttached}
+        onRemoveRule={requestRemoveRule}
+        onResetRules={requestResetRules}
+        onSourceChange={updateSourceDraft}
+        onToggleConditionHelp={() => updateConditionHelp(!conditionHelpShown)}
+        onToggleSource={toggleSourceEditor}
+        onWeekdayChange={(index, dayIndex, selected) => runAction(onWeekdayChange, index, dayIndex, selected)}
+        profile={profile}
+        rules={rules}
+        show={conditionHelpShown}
+        showNotes={showNotes}
+        source={source}
+      />
+      {activeConfirmModalProps && (
+        <SwitchProfileModalFrame onDismiss={() => setConfirmState(null)}>
+          <ConfirmModal
+            {...activeConfirmModalProps}
+            options={props.options}
+            onClose={closeConfirm}
+            onDismiss={() => setConfirmState(null)}
+          />
+        </SwitchProfileModalFrame>
+      )}
+    </>
+  );
+}
+
 export function RuleListProfile({
   onDownload,
   onProfileChange,
@@ -2136,6 +2492,23 @@ export function mountSwitchProfile(element: Element, props: SwitchProfileContent
   };
 }
 
+export function mountSwitchProfileStateful(element: Element, props: SwitchProfileStatefulContentProps = {}) {
+  const root = createRoot(element);
+  flushSync(() => {
+    root.render(<SwitchProfileStatefulContent {...props} />);
+  });
+  return {
+    render(nextProps: SwitchProfileStatefulContentProps = {}) {
+      flushSync(() => {
+        root.render(<SwitchProfileStatefulContent {...nextProps} />);
+      });
+    },
+    unmount() {
+      root.unmount();
+    }
+  };
+}
+
 const globalWindow = window as any;
 globalWindow.OmegaReactProfileContent = {
   mountFixedProfile,
@@ -2143,6 +2516,7 @@ globalWindow.OmegaReactProfileContent = {
   mountProfileShell,
   mountRuleListProfile,
   mountSwitchProfile,
+  mountSwitchProfileStateful,
   mountUnsupportedProfile,
   mountVirtualProfile
 };

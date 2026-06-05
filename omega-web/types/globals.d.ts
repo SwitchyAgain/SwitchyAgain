@@ -45,6 +45,14 @@ interface Window {
       render: (props?: any) => void;
       unmount: () => void;
     };
+    mountSwitchProfile: (element: Element, props?: any) => {
+      render: (props?: any) => void;
+      unmount: () => void;
+    };
+    mountSwitchProfileStateful: (element: Element, props?: any) => {
+      render: (props?: any) => void;
+      unmount: () => void;
+    };
   };
   OmegaReactOptionsModals?: {
     mountWelcome: (element: Element, props?: any) => {
@@ -76,4 +84,5 @@ interface Window {
       unmount: () => void;
     };
   };
+  OmegaReactSwitchProfileRuntime?: any;
 }

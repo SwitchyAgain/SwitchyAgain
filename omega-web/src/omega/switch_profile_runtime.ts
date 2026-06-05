@@ -1,7 +1,7 @@
 namespace OmegaSwitchProfileRuntime {
   type Disposer = () => void;
 
-  function addDisposer(disposers: Disposer[], disposer?: Disposer | Disposer[] | {unwatchRulesShowNote?: Disposer}) {
+  function addDisposer(disposers: Disposer[], disposer?: Disposer | Disposer[]) {
     if (!disposer) {
       return;
     }
@@ -22,7 +22,6 @@ namespace OmegaSwitchProfileRuntime {
       });
       return;
     }
-    addDisposer(disposers, disposer.unwatchRulesShowNote);
   }
 
   export function initialize(scope: any, deps: any) {
@@ -46,7 +45,32 @@ namespace OmegaSwitchProfileRuntime {
     stateEditorKey = 'web._profileEditor.' + scope.profile.name;
     scope.loadRules = false;
     scope.editSource = false;
-    addDisposer(disposers, OmegaSwitchProfileBindings.bindScopeActions(scope, {
+    scope.createRuleSource = function() {
+      return OmegaSwitchProfileSource.createSource(scope.profile, scope.attachedOptions);
+    };
+    scope.applyRuleSource = function(source: OmegaSwitchProfileSource.SourceState) {
+      var valid;
+      valid = OmegaSwitchProfileSource.parseSource(scope.profile, scope.attached, scope.attachedName, scope.attachedOptions, source, scope.options, deps.trFilter);
+      if (!valid) {
+        scope.editSource = true;
+        return {
+          ok: false,
+          source: source
+        };
+      }
+      return {
+        ok: true
+      };
+    };
+    scope.persistRuleEditorState = function(editSource: boolean) {
+      return deps.omegaTarget.state(stateEditorKey, {
+        editSource: editSource
+      });
+    };
+    scope.markSwitchRulesLoaded = function() {
+      return OmegaSwitchProfileStartup.markRulesLoaded(scope);
+    };
+    OmegaSwitchProfileBindings.bindScopeActions(scope, {
       $modal: deps.$modal,
       $q: deps.$q,
       $timeout: deps.$timeout,
@@ -55,7 +79,7 @@ namespace OmegaSwitchProfileRuntime {
       readyState: readyState,
       stateEditorKey: stateEditorKey,
       trFilter: deps.trFilter
-    }));
+    });
     addDisposer(disposers, OmegaSwitchProfileLifecycle.registerStateChangeGuard(scope, deps.$rootScope, deps.trFilter));
     addDisposer(disposers, OmegaSwitchProfileLifecycle.registerApplyOptionsGuard(scope, deps.$rootScope, deps.$timeout, deps.trFilter));
     OmegaSwitchProfileLifecycle.restoreEditorState(scope, {

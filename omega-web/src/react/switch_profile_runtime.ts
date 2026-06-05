@@ -42,6 +42,12 @@ export type RuleListProfileModel = {
   sourceUrl?: string;
 };
 
+export type SwitchRuleSourceState = {
+  code?: string;
+  error?: any;
+  touched?: boolean;
+};
+
 export type ConditionTypeOption = {
   group: string;
   type: string;
@@ -186,6 +192,78 @@ export function createAttachedOptions(profile: SwitchProfileModel, attached?: Ru
   };
 }
 
+export function syncAttachedOptionsFromProfile(
+  profile: SwitchProfileModel,
+  attached: RuleListProfileModel | null | undefined,
+  attachedName: string,
+  attachedOptions: AttachedOptions
+) {
+  attachedOptions.enabled = profile.defaultProfileName === attachedName;
+  if (!attached || !attachedOptions.enabled) {
+    attachedOptions.defaultProfileName = profile.defaultProfileName;
+  }
+}
+
+export function setAttachedEnabled(
+  profile: SwitchProfileModel,
+  attached: RuleListProfileModel | null | undefined,
+  attachedName: string,
+  attachedOptions: AttachedOptions,
+  enabled: boolean,
+  oldValue?: boolean
+) {
+  if (enabled === oldValue) {
+    return false;
+  }
+  attachedOptions.enabled = enabled;
+  if (enabled) {
+    if (profile.defaultProfileName !== attachedName) {
+      profile.defaultProfileName = attachedName;
+      return true;
+    }
+    return false;
+  }
+  if (profile.defaultProfileName !== attachedName) {
+    return false;
+  }
+  const defaultProfileName = attached?.defaultProfileName || 'direct';
+  profile.defaultProfileName = defaultProfileName;
+  attachedOptions.defaultProfileName = defaultProfileName;
+  return true;
+}
+
+export function syncDefaultFromAttached(
+  attachedOptions: AttachedOptions,
+  enabled: boolean | undefined,
+  name?: string
+) {
+  if (name && enabled) {
+    attachedOptions.defaultProfileName = name;
+    return true;
+  }
+  return false;
+}
+
+export function setDefaultProfile(
+  profile: SwitchProfileModel,
+  attached: RuleListProfileModel | null | undefined,
+  attachedOptions: AttachedOptions,
+  name: string
+) {
+  if (attached && attachedOptions.enabled) {
+    if (attached.defaultProfileName === name) {
+      return false;
+    }
+    attached.defaultProfileName = name;
+    return true;
+  }
+  if (profile.defaultProfileName === name) {
+    return false;
+  }
+  profile.defaultProfileName = name;
+  return true;
+}
+
 export function createAttachedProfile(profile: SwitchProfileModel, attachedName: string) {
   const attached = OmegaPac.Profiles.create({
     color: profile.color,
@@ -195,6 +273,30 @@ export function createAttachedProfile(profile: SwitchProfileModel, attachedName:
   });
   OmegaPac.Profiles.updateRevision(attached);
   return attached;
+}
+
+export function attachNew(
+  options: Options,
+  attachedKey: string,
+  profile: SwitchProfileModel,
+  attachedName: string,
+  attachedOptions: AttachedOptions
+) {
+  const attached = createAttachedProfile(profile, attachedName);
+  options[attachedKey] = attached;
+  attachedOptions.enabled = true;
+  profile.defaultProfileName = attachedName;
+  return attached;
+}
+
+export function removeAttached(
+  options: Options,
+  attachedKey: string,
+  profile: SwitchProfileModel,
+  attached: RuleListProfileModel
+) {
+  profile.defaultProfileName = attached.defaultProfileName;
+  delete options[attachedKey];
 }
 
 export function createRule(rules: SwitchRule[], defaultProfileName?: string) {
@@ -219,17 +321,26 @@ export function createRule(rules: SwitchRule[], defaultProfileName?: string) {
 export function addRule(profile: SwitchProfileModel, defaultProfileName?: string) {
   profile.rules || (profile.rules = []);
   profile.rules.push(createRule(profile.rules, defaultProfileName));
+  return true;
 }
 
 export function removeRule(profile: SwitchProfileModel, index: number) {
   profile.rules || (profile.rules = []);
+  if (index < 0 || index >= profile.rules.length) {
+    return false;
+  }
   profile.rules.splice(index, 1);
+  return true;
 }
 
 export function cloneRule(profile: SwitchProfileModel, index: number) {
   profile.rules || (profile.rules = []);
+  if (index < 0 || index >= profile.rules.length) {
+    return false;
+  }
   const rule = cloneValue(profile.rules[index]);
   profile.rules.splice(index + 1, 0, rule);
+  return true;
 }
 
 export function moveRule(rules: SwitchRule[], fromIndex: number, toIndex: number) {
@@ -243,60 +354,73 @@ export function moveRule(rules: SwitchRule[], fromIndex: number, toIndex: number
 
 export function updateConditionField(rule: SwitchRule | undefined, field: string, value: any) {
   if (!rule) {
-    return;
+    return false;
   }
   if (field === 'minValue' || field === 'maxValue' || field === 'startHour' || field === 'endHour') {
     rule.condition[field] = value === '' ? null : Number(value);
-    return;
+    return true;
   }
   rule.condition[field] = value;
+  return true;
 }
 
 export function updateConditionType(rule: SwitchRule | undefined, type: string) {
   if (!rule) {
-    return;
+    return false;
   }
   rule.condition.conditionType = type;
+  return true;
 }
 
 export function updateIpCondition(rule: SwitchRule | undefined, value: string) {
   if (!rule) {
-    return;
+    return false;
   }
   rule.condition = value ? OmegaPac.Conditions.fromStr(`Ip: ${value}`) : {
     conditionType: 'IpCondition',
     ip: '0.0.0.0',
     prefixLength: 0
   };
+  return true;
 }
 
 export function updateRuleNote(rule: SwitchRule | undefined, note: string) {
   if (rule) {
     rule.note = note;
+    return true;
   }
+  return false;
 }
 
 export function updateRuleProfile(rule: SwitchRule | undefined, name: string) {
   if (rule) {
     rule.profileName = name;
+    return true;
   }
+  return false;
 }
 
 export function updateRuleWeekday(rule: SwitchRule | undefined, dayIndex: number, selected: boolean) {
   if (!rule) {
-    return;
+    return false;
   }
   rule.condition.days || (rule.condition.days = '-------');
   const char = selected ? 'SMTWtFs'[dayIndex] : '-';
   rule.condition.days = rule.condition.days.substr(0, dayIndex) + char + rule.condition.days.substr(dayIndex + 1);
   delete rule.condition.startDay;
   delete rule.condition.endDay;
+  return true;
 }
 
 export function resetRuleProfiles(profile: SwitchProfileModel, defaultProfileName?: string) {
+  let changed = false;
   for (const rule of profile.rules || []) {
-    rule.profileName = defaultProfileName;
+    if (rule.profileName !== defaultProfileName) {
+      rule.profileName = defaultProfileName;
+      changed = true;
+    }
   }
+  return changed;
 }
 
 export function hasNotes(rules?: SwitchRule[]) {
@@ -310,6 +434,12 @@ export function composeSource(profile: SwitchProfileModel, defaultProfileName?: 
   }, {
     withResult: true
   });
+}
+
+export function createSource(profile: SwitchProfileModel, attachedOptions: AttachedOptions): SwitchRuleSourceState {
+  return {
+    code: composeSource(profile, attachedOptions.defaultProfileName)
+  };
 }
 
 export function parseSource(code: string, options: Options | null | undefined) {
@@ -341,3 +471,69 @@ export function parseSource(code: string, options: Options | null | undefined) {
     };
   }
 }
+
+export function applyParsedSource(
+  profile: SwitchProfileModel,
+  attached: RuleListProfileModel | null | undefined,
+  attachedOptions: AttachedOptions,
+  attachedName: string,
+  rules: SwitchRule[]
+) {
+  const parsedRules = rules.slice();
+  const defaultRule = parsedRules.pop();
+  const defaultProfileName = defaultRule?.profileName || 'direct';
+  profile.rules = parsedRules;
+  if (attached && profile.defaultProfileName === attachedName) {
+    attached.defaultProfileName = defaultProfileName;
+    OmegaPac.Profiles.updateRevision(attached);
+  } else {
+    profile.defaultProfileName = defaultProfileName;
+  }
+  attachedOptions.defaultProfileName = defaultProfileName;
+  OmegaPac.Profiles.updateRevision(profile);
+  return true;
+}
+
+export function applySource(
+  profile: SwitchProfileModel,
+  attached: RuleListProfileModel | null | undefined,
+  attachedOptions: AttachedOptions,
+  attachedName: string,
+  source: SwitchRuleSourceState,
+  options: Options | null | undefined
+) {
+  const result = parseSource((source.code || '').trim(), options);
+  if (result.error) {
+    source.error = result.error;
+    return false;
+  }
+  source.error = undefined;
+  return applyParsedSource(profile, attached, attachedOptions, attachedName, result.rules || []);
+}
+
+const globalWindow = window as any;
+globalWindow.OmegaReactSwitchProfileRuntime = {
+  addRule,
+  applyParsedSource,
+  applySource,
+  attachNew,
+  cloneRule,
+  createAttachedOptions,
+  createAttachedProfile,
+  createSource,
+  hasNotes,
+  moveRule,
+  removeAttached,
+  removeRule,
+  resetRuleProfiles,
+  setAttachedEnabled,
+  setDefaultProfile,
+  syncAttachedOptionsFromProfile,
+  syncDefaultFromAttached,
+  updateConditionField,
+  updateConditionType,
+  updateIpCondition,
+  updateRuleNote,
+  updateRuleProfile,
+  updateRuleWeekday
+};

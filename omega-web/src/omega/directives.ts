@@ -887,7 +887,10 @@
         };
         mount = function() {
           bridge = window.OmegaReactProfileContent;
-          if (bridge != null ? bridge.mountSwitchProfile : void 0) {
+          if (bridge != null ? bridge.mountSwitchProfileStateful : void 0) {
+            mounted = bridge.mountSwitchProfileStateful(element[0], OmegaSwitchProfileBridge.buildProps(scope));
+            unwatchers = OmegaSwitchProfileBridge.watchProps(scope, render);
+          } else if (bridge != null ? bridge.mountSwitchProfile : void 0) {
             mounted = bridge.mountSwitchProfile(element[0], OmegaSwitchProfileBridge.buildProps(scope));
             unwatchers = OmegaSwitchProfileBridge.watchProps(scope, render);
           }

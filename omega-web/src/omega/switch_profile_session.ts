@@ -29,7 +29,7 @@ namespace OmegaSwitchProfileSession {
 
   export function parseSource(scope: any, trFilter: (key: string, args?: any[]) => string) {
     var valid;
-    valid = OmegaSwitchProfileSource.parseSource(scope.profile, scope.attachedOptions, scope.source, scope.options, trFilter);
+    valid = OmegaSwitchProfileSource.parseSource(scope.profile, scope.attached, scope.attachedName, scope.attachedOptions, scope.source, scope.options, trFilter);
     if (!valid) {
       scope.editSource = true;
       return false;
