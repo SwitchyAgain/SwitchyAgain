@@ -54,10 +54,15 @@
   unhandledPromisesNextId = 1;
 
   Promise.onPossiblyUnhandledRejection(function(reason, promise) {
-    Log.error("[" + unhandledPromisesNextId + "] Unhandled rejection:\n", reason);
+    var id;
+    id = unhandledPromisesNextId++;
     unhandledPromises.push(promise);
-    unhandledPromisesId.push(unhandledPromisesNextId);
-    return unhandledPromisesNextId++;
+    unhandledPromisesId.push(id);
+    return setTimeout(function() {
+      if (unhandledPromises.indexOf(promise) >= 0) {
+        return Log.error("[" + id + "] Unhandled rejection:\n", Log.str(reason));
+      }
+    }, 0);
   });
 
   Promise.onUnhandledRejectionHandled(function(promise) {

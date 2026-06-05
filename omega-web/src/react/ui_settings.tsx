@@ -182,7 +182,8 @@ function UiSettings({embedded = false, options, onOptionsChange, onOpenShortcutC
     setStatus('ready');
   }
 
-  function applyChanges() {
+  function applyChanges(event?: React.MouseEvent<HTMLButtonElement>) {
+    event?.currentTarget.blur();
     if (!savedOptions || !draftOptions || !dirty || embedded) {
       return;
     }

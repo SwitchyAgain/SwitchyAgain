@@ -44,9 +44,11 @@
                 var dirty;
                 options || (options = {});
                 dirty = options.dirty;
+                scope.$root.suppressOptionsDirty = true;
                 scope.$root.options = nextOptions;
                 scope.$root.optionsOld = angular.copy(nextOptions);
                 return $timeout(function() {
+                  scope.$root.suppressOptionsDirty = false;
                   return scope.$root.optionsDirty = dirty != null ? dirty : false;
                 });
               });

@@ -38,12 +38,24 @@ export function callBackground<T>(method: string, ...args: any[]): Promise<T> {
         return;
       }
       if (response?.error) {
-        reject(response.error);
+        reject(decodeBackgroundError(response.error));
         return;
       }
       resolve(response?.result as T);
     });
   });
+}
+
+function decodeBackgroundError(error: any) {
+  if (error?._error !== 'error') {
+    return error;
+  }
+  const decoded = new Error(error.message || error.name || 'Background error');
+  decoded.name = error.name || decoded.name;
+  if (error.stack) {
+    decoded.stack = error.stack;
+  }
+  return decoded;
 }
 
 export function loadOptions() {

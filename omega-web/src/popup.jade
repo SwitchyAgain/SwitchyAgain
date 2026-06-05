@@ -85,7 +85,7 @@ html(lang='en' ng-app='omegaPopup' ng-controller='PopupCtrl' ng-csp)
       ng-style='{display: showConditionForm ? "block" : "none"}'
       ng-submit='addCondition(rule.condition, rule.profileName)')
       fieldset
-        legend
+        legend(ng-if='currentProfile')
           | {{'popup_addConditionTo' | tr}}
           = ' '
           span.profile-inline
@@ -126,7 +126,7 @@ html(lang='en' ng-app='omegaPopup' ng-controller='PopupCtrl' ng-csp)
       ng-style='{display: showRequestInfo ? "block" : "none"}'
       ng-submit='addConditionForDomains(domainsForCondition, profileForDomains)')
       fieldset
-        legend(ng-show='!!currentProfileCanAddRule')
+        legend(ng-if='!!currentProfileCanAddRule && currentProfile')
           | {{'popup_addConditionTo' | tr}}
           = ' '
           span.profile-inline

@@ -17,6 +17,11 @@
   margin-left: 8px;
 }
 
+.react-actions .btn-default:disabled,
+.react-actions .btn-default.disabled {
+  background-color: #fff;
+}
+
 .react-action-row .btn {
   margin-right: 8px;
 }

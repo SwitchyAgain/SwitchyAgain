@@ -962,6 +962,10 @@ Options = (function() {
           return _this.updateProfile(updateProfiles);
         }
       };
+    })(this))["catch"]((function(_this) {
+      return function(error) {
+        return _this.log.error('Profile update after apply failed:', error);
+      };
     })(this));
     return applyProxy;
   };
@@ -1314,7 +1318,7 @@ Options = (function() {
    * @returns {Promise} A promise which is fulfilled when the condition is saved.
    */
 
-  Options.prototype.addCondition = function(condition, profileName) {
+  Options.prototype.addCondition = function(condition, profileName, addToBottom) {
     var changes, cond, i, j, l, len, profile, ref, tag, target;
     this.log.method('Options#addCondition', this, arguments);
     if (!this._currentProfileName) {
@@ -1322,7 +1326,7 @@ Options = (function() {
     }
     profile = OmegaPac.Profiles.byName(this._currentProfileName, this._options);
     if ((profile != null ? profile.rules : void 0) == null) {
-      return Promise.reject(new Error("Cannot add condition to Profile " + this.profile.name + " (" + profile.type + ")"));
+      return Promise.reject(new Error("Cannot add condition to Profile " + (profile != null ? profile.name : this._currentProfileName) + " (" + (profile != null ? profile.profileType : 'UnknownProfile') + ")"));
     }
     target = OmegaPac.Profiles.byName(profileName, this._options);
     if (target == null) {
@@ -1340,7 +1344,7 @@ Options = (function() {
           break;
         }
       }
-      if (this._options['-addConditionsToBottom']) {
+      if (addToBottom || this._options['-addConditionsToBottom']) {
         profile.rules.push({
           condition: cond,
           profileName: profileName

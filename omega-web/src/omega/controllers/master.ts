@@ -354,6 +354,9 @@
       if (options === oldOptions || (oldOptions == null)) {
         return;
       }
+      if ($rootScope.suppressOptionsDirty) {
+        return;
+      }
       return $rootScope.optionsDirty = true;
     };
     $rootScope.$watch('options', onOptionChange, true);

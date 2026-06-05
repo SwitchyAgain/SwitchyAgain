@@ -205,8 +205,8 @@
       addTempRule: function(domain, profileName) {
         return callBackground('addTempRule', domain, profileName);
       },
-      addCondition: function(condition, profileName) {
-        return callBackground('addCondition', condition, profileName);
+      addCondition: function(condition, profileName, addToBottom) {
+        return callBackground('addCondition', condition, profileName, addToBottom);
       },
       addProfile: function(profile) {
         return callBackground('addProfile', profile).then(omegaTarget.refresh);

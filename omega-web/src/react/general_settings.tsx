@@ -116,7 +116,8 @@ function GeneralSettings({embedded = false, options, onOptionsChange}: GeneralSe
     setStatus('ready');
   }
 
-  function applyChanges() {
+  function applyChanges(event?: React.MouseEvent<HTMLButtonElement>) {
+    event?.currentTarget.blur();
     if (!savedOptions || !draftOptions || !dirty || embedded) {
       return;
     }

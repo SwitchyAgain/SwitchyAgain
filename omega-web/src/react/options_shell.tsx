@@ -49,6 +49,11 @@ function navClick(event: React.MouseEvent, action?: () => void) {
   action?.();
 }
 
+function actionClick(event: React.MouseEvent<HTMLElement>, action?: () => void) {
+  event.currentTarget.blur();
+  navClick(event, action);
+}
+
 function SettingsLink({
   active,
   href = '#',
@@ -152,7 +157,7 @@ function OptionsShell({
             className={`btn-default btn align-initial ${optionsDirty ? 'btn-success' : ''}`}
             href="#"
             role="button"
-            onClick={(event) => navClick(event, onApply)}
+            onClick={(event) => actionClick(event, onApply)}
           >
             <span className="glyphicon glyphicon-ok-circle" /> {message('options_apply', 'Apply changes')}
           </a>

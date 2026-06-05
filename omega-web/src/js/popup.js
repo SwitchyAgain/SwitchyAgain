@@ -233,7 +233,7 @@
       });
     };
     $scope.addCondition = function(condition, profileName) {
-      return omegaTarget.addCondition(condition, profileName).then(function() {
+      return omegaTarget.addCondition(condition, profileName, true).then(function() {
         omegaTarget.state('lastProfileNameForCondition', profileName);
         return refresh();
       });
@@ -251,7 +251,7 @@
           });
         }
       }
-      return omegaTarget.addCondition(conditions, profileName).then(function() {
+      return omegaTarget.addCondition(conditions, profileName, true).then(function() {
         omegaTarget.state('lastProfileNameForCondition', profileName);
         return refresh();
       });
