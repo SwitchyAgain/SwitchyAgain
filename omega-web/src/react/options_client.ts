@@ -33,6 +33,12 @@ export function runtimeAvailable() {
   return Boolean(chrome?.runtime?.sendMessage);
 }
 
+export function shouldAutoMount(scriptName: string) {
+  const script = document.currentScript as HTMLScriptElement | null;
+  const src = script?.src || '';
+  return src.endsWith(`/${scriptName}`) || src.endsWith(scriptName);
+}
+
 function isManifestV3() {
   const manifest = chrome?.runtime?.getManifest?.();
   return Boolean(manifest?.manifest_version && manifest.manifest_version >= 3);

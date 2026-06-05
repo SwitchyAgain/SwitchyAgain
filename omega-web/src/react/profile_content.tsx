@@ -351,6 +351,10 @@ function switchRuleKey(rule: SwitchRuleModel) {
   return switchRuleKeys.get(rule);
 }
 
+function getJQuery() {
+  return typeof jQuery === 'undefined' ? null : jQuery;
+}
+
 function messageWithNodes(
   key: string,
   fallback: string,
@@ -1616,10 +1620,11 @@ export function SwitchRulesSection({
 
   useEffect(() => {
     const body = rulesBodyRef.current;
-    if (!body || editSource || !loadRules || !(jQuery as any)?.fn?.sortable) {
+    const jq = getJQuery();
+    if (!body || editSource || !loadRules || !(jq as any)?.fn?.sortable) {
       return;
     }
-    const sortableBody = jQuery(body);
+    const sortableBody = jq(body);
     let sortStartIndex = 0;
     sortableBody.sortable({
       handle: '.sort-bar',
@@ -1647,10 +1652,11 @@ export function SwitchRulesSection({
 
   useEffect(() => {
     const body = rulesBodyRef.current;
-    if (!body) {
+    const jq = getJQuery();
+    if (!body || !jq) {
       return;
     }
-    const sortableBody = jQuery(body);
+    const sortableBody = jq(body);
     if (sortableBody.data('ui-sortable')) {
       sortableBody.sortable('refresh');
     }

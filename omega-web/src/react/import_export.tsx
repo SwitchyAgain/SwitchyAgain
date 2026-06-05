@@ -12,6 +12,7 @@ import {
   resetOptions,
   resetOptionsSync,
   runtimeAvailable,
+  shouldAutoMount,
   setLocalState,
   setOptionsSync
 } from './options_client';
@@ -428,6 +429,6 @@ globalWindow.OmegaReactImportExport = {
 
 const rootElement = document.getElementById('react-root');
 
-if (rootElement) {
+if (rootElement && shouldAutoMount('import_export.js')) {
   mount(rootElement);
 }

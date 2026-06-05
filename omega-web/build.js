@@ -36,7 +36,7 @@ async function renderJade(src, dest) {
   await fs.writeFile(path.join(root, dest), html);
 }
 
-async function writeReactHtml(dest, title, script) {
+async function writeReactHtml(dest, title, script, extraScripts = []) {
   const html = [
     '<!doctype html>',
     '<html>',
@@ -49,6 +49,7 @@ async function writeReactHtml(dest, title, script) {
     '</head>',
     '<body>',
     '  <div id="react-root"></div>',
+    ...extraScripts.map((src) => `  <script src="${src}"></script>`),
     `  <script src="${script}"></script>`,
     '</body>',
     '</html>',
@@ -185,7 +186,7 @@ async function main() {
   await bundleGlobal('node_modules/shepherd.js/dist/js/shepherd.mjs', 'build/lib/shepherd.js/shepherd.min.js', 'Shepherd');
 
   await renderJade('src/options.jade', 'build/options.html');
-  await writeReactHtml('build/react/options_experiment.html', 'SwitchyAgain', 'options_experiment.js');
+  await writeReactHtml('build/react/options_experiment.html', 'SwitchyAgain', 'options_experiment.js', ['../js/omega_pac.min.js']);
   await bundleReact('src/react/options_experiment.tsx', 'build/react/options_experiment.js');
   await writeReactHtml('build/react/general.html', 'SwitchyAgain General', 'general.js');
   await bundleReact('src/react/general_settings.tsx', 'build/react/general.js');

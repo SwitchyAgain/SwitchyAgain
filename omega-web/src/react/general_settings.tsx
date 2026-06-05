@@ -8,7 +8,8 @@ import {
   message,
   optionPatch,
   patchOptions,
-  runtimeAvailable
+  runtimeAvailable,
+  shouldAutoMount
 } from './options_client';
 
 const GENERAL_KEYS = [
@@ -314,6 +315,6 @@ globalWindow.OmegaReactGeneralSettings = {
 
 const rootElement = document.getElementById('react-root');
 
-if (rootElement) {
+if (rootElement && shouldAutoMount('general.js')) {
   mount(rootElement);
 }

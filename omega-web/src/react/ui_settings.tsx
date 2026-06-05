@@ -8,7 +8,8 @@ import {
   message,
   openShortcutConfig as openDefaultShortcutConfig,
   patchOptions,
-  runtimeAvailable
+  runtimeAvailable,
+  shouldAutoMount
 } from './options_client';
 import {
   Profile,
@@ -446,6 +447,6 @@ globalWindow.OmegaReactUiSettings = {
 
 const rootElement = document.getElementById('react-root');
 
-if (rootElement) {
+if (rootElement && shouldAutoMount('ui.js')) {
   mount(rootElement);
 }

@@ -3,7 +3,8 @@ import {createRoot} from 'react-dom/client';
 import {
   manifestVersion,
   message,
-  runtimeAvailable
+  runtimeAvailable,
+  shouldAutoMount
 } from './options_client';
 
 export type AboutProps = {
@@ -160,6 +161,6 @@ globalWindow.OmegaReactAbout = {
 
 const rootElement = document.getElementById('react-root');
 
-if (rootElement) {
+if (rootElement && shouldAutoMount('about.js')) {
   mount(rootElement);
 }
