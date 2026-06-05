@@ -852,23 +852,23 @@ msgstr ""
 "іншими, додавши список правил."
 
 msgid "options_modalHeader_welcome"
-msgstr "Вітаємо у SwitchyOmega"
+msgstr "Вітаємо у SwitchyAgain"
 
 #, fuzzy
 msgid "options_welcomeNormal"
 msgstr ""
-"Ви успішно встановили SwitchyOmega, кращий інструмент для налаштування "
+"Ви успішно встановили SwitchyAgain, кращий інструмент для налаштування "
 "проксі."
 
 #, fuzzy
 msgid "options_welcomeNormalGuide"
 msgstr ""
-"Будь ласка, повідомте SwitchyOmega ваші проксі в параметрах. Подивимося як."
+"Будь ласка, повідомте SwitchyAgain ваші проксі в параметрах. Подивимося як."
 
 #, fuzzy
 msgid "options_welcomeUpgrade"
 msgstr ""
-"Ви успішно оновилися до SwitchyOmega. Не хвилюйтеся, ваші існуючі параметри "
+"Ви успішно оновилися до SwitchyAgain. Не хвилюйтеся, ваші існуючі параметри "
 "повністю збережені."
 
 #, fuzzy

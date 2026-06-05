@@ -786,19 +786,19 @@ msgstr ""
 "منتشر شده استفاده نمایید ."
 
 msgid "options_modalHeader_welcome"
-msgstr "به SwitchyOmega خوش آمدید"
+msgstr "به SwitchyAgain خوش آمدید"
 
 msgid "options_welcomeNormal"
 msgstr ""
-"شما با موفقیت SwitchyOmega را نصب نموده اید ، برترین تغییر دهنده ی پروکسی."
+"شما با موفقیت SwitchyAgain را نصب نموده اید ، برترین تغییر دهنده ی پروکسی."
 
 msgid "options_welcomeNormalGuide"
 msgstr ""
-"لطفا به SwitchyOmega از طریق صفجه ی تنظیمات ، پروکسی های خود را معرفی کنید ."
+"لطفا به SwitchyAgain از طریق صفجه ی تنظیمات ، پروکسی های خود را معرفی کنید ."
 
 msgid "options_welcomeUpgrade"
 msgstr ""
-"شما با موفقیت به SwitchyOmega ارتقا پیدا کرده اید ، نگران نباشید ، تمامی "
+"شما با موفقیت به SwitchyAgain ارتقا پیدا کرده اید ، نگران نباشید ، تمامی "
 "تنظیمات شما به طور کامل حفظ شده اند ."
 
 msgid "options_welcomeUpgradeGuide"

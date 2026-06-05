@@ -677,7 +677,7 @@ msgid "options_attachProfileHelp"
 msgstr ""
 
 msgid "options_modalHeader_welcome"
-msgstr "SwitchyOmega'ya Hoşgeldiniz"
+msgstr "SwitchyAgain'ya Hoşgeldiniz"
 
 msgid "options_welcomeNormal"
 msgstr ""

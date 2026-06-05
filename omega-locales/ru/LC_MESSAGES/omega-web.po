@@ -798,20 +798,20 @@ msgstr ""
 "другими, добавив список правил."
 
 msgid "options_modalHeader_welcome"
-msgstr "Добро пожаловать в SwitchyOmega"
+msgstr "Добро пожаловать в SwitchyAgain"
 
 msgid "options_welcomeNormal"
 msgstr ""
-"Вы успешно установили SwitchyOmega, лучший инструмент для настройки прокси."
+"Вы успешно установили SwitchyAgain, лучший инструмент для настройки прокси."
 
 msgid "options_welcomeNormalGuide"
 msgstr ""
-"Пожалуйста, сообщите SwitchyOmega ваши прокси на странице параметров. Это "
+"Пожалуйста, сообщите SwitchyAgain ваши прокси на странице параметров. Это "
 "делается так."
 
 msgid "options_welcomeUpgrade"
 msgstr ""
-"Вы успешно обновились до SwitchyOmega. Не волнуйтесь, ваши настройки в "
+"Вы успешно обновились до SwitchyAgain. Не волнуйтесь, ваши настройки в "
 "целости и сохранности."
 
 msgid "options_welcomeUpgradeGuide"

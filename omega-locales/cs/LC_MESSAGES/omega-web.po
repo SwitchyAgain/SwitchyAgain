@@ -777,19 +777,19 @@ msgstr ""
 "pravidel."
 
 msgid "options_modalHeader_welcome"
-msgstr "Vítejte v SwitchyOmega"
+msgstr "Vítejte v SwitchyAgain"
 
 msgid "options_welcomeNormal"
-msgstr "Úspěšně jste nainstalovali SwitchyOmega, ultimate proxy přepínač."
+msgstr "Úspěšně jste nainstalovali SwitchyAgain, ultimate proxy přepínač."
 
 msgid "options_welcomeNormalGuide"
 msgstr ""
-"Prosím, řekněte SwitchyOmega o vaší proxy prostřednictvím stránky možnosti. "
+"Prosím, řekněte SwitchyAgain o vaší proxy prostřednictvím stránky možnosti. "
 "Podívejme se, jak."
 
 msgid "options_welcomeUpgrade"
 msgstr ""
-"Úspěšně jste inovovali na SwitchyOmega. Buďte v klidu, vaše stávající "
+"Úspěšně jste inovovali na SwitchyAgain. Buďte v klidu, vaše stávající "
 "možnosti jsou plně zachovány."
 
 msgid "options_welcomeUpgradeGuide"

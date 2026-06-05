@@ -770,19 +770,19 @@ msgstr ""
 "adding a rule list."
 
 msgid "options_modalHeader_welcome"
-msgstr "Welcome to SwitchyOmega"
+msgstr "Welcome to SwitchyAgain"
 
 msgid "options_welcomeNormal"
-msgstr "You have successfully installed SwitchyOmega, the ultimate proxy switcher."
+msgstr "You have successfully installed SwitchyAgain, the ultimate proxy switcher."
 
 msgid "options_welcomeNormalGuide"
 msgstr ""
-"Please tell SwitchyOmega about your proxies through the options page. Let's "
+"Please tell SwitchyAgain about your proxies through the options page. Let's "
 "see how."
 
 msgid "options_welcomeUpgrade"
 msgstr ""
-"You have successfully upgraded to SwitchyOmega. Don't panic, your existing "
+"You have successfully upgraded to SwitchyAgain. Don't panic, your existing "
 "options are fully preserved."
 
 msgid "options_welcomeUpgradeGuide"

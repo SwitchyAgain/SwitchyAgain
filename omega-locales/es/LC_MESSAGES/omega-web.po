@@ -805,19 +805,19 @@ msgstr ""
 "añadirla a tu lista de reglas."
 
 msgid "options_modalHeader_welcome"
-msgstr "Bienvenido/a a SwitchyOmega"
+msgstr "Bienvenido/a a SwitchyAgain"
 
 msgid "options_welcomeNormal"
-msgstr "Has instalado exitosamente SwitchyOmega, el proxy switcher definitivo."
+msgstr "Has instalado exitosamente SwitchyAgain, el proxy switcher definitivo."
 
 msgid "options_welcomeNormalGuide"
 msgstr ""
-"Indica a SwitchyOmega acerca de tus proxies a través de la pagina de "
+"Indica a SwitchyAgain acerca de tus proxies a través de la pagina de "
 "opciones. Vamos a ver cómo."
 
 msgid "options_welcomeUpgrade"
 msgstr ""
-"Has actualizado exitosamente a SwitchyOmega. No te asustes, tus opciones "
+"Has actualizado exitosamente a SwitchyAgain. No te asustes, tus opciones "
 "existentes han sido completamente preservadas."
 
 msgid "options_welcomeUpgradeGuide"

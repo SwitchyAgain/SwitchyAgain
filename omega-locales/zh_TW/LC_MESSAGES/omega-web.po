@@ -681,16 +681,16 @@ msgid "options_attachProfileHelp"
 msgstr "可以加入規則清單，以便引用他人線上釋出的一組規則。"
 
 msgid "options_modalHeader_welcome"
-msgstr "歡迎使用 SwitchyOmega"
+msgstr "歡迎使用 SwitchyAgain"
 
 msgid "options_welcomeNormal"
-msgstr "您已經成功安裝了 SwitchyOmega ，一個強大的代理切換工具。"
+msgstr "您已經成功安裝了 SwitchyAgain ，一個強大的代理切換工具。"
 
 msgid "options_welcomeNormalGuide"
 msgstr "您可以通過選項頁面設定需要使用的代理伺服器，下面我們就來試試看吧。"
 
 msgid "options_welcomeUpgrade"
-msgstr "您已經成功升級到 SwitchyOmega. 別擔心，所有設定都已經升級成功，可以繼續使用。"
+msgstr "您已經成功升級到 SwitchyAgain. 別擔心，所有設定都已經升級成功，可以繼續使用。"
 
 msgid "options_welcomeUpgradeGuide"
 msgstr "現在我們來熟悉一下新的選項頁面。"
