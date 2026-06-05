@@ -1,24 +1,11 @@
 (function() {
-  var attachedPrefix, charCodeUnderscore, colors, profileColorPalette, profileColors;
+  var attachedPrefix, charCodeUnderscore, profileColors;
 
   angular.module('omega').constant('builtinProfiles', OmegaPac.Profiles.builtinProfiles);
 
   profileColors = ['#9ce', '#9d9', '#fa8', '#fe9', '#d497ee', '#47b', '#5b5', '#d63', '#ca0'];
 
-  colors = [].concat(profileColors);
-
-  profileColorPalette = ((function() {
-    var results;
-    results = [];
-    while (colors.length) {
-      results.push(colors.splice(0, 3));
-    }
-    return results;
-  })());
-
   angular.module('omega').constant('profileColors', profileColors);
-
-  angular.module('omega').constant('profileColorPalette', profileColorPalette);
 
   attachedPrefix = '__ruleListOf_';
 
@@ -84,8 +71,7 @@
       template: '<div class="react-settings-host-import-export" omega-react-import-export></div>'
     }).state('profile', {
       url: '/profile/*name',
-      template: '<div class="react-profile-shell-host" omega-react-profile-shell></div><div omega-profile-content-host></div>',
-      controller: 'ProfileCtrl'
+      template: '<div omega-profile-editor-host></div><div class="react-profile-shell-host" omega-react-profile-shell></div><div omega-profile-content-host></div>'
     }).state('about', {
       url: '/about',
       template: '<div omega-react-about></div>'

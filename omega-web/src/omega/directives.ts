@@ -402,6 +402,31 @@
     };
   });
 
+  angular.module('omega').directive('omegaProfileEditorHost', function($stateParams, $location, $rootScope, $state, $modal, getAttachedName, getParentName, getVirtualTarget, reactModalTemplates) {
+    return {
+      restrict: 'A',
+      link: function(scope, element) {
+        var disposeRuntime;
+        disposeRuntime = OmegaProfileRuntime.initialize(scope, {
+          $location: $location,
+          $modal: $modal,
+          $rootScope: $rootScope,
+          $state: $state,
+          $stateParams: $stateParams,
+          getAttachedName: getAttachedName,
+          getParentName: getParentName,
+          getVirtualTarget: getVirtualTarget,
+          reactModalTemplates: reactModalTemplates
+        });
+        return scope.$on('$destroy', function() {
+          if (disposeRuntime) {
+            return disposeRuntime();
+          }
+        });
+      }
+    };
+  });
+
   angular.module('omega').directive('omegaReactProfileShell', function($timeout) {
     return {
       restrict: 'A',

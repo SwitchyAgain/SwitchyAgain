@@ -220,10 +220,10 @@ async function main() {
     'build-ts/omega/switch_profile_lifecycle.js',
     'build-ts/omega/switch_profile_runtime.js',
     'build-ts/omega/switch_profile_bridge.js',
+    'build-ts/omega/profile_runtime.js',
     'build-ts/omega/filters.js',
     'build-ts/omega/directives.js',
-    'build-ts/omega/controllers/master.js',
-    'build-ts/omega/controllers/profile.js'
+    'build-ts/omega/controllers/master.js'
   ], 'build/js/omega.js');
 }
 
