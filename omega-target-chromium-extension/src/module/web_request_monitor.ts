@@ -1,4 +1,12 @@
-const Heap = require('heap');
+type HeapQueue<T> = {
+  peek(): T | undefined;
+  pop(): T | undefined;
+  push(item: T): void;
+};
+
+type HeapConstructor = new <T>(compare: (a: T, b: T) => number) => HeapQueue<T>;
+
+const Heap = require('heap') as unknown as HeapConstructor;
 
 type RequestStatus = 'start' | 'ongoing' | 'timeout' | 'error' | 'timeoutAbort' | 'done';
 type EventCategory = 'done' | 'error' | 'ongoing';
@@ -52,7 +60,7 @@ class WebRequestMonitor {
   timer: ReturnType<typeof setInterval> | null;
   watching: boolean;
   private _callbacks: RequestCallback[];
-  private _recentRequests: any;
+  private _recentRequests: HeapQueue<RequestInfo>;
   private _requests: Record<string, RequestInfo>;
   private _tabCallbacks: TabCallback[];
 

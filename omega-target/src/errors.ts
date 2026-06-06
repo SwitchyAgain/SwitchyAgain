@@ -1,7 +1,12 @@
-class NetworkError extends Error {
-  cause: any;
+type ErrorCause = {
+  statusCode?: number | string;
+  [key: string]: unknown;
+};
 
-  constructor(err?: any) {
+class NetworkError extends Error {
+  cause?: ErrorCause;
+
+  constructor(err?: ErrorCause) {
     super();
     this.cause = err;
     this.name = 'NetworkError';
@@ -9,9 +14,9 @@ class NetworkError extends Error {
 }
 
 class HttpError extends NetworkError {
-  statusCode: any;
+  statusCode?: number | string;
 
-  constructor(err?: any) {
+  constructor(err?: ErrorCause) {
     super(err);
     this.statusCode = this.cause != null ? this.cause.statusCode : void 0;
     this.name = 'HttpError';
@@ -19,14 +24,14 @@ class HttpError extends NetworkError {
 }
 
 class HttpNotFoundError extends HttpError {
-  constructor(err?: any) {
+  constructor(err?: ErrorCause) {
     super(err);
     this.name = 'HttpNotFoundError';
   }
 }
 
 class HttpServerError extends HttpError {
-  constructor(err?: any) {
+  constructor(err?: ErrorCause) {
     super(err);
     this.name = 'HttpServerError';
   }

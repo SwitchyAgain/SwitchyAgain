@@ -58,7 +58,7 @@ const ShexpUtils = {
           regex += '.';
           break;
         default:
-          if ((ShexpUtils.regExpMetaChars[code] as any) >= 0) {
+          if (ShexpUtils.regExpMetaChars[code]) {
             regex += '\\';
           }
           regex += pattern[i];

@@ -90,13 +90,14 @@ class ChromeStorage extends OmegaTarget.Storage {
     super();
     this.areaName = areaName;
     if (typeof browser !== 'undefined' && browser?.storage?.[this.areaName]) {
-      this.storage = browser.storage[this.areaName];
+      this.storage = browser.storage[this.areaName] as StorageArea;
     } else {
+      const storageArea = chrome.storage[this.areaName] as Record<string, unknown>;
       this.storage = {
-        get: chromeApiPromisify(chrome.storage[this.areaName], 'get'),
-        set: chromeApiPromisify(chrome.storage[this.areaName], 'set'),
-        remove: chromeApiPromisify(chrome.storage[this.areaName], 'remove'),
-        clear: chromeApiPromisify(chrome.storage[this.areaName], 'clear')
+        get: chromeApiPromisify(storageArea, 'get'),
+        set: chromeApiPromisify(storageArea, 'set'),
+        remove: chromeApiPromisify(storageArea, 'remove'),
+        clear: chromeApiPromisify(storageArea, 'clear')
       } as StorageArea;
     }
   }

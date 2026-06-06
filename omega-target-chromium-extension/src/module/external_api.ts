@@ -33,9 +33,9 @@ type ExternalPort = {
   };
 };
 
-function actionApi() {
+function actionApi(): ChromeActionApi {
   const legacyKey = 'browser' + 'Action';
-  return chrome.action || chrome[legacyKey];
+  return (chrome.action || chrome[legacyKey]) as ChromeActionApi;
 }
 
 class ExternalApi {
@@ -58,7 +58,7 @@ class ExternalApi {
       return;
     }
     return chrome.runtime.onConnectExternal.addListener((rawPort: unknown) => {
-      const port = new ChromePort(rawPort) as ExternalPort;
+      const port = new ChromePort(rawPort) as unknown as ExternalPort;
       port.onMessage.addListener((msg) => {
         return this.onMessage(msg, port);
       });

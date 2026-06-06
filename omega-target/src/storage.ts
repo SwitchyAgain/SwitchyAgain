@@ -1,7 +1,19 @@
 /* @module omega-target/storage */
 
-const Promise = require('bluebird');
-const Log = require('./log');
+const Promise = require('bluebird') as BluebirdStatic;
+const Log = require('./log') as LogLike;
+import type {
+  BluebirdPromise,
+  BluebirdStatic,
+  LogLike,
+  StorageApplyOperations,
+  StorageChanges,
+  StorageGetKeys,
+  StorageItems,
+  StorageMerge,
+  StorageRemoveKeys,
+  StorageWatchCallback
+} from './types';
 
 class RateLimitExceededError extends Error {
   constructor() {
@@ -29,7 +41,7 @@ class Storage {
   static QuotaExceededError = QuotaExceededError;
   static StorageUnavailableError = StorageUnavailableError;
 
-  _items: any;
+  _items: StorageItems | null = null;
 
   /**
    * Calculate the actual operations against storage that should be performed to
@@ -42,10 +54,10 @@ class Storage {
    * Otherwise it will be equal to newVal (i.e. merge(key, newVal, newVal)).
    * @returns {WriteOperations} The operations that should be performed.
    */
-  static operationsForChanges(changes: any, arg?: any): any {
+  static operationsForChanges(changes: StorageChanges, arg?: {base?: StorageItems; merge?: StorageMerge}) {
     const {base, merge} = arg != null ? arg : {};
-    const set: any = {};
-    const remove: any[] = [];
+    const set: StorageItems = {};
+    const remove: string[] = [];
     for (const key in changes) {
       let newVal = changes[key];
       const oldVal = base != null ? base[key] : newVal;
@@ -72,7 +84,7 @@ class Storage {
    * or null for all.
    * @returns {Promise<(Object.<string, {}>)>} A map from keys to values
    */
-  get(keys: any): any {
+  get(keys: StorageGetKeys): BluebirdPromise<StorageItems> {
     Log.method('Storage#get', this, arguments);
     if (!this._items) {
       return Promise.resolve({});
@@ -80,7 +92,7 @@ class Storage {
     if (keys == null) {
       keys = this._items;
     }
-    const map: any = {};
+    const map: StorageItems = {};
     if (typeof keys === 'string') {
       map[keys] = this._items[keys];
     } else if (Array.isArray(keys)) {
@@ -101,7 +113,7 @@ class Storage {
    * @param {(string|Object.<string,{}>)} items A map from key to value to set.
    * @returns {Promise<(Object.<string, {}>)>} A map of key-value pairs just set.
    */
-  set(items: any): any {
+  set(items: StorageItems): BluebirdPromise<StorageItems> {
     Log.method('Storage#set', this, arguments);
     if (this._items == null) {
       this._items = {};
@@ -118,7 +130,7 @@ class Storage {
    * @param {(string|string[]|null)} keys The keys to remove, or null for all.
    * @returns {Promise} A promise that fulfills on successful removal.
    */
-  remove(keys: any): any {
+  remove(keys?: StorageRemoveKeys): BluebirdPromise<void> {
     Log.method('Storage#remove', this, arguments);
     if (this._items != null) {
       if (keys == null) {
@@ -140,7 +152,7 @@ class Storage {
    * @param {watchCallback} callback Called everytime something changes.
    * @returns {function} Calling the returned function will stop watching.
    */
-  watch(keys: any, callback: any): any {
+  watch(keys: StorageRemoveKeys, callback: StorageWatchCallback) {
     Log.method('Storage#watch', this, arguments);
     return function() {
       return null;
@@ -155,13 +167,17 @@ class Storage {
    * fields passed through as the second argument.
    * @returns {Promise} A promise that fulfills on operation success.
    */
-  apply(operations: any): any {
+  apply(operations: StorageApplyOperations): BluebirdPromise<StorageApplyOperations> {
+    let writeOperations = operations as StorageApplyOperations & {
+      remove: string[];
+      set: StorageItems;
+    };
     if ('changes' in operations) {
-      operations = Storage.operationsForChanges(operations.changes, operations);
+      writeOperations = Storage.operationsForChanges(operations.changes || {}, operations);
     }
-    return this.set(operations.set).then(() => {
-      return this.remove(operations.remove);
-    }).return(operations);
+    return this.set(writeOperations.set).then(() => {
+      return this.remove(writeOperations.remove);
+    }).return(writeOperations);
   }
 }
 

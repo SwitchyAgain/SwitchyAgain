@@ -1,19 +1,80 @@
 /* @module omega-target/options_sync */
 
-const Promise = require('bluebird');
-const Storage = require('./storage');
-const Log = require('./log');
-const Revision = require('omega-pac').Revision;
-const jsondiffpatch = require('jsondiffpatch');
-const TokenBucket = require('limiter').TokenBucket;
+const Promise = require('bluebird') as BluebirdStatic;
+const Storage = require('./storage') as StorageModule;
+const Log = require('./log') as LogLike;
+const Revision = (require('omega-pac') as OmegaPacModule).Revision;
+const jsondiffpatch = require('jsondiffpatch') as JsonDiffPatchModule;
+const TokenBucket = (require('limiter') as LimiterModule).TokenBucket;
+import type {
+  BluebirdStatic,
+  BluebirdPromise,
+  LogLike,
+  StorageApplyOperations,
+  StorageChanges,
+  StorageItems,
+  StorageLike,
+  StorageOperations,
+  StorageValue,
+  SyncableProfileValue
+} from './types';
+
+type TokenBucketLike = {
+  clear?: () => unknown;
+  content: number;
+  removeTokens: (count: number, callback: () => unknown) => unknown;
+  tryRemoveTokens: (count: number) => boolean;
+};
+
+type StorageModule = {
+  operationsForChanges: (
+    changes: StorageChanges,
+    arg?: {
+      base?: StorageItems;
+      merge?: (key: string, newValue: StorageValue, oldValue: StorageValue) => StorageValue;
+    }
+  ) => StorageOperations;
+  QuotaExceededError: new () => Error;
+  RateLimitExceededError: new () => Error;
+};
+
+type JsonDiffPatch = {
+  diff: (oldValue: StorageValue, newValue: StorageValue) => unknown;
+};
+
+type JsonDiffPatchModule = {
+  create: (options: {
+    objectHash: (obj: StorageValue) => string;
+    textDiff: {
+      minLength: number;
+    };
+  }) => JsonDiffPatch;
+};
+
+type LimiterModule = {
+  TokenBucket: new (
+    bucketSize: number,
+    tokensPerInterval: number,
+    interval: string,
+    parentBucket: unknown
+  ) => TokenBucketLike;
+};
+
+type OmegaPacModule = {
+  Revision: {
+    compare: (left: unknown, right: unknown) => number;
+  };
+};
+
+type TimerHandle = ReturnType<typeof setTimeout>;
 
 class OptionsSync {
   static TokenBucket = TokenBucket;
 
-  _timeout: any = null;
-  _bucket: any = null;
+  _timeout: TimerHandle | null = null;
+  _bucket: TokenBucketLike | null = null;
   _waiting: boolean = false;
-  _pending: any;
+  _pending: StorageChanges;
 
   /**
    * The debounce timeout (ms) for requestPush scheduling. See requestPush.
@@ -31,7 +92,7 @@ class OptionsSync {
    * The remote storage of syncing.
    * @type Storage
    */
-  storage: any = null;
+  storage: StorageLike | null = null;
 
   /**
    * Whether syncing is enabled or not. See requestPush for the effect.
@@ -39,12 +100,12 @@ class OptionsSync {
    */
   enabled: boolean = true;
 
-  constructor(storage: any, _bucket?: any) {
+  constructor(storage: StorageLike, _bucket?: TokenBucketLike) {
     this.storage = storage;
     this._bucket = _bucket;
     this._pending = {};
     if (this._bucket == null) {
-      this._bucket = new TokenBucket(10, 10, 'minute', null);
+      this._bucket = new TokenBucket(10, 10, 'minute', null) as TokenBucketLike;
     }
     if (this._bucket.clear == null) {
       this._bucket.clear = () => {
@@ -61,7 +122,7 @@ class OptionsSync {
    * @param {{}} key The key of the item
    * @returns {{}} The transformed value
    */
-  transformValue(v: any, key?: any): any {
+  transformValue(v: StorageValue, key?: string): StorageValue {
     return v;
   }
 
@@ -70,25 +131,27 @@ class OptionsSync {
    */
   merge = (() => {
     const diff = jsondiffpatch.create({
-      objectHash(obj: any) {
+      objectHash(obj: StorageValue) {
         return JSON.stringify(obj);
       },
       textDiff: {
         minLength: 1 / 0
       }
-    });
-    return function(key: string, newVal: any, oldVal: any): any {
+    }) as JsonDiffPatch;
+    return function(key: string, newVal: StorageValue, oldVal: StorageValue): StorageValue {
       let result;
+      const oldProfile = oldVal as SyncableProfileValue | null | undefined;
+      const newProfile = newVal as SyncableProfileValue | null | undefined;
       if (newVal === oldVal) {
         return oldVal;
       }
-      if ((oldVal != null ? oldVal.syncOptions : void 0) === 'disabled' ||
-          (newVal != null ? newVal.syncOptions : void 0) === 'disabled') {
+      if ((oldProfile != null ? oldProfile.syncOptions : void 0) === 'disabled' ||
+          (newProfile != null ? newProfile.syncOptions : void 0) === 'disabled') {
         return oldVal;
       }
-      if ((oldVal != null ? oldVal.revision : void 0) != null &&
-          (newVal != null ? newVal.revision : void 0) != null) {
-        result = Revision.compare(oldVal.revision, newVal.revision);
+      if ((oldProfile != null ? oldProfile.revision : void 0) != null &&
+          (newProfile != null ? newProfile.revision : void 0) != null) {
+        result = Revision.compare(oldProfile.revision, newProfile.revision);
         if (result >= 0) {
           return oldVal;
         }
@@ -104,7 +167,7 @@ class OptionsSync {
    * Request pushing the changes to remote storage.
    * @param {Object.<string, {}>} changes A map from keys to values.
    */
-  requestPush(changes: any): any {
+  requestPush(changes: StorageChanges): TimerHandle | void {
     if (this._timeout != null) {
       clearTimeout(this._timeout);
     }
@@ -130,18 +193,18 @@ class OptionsSync {
    * Returning the pending changes not written to the remote storage.
    * @returns {Object.<string, {}>} The pending changes.
    */
-  pendingChanges(): any {
+  pendingChanges(): StorageChanges {
     return this._pending;
   }
 
-  _doPush(): any {
+  _doPush(): unknown {
     this._timeout = null;
     if (this._waiting) {
       return;
     }
     this._waiting = true;
-    return this._bucket.removeTokens(1, () => {
-      return this.storage.get(null).then((base: any) => {
+    return this._bucket!.removeTokens(1, () => {
+      return this.storage!.get(null).then((base: StorageItems) => {
         const changes = this._pending;
         this._pending = {};
         this._waiting = false;
@@ -149,20 +212,20 @@ class OptionsSync {
           base: base,
           merge: this.merge
         });
-      }).then(({set, remove}: any) => {
+      }).then(({set, remove}: StorageOperations) => {
         const doSet = Object.keys(set).length === 0
           ? Promise.resolve(0)
-          : (Log.log('OptionsSync::set', set), this.storage.set(set).return(1));
-        return doSet.then((cost: any) => {
+          : (Log.log('OptionsSync::set', set), this.storage!.set(set).return(1));
+        return doSet.then((cost: number) => {
           set = {};
           if (remove.length > 0) {
-            if (this._bucket.tryRemoveTokens(cost)) {
+            if (this._bucket!.tryRemoveTokens(cost)) {
               Log.log('OptionsSync::remove', remove);
-              return this.storage.remove(remove);
+              return this.storage!.remove(remove);
             }
             return Promise.reject('bucket');
           }
-        }).catch((e: any) => {
+        }).catch((e: unknown) => {
           let valuesAffected;
           for (const key in set) {
             if (!Object.prototype.hasOwnProperty.call(set, key)) continue;
@@ -186,7 +249,7 @@ class OptionsSync {
             valuesAffected = 0;
             for (const key in set) {
               if (!Object.prototype.hasOwnProperty.call(set, key)) continue;
-              const value = set[key];
+              const value = set[key] as SyncableProfileValue;
               if (key[0] === '+' && value.syncOptions !== 'disabled') {
                 value.syncOptions = 'disabled';
                 value.syncError = {
@@ -208,12 +271,12 @@ class OptionsSync {
     });
   }
 
-  _logOperations(text: string, operations: any): any {
+  _logOperations(text: string, operations: StorageOperations): void {
     if (Object.keys(operations.set).length) {
       Log.log(text + '::set', operations.set);
     }
     if (operations.remove.length) {
-      return Log.log(text + '::remove', operations.remove);
+      Log.log(text + '::remove', operations.remove);
     }
   }
 
@@ -222,12 +285,13 @@ class OptionsSync {
    * @param {Storage} local The local storage to be written to
    * @returns {function} Calling the returned function will stop watching.
    */
-  copyTo(local: any): any {
-    return Promise.join(local.get(null), this.storage.get(null), (base: any, changes: any) => {
+  copyTo(local: StorageLike): BluebirdPromise<unknown> {
+    return Promise.join(local.get(null), this.storage!.get(null), (base: StorageItems, changes: StorageChanges) => {
       for (const key in base) {
         if (!Object.prototype.hasOwnProperty.call(base, key)) continue;
         if (!(key in changes)) {
-          if (key[0] === '+' && (!((base[key] != null ? base[key].syncOptions : void 0) as any) as any) === 'disabled') {
+          const syncOptions = (base[key] as SyncableProfileValue | null | undefined)?.syncOptions;
+          if (key[0] === '+' && (!syncOptions as unknown) === 'disabled') {
             changes[key] = void 0;
           }
         }
@@ -236,7 +300,7 @@ class OptionsSync {
         changes: changes,
         base: base,
         merge: this.merge
-      }).then((operations: any) => {
+      }).then((operations: StorageOperations) => {
         return this._logOperations('OptionsSync::copyTo', operations);
       });
     });
@@ -248,11 +312,11 @@ class OptionsSync {
    * @param {Storage} local The local storage to be written to
    * @returns {function} Calling the returned function will stop watching.
    */
-  watchAndPull(local: any): any {
-    let pullScheduled: any = null;
-    let pull: any = {};
+  watchAndPull(local: StorageLike) {
+    let pullScheduled: TimerHandle | null = null;
+    let pull: StorageChanges = {};
     const doPull = () => {
-      return local.get(null).then((base: any) => {
+      return local.get(null).then((base: StorageItems) => {
         const changes = pull;
         pull = {};
         pullScheduled = null;
@@ -260,12 +324,12 @@ class OptionsSync {
           base: base,
           merge: this.merge
         });
-      }).then((operations: any) => {
+      }).then((operations: StorageApplyOperations & StorageOperations) => {
         this._logOperations('OptionsSync::pull', operations);
         return local.apply(operations);
       });
     };
-    return this.storage.watch(null, (changes: any) => {
+    return this.storage!.watch(null, (changes: StorageChanges) => {
       for (const key in changes) {
         if (!Object.prototype.hasOwnProperty.call(changes, key)) continue;
         const value = changes[key];

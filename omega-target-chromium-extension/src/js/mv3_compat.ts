@@ -1,8 +1,31 @@
-(function(global: any) {
+type Mv3CompatGlobal = typeof globalThis & {
+  chrome?: ChromeGlobal;
+  localStorage?: unknown;
+  saveAs?: (blob: Blob, filename: string) => unknown;
+  window?: unknown;
+};
+
+type LocalStorageShimInstance = {
+  readonly length: number;
+  clear(): void;
+  getItem(key: unknown): string | null;
+  key(index: number): string | null;
+  ready?: Promise<unknown>;
+  removeItem(key: unknown): void;
+  setItem(key: unknown, value: unknown): void;
+  [key: string]: unknown;
+};
+
+type LocalStorageShimConstructor = {
+  new(): LocalStorageShimInstance;
+  prototype: LocalStorageShimInstance;
+};
+
+(function(global: Mv3CompatGlobal) {
   'use strict';
 
   if (typeof window === 'undefined') {
-    global.window = global;
+    global.window = global as unknown as Window & typeof globalThis;
   }
 
   var chromeApi = global.chrome;
@@ -15,30 +38,30 @@
   }
 
   if (typeof global.localStorage === 'undefined') {
-    var data = {};
-    var dirty = {};
-    var ready = Promise.resolve();
-    var persist = function(key) {
+    var data: Record<string, string> = {};
+    var dirty: Record<string, boolean> = {};
+    var ready: Promise<unknown> = Promise.resolve();
+    var persist = function(key: string) {
       dirty[key] = true;
       if (chromeApi && chromeApi.storage && chromeApi.storage.local) {
-        var item = {};
+        var item: Record<string, unknown> = {};
         item['__localStorage__.' + key] = data[key];
         chromeApi.storage.local.set(item);
       }
     };
 
     if (chromeApi && chromeApi.storage && chromeApi.storage.local) {
-      ready = new Promise(function(resolve) {
+      ready = new Promise<unknown>(function(resolve) {
         chromeApi.storage.local.get(null, function(items) {
           var prefix = '__localStorage__.';
           if (items) {
-            Object.keys(items).forEach(function(key) {
+            Object.keys(items).forEach(function(key: string) {
               if (key.substr(0, prefix.length) !== prefix) {
                 return;
               }
               var localKey = key.substr(prefix.length);
               if (!dirty[localKey]) {
-                data[localKey] = items[key];
+                data[localKey] = items[key] as string;
               }
             });
           }
@@ -47,33 +70,33 @@
       });
     }
 
-    var LocalStorageShim = function() {};
+    var LocalStorageShim = function() {} as unknown as LocalStorageShimConstructor;
     Object.defineProperty(LocalStorageShim.prototype, 'length', {
       get: function() {
         return Object.keys(data).length;
       }
     });
-    LocalStorageShim.prototype.key = function(index) {
+    LocalStorageShim.prototype.key = function(index: number) {
       return Object.keys(data)[index] || null;
     };
-    LocalStorageShim.prototype.getItem = function(key) {
-      key = String(key);
-      return Object.prototype.hasOwnProperty.call(data, key) ? data[key] : null;
+    LocalStorageShim.prototype.getItem = function(key: unknown) {
+      var storageKey = String(key);
+      return Object.prototype.hasOwnProperty.call(data, storageKey) ? data[storageKey] : null;
     };
-    LocalStorageShim.prototype.setItem = function(key, value) {
-      key = String(key);
-      data[key] = String(value);
-      persist(key);
+    LocalStorageShim.prototype.setItem = function(key: unknown, value: unknown) {
+      var storageKey = String(key);
+      data[storageKey] = String(value);
+      persist(storageKey);
     };
-    LocalStorageShim.prototype.removeItem = function(key) {
-      key = String(key);
-      delete data[key];
+    LocalStorageShim.prototype.removeItem = function(key: unknown) {
+      var storageKey = String(key);
+      delete data[storageKey];
       if (chromeApi && chromeApi.storage && chromeApi.storage.local) {
-        chromeApi.storage.local.remove('__localStorage__.' + key);
+        chromeApi.storage.local.remove('__localStorage__.' + storageKey);
       }
     };
     LocalStorageShim.prototype.clear = function() {
-      Object.keys(data).forEach(function(key) {
+      Object.keys(data).forEach(function(key: string) {
         dirty[key] = true;
       });
       data = {};
@@ -87,7 +110,7 @@
     global.localStorage = new Proxy(localStorageShim, {
       get: function(target, prop) {
         if (prop in target) {
-          return target[prop];
+          return (target as Record<PropertyKey, unknown>)[prop];
         }
         return target.getItem(prop);
       },
@@ -103,7 +126,7 @@
   }
 
   if (typeof global.saveAs === 'undefined') {
-    global.saveAs = function(blob, filename) {
+    global.saveAs = function(blob: Blob, filename: string) {
       if (!chromeApi || !chromeApi.downloads || typeof URL === 'undefined') {
         return;
       }
@@ -111,4 +134,4 @@
       chromeApi.downloads.download({url: url, filename: filename, saveAs: true});
     };
   }
-})(this);
+})(this as unknown as Mv3CompatGlobal);

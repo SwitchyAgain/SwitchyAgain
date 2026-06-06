@@ -1,4 +1,16 @@
-function callBackgroundNoReply(method, args, cb) {
+type PopupCallback = (error?: unknown, result?: unknown) => unknown;
+
+type BackgroundResponse = {
+  error?: unknown;
+  result?: unknown;
+};
+
+type PopupPageInfo = {
+  url?: string;
+  [key: string]: unknown;
+};
+
+function callBackgroundNoReply(method: string, args: unknown[], cb?: PopupCallback) {
   chrome.runtime.sendMessage({
     method: method,
     args: args,
@@ -10,37 +22,39 @@ function callBackgroundNoReply(method, args, cb) {
   if (cb) return cb();
 }
 
-function callBackground(method, args, cb) {
+function callBackground(method: string, args: unknown[], cb?: PopupCallback) {
   chrome.runtime.sendMessage({
     method: method,
     args: args,
-  }, function(response) {
+  }, function(response: LegacyDynamic) {
+    var backgroundResponse = response as unknown as BackgroundResponse;
     if (chrome.runtime.lastError != null)
       return cb && cb(chrome.runtime.lastError)
-    if (response.error) return cb && cb(response.error)
-    return cb && cb(null, response.result)
+    if (backgroundResponse.error) return cb && cb(backgroundResponse.error)
+    return cb && cb(null, backgroundResponse.result)
   });
 }
 
-function callBackgroundWithRefresh(method, args, cb) {
+function callBackgroundWithRefresh(method: string, args: unknown[], cb?: PopupCallback) {
   chrome.runtime.sendMessage({
     method: method,
     args: args,
     refreshActivePage: true,
-  }, function(response) {
+  }, function(response: LegacyDynamic) {
+    var backgroundResponse = response as unknown as BackgroundResponse;
     if (chrome.runtime.lastError != null)
       return cb && cb(chrome.runtime.lastError)
-    if (response.error) return cb && cb(response.error)
-    return cb && cb(null, response.result)
+    if (backgroundResponse.error) return cb && cb(backgroundResponse.error)
+    return cb && cb(null, backgroundResponse.result)
   });
 }
 
-var requestInfoCallback = null;
+var requestInfoCallback: PopupCallback | null = null;
 var isManifestV3 = chrome.runtime.getManifest &&
   chrome.runtime.getManifest().manifest_version >= 3;
 var localStatePrefix = 'omega.local.';
 
-function cacheActivePageInfo(info) {
+function cacheActivePageInfo(info?: PopupPageInfo | null) {
   if (!info || !info.url || typeof localStorage === 'undefined') return;
   try {
     localStorage[localStatePrefix + 'web.last_page_info'] = JSON.stringify(info);
@@ -48,15 +62,15 @@ function cacheActivePageInfo(info) {
   }
 }
 
-(globalThis as any).OmegaTargetPopup = {
-  getState: function (keys, cb) {
+(globalThis as typeof globalThis & {OmegaTargetPopup: OmegaTargetPopupApi}).OmegaTargetPopup = {
+  getState: function (keys: string[], cb?: PopupCallback) {
     if (isManifestV3 || typeof localStorage === 'undefined' ||
         !localStorage.length) {
       callBackground('getState', [keys], cb);
       return;
     }
-    var results = {};
-    keys.forEach(function(key) {
+    var results: Record<string, unknown> = {};
+    keys.forEach(function(key: string) {
       try {
         results[key] = JSON.parse(localStorage['omega.local.' + key]);
       } catch (_) {
@@ -65,10 +79,10 @@ function cacheActivePageInfo(info) {
     });
     if (cb) cb(null, results);
   },
-  applyProfile: function (name, cb) {
+  applyProfile: function (name: string, cb?: PopupCallback) {
     callBackgroundNoReply('applyProfile', [name], cb);
   },
-  openOptions: function (hash, cb) {
+  openOptions: function (hash?: string, cb?: PopupCallback) {
     var options_url = chrome.runtime.getURL('options.html');
 
     chrome.tabs.query({
@@ -85,7 +99,7 @@ function cacheActivePageInfo(info) {
         }
       }
       if (!chrome.runtime.lastError && tabs && tabs.length > 0) {
-        var props: any = {
+        var props: {active: boolean; url?: string} = {
           active: true
         };
         if (hash) {
@@ -100,34 +114,34 @@ function cacheActivePageInfo(info) {
       if (cb) return cb();
     });
   },
-  getActivePageInfo: function(cb) {
+  getActivePageInfo: function(cb: PopupCallback) {
     chrome.tabs.query({active: true, lastFocusedWindow: true}, function (tabs) {
       if (tabs.length === 0 || !tabs[0].url) return cb();
       var args = {tabId: tabs[0].id, url: tabs[0].url};
-      callBackground('getPageInfo', [args], function(err, info) {
+      callBackground('getPageInfo', [args], function(err: unknown, info: PopupPageInfo) {
         if (!err) cacheActivePageInfo(info);
         cb(err, info);
       })
     });
   },
-  setDefaultProfile: function(profileName, defaultProfileName, cb) {
+  setDefaultProfile: function(profileName: string, defaultProfileName: string, cb?: PopupCallback) {
     callBackgroundNoReply('setDefaultProfile',
       [profileName, defaultProfileName], cb);
   },
-  addTempRule: function(domain, profileName, cb) {
+  addTempRule: function(domain: string, profileName: string, cb?: PopupCallback) {
     callBackgroundNoReply('addTempRule', [domain, profileName], cb);
   },
-  addCondition: function(condition, profileName, addToBottom, cb) {
+  addCondition: function(condition: unknown, profileName: string, addToBottom: boolean, cb?: PopupCallback) {
     callBackgroundWithRefresh('addCondition',
       [condition, profileName, addToBottom], cb);
   },
-  addProfile: function(profile, cb) {
+  addProfile: function(profile: unknown, cb?: PopupCallback) {
     callBackgroundWithRefresh('addProfile', [profile], cb);
   },
-  setState: function(name, value, cb) {
+  setState: function(name: string, value: unknown, cb?: PopupCallback) {
     callBackground('setState', [name, value], cb);
   },
-  openManage: function(domain, profileName, cb) {
+  openManage: function(domain?: string, profileName?: string, cb?: PopupCallback) {
     chrome.tabs.create({
       url: 'chrome://extensions/?id=' + chrome.runtime.id,
     }, cb);

@@ -1,5 +1,16 @@
 const OmegaPromise = require('omega-target').Promise;
-const ProxyImpl = require('./proxy_impl');
+
+type ProxyImplBase = {
+  log: {
+    error(...args: unknown[]): void;
+    log(...args: unknown[]): void;
+  };
+  setProxyAuth(profile: Record<string, unknown>, options: unknown): OmegaPromise<unknown>;
+};
+
+type ProxyImplConstructor = new (...args: unknown[]) => ProxyImplBase;
+
+const ProxyImpl = require('./proxy_impl') as unknown as ProxyImplConstructor;
 
 type Profile = Record<string, unknown> & {
   name?: string;

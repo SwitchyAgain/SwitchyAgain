@@ -22,9 +22,9 @@ type TabChangeInfo = {
   url?: string;
 };
 
-function actionApi() {
+function actionApi(): ChromeActionApi {
   const legacyKey = 'browser' + 'Action';
-  return chrome.action || chrome[legacyKey];
+  return (chrome.action || chrome[legacyKey]) as ChromeActionApi;
 }
 
 class ChromeTabs {

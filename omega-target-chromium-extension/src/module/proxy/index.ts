@@ -3,8 +3,8 @@ type ProxyImplConstructor = {
   new(log: unknown): unknown;
 };
 
-const ListenerProxyImpl = require('./proxy_impl_listener') as ProxyImplConstructor;
-const SettingsProxyImpl = require('./proxy_impl_settings') as ProxyImplConstructor;
+const ListenerProxyImpl = require('./proxy_impl_listener') as unknown as ProxyImplConstructor;
+const SettingsProxyImpl = require('./proxy_impl_settings') as unknown as ProxyImplConstructor;
 
 export const proxyImpls = [ListenerProxyImpl, SettingsProxyImpl];
 

@@ -1,6 +1,19 @@
-// @ts-nocheck
-
 /* @module omega-target/options */
+declare const options: Record<string, unknown> | null | undefined;
+
+type CoffeeScriptSuperClass = {
+  __super__: {
+    constructor: {
+      apply: (
+        self: unknown,
+        args: IArguments
+      ) => {
+        constructor: (message?: string) => void;
+      };
+    };
+  };
+};
+
 var Log, OmegaPac, Options, Promise, Storage, jsondiffpatch,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -59,7 +72,7 @@ Options = (function() {
 
     function ProfileNotExistError(profileName1) {
       this.profileName = profileName1;
-      ProfileNotExistError.__super__.constructor.apply(this, arguments).constructor("Profile " + this.profileName + " does not exist!");
+      (ProfileNotExistError as unknown as CoffeeScriptSuperClass).__super__.constructor.apply(this, arguments).constructor("Profile " + this.profileName + " does not exist!");
     }
 
     return ProfileNotExistError;
@@ -70,7 +83,7 @@ Options = (function() {
     extend(NoOptionsError, superClass);
 
     function NoOptionsError() {
-      NoOptionsError.__super__.constructor.apply(this, arguments);
+      (NoOptionsError as unknown as CoffeeScriptSuperClass).__super__.constructor.apply(this, arguments);
     }
 
     return NoOptionsError;

@@ -1,4 +1,4 @@
-type ChromeApiTarget = Record<string, (...args: unknown[]) => void>;
+type ChromeApiTarget = Record<string, unknown>;
 
 type OmegaPromiseConstructor = new <T>(
   executor: (
@@ -25,7 +25,7 @@ export function chromeApiPromisify(target: ChromeApiTarget, method: string) {
           resolve(callbackArgs);
         }
       };
-      target[method].apply(target, args.concat(callback));
+      (target[method] as (...args: unknown[]) => void).apply(target, args.concat(callback));
     });
   };
 }

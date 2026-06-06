@@ -1,25 +1,45 @@
-const Storage = require('./storage');
-const Promise = require('bluebird');
+const Storage = require('./storage') as new () => object;
+const Promise = require('bluebird') as BluebirdStatic;
+import type {
+  BluebirdPromise,
+  BluebirdStatic,
+  StorageGetKeys,
+  StorageItems,
+  StorageRemoveKeys
+} from './types';
+
+type BrowserStorageBackend = {
+  ready?: unknown;
+};
+
+type BrowserStorageProto = {
+  clear: () => void;
+  getItem: (key: string) => string | null;
+  key: (index: number) => string | null;
+  removeItem: (key: string) => void;
+  setItem: (key: string, value: string) => void;
+};
 
 class BrowserStorage extends Storage {
-  storage: any;
+  storage: BrowserStorageBackend;
   prefix: string;
-  proto: any;
+  proto: BrowserStorageProto;
+  key?: string;
 
-  constructor(storage: any, prefix?: string) {
+  constructor(storage: BrowserStorageBackend, prefix?: string) {
     super();
     this.storage = storage;
     this.prefix = prefix != null ? prefix : '';
-    this.proto = Object.getPrototypeOf(this.storage);
+    this.proto = Object.getPrototypeOf(this.storage) as BrowserStorageProto;
   }
 
-  ready(): any {
+  ready(): BluebirdPromise<unknown> {
     return Promise.resolve(this.storage.ready);
   }
 
-  get(keys: any): any {
+  get(keys: StorageGetKeys): BluebirdPromise<StorageItems> {
     return this.ready().then(() => {
-      let map: any = {};
+      let map: StorageItems = {};
       if (typeof keys === 'string') {
         map[keys] = void 0;
       } else if (Array.isArray(keys)) {
@@ -27,7 +47,7 @@ class BrowserStorage extends Storage {
           map[key] = void 0;
         }
       } else if (typeof keys === 'object') {
-        map = keys;
+        map = keys as StorageItems;
       }
       for (const key in map) {
         if (!Object.prototype.hasOwnProperty.call(map, key)) continue;
@@ -46,7 +66,7 @@ class BrowserStorage extends Storage {
     });
   }
 
-  set(items: any): any {
+  set(items: StorageItems): BluebirdPromise<StorageItems> {
     return this.ready().then(() => {
       for (const key in items) {
         if (!Object.prototype.hasOwnProperty.call(items, key)) continue;
@@ -58,7 +78,7 @@ class BrowserStorage extends Storage {
     });
   }
 
-  remove(keys: any): any {
+  remove(keys?: StorageRemoveKeys): BluebirdPromise<void> {
     return this.ready().then(() => {
       if (keys == null) {
         if (!this.prefix) {
@@ -70,7 +90,7 @@ class BrowserStorage extends Storage {
             if (key === null) {
               break;
             }
-            if (this.key.substr(0, this.prefix.length) === this.prefix) {
+            if (this.key!.substr(0, this.prefix.length) === this.prefix) {
               this.proto.removeItem.call(this.storage, this.prefix + keys);
             } else {
               index++;

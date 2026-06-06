@@ -1,3 +1,10 @@
+type BackgroundRequest = {
+  args?: unknown[];
+  method?: string;
+  noReply?: boolean;
+  refreshActivePage?: boolean;
+};
+
 (function() {
   var Log, OmegaTargetCurrent, Promise, _writeLogToLocalStorage, actionApi, actionForUrl, charCodeUnderscore, dispName, drawContext, drawError, drawIcon, encodeError, external, iconCache, isHidden, options, proxyImpl, ref, ref1, refreshActivePageIfEnabled, state, storage, sync, syncStorage, tabs, timeout, unhandledPromises, unhandledPromisesId, unhandledPromisesNextId,
     slice = [].slice,
@@ -446,7 +453,7 @@
     });
   };
 
-  chrome.runtime.onMessage.addListener(function(request, sender, respond) {
+  chrome.runtime.onMessage.addListener(function(request: BackgroundRequest, sender, respond) {
     if (!(request && request.method)) {
       return;
     }

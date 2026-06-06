@@ -1,7 +1,15 @@
 const OmegaTarget = require('omega-target');
 const OmegaPac = OmegaTarget.OmegaPac;
 const {chromeApiPromisify} = require('../chrome_api');
-const ProxyImpl = require('./proxy_impl');
+
+type ProxyImplBase = {
+  getProfilePacScript(profile: Record<string, unknown>, meta: Record<string, unknown>, options: unknown): string;
+  setProxyAuth(profile: Record<string, unknown>, options: unknown): OmegaPromise<unknown>;
+};
+
+type ProxyImplConstructor = new (...args: unknown[]) => ProxyImplBase;
+
+const ProxyImpl = require('./proxy_impl') as unknown as ProxyImplConstructor;
 
 type ProxyServer = {
   host?: string;

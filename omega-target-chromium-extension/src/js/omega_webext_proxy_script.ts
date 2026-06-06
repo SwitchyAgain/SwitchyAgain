@@ -1,8 +1,43 @@
-(globalThis as any).FindProxyForURL = (function () {
+type WebExtProxyProfile = Record<string, unknown> & {
+  profileType?: string;
+};
+
+type WebExtProxyState = Record<string, unknown> & {
+  currentProfileName?: string;
+  tempProfile?: WebExtProxyProfile;
+};
+
+type WebExtProxyServer = {
+  host: string;
+  port: number;
+  scheme: string;
+};
+
+type WebExtProxyAuth = {
+  password?: string;
+  username?: string;
+};
+
+type WebExtProxyInfo = {
+  host: string;
+  password?: string;
+  port: number;
+  proxyDNS?: boolean;
+  type: string;
+  username?: string;
+};
+
+type WebExtProxyMessage = {
+  event?: string;
+  options?: Record<string, unknown>;
+  state?: WebExtProxyState;
+};
+
+(globalThis as typeof globalThis & {FindProxyForURL: ProxyFindFunction}).FindProxyForURL = (function () {
   var OmegaPac = require('omega-pac');
-  var options: any = {};
-  var state: any = {};
-  var activeProfile: any = null;
+  var options: Record<string, unknown> = {};
+  var state: WebExtProxyState = {};
+  var activeProfile: WebExtProxyProfile | null = null;
   var fallbackResult = 'DIRECT';
   var pacCache = {};
 
@@ -10,7 +45,7 @@
 
   return FindProxyForURL;
 
-  function FindProxyForURL(url, host, details) {
+  function FindProxyForURL(url: string, host: string, details?: unknown) {
     if (!activeProfile) {
       warn('Warning: Proxy script not initialized on handling: ' + url);
       return fallbackResult;
@@ -35,10 +70,10 @@
 
       if (Array.isArray(matchResult)) {
         next = matchResult[0];
-        var proxy = matchResult[2];
-        var auth = matchResult[3];
+        var proxy = matchResult[2] as WebExtProxyServer | undefined;
+        var auth = matchResult[3] as WebExtProxyAuth | undefined;
         if (proxy) {
-          var proxyInfo: any = {
+          var proxyInfo: WebExtProxyInfo = {
             type: proxy.scheme,
             host: proxy.host,
             port: proxy.port,
@@ -68,7 +103,7 @@
     return fallbackResult;
   }
 
-  function warn(message, error?) {
+  function warn(message: string, error?: unknown) {
     // We don't have console here and alert is not implemented.
     // Throwing and messaging seems to be the only ways to communicate.
     // MOZ: alert(): https://bugzilla.mozilla.org/show_bug.cgi?id=1353510
@@ -84,10 +119,10 @@
   }
 
   function init() {
-    browser.runtime.onMessage.addListener(function(message) {
+    browser.runtime.onMessage.addListener(function(message: WebExtProxyMessage) {
       if (message.event === 'proxyScriptStateChanged') {
-        state = message.state;
-        options = message.options;
+        state = message.state!;
+        options = message.options!;
         if (!state.currentProfileName) {
           activeProfile = state.tempProfile;
         } else {

@@ -1,6 +1,10 @@
 /* @module omega-target/log */
 
-function replacer(key: string, value: any): any {
+type DebugPrintable = {
+  debugStr?: string | (() => string);
+};
+
+function replacer(key: string, value: unknown): unknown {
   switch (key) {
     case 'username':
     case 'password':
@@ -18,13 +22,14 @@ const Log = {
    * @param {{}} obj The object to format
    * @returns {String} the formatted object in string
    */
-  str(obj: any): string {
+  str(obj: unknown): string {
     if (typeof obj === 'object' && obj !== null) {
-      if (obj.debugStr != null) {
-        if (typeof obj.debugStr === 'function') {
-          return obj.debugStr();
+      const printable = obj as DebugPrintable;
+      if (printable.debugStr != null) {
+        if (typeof printable.debugStr === 'function') {
+          return printable.debugStr();
         }
-        return obj.debugStr;
+        return printable.debugStr;
       }
       if (obj instanceof Error) {
         return obj.stack || obj.message;
@@ -57,7 +62,7 @@ const Log = {
    * @param {string} name The name of the method
    * @param {Array} args The arguments to the method call
    */
-  func(name: string, args: IArguments | any[]): void {
+  func(name: string, args: IArguments | unknown[]): void {
     this.log(name, '(', [].slice.call(args), ')');
   },
 
@@ -67,7 +72,7 @@ const Log = {
    * @param {{}} self The target of the method call
    * @param {Array} args The arguments to the method call
    */
-  method(name: string, self: any, args: IArguments | any[]): void {
+  method(name: string, self: unknown, args: IArguments | unknown[]): void {
     this.log(this.str(self), '<<', name, [].slice.call(args));
   }
 };

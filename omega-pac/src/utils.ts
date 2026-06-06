@@ -1,13 +1,26 @@
-const Url = require('url');
-const tld = require('tldjs');
+const Url = require('url') as {
+  parse: (url: string) => {
+    hostname?: string | null;
+  };
+};
+const tld = require('tldjs') as {
+  getDomain: (domain: string) => string | null;
+};
+
+type CacheHost = Record<string, unknown>;
+
+type CacheEntry<T> = {
+  tag: unknown;
+  value: T;
+};
 
 const Revision = {
-  fromTime(time?: any): string {
+  fromTime(time?: Date | number | string): string {
     time = time ? new Date(time) : new Date();
     return time.getTime().toString(16);
   },
 
-  compare(a: any, b: any): number {
+  compare(a?: string | null, b?: string | null): number {
     if (!a && !b) return 0;
     if (!a) return -1;
     if (!b) return 1;
@@ -23,39 +36,40 @@ exports.Revision = Revision;
 
 class AttachedCache {
   prop: string;
-  tag: (obj: any) => any;
+  tag: (obj: CacheHost) => unknown;
 
-  constructor(opt_prop: any, tag?: (obj: any) => any) {
-    this.tag = tag as (obj: any) => any;
-    this.prop = opt_prop;
-    if (typeof this.tag === 'undefined') {
-      this.tag = opt_prop;
+  constructor(opt_prop: string | ((obj: CacheHost) => unknown), tag?: (obj: CacheHost) => unknown) {
+    if (typeof tag === 'undefined') {
+      this.tag = opt_prop as (obj: CacheHost) => unknown;
       this.prop = '_cache';
+    } else {
+      this.tag = tag;
+      this.prop = opt_prop as string;
     }
   }
 
-  get(obj: any, otherwise: any): any {
+  get<T>(obj: CacheHost, otherwise: T | (() => T)): T {
     const tag = this.tag(obj);
-    const cache = this._getCache(obj);
+    const cache = this._getCache<T>(obj);
     if (cache != null && cache.tag === tag) {
       return cache.value;
     }
-    const value = typeof otherwise === 'function' ? otherwise() : otherwise;
+    const value = typeof otherwise === 'function' ? (otherwise as () => T)() : otherwise;
     this._setCache(obj, {tag: tag, value: value});
     return value;
   }
 
-  drop(obj: any): void {
+  drop(obj: CacheHost): void {
     if (obj[this.prop] != null) {
       obj[this.prop] = undefined;
     }
   }
 
-  _getCache(obj: any): any {
-    return obj[this.prop];
+  _getCache<T>(obj: CacheHost): CacheEntry<T> | undefined {
+    return obj[this.prop] as CacheEntry<T> | undefined;
   }
 
-  _setCache(obj: any, value: any): void {
+  _setCache<T>(obj: CacheHost, value: CacheEntry<T>): void {
     if (!Object.prototype.hasOwnProperty.call(obj, this.prop)) {
       Object.defineProperty(obj, this.prop, {writable: true});
     }
@@ -84,7 +98,7 @@ exports.wildcardForDomain = function(domain: string): string {
 
 exports.wildcardForUrl = function(url: string): string {
   const domain = Url.parse(url).hostname;
-  return exports.wildcardForDomain(domain);
+  return exports.wildcardForDomain(domain as string);
 };
 
 export {};

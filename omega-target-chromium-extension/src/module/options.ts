@@ -13,10 +13,67 @@ type BadgeOptions = {
   title?: string;
 };
 
-type Profile = Record<string, any> & {
+type Profile = Record<string, unknown> & {
   name?: string;
   pacUrl?: string;
   profileType?: string;
+};
+
+type ExternalApiLike = {
+  disabled: boolean;
+};
+
+type InspectLike = {
+  disable(): unknown;
+  enable(): unknown;
+};
+
+type RequestSummaryItem = {
+  errorCount: number;
+};
+
+type TabRequestInfo = {
+  badgeSet?: boolean;
+  errorCount: number;
+  summary: Record<string, RequestSummaryItem>;
+  [key: string]: unknown;
+};
+
+type RequestMonitorLike = {
+  tabInfo: Record<string, TabRequestInfo | undefined>;
+  watchTabs(callback: (
+    tabId: number,
+    info: TabRequestInfo,
+    req?: unknown,
+    status?: unknown
+  ) => unknown): unknown;
+};
+
+type RequestMonitorConstructor = new (
+  getSummaryId?: (req: {url: string}) => string | number | null | undefined
+) => RequestMonitorLike;
+
+type ChromePortLike = {
+  onDisconnect: {
+    addListener(callback: () => unknown): unknown;
+  };
+  onMessage: {
+    addListener(callback: (message: {tabId: number}) => unknown): unknown;
+  };
+  postMessage(message: unknown): unknown;
+};
+
+type ChromePortConstructor = new (port: ChromeRuntimePort) => ChromePortLike;
+
+type SwitchySharpLike = {
+  getOptions(): {
+    timeout(milliseconds: number): Promise<Record<string, string>>;
+  };
+};
+
+type UpgradeOptions = Record<string, unknown> & {
+  config?: string;
+  schemaVersion?: unknown;
 };
 
 type PageInfoArgs = {
@@ -24,26 +81,29 @@ type PageInfoArgs = {
   url?: string;
 };
 
-function actionApi() {
+const TypedWebRequestMonitor = WebRequestMonitor as unknown as RequestMonitorConstructor;
+const TypedChromePort = ChromePort as unknown as ChromePortConstructor;
+
+function actionApi(): ChromeActionApi {
   const legacyKey = 'browser' + 'Action';
-  return chrome.action || chrome[legacyKey];
+  return (chrome.action || chrome[legacyKey]) as ChromeActionApi;
 }
 
 class ChromeOptions extends OmegaTarget.Options {
-  externalApi: any;
+  externalApi: ExternalApiLike;
   fetchUrl: typeof fetchUrl;
-  proxyImpl: any;
-  switchySharp: any;
+  proxyImpl: unknown;
+  switchySharp: SwitchySharpLike | null;
   private _alarms: Record<string, () => void> | null;
   private _badgeTitle: string | null;
-  private _inspect: any;
+  private _inspect: InspectLike | null;
   private _monitorWebRequests: boolean;
   private _proxyNotControllable: string | null;
   private _quickSwitchCanEnable: boolean;
   private _quickSwitchHandlerReady: boolean;
   private _quickSwitchInit: boolean;
-  private _requestMonitor: any;
-  private _tabRequestInfoPorts: Record<string, any> | null;
+  private _requestMonitor: RequestMonitorLike | null;
+  private _tabRequestInfoPorts: Record<string, ChromePortLike> | null;
 
   constructor(...args: unknown[]) {
     super(...args);
@@ -231,8 +291,8 @@ class ChromeOptions extends OmegaTarget.Options {
       const wildcardForReq = (req: {url: string}) => {
         return OmegaPac.wildcardForUrl(req.url);
       };
-      this._requestMonitor = new WebRequestMonitor(wildcardForReq);
-      this._requestMonitor.watchTabs((tabId: number, info: Record<string, any>) => {
+      this._requestMonitor = new TypedWebRequestMonitor(wildcardForReq);
+      this._requestMonitor.watchTabs((tabId: number, info: TabRequestInfo) => {
         if (!this._monitorWebRequests) {
           return;
         }
@@ -262,7 +322,7 @@ class ChromeOptions extends OmegaTarget.Options {
           summary: info.summary
         });
       });
-      return chrome.runtime.onConnect.addListener((rawPort: {name: string}) => {
+      return chrome.runtime.onConnect.addListener((rawPort: ChromeRuntimePort) => {
         if (rawPort.name !== 'tabRequestInfo') {
           return;
         }
@@ -270,7 +330,7 @@ class ChromeOptions extends OmegaTarget.Options {
           return;
         }
         let tabId: number | null = null;
-        const port = new ChromePort(rawPort);
+        const port = new TypedChromePort(rawPort);
         port.onMessage.addListener((msg: {tabId: number}) => {
           tabId = msg.tabId;
           if (this._tabRequestInfoPorts) {
@@ -351,22 +411,24 @@ class ChromeOptions extends OmegaTarget.Options {
     return chrome.i18n.getMessage(`browserAction_profileDetails_${type}`) || null;
   }
 
-  upgrade(options: Record<string, any> | null | undefined, changes?: Record<string, any>) {
+  upgrade(options: UpgradeOptions | null | undefined, changes?: Record<string, unknown>) {
     return super.upgrade(options).catch((err: unknown) => {
       if (options?.schemaVersion) {
         return OmegaPromise.reject(err);
       }
-      let getOldOptions = this.switchySharp ? this.switchySharp.getOptions().timeout(1000) : OmegaPromise.reject();
+      let getOldOptions: Promise<Record<string, string> | UpgradeOptions> = this.switchySharp
+        ? this.switchySharp.getOptions().timeout(1000)
+        : OmegaPromise.reject();
       getOldOptions = getOldOptions.catch(() => {
         if (options?.config) {
           return OmegaPromise.resolve(options);
         }
         if (localStorage.config) {
-          return OmegaPromise.resolve(localStorage);
+          return OmegaPromise.resolve(localStorage as unknown as Record<string, string>);
         }
         return OmegaPromise.reject(new OmegaTarget.Options.NoOptionsError());
       });
-      return getOldOptions.then((oldOptions: Record<string, string>) => {
+      return getOldOptions.then((oldOptions) => {
         const i18n = {
           upgrade_profile_auto: chrome.i18n.getMessage('upgrade_profile_auto')
         };
@@ -429,7 +491,7 @@ class ChromeOptions extends OmegaTarget.Options {
       if (url.substr(0, 6) === 'chrome') {
         const errorPagePrefix = 'chrome://errorpage/';
         if (url.substr(0, errorPagePrefix.length) === errorPagePrefix) {
-          url = querystring.parse(url.substr(url.indexOf('?') + 1)).lasturl;
+          url = querystring.parse(url.substr(url.indexOf('?') + 1)).lasturl as string | undefined;
           if (!url) {
             return result;
           }
