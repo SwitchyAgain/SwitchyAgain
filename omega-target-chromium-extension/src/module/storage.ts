@@ -1,21 +1,63 @@
-// @ts-nocheck
-var ChromeStorage, OmegaTarget, Promise, chromeApiPromisify,
-  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-  hasProp = {}.hasOwnProperty;
+import {chromeApiPromisify} from './chrome_api';
 
-chromeApiPromisify = require('./chrome_api').chromeApiPromisify;
+type StorageItems = Record<string, unknown>;
+type StorageKeys = string | string[] | StorageItems | null;
+type WatchKeys = string | string[] | null;
+type WatchKeyMap = Record<string, boolean> | null;
+type WatchCallback = (changes: StorageItems) => unknown;
 
-OmegaTarget = require('omega-target');
+type ChromeStorageChange = {
+  newValue?: unknown;
+};
 
-Promise = OmegaTarget.Promise;
+type StorageArea = {
+  clear: () => Promise<unknown>;
+  get: (keys: StorageKeys) => Promise<unknown>;
+  remove: (keys: WatchKeys) => Promise<unknown>;
+  set: (items: StorageItems) => Promise<unknown>;
+};
 
-ChromeStorage = (function(superClass) {
-  extend(ChromeStorage, superClass);
+type Watcher = {
+  callback: WatchCallback;
+  keys: WatchKeyMap;
+};
 
-  ChromeStorage.parseStorageErrors = function(err) {
-    var sustainedPerMinute;
-    if (err != null ? err.message : void 0) {
-      sustainedPerMinute = 'MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE';
+type StorageError = Error & {
+  maxItems?: boolean;
+  perHour?: boolean;
+  perItem?: boolean;
+  perMinute?: boolean;
+  sustained?: number;
+};
+
+const OmegaTarget = require('omega-target');
+const OmegaPromise = OmegaTarget.Promise;
+
+function normalizeWatchKeys(keys: WatchKeys): WatchKeyMap {
+  if (keys == null) {
+    return null;
+  }
+  const keyMap: Record<string, boolean> = {};
+  if (Array.isArray(keys)) {
+    for (const key of keys) {
+      keyMap[key] = true;
+    }
+  } else {
+    keyMap[keys] = true;
+  }
+  return keyMap;
+}
+
+class ChromeStorage extends OmegaTarget.Storage {
+  static onChangedListenerInstalled = false;
+  static watchers: Record<string, Record<string, Watcher>> = {};
+
+  areaName: string;
+  storage: StorageArea;
+
+  static parseStorageErrors(err: StorageError) {
+    if (err?.message) {
+      const sustainedPerMinute = 'MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE';
       if (err.message.indexOf('QUOTA_BYTES_PER_ITEM') >= 0) {
         err = new OmegaTarget.Storage.QuotaExceededError();
         err.perItem = true;
@@ -41,13 +83,13 @@ ChromeStorage = (function(superClass) {
         err = new OmegaTarget.Storage.StorageUnavailableError();
       }
     }
-    return Promise.reject(err);
-  };
+    return OmegaPromise.reject(err);
+  }
 
-  function ChromeStorage(areaName1) {
-    var ref;
-    this.areaName = areaName1;
-    if (typeof browser !== "undefined" && browser !== null ? (ref = browser.storage) != null ? ref[this.areaName] : void 0 : void 0) {
+  constructor(areaName: string) {
+    super();
+    this.areaName = areaName;
+    if (typeof browser !== 'undefined' && browser?.storage?.[this.areaName]) {
       this.storage = browser.storage[this.areaName];
     } else {
       this.storage = {
@@ -55,81 +97,63 @@ ChromeStorage = (function(superClass) {
         set: chromeApiPromisify(chrome.storage[this.areaName], 'set'),
         remove: chromeApiPromisify(chrome.storage[this.areaName], 'remove'),
         clear: chromeApiPromisify(chrome.storage[this.areaName], 'clear')
-      };
+      } as StorageArea;
     }
   }
 
-  ChromeStorage.prototype.get = function(keys) {
-    if (keys == null) {
-      keys = null;
-    }
-    return Promise.resolve(this.storage.get(keys))["catch"](ChromeStorage.parseStorageErrors);
-  };
+  get(keys: StorageKeys = null) {
+    return OmegaPromise.resolve(this.storage.get(keys)).catch(ChromeStorage.parseStorageErrors);
+  }
 
-  ChromeStorage.prototype.set = function(items) {
+  set(items: StorageItems) {
     if (Object.keys(items).length === 0) {
-      return Promise.resolve({});
+      return OmegaPromise.resolve({});
     }
-    return Promise.resolve(this.storage.set(items))["catch"](ChromeStorage.parseStorageErrors);
-  };
+    return OmegaPromise.resolve(this.storage.set(items)).catch(ChromeStorage.parseStorageErrors);
+  }
 
-  ChromeStorage.prototype.remove = function(keys) {
+  remove(keys: WatchKeys) {
     if (keys == null) {
-      return Promise.resolve(this.storage.clear());
+      return OmegaPromise.resolve(this.storage.clear());
     }
     if (Array.isArray(keys) && keys.length === 0) {
-      return Promise.resolve({});
+      return OmegaPromise.resolve({});
     }
-    return Promise.resolve(this.storage.remove(keys))["catch"](ChromeStorage.parseStorageErrors);
-  };
+    return OmegaPromise.resolve(this.storage.remove(keys)).catch(ChromeStorage.parseStorageErrors);
+  }
 
-  ChromeStorage.prototype.watch = function(keys, callback) {
-    var area, base, i, id, key, keyMap, len, name, watcher;
-    if ((base = ChromeStorage.watchers)[name = this.areaName] == null) {
-      base[name] = {};
+  watch(keys: WatchKeys, callback: WatchCallback) {
+    if (ChromeStorage.watchers[this.areaName] == null) {
+      ChromeStorage.watchers[this.areaName] = {};
     }
-    area = ChromeStorage.watchers[this.areaName];
-    watcher = {
-      keys: keys,
-      callback: callback
-    };
-    id = Date.now().toString();
+    const area = ChromeStorage.watchers[this.areaName];
+    let id = Date.now().toString();
     while (area[id]) {
       id = Date.now().toString();
     }
-    if (Array.isArray(keys)) {
-      keyMap = {};
-      for (i = 0, len = keys.length; i < len; i++) {
-        key = keys[i];
-        keyMap[key] = true;
-      }
-      keys = keyMap;
-    }
     area[id] = {
-      keys: keys,
-      callback: callback
+      keys: normalizeWatchKeys(keys),
+      callback
     };
     if (!ChromeStorage.onChangedListenerInstalled) {
       chrome.storage.onChanged.addListener(ChromeStorage.onChangedListener);
       ChromeStorage.onChangedListenerInstalled = true;
     }
-    return function() {
-      return delete area[id];
+    return () => {
+      delete area[id];
     };
-  };
+  }
 
-  ChromeStorage.onChangedListener = function(changes, areaName) {
-    var _, change, key, map, match, ref, results, watcher;
-    map = null;
-    ref = ChromeStorage.watchers[areaName];
-    results = [];
-    for (_ in ref) {
-      watcher = ref[_];
-      match = watcher.keys === null;
+  static onChangedListener(changes: Record<string, ChromeStorageChange>, areaName: string) {
+    let map: StorageItems | null = null;
+    const area = ChromeStorage.watchers[areaName] || {};
+    const results = [];
+    for (const id of Object.keys(area)) {
+      const watcher = area[id];
+      let match = watcher.keys === null;
       if (!match) {
-        for (key in changes) {
-          if (!hasProp.call(changes, key)) continue;
-          if (watcher.keys[key]) {
+        for (const key of Object.keys(changes)) {
+          if (watcher.keys?.[key]) {
             match = true;
             break;
           }
@@ -138,28 +162,17 @@ ChromeStorage = (function(superClass) {
       if (match) {
         if (map == null) {
           map = {};
-          for (key in changes) {
-            if (!hasProp.call(changes, key)) continue;
-            change = changes[key];
-            map[key] = change.newValue;
+          for (const key of Object.keys(changes)) {
+            map[key] = changes[key].newValue;
           }
         }
         results.push(watcher.callback(map));
       } else {
-        results.push(void 0);
+        results.push(undefined);
       }
     }
     return results;
-  };
+  }
+}
 
-  ChromeStorage.onChangedListenerInstalled = false;
-
-  ChromeStorage.watchers = {};
-
-  return ChromeStorage;
-
-})(OmegaTarget.Storage);
-
-module.exports = ChromeStorage;
-
-export {};
+export = ChromeStorage;

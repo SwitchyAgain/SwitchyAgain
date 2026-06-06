@@ -1,19 +1,25 @@
-// @ts-nocheck
-var ContentTypeRejectedError, Promise, Url, defaultHintHandler, fetchUrl, hintHandlers, xhr, xhrWrapper,
-  slice = [].slice;
+const OmegaTarget = require('omega-target');
+const OmegaPromise = OmegaTarget.Promise;
+const xhr = OmegaPromise.promisify(require('xhr'));
+const Url = require('url');
+const ContentTypeRejectedError = OmegaTarget.ContentTypeRejectedError;
 
-Promise = OmegaTarget.Promise;
+type XhrResponse = {
+  headers: Record<string, string | undefined>;
+};
 
-xhr = Promise.promisify(require('xhr'));
+type HintContext = {
+  contentType?: string;
+  hint: string;
+};
 
-Url = require('url');
+type HintHandler = (response: XhrResponse, body: string, context: HintContext) => string | undefined | void;
 
-ContentTypeRejectedError = OmegaTarget.ContentTypeRejectedError;
-
-xhrWrapper = function() {
-  var args;
-  args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-  return xhr.apply(null, args)["catch"](function(err) {
+function xhrWrapper(...args: unknown[]) {
+  return xhr.apply(null, args).catch((err: {
+    isOperational?: boolean;
+    statusCode?: number;
+  }) => {
     if (!err.isOperational) {
       throw err;
     }
@@ -28,64 +34,22 @@ xhrWrapper = function() {
     }
     throw new OmegaTarget.HttpError(err);
   });
-};
+}
 
-fetchUrl = function(dest_url, opt_bypass_cache, opt_type_hints) {
-  var dest_url_nocache, getResBody, parsed;
-  getResBody = function(arg) {
-    var body, contentType, handler, hint, i, len, ref, ref1, response, result;
-    response = arg[0], body = arg[1];
-    if (!opt_type_hints) {
-      return body;
-    }
-    contentType = (ref = response.headers['content-type']) != null ? ref.toLowerCase() : void 0;
-    for (i = 0, len = opt_type_hints.length; i < len; i++) {
-      hint = opt_type_hints[i];
-      handler = (ref1 = hintHandlers[hint]) != null ? ref1 : defaultHintHandler;
-      result = handler(response, body, {
-        contentType: contentType,
-        hint: hint
-      });
-      if (result != null) {
-        return result;
-      }
-    }
-    throw new ContentTypeRejectedError('Unrecognized Content-Type: ' + contentType);
-    return body;
-  };
-  if (opt_bypass_cache && dest_url.indexOf('?') < 0) {
-    parsed = Url.parse(dest_url, true);
-    parsed.search = void 0;
-    parsed.query['_'] = Date.now();
-    dest_url_nocache = Url.format(parsed);
-    return xhrWrapper(dest_url_nocache).then(getResBody)["catch"](function() {
-      return xhrWrapper(dest_url).then(getResBody);
-    });
-  } else {
-    return xhrWrapper(dest_url).then(getResBody);
-  }
-};
-
-defaultHintHandler = function(response, body, arg) {
-  var contentType, hint;
-  contentType = arg.contentType, hint = arg.hint;
-  if ('!' + contentType === hint) {
-    throw new ContentTypeRejectedError('Response Content-Type blacklisted: ' + contentType);
+function defaultHintHandler(_response: XhrResponse, body: string, {contentType, hint}: HintContext) {
+  if (`!${contentType}` === hint) {
+    throw new ContentTypeRejectedError(`Response Content-Type blacklisted: ${contentType}`);
   }
   if (contentType === hint) {
     return body;
   }
-};
+}
 
-hintHandlers = {
-  '*': function(response, body) {
-    return body;
-  },
-  '!text/html': function(response, body, arg) {
-    var contentType, hint, looksLikeHtml;
-    contentType = arg.contentType, hint = arg.hint;
+const hintHandlers: Record<string, HintHandler> = {
+  '*': (_response, body) => body,
+  '!text/html': (_response, body, {contentType, hint}) => {
     if (contentType === hint) {
-      looksLikeHtml = false;
+      let looksLikeHtml = false;
       if (body.indexOf('<!DOCTYPE') >= 0 || body.indexOf('<!doctype') >= 0) {
         looksLikeHtml = true;
       } else if (body.indexOf('</html>') >= 0) {
@@ -98,25 +62,48 @@ hintHandlers = {
       }
     }
   },
-  '!application/xhtml+xml': function() {
-    var args;
-    args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-    return hintHandlers['!text/html'].apply(hintHandlers, args);
+  '!application/xhtml+xml': (response, body, context) => {
+    return hintHandlers['!text/html'](response, body, context);
   },
-  'application/x-ns-proxy-autoconfig': function(response, body, arg) {
-    var contentType, hint;
-    contentType = arg.contentType, hint = arg.hint;
+  'application/x-ns-proxy-autoconfig': (_response, body, {contentType, hint}) => {
     if (contentType === hint) {
       return body;
     }
     if (body.indexOf('FindProxyForURL') >= 0) {
       return body;
-    } else {
-      return void 0;
     }
   }
 };
 
-module.exports = fetchUrl;
+function fetchUrl(destUrl: string, optBypassCache?: boolean, optTypeHints?: string[]) {
+  const getResBody = ([response, body]: [XhrResponse, string]) => {
+    if (!optTypeHints) {
+      return body;
+    }
+    const contentType = response.headers['content-type']?.toLowerCase();
+    for (const hint of optTypeHints) {
+      const handler = hintHandlers[hint] || defaultHintHandler;
+      const result = handler(response, body, {
+        contentType,
+        hint
+      });
+      if (result != null) {
+        return result;
+      }
+    }
+    throw new ContentTypeRejectedError(`Unrecognized Content-Type: ${contentType}`);
+  };
 
-export {};
+  if (optBypassCache && destUrl.indexOf('?') < 0) {
+    const parsed = Url.parse(destUrl, true);
+    parsed.search = undefined;
+    parsed.query['_'] = Date.now();
+    const destUrlNoCache = Url.format(parsed);
+    return xhrWrapper(destUrlNoCache).then(getResBody).catch(() => {
+      return xhrWrapper(destUrl).then(getResBody);
+    });
+  }
+  return xhrWrapper(destUrl).then(getResBody);
+}
+
+export = fetchUrl;

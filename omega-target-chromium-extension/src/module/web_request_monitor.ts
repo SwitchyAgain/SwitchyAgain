@@ -1,30 +1,84 @@
-// @ts-nocheck
-var Heap, Url, WebRequestMonitor,
-  hasProp = {}.hasOwnProperty;
+const Heap = require('heap');
 
-Heap = require('heap');
+type RequestStatus = 'start' | 'ongoing' | 'timeout' | 'error' | 'timeoutAbort' | 'done';
+type EventCategory = 'done' | 'error' | 'ongoing';
 
-Url = require('url');
+type RequestInfo = {
+  _startTime?: number;
+  error?: string;
+  noTimeout?: boolean;
+  redirectUrl?: string;
+  requestId: string;
+  tabId: number;
+  timeoutCalled?: boolean;
+  type?: string;
+  url: string;
+  [key: string]: unknown;
+};
 
-module.exports = WebRequestMonitor = (function() {
-  function WebRequestMonitor(getSummaryId) {
+type Tab = {
+  id?: number;
+  [key: string]: unknown;
+};
+
+type SummaryItem = {
+  errorCount: number;
+};
+
+type TabInfo = {
+  doneCount: number;
+  errorCount: number;
+  ongoingCount: number;
+  requestCount: number;
+  requests: Record<string, RequestInfo>;
+  requestStatus: Record<string, RequestStatus>;
+  summary: Record<string, SummaryItem>;
+  [key: string]: unknown;
+};
+
+type RequestCallback = (status: RequestStatus, req: RequestInfo) => unknown;
+type TabCallback = (
+  tabId: number,
+  info: TabInfo,
+  req: RequestInfo | null,
+  status: RequestStatus | 'updated'
+) => unknown;
+
+class WebRequestMonitor {
+  eventCategory: Record<RequestStatus, EventCategory>;
+  getSummaryId?: (req: RequestInfo) => string | number | null | undefined;
+  tabInfo: Record<string, TabInfo>;
+  tabsWatching: boolean;
+  timer: ReturnType<typeof setInterval> | null;
+  watching: boolean;
+  private _callbacks: RequestCallback[];
+  private _recentRequests: any;
+  private _requests: Record<string, RequestInfo>;
+  private _tabCallbacks: TabCallback[];
+
+  constructor(getSummaryId?: (req: RequestInfo) => string | number | null | undefined) {
     this.getSummaryId = getSummaryId;
     this._requests = {};
-    this._recentRequests = new Heap(function(a, b) {
-      return a._startTime - b._startTime;
+    this._recentRequests = new Heap((a: RequestInfo, b: RequestInfo) => {
+      return (a._startTime || 0) - (b._startTime || 0);
     });
     this._callbacks = [];
     this._tabCallbacks = [];
     this.tabInfo = {};
+    this.watching = false;
+    this.timer = null;
+    this.tabsWatching = false;
+    this.eventCategory = {
+      start: 'ongoing',
+      ongoing: 'ongoing',
+      timeout: 'error',
+      error: 'error',
+      timeoutAbort: 'error',
+      done: 'done'
+    };
   }
 
-  WebRequestMonitor.prototype._callbacks = null;
-
-  WebRequestMonitor.prototype.watching = false;
-
-  WebRequestMonitor.prototype.timer = null;
-
-  WebRequestMonitor.prototype.watch = function(callback) {
+  watch(callback: RequestCallback) {
     this._callbacks.push(callback);
     if (this.watching) {
       return;
@@ -48,15 +102,10 @@ module.exports = WebRequestMonitor = (function() {
     chrome.webRequest.onErrorOccurred.addListener(this._requestError.bind(this), {
       urls: ['<all_urls>']
     });
-    return this.watching = true;
-  };
+    this.watching = true;
+  }
 
-  WebRequestMonitor.prototype._requests = null;
-
-  WebRequestMonitor.prototype._recentRequests = null;
-
-  WebRequestMonitor.prototype._requestStart = function(req) {
-    var callback, i, len, ref, results;
+  private _requestStart(req: RequestInfo) {
     if (req.tabId < 0) {
       return;
     }
@@ -66,70 +115,52 @@ module.exports = WebRequestMonitor = (function() {
     if (this.timer == null) {
       this.timer = setInterval(this._tick.bind(this), 1000);
     }
-    ref = this._callbacks;
-    results = [];
-    for (i = 0, len = ref.length; i < len; i++) {
-      callback = ref[i];
-      results.push(callback('start', req));
-    }
-    return results;
-  };
+    return this._callbacks.map((callback) => callback('start', req));
+  }
 
-  WebRequestMonitor.prototype._tick = function() {
-    var callback, i, len, now, ref, req, reqInfo, results;
-    now = Date.now();
-    results = [];
+  private _tick() {
+    const now = Date.now();
+    const results = [];
+    let req: RequestInfo | undefined;
     while ((req = this._recentRequests.peek())) {
-      reqInfo = this._requests[req.requestId];
+      const reqInfo = this._requests[req.requestId];
       if (reqInfo && !reqInfo.noTimeout) {
-        if (now - req._startTime < 5000) {
+        if (now - (req._startTime || 0) < 5000) {
           break;
-        } else {
-          reqInfo.timeoutCalled = true;
-          ref = this._callbacks;
-          for (i = 0, len = ref.length; i < len; i++) {
-            callback = ref[i];
-            callback('timeout', reqInfo);
-          }
+        }
+        reqInfo.timeoutCalled = true;
+        for (const callback of this._callbacks) {
+          callback('timeout', reqInfo);
         }
       }
       results.push(this._recentRequests.pop());
     }
     return results;
-  };
+  }
 
-  WebRequestMonitor.prototype._requestHeadersReceived = function(req) {
-    var callback, i, len, ref, reqInfo, results;
-    reqInfo = this._requests[req.requestId];
+  private _requestHeadersReceived(req: RequestInfo) {
+    const reqInfo = this._requests[req.requestId];
     if (!reqInfo) {
       return;
     }
     reqInfo.noTimeout = true;
     if (reqInfo.timeoutCalled) {
-      ref = this._callbacks;
-      results = [];
-      for (i = 0, len = ref.length; i < len; i++) {
-        callback = ref[i];
-        results.push(callback('ongoing', req));
-      }
-      return results;
+      return this._callbacks.map((callback) => callback('ongoing', req));
     }
-  };
+  }
 
-  WebRequestMonitor.prototype._requestRedirected = function(req) {
-    var url;
-    url = req.redirectUrl;
+  private _requestRedirected(req: RequestInfo) {
+    const url = req.redirectUrl;
     if (!url) {
       return;
     }
     if (url.indexOf('data:') === 0 || url.indexOf('about:') === 0) {
       return this._requestDone(req);
     }
-  };
+  }
 
-  WebRequestMonitor.prototype._requestError = function(req) {
-    var callback, i, j, len, len1, ref, ref1, reqInfo, results;
-    reqInfo = this._requests[req.requestId];
+  private _requestError(req: RequestInfo) {
+    const reqInfo = this._requests[req.requestId];
     delete this._requests[req.requestId];
     if (req.tabId < 0) {
       return;
@@ -137,13 +168,13 @@ module.exports = WebRequestMonitor = (function() {
     if (req.error === 'net::ERR_INCOMPLETE_CHUNKED_ENCODING') {
       return;
     }
-    if (req.error.indexOf('BLOCKED') >= 0) {
+    if ((req.error || '').indexOf('BLOCKED') >= 0) {
       return;
     }
-    if (req.error.indexOf('net::ERR_FILE_') === 0) {
+    if ((req.error || '').indexOf('net::ERR_FILE_') === 0) {
       return;
     }
-    if (req.error.indexOf('NS_ERROR_ABORT') === 0) {
+    if ((req.error || '').indexOf('NS_ERROR_ABORT') === 0) {
       return;
     }
     if (req.url.indexOf('file:') === 0) {
@@ -166,108 +197,65 @@ module.exports = WebRequestMonitor = (function() {
     }
     if (req.error === 'net::ERR_ABORTED') {
       if (reqInfo.timeoutCalled && !reqInfo.noTimeout) {
-        ref = this._callbacks;
-        for (i = 0, len = ref.length; i < len; i++) {
-          callback = ref[i];
+        for (const callback of this._callbacks) {
           callback('timeoutAbort', req);
         }
       }
       return;
     }
-    ref1 = this._callbacks;
-    results = [];
-    for (j = 0, len1 = ref1.length; j < len1; j++) {
-      callback = ref1[j];
-      results.push(callback('error', req));
-    }
-    return results;
-  };
+    return this._callbacks.map((callback) => callback('error', req));
+  }
 
-  WebRequestMonitor.prototype._requestDone = function(req) {
-    var callback, i, len, ref;
-    ref = this._callbacks;
-    for (i = 0, len = ref.length; i < len; i++) {
-      callback = ref[i];
+  private _requestDone(req: RequestInfo) {
+    for (const callback of this._callbacks) {
       callback('done', req);
     }
     return delete this._requests[req.requestId];
-  };
+  }
 
-  WebRequestMonitor.prototype.eventCategory = {
-    start: 'ongoing',
-    ongoing: 'ongoing',
-    timeout: 'error',
-    error: 'error',
-    timeoutAbort: 'error',
-    done: 'done'
-  };
-
-  WebRequestMonitor.prototype.tabsWatching = false;
-
-  WebRequestMonitor.prototype._tabCallbacks = null;
-
-  WebRequestMonitor.prototype.watchTabs = function(callback) {
-    var ref;
+  watchTabs(callback: TabCallback) {
     this._tabCallbacks.push(callback);
     if (this.tabsWatching) {
       return;
     }
     this.watch(this.setTabRequestInfo.bind(this));
     this.tabsWatching = true;
-    chrome.tabs.onCreated.addListener((function(_this) {
-      return function(tab) {
-        if (!tab.id) {
-          return;
-        }
-        return _this.tabInfo[tab.id] = _this._newTabInfo();
-      };
-    })(this));
-    chrome.tabs.onRemoved.addListener((function(_this) {
-      return function(tab) {
-        return delete _this.tabInfo[tab.id];
-      };
-    })(this));
-    if ((ref = chrome.tabs.onReplaced) != null) {
-      ref.addListener((function(_this) {
-        return function(added, removed) {
-          var base;
-          if ((base = _this.tabInfo)[added] == null) {
-            base[added] = _this._newTabInfo();
-          }
-          return delete _this.tabInfo[removed];
-        };
-      })(this));
-    }
-    chrome.tabs.onUpdated.addListener((function(_this) {
-      return function(tabId, changeInfo, tab) {
-        var base, i, info, len, name, ref1, results;
-        info = (base = _this.tabInfo)[name = tab.id] != null ? base[name] : base[name] = _this._newTabInfo();
-        if (!info) {
-          return;
-        }
-        ref1 = _this._tabCallbacks;
-        results = [];
-        for (i = 0, len = ref1.length; i < len; i++) {
-          callback = ref1[i];
-          results.push(callback(tab.id, info, null, 'updated'));
-        }
-        return results;
-      };
-    })(this));
-    return chrome.tabs.query({}, (function(_this) {
-      return function(tabs) {
-        var base, i, len, name, results, tab;
-        results = [];
-        for (i = 0, len = tabs.length; i < len; i++) {
-          tab = tabs[i];
-          results.push((base = _this.tabInfo)[name = tab.id] != null ? base[name] : base[name] = _this._newTabInfo());
-        }
-        return results;
-      };
-    })(this));
-  };
+    chrome.tabs.onCreated.addListener((tab: Tab) => {
+      if (!tab.id) {
+        return;
+      }
+      this.tabInfo[tab.id] = this._newTabInfo();
+    });
+    chrome.tabs.onRemoved.addListener((tab: Tab) => {
+      return delete this.tabInfo[tab.id as number];
+    });
+    chrome.tabs.onReplaced?.addListener((added: number, removed: number) => {
+      if (this.tabInfo[added] == null) {
+        this.tabInfo[added] = this._newTabInfo();
+      }
+      return delete this.tabInfo[removed];
+    });
+    chrome.tabs.onUpdated.addListener((_tabId: number, _changeInfo: unknown, tab: Tab) => {
+      const info = this.tabInfo[tab.id as number] != null
+        ? this.tabInfo[tab.id as number]
+        : this.tabInfo[tab.id as number] = this._newTabInfo();
+      if (!info) {
+        return;
+      }
+      return this._tabCallbacks.map((tabCallback) => {
+        return tabCallback(tab.id as number, info, null, 'updated');
+      });
+    });
+    return chrome.tabs.query({}, (tabs: Tab[]) => {
+      return tabs.map((tab) => {
+        return this.tabInfo[tab.id as number] != null
+          ? this.tabInfo[tab.id as number]
+          : this.tabInfo[tab.id as number] = this._newTabInfo();
+      });
+    });
+  }
 
-  WebRequestMonitor.prototype._newTabInfo = function() {
+  private _newTabInfo(): TabInfo {
     return {
       requests: {},
       requestCount: 0,
@@ -277,67 +265,60 @@ module.exports = WebRequestMonitor = (function() {
       doneCount: 0,
       summary: {}
     };
-  };
+  }
 
-  WebRequestMonitor.prototype.setTabRequestInfo = function(status, req) {
-    var callback, i, id, info, key, len, oldStatus, ref, ref1, results, summaryItem, value;
-    info = this.tabInfo[req.tabId];
-    if (info) {
-      if (status === 'start' && req.type === 'main_frame') {
-        if (req.url.indexOf('chrome://errorpage/') !== 0) {
-          ref = this._newTabInfo();
-          for (key in ref) {
-            if (!hasProp.call(ref, key)) continue;
-            value = ref[key];
-            info[key] = value;
-          }
+  setTabRequestInfo(status: RequestStatus, req: RequestInfo) {
+    const info = this.tabInfo[req.tabId];
+    if (!info) {
+      return;
+    }
+    if (status === 'start' && req.type === 'main_frame') {
+      if (req.url.indexOf('chrome://errorpage/') !== 0) {
+        const freshInfo = this._newTabInfo();
+        for (const key of Object.keys(freshInfo)) {
+          info[key] = freshInfo[key];
         }
       }
-      if (info.requestCount > 1000) {
+    }
+    if (info.requestCount > 1000) {
+      return;
+    }
+    info.requests[req.requestId] = req;
+    const oldStatus = info.requestStatus[req.requestId];
+    if (oldStatus) {
+      info[`${this.eventCategory[oldStatus]}Count`] = (info[`${this.eventCategory[oldStatus]}Count`] as number) - 1;
+    } else {
+      if (status === 'timeoutAbort') {
         return;
       }
-      info.requests[req.requestId] = req;
-      if ((oldStatus = info.requestStatus[req.requestId])) {
-        info[this.eventCategory[oldStatus] + 'Count']--;
-      } else {
-        if (status === 'timeoutAbort') {
-          return;
-        }
-        info.requestCount++;
-      }
-      info.requestStatus[req.requestId] = status;
-      info[this.eventCategory[status] + 'Count']++;
-      id = typeof this.getSummaryId === "function" ? this.getSummaryId(req) : void 0;
-      if (id != null) {
-        if (this.eventCategory[status] === 'error') {
-          if (this.eventCategory[oldStatus] !== 'error') {
-            summaryItem = info.summary[id];
-            if (summaryItem == null) {
-              summaryItem = info.summary[id] = {
-                errorCount: 0
-              };
-            }
-            summaryItem.errorCount++;
-          }
-        } else if (this.eventCategory[oldStatus] === 'error') {
-          summaryItem = info.summary[id];
-          if (summaryItem != null) {
-            summaryItem.errorCount--;
-          }
-        }
-      }
-      ref1 = this._tabCallbacks;
-      results = [];
-      for (i = 0, len = ref1.length; i < len; i++) {
-        callback = ref1[i];
-        results.push(callback(req.tabId, info, req, status));
-      }
-      return results;
+      info.requestCount++;
     }
-  };
+    info.requestStatus[req.requestId] = status;
+    info[`${this.eventCategory[status]}Count`] = (info[`${this.eventCategory[status]}Count`] as number) + 1;
+    const id = typeof this.getSummaryId === 'function' ? this.getSummaryId(req) : undefined;
+    if (id != null) {
+      const summaryKey = id as string;
+      if (this.eventCategory[status] === 'error') {
+        if (this.eventCategory[oldStatus] !== 'error') {
+          let summaryItem = info.summary[summaryKey];
+          if (summaryItem == null) {
+            summaryItem = info.summary[summaryKey] = {
+              errorCount: 0
+            };
+          }
+          summaryItem.errorCount++;
+        }
+      } else if (this.eventCategory[oldStatus] === 'error') {
+        const summaryItem = info.summary[summaryKey];
+        if (summaryItem != null) {
+          summaryItem.errorCount--;
+        }
+      }
+    }
+    return this._tabCallbacks.map((callback) => {
+      return callback(req.tabId, info, req, status);
+    });
+  }
+}
 
-  return WebRequestMonitor;
-
-})();
-
-export {};
+export = WebRequestMonitor;

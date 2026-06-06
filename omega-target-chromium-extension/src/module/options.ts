@@ -1,93 +1,105 @@
-// @ts-nocheck
-var ChromeOptions, ChromePort, OmegaPac, OmegaTarget, Promise, Url, WebRequestMonitor, actionApi, fetchUrl, querystring,
-  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-  hasProp = {}.hasOwnProperty,
-  slice = [].slice;
+const OmegaTarget = require('omega-target');
+const OmegaPac = OmegaTarget.OmegaPac;
+const OmegaPromise = OmegaTarget.Promise;
+const querystring = require('querystring');
+const WebRequestMonitor = require('./web_request_monitor');
+const ChromePort = require('./chrome_port');
+const fetchUrl = require('./fetch_url');
+const Url = require('url');
 
-OmegaTarget = require('omega-target');
-
-OmegaPac = OmegaTarget.OmegaPac;
-
-Promise = OmegaTarget.Promise;
-
-querystring = require('querystring');
-
-WebRequestMonitor = require('./web_request_monitor');
-
-ChromePort = require('./chrome_port');
-
-fetchUrl = require('./fetch_url');
-
-Url = require('url');
-
-actionApi = function() {
-  var legacyKey;
-  legacyKey = 'browser';
-  legacyKey += 'Action';
-  return chrome.action || chrome[legacyKey];
+type BadgeOptions = {
+  color: string;
+  text: string;
+  title?: string;
 };
 
-ChromeOptions = (function(superClass) {
-  extend(ChromeOptions, superClass);
+type Profile = Record<string, any> & {
+  name?: string;
+  pacUrl?: string;
+  profileType?: string;
+};
 
-  function ChromeOptions() {
-    return ChromeOptions.__super__.constructor.apply(this, arguments);
+type PageInfoArgs = {
+  tabId: number;
+  url?: string;
+};
+
+function actionApi() {
+  const legacyKey = 'browser' + 'Action';
+  return chrome.action || chrome[legacyKey];
+}
+
+class ChromeOptions extends OmegaTarget.Options {
+  externalApi: any;
+  fetchUrl: typeof fetchUrl;
+  proxyImpl: any;
+  switchySharp: any;
+  private _alarms: Record<string, () => void> | null;
+  private _badgeTitle: string | null;
+  private _inspect: any;
+  private _monitorWebRequests: boolean;
+  private _proxyNotControllable: string | null;
+  private _quickSwitchCanEnable: boolean;
+  private _quickSwitchHandlerReady: boolean;
+  private _quickSwitchInit: boolean;
+  private _requestMonitor: any;
+  private _tabRequestInfoPorts: Record<string, any> | null;
+
+  constructor(...args: unknown[]) {
+    super(...args);
+    this.fetchUrl = fetchUrl;
+    this._inspect = null;
+    this._proxyNotControllable = null;
+    this._badgeTitle = null;
+    this._quickSwitchInit = false;
+    this._quickSwitchHandlerReady = false;
+    this._quickSwitchCanEnable = false;
+    this._requestMonitor = null;
+    this._monitorWebRequests = false;
+    this._tabRequestInfoPorts = null;
+    this._alarms = null;
   }
 
-  ChromeOptions.prototype._inspect = null;
-
-  ChromeOptions.prototype.fetchUrl = fetchUrl;
-
-  ChromeOptions.prototype.updateProfile = function() {
-    var args;
-    args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-    return ChromeOptions.__super__.updateProfile.apply(this, args).then(function(results) {
-      var error, profileName, result;
-      error = false;
-      for (profileName in results) {
-        if (!hasProp.call(results, profileName)) continue;
-        result = results[profileName];
+  updateProfile(...args: unknown[]) {
+    return super.updateProfile(...args).then((results: Record<string, unknown>) => {
+      let error = false;
+      for (const profileName of Object.keys(results)) {
+        const result = results[profileName];
         if (result instanceof Error) {
           error = true;
           break;
         }
       }
       if (error) {
-
         /*
-        @setBadge(
-          text: '!'
-          color: '#faa732'
+        this.setBadge({
+          text: '!',
+          color: '#faa732',
           title: chrome.i18n.getMessage('browserAction_titleDownloadFail')
-        )
+        });
          */
       }
       return results;
     });
-  };
+  }
 
-  ChromeOptions.prototype._proxyNotControllable = null;
-
-  ChromeOptions.prototype.proxyNotControllable = function() {
+  proxyNotControllable() {
     return this._proxyNotControllable;
-  };
+  }
 
-  ChromeOptions.prototype.setProxyNotControllable = function(reason, badge) {
+  setProxyNotControllable(reason: string | null, badge?: BadgeOptions) {
     this._proxyNotControllable = reason;
     if (reason) {
       this._state.set({
-        'proxyNotControllable': reason
+        proxyNotControllable: reason
       });
       return this.setBadge(badge);
-    } else {
-      this._state.remove(['proxyNotControllable']);
-      return this.clearBadge();
     }
-  };
+    this._state.remove(['proxyNotControllable']);
+    return this.clearBadge();
+  }
 
-  ChromeOptions.prototype._badgeTitle = null;
-
-  ChromeOptions.prototype.setBadge = function(options) {
+  setBadge(options?: BadgeOptions) {
     if (!options) {
       options = this._proxyNotControllable ? {
         text: '=',
@@ -108,13 +120,11 @@ ChromeOptions = (function(superClass) {
       return actionApi().setTitle({
         title: options.title
       });
-    } else {
-      return this._badgeTitle = null;
     }
-  };
+    this._badgeTitle = null;
+  }
 
-  ChromeOptions.prototype.clearBadge = function() {
-    var base;
+  clearBadge() {
     if (this.externalApi.disabled) {
       return;
     }
@@ -124,100 +134,86 @@ ChromeOptions = (function(superClass) {
     if (this._proxyNotControllable) {
       this.setBadge();
     } else {
-      if (typeof (base = actionApi()).setBadgeText === "function") {
-        base.setBadgeText({
+      const api = actionApi();
+      if (typeof api.setBadgeText === 'function') {
+        api.setBadgeText({
           text: ''
         });
       }
     }
-  };
+  }
 
-  ChromeOptions.prototype._quickSwitchInit = false;
-
-  ChromeOptions.prototype._quickSwitchHandlerReady = false;
-
-  ChromeOptions.prototype._quickSwitchCanEnable = false;
-
-  ChromeOptions.prototype.setQuickSwitch = function(quickSwitch, canEnable) {
-    var base, ref;
+  setQuickSwitch(quickSwitch: string[] | null, canEnable: boolean) {
     this._quickSwitchCanEnable = canEnable;
     if (!this._quickSwitchHandlerReady) {
       this._quickSwitchHandlerReady = true;
-      window.OmegaContextMenuQuickSwitchHandler = (function(_this) {
-        return function(info) {
-          var changes, setOptions;
-          changes = {};
-          changes['-enableQuickSwitch'] = info.checked;
-          setOptions = _this._setOptions(changes);
-          if (info.checked && !_this._quickSwitchCanEnable) {
-            return setOptions.then(function() {
-              return chrome.tabs.create({
-                url: chrome.runtime.getURL('options.html#/ui')
-              });
+      window.OmegaContextMenuQuickSwitchHandler = (info: {checked: boolean}) => {
+        const changes: Record<string, unknown> = {};
+        changes['-enableQuickSwitch'] = info.checked;
+        const setOptions = this._setOptions(changes);
+        if (info.checked && !this._quickSwitchCanEnable) {
+          return setOptions.then(() => {
+            return chrome.tabs.create({
+              url: chrome.runtime.getURL('options.html#/ui')
             });
-          }
-        };
-      })(this);
+          });
+        }
+      };
     }
-    if (quickSwitch || (actionApi().setPopup == null)) {
-      if (typeof (base = actionApi()).setPopup === "function") {
-        base.setPopup({
+    if (quickSwitch || actionApi().setPopup == null) {
+      const api = actionApi();
+      if (typeof api.setPopup === 'function') {
+        api.setPopup({
           popup: ''
         });
       }
       if (!this._quickSwitchInit) {
         this._quickSwitchInit = true;
-        actionApi().onClicked.addListener((function(_this) {
-          return function(tab) {
-            var index, profiles;
-            _this.clearBadge();
-            if (!_this._options['-enableQuickSwitch']) {
-              chrome.tabs.create({
-                url: 'popup/index.html'
-              });
-              return;
-            }
-            profiles = _this._options['-quickSwitchProfiles'];
-            index = profiles.indexOf(_this._currentProfileName);
-            index = (index + 1) % profiles.length;
-            return _this.applyProfile(profiles[index]).then(function() {
-              var url;
-              if (_this._options['-refreshOnProfileChange']) {
-                url = tab.url;
-                if (!url) {
-                  return;
-                }
-                if (url.substr(0, 6) === 'chrome') {
-                  return;
-                }
-                if (url.substr(0, 6) === 'about:') {
-                  return;
-                }
-                if (url.substr(0, 4) === 'moz-') {
-                  return;
-                }
-                return chrome.tabs.reload(tab.id, function() {
-                  chrome.runtime.lastError;
-                });
-              }
+        actionApi().onClicked.addListener((tab: {id?: number; url?: string}) => {
+          this.clearBadge();
+          if (!this._options['-enableQuickSwitch']) {
+            chrome.tabs.create({
+              url: 'popup/index.html'
             });
-          };
-        })(this));
+            return;
+          }
+          const profiles = this._options['-quickSwitchProfiles'];
+          let index = profiles.indexOf(this._currentProfileName);
+          index = (index + 1) % profiles.length;
+          return this.applyProfile(profiles[index]).then(() => {
+            if (this._options['-refreshOnProfileChange']) {
+              const url = tab.url;
+              if (!url) {
+                return;
+              }
+              if (url.substr(0, 6) === 'chrome') {
+                return;
+              }
+              if (url.substr(0, 6) === 'about:') {
+                return;
+              }
+              if (url.substr(0, 4) === 'moz-') {
+                return;
+              }
+              return chrome.tabs.reload(tab.id, () => {
+                chrome.runtime.lastError;
+              });
+            }
+          });
+        });
       }
     } else {
       actionApi().setPopup({
         popup: 'popup/index.html'
       });
     }
-    if ((ref = chrome.contextMenus) != null) {
-      ref.update('enableQuickSwitch', {
-        checked: !!quickSwitch
-      });
-    }
-    return Promise.resolve();
-  };
+    chrome.contextMenus?.update('enableQuickSwitch', {
+      checked: !!quickSwitch
+    });
+    return OmegaPromise.resolve();
+  }
 
-  ChromeOptions.prototype.setInspect = function(settings) {
+  setInspect(settings: {showMenu?: boolean}) {
     if (this._inspect) {
       if (settings.showMenu) {
         this._inspect.enable();
@@ -225,269 +221,238 @@ ChromeOptions = (function(superClass) {
         this._inspect.disable();
       }
     }
-    return Promise.resolve();
-  };
+    return OmegaPromise.resolve();
+  }
 
-  ChromeOptions.prototype._requestMonitor = null;
-
-  ChromeOptions.prototype._monitorWebRequests = false;
-
-  ChromeOptions.prototype._tabRequestInfoPorts = null;
-
-  ChromeOptions.prototype.setMonitorWebRequests = function(enabled) {
-    var wildcardForReq;
+  setMonitorWebRequests(enabled: boolean) {
     this._monitorWebRequests = enabled;
-    if (enabled && (this._requestMonitor == null)) {
+    if (enabled && this._requestMonitor == null) {
       this._tabRequestInfoPorts = {};
-      wildcardForReq = function(req) {
+      const wildcardForReq = (req: {url: string}) => {
         return OmegaPac.wildcardForUrl(req.url);
       };
       this._requestMonitor = new WebRequestMonitor(wildcardForReq);
-      this._requestMonitor.watchTabs((function(_this) {
-        return function(tabId, info) {
-          var badge, ref;
-          if (!_this._monitorWebRequests) {
-            return;
-          }
-          if (info.errorCount > 0) {
-            info.badgeSet = true;
-            badge = {
-              text: info.errorCount.toString(),
-              color: '#f0ad4e'
-            };
-            actionApi().setBadgeText({
-              text: badge.text,
-              tabId: tabId
-            });
-            actionApi().setBadgeBackgroundColor({
-              color: badge.color,
-              tabId: tabId
-            });
-          } else if (info.badgeSet) {
-            info.badgeSet = false;
-            actionApi().setBadgeText({
-              text: '',
-              tabId: tabId
-            });
-          }
-          return (ref = _this._tabRequestInfoPorts[tabId]) != null ? ref.postMessage({
-            errorCount: info.errorCount,
-            summary: info.summary
-          }) : void 0;
-        };
-      })(this));
-      return chrome.runtime.onConnect.addListener((function(_this) {
-        return function(rawPort) {
-          var port, tabId;
-          if (rawPort.name !== 'tabRequestInfo') {
-            return;
-          }
-          if (!_this._monitorWebRequests) {
-            return;
-          }
-          tabId = null;
-          port = new ChromePort(rawPort);
-          port.onMessage.addListener(function(msg) {
-            var info;
-            tabId = msg.tabId;
-            _this._tabRequestInfoPorts[tabId] = port;
-            info = _this._requestMonitor.tabInfo[tabId];
-            if (info) {
-              return port.postMessage({
-                errorCount: info.errorCount,
-                summary: info.summary
-              });
-            }
+      this._requestMonitor.watchTabs((tabId: number, info: Record<string, any>) => {
+        if (!this._monitorWebRequests) {
+          return;
+        }
+        if (info.errorCount > 0) {
+          info.badgeSet = true;
+          const badge = {
+            text: info.errorCount.toString(),
+            color: '#f0ad4e'
+          };
+          actionApi().setBadgeText({
+            text: badge.text,
+            tabId
           });
-          return port.onDisconnect.addListener(function() {
-            if (tabId != null) {
-              return delete _this._tabRequestInfoPorts[tabId];
-            }
+          actionApi().setBadgeBackgroundColor({
+            color: badge.color,
+            tabId
           });
-        };
-      })(this));
-    }
-  };
-
-  ChromeOptions.prototype._alarms = null;
-
-  ChromeOptions.prototype.schedule = function(name, periodInMinutes, callback) {
-    name = 'omega.' + name;
-    if (typeof _alarms === "undefined" || _alarms === null) {
-      this._alarms = {};
-      chrome.alarms.onAlarm.addListener((function(_this) {
-        return function(alarm) {
-          var base, name1;
-          return typeof (base = _this._alarms)[name1 = alarm.name] === "function" ? base[name1]() : void 0;
-        };
-      })(this));
-    }
-    if (periodInMinutes < 0) {
-      delete this._alarms[name];
-      chrome.alarms.clear(name);
-    } else {
-      this._alarms[name] = callback;
-      chrome.alarms.create(name, {
-        periodInMinutes: periodInMinutes
+        } else if (info.badgeSet) {
+          info.badgeSet = false;
+          actionApi().setBadgeText({
+            text: '',
+            tabId
+          });
+        }
+        return this._tabRequestInfoPorts?.[tabId]?.postMessage({
+          errorCount: info.errorCount,
+          summary: info.summary
+        });
+      });
+      return chrome.runtime.onConnect.addListener((rawPort: {name: string}) => {
+        if (rawPort.name !== 'tabRequestInfo') {
+          return;
+        }
+        if (!this._monitorWebRequests) {
+          return;
+        }
+        let tabId: number | null = null;
+        const port = new ChromePort(rawPort);
+        port.onMessage.addListener((msg: {tabId: number}) => {
+          tabId = msg.tabId;
+          if (this._tabRequestInfoPorts) {
+            this._tabRequestInfoPorts[tabId] = port;
+          }
+          const info = this._requestMonitor.tabInfo[tabId];
+          if (info) {
+            return port.postMessage({
+              errorCount: info.errorCount,
+              summary: info.summary
+            });
+          }
+        });
+        return port.onDisconnect.addListener(() => {
+          if (tabId != null && this._tabRequestInfoPorts) {
+            return delete this._tabRequestInfoPorts[tabId];
+          }
+        });
       });
     }
-    return Promise.resolve();
-  };
+  }
 
-  ChromeOptions.prototype.printFixedProfile = function(profile) {
-    var i, len, pacResult, ref, result, scheme;
-    if (profile.profileType !== 'FixedProfile') {
-      return;
+  schedule(name: string, periodInMinutes: number, callback: () => void) {
+    name = `omega.${name}`;
+    const root = globalThis as typeof globalThis & {_alarms?: unknown};
+    if (typeof root._alarms === 'undefined' || root._alarms === null) {
+      this._alarms = {};
+      chrome.alarms.onAlarm.addListener((alarm: {name: string}) => {
+        const scheduled = this._alarms?.[alarm.name];
+        return typeof scheduled === 'function' ? scheduled() : undefined;
+      });
     }
-    result = '';
-    ref = OmegaPac.Profiles.schemes;
-    for (i = 0, len = ref.length; i < len; i++) {
-      scheme = ref[i];
+    if (periodInMinutes < 0) {
+      delete this._alarms?.[name];
+      chrome.alarms.clear(name);
+    } else {
+      if (this._alarms) {
+        this._alarms[name] = callback;
+      }
+      chrome.alarms.create(name, {
+        periodInMinutes
+      });
+    }
+    return OmegaPromise.resolve();
+  }
+
+  printFixedProfile(profile: Profile) {
+    if (profile.profileType !== 'FixedProfile') {
+      return undefined;
+    }
+    let result = '';
+    for (const scheme of OmegaPac.Profiles.schemes) {
       if (!profile[scheme.prop]) {
         continue;
       }
-      pacResult = OmegaPac.Profiles.pacResult(profile[scheme.prop]);
+      const pacResult = OmegaPac.Profiles.pacResult(profile[scheme.prop]);
       if (scheme.scheme) {
-        result += scheme.scheme + ": " + pacResult + "\n";
+        result += `${scheme.scheme}: ${pacResult}\n`;
       } else {
-        result += pacResult + "\n";
+        result += `${pacResult}\n`;
       }
     }
     result || (result = chrome.i18n.getMessage('browserAction_profileDetails_DirectProfile'));
     return result;
-  };
+  }
 
-  ChromeOptions.prototype.printProfile = function(profile) {
-    var type;
-    type = profile.profileType;
+  printProfile(profile: Profile) {
+    let type = profile.profileType || '';
     if (type.indexOf('RuleListProfile') >= 0) {
       type = 'RuleListProfile';
     }
     if (type === 'FixedProfile') {
       return this.printFixedProfile(profile);
-    } else if (type === 'PacProfile' && profile.pacUrl) {
-      return profile.pacUrl;
-    } else {
-      return chrome.i18n.getMessage('browserAction_profileDetails_' + type) || null;
     }
-  };
+    if (type === 'PacProfile' && profile.pacUrl) {
+      return profile.pacUrl;
+    }
+    return chrome.i18n.getMessage(`browserAction_profileDetails_${type}`) || null;
+  }
 
-  ChromeOptions.prototype.upgrade = function(options, changes) {
-    return ChromeOptions.__super__.upgrade.call(this, options)["catch"]((function(_this) {
-      return function(err) {
-        var getOldOptions;
-        if (options != null ? options['schemaVersion'] : void 0) {
-          return Promise.reject(err);
+  upgrade(options: Record<string, any> | null | undefined, changes?: Record<string, any>) {
+    return super.upgrade(options).catch((err: unknown) => {
+      if (options?.schemaVersion) {
+        return OmegaPromise.reject(err);
+      }
+      let getOldOptions = this.switchySharp ? this.switchySharp.getOptions().timeout(1000) : OmegaPromise.reject();
+      getOldOptions = getOldOptions.catch(() => {
+        if (options?.config) {
+          return OmegaPromise.resolve(options);
         }
-        getOldOptions = _this.switchySharp ? _this.switchySharp.getOptions().timeout(1000) : Promise.reject();
-        getOldOptions = getOldOptions["catch"](function() {
-          if (options != null ? options['config'] : void 0) {
-            return Promise.resolve(options);
-          } else if (localStorage['config']) {
-            return Promise.resolve(localStorage);
-          } else {
-            return Promise.reject(new OmegaTarget.Options.NoOptionsError());
-          }
+        if (localStorage.config) {
+          return OmegaPromise.resolve(localStorage);
+        }
+        return OmegaPromise.reject(new OmegaTarget.Options.NoOptionsError());
+      });
+      return getOldOptions.then((oldOptions: Record<string, string>) => {
+        const i18n = {
+          upgrade_profile_auto: chrome.i18n.getMessage('upgrade_profile_auto')
+        };
+        let upgraded;
+        try {
+          upgraded = require('./upgrade')(oldOptions, i18n);
+        } catch (error) {
+          this.log.error(error);
+          return OmegaPromise.reject(error);
+        }
+        if (localStorage.config) {
+          Object.getPrototypeOf(localStorage).clear.call(localStorage);
+        }
+        this._state.set({
+          firstRun: 'upgrade'
         });
-        return getOldOptions.then(function(oldOptions) {
-          var ex, i18n, upgraded;
-          i18n = {
-            upgrade_profile_auto: chrome.i18n.getMessage('upgrade_profile_auto')
-          };
-          try {
-            upgraded = require('./upgrade')(oldOptions, i18n);
-          } catch (error1) {
-            ex = error1;
-            _this.log.error(ex);
-            return Promise.reject(ex);
-          }
-          if (localStorage['config']) {
-            Object.getPrototypeOf(localStorage).clear.call(localStorage);
-          }
-          _this._state.set({
-            'firstRun': 'upgrade'
-          });
-          return _this && ChromeOptions.__super__.upgrade.call(_this, upgraded, upgraded);
-        });
-      };
-    })(this));
-  };
+        return super.upgrade(upgraded, upgraded);
+      });
+    });
+  }
 
-  ChromeOptions.prototype.onFirstRun = function(reason) {
+  onFirstRun(_reason: string) {
     return chrome.tabs.create({
       url: chrome.runtime.getURL('options.html')
     });
-  };
+  }
 
-  ChromeOptions.prototype.getPageInfo = function(arg) {
-    var errorCount, getBadge, getInspectUrl, ref, ref1, result, summary, tabId, tabInfo, url;
-    tabId = arg.tabId, url = arg.url;
-    tabInfo = (ref = this._requestMonitor) != null ? ref.tabInfo[tabId] : void 0;
-    errorCount = (ref1 = tabInfo) != null ? ref1.errorCount : void 0;
-    summary = tabInfo != null ? tabInfo.summary : void 0;
-    result = errorCount ? {
-      errorCount: errorCount,
-      summary: summary
+  getPageInfo({tabId, url}: PageInfoArgs) {
+    const tabInfo = this._requestMonitor?.tabInfo[tabId];
+    const errorCount = tabInfo?.errorCount;
+    const summary = tabInfo?.summary;
+    const result = errorCount ? {
+      errorCount,
+      summary
     } : null;
-    getBadge = new Promise(function(resolve, reject) {
+    const getBadge = new OmegaPromise((resolve: (value: string) => void) => {
       if (actionApi().getBadgeText == null) {
         resolve('');
         return;
       }
       return actionApi().getBadgeText({
-        tabId: tabId
-      }, function(result) {
-        return resolve(result);
+        tabId
+      }, (badgeText: string) => {
+        return resolve(badgeText);
       });
     });
-    getInspectUrl = this._state.get({
+    const getInspectUrl = this._state.get({
       inspectUrl: ''
     });
-    return Promise.join(getBadge, getInspectUrl, (function(_this) {
-      return function(badge, arg1) {
-        var domain, errorPagePrefix, inspectUrl;
-        inspectUrl = arg1.inspectUrl;
-        if (badge === '#' && inspectUrl) {
-          url = inspectUrl;
-        } else {
-          _this.clearBadge();
-        }
-        if (!url) {
-          return result;
-        }
-        if (url.substr(0, 6) === 'chrome') {
-          errorPagePrefix = 'chrome://errorpage/';
-          if (url.substr(0, errorPagePrefix.length) === errorPagePrefix) {
-            url = querystring.parse(url.substr(url.indexOf('?') + 1)).lasturl;
-            if (!url) {
-              return result;
-            }
-          } else {
+    return OmegaPromise.join(getBadge, getInspectUrl, (badge: string, state: {inspectUrl?: string}) => {
+      const inspectUrl = state.inspectUrl;
+      if (badge === '#' && inspectUrl) {
+        url = inspectUrl;
+      } else {
+        this.clearBadge();
+      }
+      if (!url) {
+        return result;
+      }
+      if (url.substr(0, 6) === 'chrome') {
+        const errorPagePrefix = 'chrome://errorpage/';
+        if (url.substr(0, errorPagePrefix.length) === errorPagePrefix) {
+          url = querystring.parse(url.substr(url.indexOf('?') + 1)).lasturl;
+          if (!url) {
             return result;
           }
-        }
-        if (url.substr(0, 6) === 'about:') {
+        } else {
           return result;
         }
-        if (url.substr(0, 4) === 'moz-') {
-          return result;
-        }
-        domain = OmegaPac.getBaseDomain(Url.parse(url).hostname);
-        return {
-          url: url,
-          domain: domain,
-          tempRuleProfileName: _this.queryTempRule(domain),
-          errorCount: errorCount,
-          summary: summary
-        };
+      }
+      if (url.substr(0, 6) === 'about:') {
+        return result;
+      }
+      if (url.substr(0, 4) === 'moz-') {
+        return result;
+      }
+      const domain = OmegaPac.getBaseDomain(Url.parse(url).hostname);
+      return {
+        url,
+        domain,
+        tempRuleProfileName: this.queryTempRule(domain),
+        errorCount,
+        summary
       };
-    })(this));
-  };
+    });
+  }
+}
 
-  return ChromeOptions;
-
-})(OmegaTarget.Options);
-
-module.exports = ChromeOptions;
-
-export {};
+export = ChromeOptions;

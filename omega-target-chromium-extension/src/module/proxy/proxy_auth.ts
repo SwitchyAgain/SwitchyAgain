@@ -1,21 +1,58 @@
-// @ts-nocheck
-var OmegaPac, OmegaTarget, Promise, ProxyAuth;
+const OmegaTarget = require('omega-target');
+const OmegaPac = OmegaTarget.OmegaPac;
 
-OmegaTarget = require('omega-target');
+type Log = {
+  error: (...args: unknown[]) => void;
+  log: (...args: unknown[]) => void;
+};
 
-OmegaPac = OmegaTarget.OmegaPac;
+type ProxyConfig = {
+  host: string;
+  port: number | string;
+};
 
-Promise = OmegaTarget.Promise;
+type ProxyCredentials = {
+  password?: string;
+  username?: string;
+};
 
-module.exports = ProxyAuth = (function() {
-  function ProxyAuth(log) {
+type Profile = Record<string, unknown> & {
+  auth?: Record<string, ProxyCredentials | undefined>;
+  name?: string;
+};
+
+type ProxyAuthEntry = {
+  auth: ProxyCredentials;
+  config?: ProxyConfig;
+  name: string;
+};
+
+type AuthRequest = {
+  authTries: number;
+};
+
+type AuthDetails = {
+  challenger: ProxyConfig;
+  isProxy?: boolean;
+  requestId: string;
+};
+
+class ProxyAuth {
+  listening: boolean;
+  log: Log;
+  private _fallbacks: ProxyAuthEntry[];
+  private _proxies: Record<string, ProxyAuthEntry[]>;
+  private _requests: Record<string, AuthRequest>;
+
+  constructor(log: Log) {
     this._requests = {};
+    this._proxies = {};
+    this._fallbacks = [];
     this.log = log;
+    this.listening = false;
   }
 
-  ProxyAuth.prototype.listening = false;
-
-  ProxyAuth.prototype.listen = function() {
+  listen() {
     if (this.listening) {
       return;
     }
@@ -36,94 +73,81 @@ module.exports = ProxyAuth = (function() {
     chrome.webRequest.onErrorOccurred.addListener(this._requestDone.bind(this), {
       urls: ['<all_urls>']
     });
-    return this.listening = true;
-  };
+    this.listening = true;
+  }
 
-  ProxyAuth.prototype._keyForProxy = function(proxy) {
-    return (proxy.host.toLowerCase()) + ":" + proxy.port;
-  };
+  private _keyForProxy(proxy: ProxyConfig) {
+    return `${proxy.host.toLowerCase()}:${proxy.port}`;
+  }
 
-  ProxyAuth.prototype.setProxies = function(profiles) {
-    var auth, fallback, i, j, key, len, len1, list, profile, proxy, ref, ref1, ref2, results, scheme;
+  setProxies(profiles: Profile[]) {
     this._proxies = {};
     this._fallbacks = [];
-    results = [];
-    for (i = 0, len = profiles.length; i < len; i++) {
-      profile = profiles[i];
+    const results = [];
+    for (const profile of profiles) {
       if (!profile.auth) {
         continue;
       }
-      ref = OmegaPac.Profiles.schemes;
-      for (j = 0, len1 = ref.length; j < len1; j++) {
-        scheme = ref[j];
-        if (!profile[scheme.prop]) {
+      for (const scheme of OmegaPac.Profiles.schemes) {
+        const prop = scheme.prop as string;
+        if (!profile[prop]) {
           continue;
         }
-        auth = (ref1 = profile.auth) != null ? ref1[scheme.prop] : void 0;
+        const auth = profile.auth?.[prop];
         if (!auth) {
           continue;
         }
-        proxy = profile[scheme.prop];
-        key = this._keyForProxy(proxy);
-        list = this._proxies[key];
+        const proxy = profile[prop] as ProxyConfig;
+        const key = this._keyForProxy(proxy);
+        let list = this._proxies[key];
         if (list == null) {
           this._proxies[key] = list = [];
         }
         list.push({
           config: proxy,
-          auth: auth,
-          name: profile.name + '.' + scheme.prop
+          auth,
+          name: `${profile.name}.${prop}`
         });
       }
-      fallback = (ref2 = profile.auth) != null ? ref2['all'] : void 0;
+      const fallback = profile.auth?.all;
       if (fallback != null) {
         results.push(this._fallbacks.push({
           auth: fallback,
-          name: profile.name + '.' + 'all'
+          name: `${profile.name}.all`
         }));
       } else {
-        results.push(void 0);
+        results.push(undefined);
       }
     }
     return results;
-  };
+  }
 
-  ProxyAuth.prototype._proxies = {};
-
-  ProxyAuth.prototype._fallbacks = [];
-
-  ProxyAuth.prototype._requests = null;
-
-  ProxyAuth.prototype.authHandler = function(details, callback) {
-    var key, list, listLen, proxy, req, respond;
-    respond = function(result) {
+  authHandler(details: AuthDetails, callback?: (result: Record<string, unknown>) => void) {
+    const respond = (result: Record<string, unknown>) => {
       if (callback != null) {
         return callback(result);
-      } else {
-        return result;
       }
+      return result;
     };
     if (!details.isProxy) {
       return respond({});
     }
-    req = this._requests[details.requestId];
+    let req = this._requests[details.requestId];
     if (req == null) {
       this._requests[details.requestId] = req = {
         authTries: 0
       };
     }
-    key = this._keyForProxy({
+    const key = this._keyForProxy({
       host: details.challenger.host,
       port: details.challenger.port
     });
-    list = this._proxies[key];
-    listLen = list != null ? list.length : 0;
-    if (req.authTries < listLen) {
-      proxy = list[req.authTries];
-    } else {
-      proxy = this._fallbacks[req.authTries - listLen];
-    }
-    this.log.log('ProxyAuth', key, req.authTries, proxy != null ? proxy.name : void 0);
+    const list = this._proxies[key];
+    const listLen = list != null ? list.length : 0;
+    const proxy = req.authTries < listLen
+      ? list[req.authTries]
+      : this._fallbacks[req.authTries - listLen];
+    this.log.log('ProxyAuth', key, req.authTries, proxy?.name);
     if (proxy == null) {
       return respond({});
     }
@@ -131,14 +155,11 @@ module.exports = ProxyAuth = (function() {
     return respond({
       authCredentials: proxy.auth
     });
-  };
+  }
 
-  ProxyAuth.prototype._requestDone = function(details) {
+  private _requestDone(details: {requestId: string}) {
     return delete this._requests[details.requestId];
-  };
+  }
+}
 
-  return ProxyAuth;
-
-})();
-
-export {};
+export = ProxyAuth;

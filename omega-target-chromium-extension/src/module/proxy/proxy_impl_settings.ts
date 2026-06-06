@@ -1,50 +1,86 @@
-// @ts-nocheck
-var OmegaPac, OmegaTarget, Promise, ProxyImpl, SettingsProxyImpl, chromeApiPromisify,
-  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-  hasProp = {}.hasOwnProperty;
+const OmegaTarget = require('omega-target');
+const OmegaPac = OmegaTarget.OmegaPac;
+const {chromeApiPromisify} = require('../chrome_api');
+const ProxyImpl = require('./proxy_impl');
 
-OmegaTarget = require('omega-target');
+type ProxyServer = {
+  host?: string;
+  port?: number;
+  scheme?: string;
+};
 
-OmegaPac = OmegaTarget.OmegaPac;
+type Condition = {
+  pattern?: string;
+  [key: string]: unknown;
+};
 
-Promise = OmegaTarget.Promise;
+type Profile = Record<string, unknown> & {
+  bypassList?: Condition[];
+  fallbackProxy?: ProxyServer;
+  name?: string;
+  pacScript?: string;
+  pacUrl?: string;
+  profileType?: string;
+};
 
-chromeApiPromisify = require('../chrome_api').chromeApiPromisify;
+type ProxyRules = Record<string, unknown> & {
+  bypassList?: string[];
+  fallbackProxy?: ProxyServer;
+  proxyForFtp?: ProxyServer;
+  proxyForHttp?: ProxyServer;
+  proxyForHttps?: ProxyServer;
+  singleProxy?: ProxyServer;
+};
 
-ProxyImpl = require('./proxy_impl');
+type ProxyConfig = {
+  mode?: string;
+  pacScript?: {
+    data?: string;
+    mandatory: boolean;
+    url?: string;
+  };
+  rules?: ProxyRules;
+};
 
-SettingsProxyImpl = (function(superClass) {
-  extend(SettingsProxyImpl, superClass);
+type ExternalProxyDetails = {
+  name?: string;
+  value: {
+    mode: string;
+    pacScript?: {
+      data?: string;
+      url?: string;
+    };
+    rules?: ProxyRules;
+  };
+};
 
-  function SettingsProxyImpl() {
-    return SettingsProxyImpl.__super__.constructor.apply(this, arguments);
+class SettingsProxyImpl extends ProxyImpl {
+  features: string[];
+  private _proxyChangeWatchers: Array<(details: unknown) => unknown> | null;
+
+  constructor(...args: unknown[]) {
+    super(...args);
+    this.features = ['fullUrlHttp', 'pacScript', 'watchProxyChange'];
+    this._proxyChangeWatchers = null;
   }
 
-  SettingsProxyImpl.isSupported = function() {
-    var ref;
-    return (typeof chrome !== "undefined" && chrome !== null ? (ref = chrome.proxy) != null ? ref.settings : void 0 : void 0) != null;
-  };
+  static isSupported() {
+    return chrome?.proxy?.settings != null;
+  }
 
-  SettingsProxyImpl.prototype.features = ['fullUrlHttp', 'pacScript', 'watchProxyChange'];
-
-  SettingsProxyImpl.prototype.applyProfile = function(profile, meta, options) {
-    var config;
-    if (meta == null) {
-      meta = profile;
-    }
+  applyProfile(profile: Profile, meta: Profile = profile, options: unknown) {
     if (profile.profileType === 'SystemProfile') {
-      return chromeApiPromisify(chrome.proxy.settings, 'clear')({}).then((function(_this) {
-        return function() {
-          chrome.proxy.settings.get({}, _this._proxyChangeListener);
-        };
-      })(this));
+      return chromeApiPromisify(chrome.proxy.settings, 'clear')({}).then(() => {
+        chrome.proxy.settings.get({}, this._proxyChangeListener);
+      });
     }
-    config = {};
+
+    let config: ProxyConfig = {};
     if (profile.profileType === 'DirectProfile') {
-      config['mode'] = 'direct';
+      config.mode = 'direct';
     } else if (profile.profileType === 'PacProfile') {
-      config['mode'] = 'pac_script';
-      config['pacScript'] = !profile.pacScript || OmegaPac.Profiles.isFileUrl(profile.pacUrl) ? {
+      config.mode = 'pac_script';
+      config.pacScript = !profile.pacScript || OmegaPac.Profiles.isFileUrl(profile.pacUrl) ? {
         url: profile.pacUrl,
         mandatory: true
       } : {
@@ -54,105 +90,93 @@ SettingsProxyImpl = (function(superClass) {
     } else if (profile.profileType === 'FixedProfile') {
       config = this._fixedProfileConfig(profile);
     } else {
-      config['mode'] = 'pac_script';
-      config['pacScript'] = {
+      config.mode = 'pac_script';
+      config.pacScript = {
         mandatory: true,
         data: this.getProfilePacScript(profile, meta, options)
       };
     }
-    return this.setProxyAuth(profile, options).then(function() {
+
+    return this.setProxyAuth(profile, options).then(() => {
       return chromeApiPromisify(chrome.proxy.settings, 'set')({
         value: config
       });
-    }).then((function(_this) {
-      return function() {
-        chrome.proxy.settings.get({}, _this._proxyChangeListener);
-      };
-    })(this));
-  };
+    }).then(() => {
+      chrome.proxy.settings.get({}, this._proxyChangeListener);
+    });
+  }
 
-  SettingsProxyImpl.prototype._fixedProfileConfig = function(profile) {
-    var bypassList, condition, config, j, k, l, len, len1, len2, protocol, protocolProxySet, protocols, ref, rules;
-    config = {};
-    config['mode'] = 'fixed_servers';
-    rules = {};
-    protocols = ['proxyForHttp', 'proxyForHttps', 'proxyForFtp'];
-    protocolProxySet = false;
-    for (j = 0, len = protocols.length; j < len; j++) {
-      protocol = protocols[j];
-      if (!(profile[protocol] != null)) {
+  private _fixedProfileConfig(profile: Profile) {
+    const config: ProxyConfig = {
+      mode: 'fixed_servers'
+    };
+    const rules: ProxyRules = {};
+    const protocols = ['proxyForHttp', 'proxyForHttps', 'proxyForFtp'];
+    let protocolProxySet = false;
+    for (const protocol of protocols) {
+      if (profile[protocol] == null) {
         continue;
       }
       rules[protocol] = profile[protocol];
       protocolProxySet = true;
     }
+
     if (profile.fallbackProxy) {
       if (profile.fallbackProxy.scheme === 'http') {
         if (!protocolProxySet) {
-          rules['singleProxy'] = profile.fallbackProxy;
+          rules.singleProxy = profile.fallbackProxy;
         } else {
-          for (k = 0, len1 = protocols.length; k < len1; k++) {
-            protocol = protocols[k];
+          for (const protocol of protocols) {
             if (rules[protocol] == null) {
               rules[protocol] = JSON.parse(JSON.stringify(profile.fallbackProxy));
             }
           }
         }
       } else {
-        rules['fallbackProxy'] = profile.fallbackProxy;
+        rules.fallbackProxy = profile.fallbackProxy;
       }
     } else if (!protocolProxySet) {
-      config['mode'] = 'direct';
+      config.mode = 'direct';
     }
-    if (config['mode'] !== 'direct') {
-      rules['bypassList'] = bypassList = [];
-      ref = profile.bypassList;
-      for (l = 0, len2 = ref.length; l < len2; l++) {
-        condition = ref[l];
+
+    if (config.mode !== 'direct') {
+      const bypassList: string[] = [];
+      for (const condition of profile.bypassList || []) {
         bypassList.push(this._formatBypassItem(condition));
       }
-      config['rules'] = rules;
+      rules.bypassList = bypassList;
+      config.rules = rules;
     }
     return config;
-  };
+  }
 
-  SettingsProxyImpl.prototype._formatBypassItem = function(condition) {
-    var i, str;
-    str = OmegaPac.Conditions.str(condition);
-    i = str.indexOf(' ');
-    return str.substr(i + 1);
-  };
+  private _formatBypassItem(condition: Condition) {
+    const str = OmegaPac.Conditions.str(condition);
+    const index = str.indexOf(' ');
+    return str.substr(index + 1);
+  }
 
-  SettingsProxyImpl.prototype._proxyChangeWatchers = null;
+  private _proxyChangeListener(details: unknown) {
+    const watchers = this._proxyChangeWatchers || [];
+    return watchers.map((watcher) => watcher(details));
+  }
 
-  SettingsProxyImpl.prototype._proxyChangeListener = function(details) {
-    var j, len, ref, ref1, results, watcher;
-    ref1 = (ref = this._proxyChangeWatchers) != null ? ref : [];
-    results = [];
-    for (j = 0, len = ref1.length; j < len; j++) {
-      watcher = ref1[j];
-      results.push(watcher(details));
-    }
-    return results;
-  };
-
-  SettingsProxyImpl.prototype.watchProxyChange = function(callback) {
-    var ref, ref1;
+  watchProxyChange(callback: (details: unknown) => unknown) {
     if (this._proxyChangeWatchers == null) {
       this._proxyChangeWatchers = [];
-      if ((typeof chrome !== "undefined" && chrome !== null ? (ref = chrome.proxy) != null ? (ref1 = ref.settings) != null ? ref1.onChange : void 0 : void 0 : void 0) != null) {
+      if (chrome?.proxy?.settings?.onChange != null) {
         chrome.proxy.settings.onChange.addListener(this._proxyChangeListener.bind(this));
       }
     }
     this._proxyChangeWatchers.push(callback);
-  };
+  }
 
-  SettingsProxyImpl.prototype.parseExternalProfile = function(details, options) {
-    var bypassCount, bypassSet, host, j, k, l, len, len1, len2, len3, m, pattern, profile, prop, props, proxies, ref, ref1, result, url;
-    if (details.name) {
+  parseExternalProfile(details: ExternalProxyDetails | Profile, options?: unknown) {
+    if ((details as Profile).name) {
       return details;
     }
-    switch (details.value.mode) {
+    const externalDetails = details as ExternalProxyDetails;
+    switch (externalDetails.value.mode) {
       case 'system':
         return OmegaPac.Profiles.byName('system');
       case 'direct':
@@ -164,169 +188,152 @@ SettingsProxyImpl = (function(superClass) {
           pacUrl: 'http://wpad/wpad.dat'
         });
       case 'pac_script':
-        url = details.value.pacScript.url;
-        if (url) {
-          profile = null;
-          OmegaPac.Profiles.each(options, function(key, p) {
-            if (p.profileType === 'PacProfile' && p.pacUrl === url) {
-              return profile = p;
-            }
-          });
-          return profile != null ? profile : OmegaPac.Profiles.create({
-            profileType: 'PacProfile',
-            name: '',
-            pacUrl: url
-          });
-        } else {
-          return (function() {
-            var _, end, i, magic, profileName, revision, script, tokens;
-            profile = null;
-            script = details.value.pacScript.data;
-            OmegaPac.Profiles.each(options, function(key, p) {
-              if (p.profileType === 'PacProfile' && p.pacScript === script) {
-                return profile = p;
-              }
-            });
-            if (profile) {
-              return profile;
-            }
-            script = script.trim();
-            magic = '/*OmegaProfile*';
-            if (script.substr(0, magic.length) === magic) {
-              end = script.indexOf('*/');
-              if (end > 0) {
-                i = magic.length;
-                tokens = script.substring(magic.length, end).split('*');
-                profileName = tokens[0], revision = tokens[1];
-                try {
-                  profileName = JSON.parse(profileName);
-                } catch (error) {
-                  _ = error;
-                  profileName = null;
-                }
-                if (profileName && revision) {
-                  profile = OmegaPac.Profiles.byName(profileName, options);
-                  if (OmegaPac.Revision.compare(profile.revision, revision) === 0) {
-                    return profile;
-                  }
-                }
-              }
-            }
-            return OmegaPac.Profiles.create({
-              profileType: 'PacProfile',
-              name: '',
-              pacScript: script
-            });
-          })();
-        }
-        break;
+        return this._parsePacScriptExternalProfile(externalDetails, options);
       case 'fixed_servers':
-        props = ['proxyForHttp', 'proxyForHttps', 'proxyForFtp', 'fallbackProxy', 'singleProxy'];
-        proxies = {};
-        for (j = 0, len = props.length; j < len; j++) {
-          prop = props[j];
-          result = OmegaPac.Profiles.pacResult(details.value.rules[prop]);
-          if (prop === 'singleProxy' && (details.value.rules[prop] != null)) {
-            proxies['fallbackProxy'] = result;
-          } else {
-            proxies[prop] = result;
-          }
-        }
-        bypassSet = {};
-        bypassCount = 0;
-        if (details.value.rules.bypassList) {
-          ref = details.value.rules.bypassList;
-          for (k = 0, len1 = ref.length; k < len1; k++) {
-            pattern = ref[k];
-            bypassSet[pattern] = true;
-            bypassCount++;
-          }
-        }
-        if (bypassSet['<local>']) {
-          ref1 = OmegaPac.Conditions.localHosts;
-          for (l = 0, len2 = ref1.length; l < len2; l++) {
-            host = ref1[l];
-            if (!bypassSet[host]) {
-              continue;
-            }
-            delete bypassSet[host];
-            bypassCount--;
-          }
-        }
-        profile = null;
-        OmegaPac.Profiles.each(options, (function(_this) {
-          return function(key, p) {
-            var condition, len3, len4, m, n, ref2, rules;
-            if (p.profileType !== 'FixedProfile') {
-              return;
-            }
-            if (p.bypassList.length !== bypassCount) {
-              return;
-            }
-            ref2 = p.bypassList;
-            for (m = 0, len3 = ref2.length; m < len3; m++) {
-              condition = ref2[m];
-              if (!bypassSet[condition.pattern]) {
-                return;
-              }
-            }
-            rules = _this._fixedProfileConfig(p).rules;
-            if (rules['singleProxy']) {
-              rules['fallbackProxy'] = rules['singleProxy'];
-              delete rules['singleProxy'];
-            }
-            if (rules == null) {
-              return;
-            }
-            for (n = 0, len4 = props.length; n < len4; n++) {
-              prop = props[n];
-              if (rules[prop] || proxies[prop]) {
-                if (OmegaPac.Profiles.pacResult(rules[prop]) !== proxies[prop]) {
-                  return;
-                }
-              }
-            }
-            return profile = p;
-          };
-        })(this));
-        if (profile) {
-          return profile;
-        } else {
-          profile = OmegaPac.Profiles.create({
-            profileType: 'FixedProfile',
-            name: ''
-          });
-          for (m = 0, len3 = props.length; m < len3; m++) {
-            prop = props[m];
-            if (details.value.rules[prop]) {
-              if (prop === 'singleProxy') {
-                profile['fallbackProxy'] = details.value.rules[prop];
-              } else {
-                profile[prop] = details.value.rules[prop];
-              }
-            }
-          }
-          profile.bypassList = (function() {
-            var results;
-            results = [];
-            for (pattern in bypassSet) {
-              if (!hasProp.call(bypassSet, pattern)) continue;
-              results.push({
-                conditionType: 'BypassCondition',
-                pattern: pattern
-              });
-            }
-            return results;
-          })();
-          return profile;
-        }
+        return this._parseFixedExternalProfile(externalDetails, options);
     }
-  };
+  }
 
-  return SettingsProxyImpl;
+  private _parsePacScriptExternalProfile(details: ExternalProxyDetails, options: unknown) {
+    const url = details.value.pacScript?.url;
+    if (url) {
+      let profile: Profile | null = null;
+      OmegaPac.Profiles.each(options, (_key: string, candidate: Profile) => {
+        if (candidate.profileType === 'PacProfile' && candidate.pacUrl === url) {
+          profile = candidate;
+        }
+      });
+      return profile != null ? profile : OmegaPac.Profiles.create({
+        profileType: 'PacProfile',
+        name: '',
+        pacUrl: url
+      });
+    }
 
-})(ProxyImpl);
+    let profile: Profile | null = null;
+    let script = details.value.pacScript?.data || '';
+    OmegaPac.Profiles.each(options, (_key: string, candidate: Profile) => {
+      if (candidate.profileType === 'PacProfile' && candidate.pacScript === script) {
+        profile = candidate;
+      }
+    });
+    if (profile) {
+      return profile;
+    }
 
-module.exports = SettingsProxyImpl;
+    script = script.trim();
+    const magic = '/*OmegaProfile*';
+    if (script.substr(0, magic.length) === magic) {
+      const end = script.indexOf('*/');
+      if (end > 0) {
+        const tokens = script.substring(magic.length, end).split('*');
+        let profileName = tokens[0] as string | null;
+        const revision = tokens[1];
+        try {
+          profileName = JSON.parse(profileName);
+        } catch (error) {
+          profileName = null;
+        }
+        if (profileName && revision) {
+          profile = OmegaPac.Profiles.byName(profileName, options);
+          if (OmegaPac.Revision.compare(profile.revision, revision) === 0) {
+            return profile;
+          }
+        }
+      }
+    }
 
-export {};
+    return OmegaPac.Profiles.create({
+      profileType: 'PacProfile',
+      name: '',
+      pacScript: script
+    });
+  }
+
+  private _parseFixedExternalProfile(details: ExternalProxyDetails, options: unknown) {
+    const props = ['proxyForHttp', 'proxyForHttps', 'proxyForFtp', 'fallbackProxy', 'singleProxy'];
+    const rules = details.value.rules || {};
+    const proxies: Record<string, unknown> = {};
+    for (const prop of props) {
+      const result = OmegaPac.Profiles.pacResult(rules[prop]);
+      if (prop === 'singleProxy' && rules[prop] != null) {
+        proxies.fallbackProxy = result;
+      } else {
+        proxies[prop] = result;
+      }
+    }
+
+    const bypassSet: Record<string, boolean> = {};
+    let bypassCount = 0;
+    if (rules.bypassList) {
+      for (const pattern of rules.bypassList) {
+        bypassSet[pattern] = true;
+        bypassCount++;
+      }
+    }
+    if (bypassSet['<local>']) {
+      for (const host of OmegaPac.Conditions.localHosts) {
+        if (!bypassSet[host]) {
+          continue;
+        }
+        delete bypassSet[host];
+        bypassCount--;
+      }
+    }
+
+    let profile: Profile | null = null;
+    OmegaPac.Profiles.each(options, (_key: string, candidate: Profile) => {
+      if (candidate.profileType !== 'FixedProfile') {
+        return;
+      }
+      if ((candidate.bypassList || []).length !== bypassCount) {
+        return;
+      }
+      for (const condition of candidate.bypassList || []) {
+        if (!condition.pattern || !bypassSet[condition.pattern]) {
+          return;
+        }
+      }
+      const candidateRules = this._fixedProfileConfig(candidate).rules;
+      if (!candidateRules) {
+        return;
+      }
+      if (candidateRules.singleProxy) {
+        candidateRules.fallbackProxy = candidateRules.singleProxy;
+        delete candidateRules.singleProxy;
+      }
+      for (const prop of props) {
+        if (candidateRules[prop] || proxies[prop]) {
+          if (OmegaPac.Profiles.pacResult(candidateRules[prop]) !== proxies[prop]) {
+            return;
+          }
+        }
+      }
+      profile = candidate;
+    });
+    if (profile) {
+      return profile;
+    }
+
+    profile = OmegaPac.Profiles.create({
+      profileType: 'FixedProfile',
+      name: ''
+    });
+    for (const prop of props) {
+      if (rules[prop]) {
+        if (prop === 'singleProxy') {
+          profile.fallbackProxy = rules[prop] as ProxyServer;
+        } else {
+          profile[prop] = rules[prop];
+        }
+      }
+    }
+    profile.bypassList = Object.keys(bypassSet).map((pattern) => ({
+      conditionType: 'BypassCondition',
+      pattern
+    }));
+    return profile;
+  }
+}
+
+export = SettingsProxyImpl;

@@ -1,231 +1,290 @@
-// @ts-nocheck
-var OmegaPac, OmegaTarget,
-  hasProp = {}.hasOwnProperty;
+const OmegaTarget = require('omega-target');
+const OmegaPac = OmegaTarget.OmegaPac;
 
-OmegaTarget = require('omega-target');
+type LegacyOptions = Record<string, string | undefined>;
+type Options = Record<string, unknown>;
 
-OmegaPac = OmegaTarget.OmegaPac;
-
-module.exports = function(oldOptions, i18n) {
-  var Buffer, _, auto, boolItems, color, colorTranslations, conditionFromRule, config, defaultRule, exampleFixedProfileName, haslocalPattern, key, name, nameMap, num, oldKey, oldProfile, oldProfiles, options, profile, protocol, quickSwitch, ref, ref1, rule, rulelist, rules, seenFixedProfile, startupId, text, url;
-  config = (function() {
-    try {
-      return JSON.parse(oldOptions['config']);
-    } catch (error) {}
-  })();
-  if (config) {
-    options = typeof changes !== "undefined" && changes !== null ? changes : {};
-    options['schemaVersion'] = 2;
-    boolItems = {
-      '-confirmDeletion': 'confirmDeletion',
-      '-refreshOnProfileChange': 'refreshTab',
-      '-enableQuickSwitch': 'quickSwitch',
-      '-revertProxyChanges': 'preventProxyChanges'
-    };
-    for (key in boolItems) {
-      if (!hasProp.call(boolItems, key)) continue;
-      oldKey = boolItems[key];
-      options[key] = !!config[oldKey];
-    }
-    options['-downloadInterval'] = parseInt(config['ruleListReload']) || 15;
-    auto = OmegaPac.Profiles.create({
-      profileType: 'SwitchProfile',
-      name: i18n.upgrade_profile_auto,
-      color: '#55bb55',
-      defaultProfileName: 'direct'
-    });
-    OmegaPac.Profiles.updateRevision(auto);
-    options[OmegaPac.Profiles.nameAsKey(auto.name)] = auto;
-    rulelist = OmegaPac.Profiles.create({
-      profileType: 'RuleListProfile',
-      name: '__ruleListOf_' + auto.name,
-      color: '#dd6633',
-      format: config['ruleListAutoProxy'] ? 'AutoProxy' : 'Switchy',
-      defaultProfileName: 'direct',
-      sourceUrl: config['ruleListUrl'] || ''
-    });
-    options[OmegaPac.Profiles.nameAsKey(rulelist.name)] = rulelist;
-    auto.defaultProfileName = rulelist.name;
-    nameMap = {
-      'auto': auto.name,
-      'direct': 'direct'
-    };
-    oldProfiles = ((function() {
-      try {
-        return JSON.parse(oldOptions['profiles']);
-      } catch (error) {}
-    })()) || {};
-    colorTranslations = {
-      'blue': '#99ccee',
-      'green': '#99dd99',
-      'red': '#ffaa88',
-      'yellow': '#ffee99',
-      'purple': '#d497ee',
-      '': '#99ccee'
-    };
-    seenFixedProfile = false;
-    for (_ in oldProfiles) {
-      if (!hasProp.call(oldProfiles, _)) continue;
-      oldProfile = oldProfiles[_];
-      profile = null;
-      switch (oldProfile['proxyMode']) {
-        case 'auto':
-          profile = OmegaPac.Profiles.create({
-            profileType: 'PacProfile'
-          });
-          url = oldProfile['proxyConfigUrl'];
-          if (url.substr(0, 5) === 'data:') {
-            text = url.substr(url.indexOf(',') + 1);
-            Buffer = require('buffer').Buffer;
-            text = new Buffer(text, 'base64').toString('utf8');
-            profile.pacScript = text;
-          } else {
-            profile.pacUrl = url;
-          }
-          break;
-        case 'manual':
-          seenFixedProfile = true;
-          profile = OmegaPac.Profiles.create({
-            profileType: 'FixedProfile'
-          });
-          if (!!oldProfile['useSameProxy']) {
-            profile.fallbackProxy = OmegaPac.Profiles.parseHostPort(oldProfile['proxyHttp'], 'http');
-          } else if (oldProfile['proxySocks']) {
-            protocol = oldProfile['socksVersion'] === 5 ? 'socks5' : 'socks4';
-            profile.fallbackProxy = OmegaPac.Profiles.parseHostPort(oldProfile['proxySocks'], protocol);
-          } else {
-            profile.proxyForHttp = OmegaPac.Profiles.parseHostPort(oldProfile['proxyHttp'], 'http');
-            profile.proxyForHttps = OmegaPac.Profiles.parseHostPort(oldProfile['proxyHttps'], 'http');
-            profile.proxyForFtp = OmegaPac.Profiles.parseHostPort(oldProfile['proxyFtp'], 'http');
-          }
-          if (oldProfile['proxyExceptions'] != null) {
-            haslocalPattern = false;
-            profile.bypassList = [];
-            oldProfile['proxyExceptions'].split(';').forEach(function(line) {
-              line = line.trim();
-              if (!line) {
-                return;
-              }
-              if (line === '<local>') {
-                haslocalPattern = true;
-              }
-              return profile.bypassList.push({
-                conditionType: 'BypassCondition',
-                pattern: line
-              });
-            });
-            if (haslocalPattern) {
-              profile.bypassList = profile.bypassList.filter(function(cond) {
-                return OmegaPac.Conditions.localHosts.indexOf(cond.pattern) < 0;
-              });
-            }
-          }
-      }
-      if (profile) {
-        color = oldProfile['color'];
-        profile.color = (ref = colorTranslations[color]) != null ? ref : colorTranslations[''];
-        name = (ref1 = oldProfile['name']) != null ? ref1 : oldProfile['id'];
-        name = name.trim();
-        if (name[0] === '_') {
-          name = 'p' + name;
-        }
-        profile.name = name;
-        num = 1;
-        while (OmegaPac.Profiles.byName(profile.name, options)) {
-          profile.name = name + num;
-          num++;
-        }
-        nameMap[oldProfile['id']] = profile.name;
-        OmegaPac.Profiles.updateRevision(profile);
-        options[OmegaPac.Profiles.nameAsKey(profile.name)] = profile;
-      }
-    }
-    if (!seenFixedProfile) {
-      exampleFixedProfileName = 'Example Profile';
-      options[OmegaPac.Profiles.nameAsKey(exampleFixedProfileName)] = {
-        bypassList: [
-          {
-            pattern: "127.0.0.1",
-            conditionType: "BypassCondition"
-          }, {
-            pattern: "::1",
-            conditionType: "BypassCondition"
-          }, {
-            pattern: "localhost",
-            conditionType: "BypassCondition"
-          }
-        ],
-        profileType: "FixedProfile",
-        name: exampleFixedProfileName,
-        color: "#99ccee",
-        fallbackProxy: {
-          port: 8080,
-          scheme: "http",
-          host: "proxy.example.com"
-        }
-      };
-    }
-    startupId = config['startupProfileId'];
-    options['-startupProfileName'] = nameMap[startupId] || '';
-    quickSwitch = (function() {
-      try {
-        return JSON.parse(oldOptions['quickSwitchProfiles']);
-      } catch (error) {}
-    })();
-    options['-quickSwitchProfiles'] = quickSwitch == null ? [] : quickSwitch.map(function(p) {
-      return nameMap[p];
-    });
-    if (config['ruleListProfileId']) {
-      rulelist.matchProfileName = nameMap[config['ruleListProfileId']] || 'direct';
-    }
-    defaultRule = (function() {
-      try {
-        return JSON.parse(oldOptions['defaultRule']);
-      } catch (error) {}
-    })();
-    if (defaultRule) {
-      rulelist.defaultProfileName = nameMap[defaultRule.profileId] || 'direct';
-      if (!config.ruleListEnabled) {
-        auto.defaultProfileName = rulelist.defaultProfileName;
-      }
-    }
-    OmegaPac.Profiles.updateRevision(rulelist);
-    rules = (function() {
-      try {
-        return JSON.parse(oldOptions['rules']);
-      } catch (error) {}
-    })();
-    if (rules) {
-      conditionFromRule = function(rule) {
-        var pattern;
-        switch (rule['patternType']) {
-          case 'wildcard':
-            pattern = rule['urlPattern'];
-            return OmegaPac.RuleList['Switchy'].conditionFromLegacyWildcard(pattern);
-          default:
-            return {
-              conditionType: 'UrlRegexCondition',
-              pattern: rule['urlPattern']
-            };
-        }
-      };
-      auto.rules = (function() {
-        var results;
-        results = [];
-        for (_ in rules) {
-          if (!hasProp.call(rules, _)) continue;
-          rule = rules[_];
-          results.push({
-            profileName: nameMap[rule['profileId']] || 'direct',
-            condition: conditionFromRule(rule),
-            note: rule.name
-          });
-        }
-        return results;
-      })();
-    }
-    return options;
-  }
+type I18nMessages = {
+  upgrade_profile_auto: string;
 };
 
-export {};
+type LegacyConfig = Record<string, unknown> & {
+  preventProxyChanges?: boolean;
+  quickSwitch?: boolean;
+  refreshTab?: boolean;
+  ruleListAutoProxy?: boolean;
+  ruleListEnabled?: boolean;
+  ruleListProfileId?: string;
+  ruleListReload?: string;
+  ruleListUrl?: string;
+  startupProfileId?: string;
+};
+
+type LegacyProfile = {
+  color?: string;
+  id?: string;
+  name?: string;
+  proxyConfigUrl?: string;
+  proxyExceptions?: string;
+  proxyFtp?: string;
+  proxyHttp?: string;
+  proxyHttps?: string;
+  proxyMode?: string;
+  proxySocks?: string;
+  socksVersion?: number;
+  useSameProxy?: boolean;
+};
+
+type LegacyRule = {
+  name?: string;
+  patternType?: string;
+  profileId?: string;
+  urlPattern?: string;
+};
+
+type Profile = Record<string, unknown> & {
+  bypassList?: Array<{conditionType: string; pattern: string}>;
+  color?: string;
+  defaultProfileName?: string;
+  fallbackProxy?: unknown;
+  format?: string;
+  matchProfileName?: string;
+  name?: string;
+  pacScript?: string;
+  pacUrl?: string;
+  profileType?: string;
+  proxyForFtp?: unknown;
+  proxyForHttp?: unknown;
+  proxyForHttps?: unknown;
+  rules?: Array<{
+    condition: unknown;
+    note?: string;
+    profileName: string;
+  }>;
+  sourceUrl?: string;
+};
+
+function parseJson<T>(value: string | undefined): T | undefined {
+  try {
+    return value == null ? undefined : JSON.parse(value);
+  } catch (error) {
+    return undefined;
+  }
+}
+
+function initialOptions(): Options {
+  const root = globalThis as typeof globalThis & {changes?: Options | null};
+  return root.changes != null ? root.changes : {};
+}
+
+function conditionFromRule(rule: LegacyRule) {
+  switch (rule.patternType) {
+    case 'wildcard':
+      return OmegaPac.RuleList.Switchy.conditionFromLegacyWildcard(rule.urlPattern);
+    default:
+      return {
+        conditionType: 'UrlRegexCondition',
+        pattern: rule.urlPattern
+      };
+  }
+}
+
+function upgradeSwitchyOptions(oldOptions: LegacyOptions, i18n: I18nMessages) {
+  const config = parseJson<LegacyConfig>(oldOptions.config);
+  if (!config) {
+    return undefined;
+  }
+
+  const options = initialOptions();
+  options.schemaVersion = 2;
+
+  const boolItems: Record<string, keyof LegacyConfig> = {
+    '-confirmDeletion': 'confirmDeletion',
+    '-refreshOnProfileChange': 'refreshTab',
+    '-enableQuickSwitch': 'quickSwitch',
+    '-revertProxyChanges': 'preventProxyChanges'
+  };
+  for (const key of Object.keys(boolItems)) {
+    options[key] = Boolean(config[boolItems[key]]);
+  }
+
+  options['-downloadInterval'] = parseInt(config.ruleListReload || '', 10) || 15;
+
+  const auto = OmegaPac.Profiles.create({
+    profileType: 'SwitchProfile',
+    name: i18n.upgrade_profile_auto,
+    color: '#55bb55',
+    defaultProfileName: 'direct'
+  }) as Profile;
+  OmegaPac.Profiles.updateRevision(auto);
+  options[OmegaPac.Profiles.nameAsKey(auto.name)] = auto;
+
+  const rulelist = OmegaPac.Profiles.create({
+    profileType: 'RuleListProfile',
+    name: `__ruleListOf_${auto.name}`,
+    color: '#dd6633',
+    format: config.ruleListAutoProxy ? 'AutoProxy' : 'Switchy',
+    defaultProfileName: 'direct',
+    sourceUrl: config.ruleListUrl || ''
+  }) as Profile;
+  options[OmegaPac.Profiles.nameAsKey(rulelist.name)] = rulelist;
+  auto.defaultProfileName = rulelist.name;
+
+  const nameMap: Record<string, string | undefined> = {
+    auto: auto.name,
+    direct: 'direct'
+  };
+  const oldProfiles = parseJson<Record<string, LegacyProfile>>(oldOptions.profiles) || {};
+  const colorTranslations: Record<string, string> = {
+    blue: '#99ccee',
+    green: '#99dd99',
+    red: '#ffaa88',
+    yellow: '#ffee99',
+    purple: '#d497ee',
+    '': '#99ccee'
+  };
+  let seenFixedProfile = false;
+
+  for (const key of Object.keys(oldProfiles)) {
+    const oldProfile = oldProfiles[key];
+    let profile: Profile | null = null;
+    switch (oldProfile.proxyMode) {
+      case 'auto': {
+        profile = OmegaPac.Profiles.create({
+          profileType: 'PacProfile'
+        });
+        const url = oldProfile.proxyConfigUrl || '';
+        if (url.substr(0, 5) === 'data:') {
+          const BufferCtor = require('buffer').Buffer;
+          const text = url.substr(url.indexOf(',') + 1);
+          profile.pacScript = new BufferCtor(text, 'base64').toString('utf8');
+        } else {
+          profile.pacUrl = url;
+        }
+        break;
+      }
+      case 'manual':
+        seenFixedProfile = true;
+        profile = OmegaPac.Profiles.create({
+          profileType: 'FixedProfile'
+        });
+        if (oldProfile.useSameProxy) {
+          profile.fallbackProxy = OmegaPac.Profiles.parseHostPort(oldProfile.proxyHttp, 'http');
+        } else if (oldProfile.proxySocks) {
+          const protocol = oldProfile.socksVersion === 5 ? 'socks5' : 'socks4';
+          profile.fallbackProxy = OmegaPac.Profiles.parseHostPort(oldProfile.proxySocks, protocol);
+        } else {
+          profile.proxyForHttp = OmegaPac.Profiles.parseHostPort(oldProfile.proxyHttp, 'http');
+          profile.proxyForHttps = OmegaPac.Profiles.parseHostPort(oldProfile.proxyHttps, 'http');
+          profile.proxyForFtp = OmegaPac.Profiles.parseHostPort(oldProfile.proxyFtp, 'http');
+        }
+        if (oldProfile.proxyExceptions != null) {
+          let hasLocalPattern = false;
+          profile.bypassList = [];
+          oldProfile.proxyExceptions.split(';').forEach((line) => {
+            line = line.trim();
+            if (!line) {
+              return;
+            }
+            if (line === '<local>') {
+              hasLocalPattern = true;
+            }
+            profile?.bypassList?.push({
+              conditionType: 'BypassCondition',
+              pattern: line
+            });
+          });
+          if (hasLocalPattern) {
+            profile.bypassList = profile.bypassList.filter((cond) => {
+              return OmegaPac.Conditions.localHosts.indexOf(cond.pattern) < 0;
+            });
+          }
+        }
+        break;
+    }
+
+    if (profile) {
+      const color = oldProfile.color || '';
+      profile.color = colorTranslations[color] ?? colorTranslations[''];
+      let name = (oldProfile.name ?? oldProfile.id ?? '').trim();
+      if (name[0] === '_') {
+        name = `p${name}`;
+      }
+      profile.name = name;
+      let num = 1;
+      while (OmegaPac.Profiles.byName(profile.name, options)) {
+        profile.name = name + num;
+        num++;
+      }
+      if (oldProfile.id) {
+        nameMap[oldProfile.id] = profile.name;
+      }
+      OmegaPac.Profiles.updateRevision(profile);
+      options[OmegaPac.Profiles.nameAsKey(profile.name)] = profile;
+    }
+  }
+
+  if (!seenFixedProfile) {
+    const exampleFixedProfileName = 'Example Profile';
+    options[OmegaPac.Profiles.nameAsKey(exampleFixedProfileName)] = {
+      bypassList: [
+        {
+          pattern: '127.0.0.1',
+          conditionType: 'BypassCondition'
+        },
+        {
+          pattern: '::1',
+          conditionType: 'BypassCondition'
+        },
+        {
+          pattern: 'localhost',
+          conditionType: 'BypassCondition'
+        }
+      ],
+      profileType: 'FixedProfile',
+      name: exampleFixedProfileName,
+      color: '#99ccee',
+      fallbackProxy: {
+        port: 8080,
+        scheme: 'http',
+        host: 'proxy.example.com'
+      }
+    };
+  }
+
+  options['-startupProfileName'] = nameMap[config.startupProfileId || ''] || '';
+
+  const quickSwitch = parseJson<string[]>(oldOptions.quickSwitchProfiles);
+  options['-quickSwitchProfiles'] = quickSwitch == null ? [] : quickSwitch.map((profileId) => {
+    return nameMap[profileId];
+  });
+
+  if (config.ruleListProfileId) {
+    rulelist.matchProfileName = nameMap[config.ruleListProfileId] || 'direct';
+  }
+
+  const defaultRule = parseJson<{profileId?: string}>(oldOptions.defaultRule);
+  if (defaultRule) {
+    rulelist.defaultProfileName = nameMap[defaultRule.profileId || ''] || 'direct';
+    if (!config.ruleListEnabled) {
+      auto.defaultProfileName = rulelist.defaultProfileName;
+    }
+  }
+  OmegaPac.Profiles.updateRevision(rulelist);
+
+  const rules = parseJson<Record<string, LegacyRule>>(oldOptions.rules);
+  if (rules) {
+    auto.rules = Object.keys(rules).map((key) => {
+      const rule = rules[key];
+      return {
+        profileName: nameMap[rule.profileId || ''] || 'direct',
+        condition: conditionFromRule(rule),
+        note: rule.name
+      };
+    });
+  }
+
+  return options;
+}
+
+export = upgradeSwitchyOptions;

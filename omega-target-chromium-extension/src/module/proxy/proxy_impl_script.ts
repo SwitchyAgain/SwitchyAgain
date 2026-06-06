@@ -1,43 +1,46 @@
-// @ts-nocheck
-var OmegaTarget, Promise, ProxyImpl, ScriptProxyImpl,
-  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-  hasProp = {}.hasOwnProperty;
+const OmegaPromise = require('omega-target').Promise;
+const ProxyImpl = require('./proxy_impl');
 
-OmegaTarget = require('omega-target');
+type Profile = Record<string, unknown> & {
+  name?: string;
+  profileType?: string;
+};
 
-Promise = OmegaTarget.Promise;
+type ProxyScriptState = Record<string, unknown> & {
+  currentProfileName?: string;
+  tempProfile?: Profile;
+};
 
-ProxyImpl = require('./proxy_impl');
+class ScriptProxyImpl extends ProxyImpl {
+  features: string[];
+  private _options?: unknown;
+  private _proxyScriptDisabled: boolean;
+  private _proxyScriptInitialized: boolean;
+  private _proxyScriptState: ProxyScriptState;
+  private _proxyScriptUrl: string;
 
-ScriptProxyImpl = (function(superClass) {
-  extend(ScriptProxyImpl, superClass);
-
-  function ScriptProxyImpl() {
-    return ScriptProxyImpl.__super__.constructor.apply(this, arguments);
+  constructor(...args: unknown[]) {
+    super(...args);
+    this.features = ['socks5Auth'];
+    this._proxyScriptUrl = 'js/omega_webext_proxy_script.min.js';
+    this._proxyScriptDisabled = false;
+    this._proxyScriptInitialized = false;
+    this._proxyScriptState = {};
   }
 
-  ScriptProxyImpl.isSupported = function() {
-    var ref, ref1;
-    return ((typeof browser !== "undefined" && browser !== null ? (ref = browser.proxy) != null ? ref.register : void 0 : void 0) != null) || ((typeof browser !== "undefined" && browser !== null ? (ref1 = browser.proxy) != null ? ref1.registerProxyScript : void 0 : void 0) != null);
-  };
+  static isSupported() {
+    return typeof browser !== 'undefined' &&
+      (browser?.proxy?.register != null || browser?.proxy?.registerProxyScript != null);
+  }
 
-  ScriptProxyImpl.prototype.features = ['socks5Auth'];
-
-  ScriptProxyImpl.prototype._proxyScriptUrl = 'js/omega_webext_proxy_script.min.js';
-
-  ScriptProxyImpl.prototype._proxyScriptDisabled = false;
-
-  ScriptProxyImpl.prototype._proxyScriptInitialized = false;
-
-  ScriptProxyImpl.prototype._proxyScriptState = {};
-
-  ScriptProxyImpl.prototype.watchProxyChange = function(callback) {
+  watchProxyChange(_callback: (details: unknown) => void) {
     return null;
-  };
+  }
 
-  ScriptProxyImpl.prototype.applyProfile = function(profile, state, options) {
-    this.log.error('Your browser is outdated! Full-URL based matching, etc. unsupported! ' + "Please update your browser ASAP!");
-    state = state != null ? state : {};
+  applyProfile(profile: Profile, state: ProxyScriptState = {}, options: unknown) {
+    this.log.error(
+      'Your browser is outdated! Full-URL based matching, etc. unsupported! Please update your browser ASAP!'
+    );
     this._options = options;
     state.currentProfileName = profile.name;
     if (profile.name === '') {
@@ -52,45 +55,38 @@ ScriptProxyImpl = (function(superClass) {
       this._proxyScriptDisabled = true;
     } else {
       this._proxyScriptState = state;
-      this._initWebextProxyScript().then((function(_this) {
-        return function() {
-          return _this._proxyScriptStateChanged();
-        };
-      })(this));
+      this._initWebextProxyScript().then(() => {
+        return this._proxyScriptStateChanged();
+      });
     }
     return this.setProxyAuth(profile, options);
-  };
+  }
 
-  ScriptProxyImpl.prototype._initWebextProxyScript = function() {
-    var promise;
+  private _initWebextProxyScript() {
+    let promise;
     if (!this._proxyScriptInitialized) {
-      browser.proxy.onProxyError.addListener((function(_this) {
-        return function(err) {
-          if (((err != null ? err.message : void 0) != null) && err.message.indexOf('Invalid Proxy Rule: DIRECT') >= 0) {
-            return;
-          }
-          return _this.log.error(err);
-        };
-      })(this));
-      browser.runtime.onMessage.addListener((function(_this) {
-        return function(message) {
-          if (message.event !== 'proxyScriptLog') {
-            return;
-          }
-          if (message.level === 'error') {
-            return _this.log.error(message);
-          } else if (message.level === 'warn') {
-            return _this.log.error(message);
-          } else {
-            return _this.log.log(message);
-          }
-        };
-      })(this));
+      browser.proxy.onProxyError.addListener((err: {message?: string}) => {
+        if (err?.message != null && err.message.indexOf('Invalid Proxy Rule: DIRECT') >= 0) {
+          return;
+        }
+        return this.log.error(err);
+      });
+      browser.runtime.onMessage.addListener((message: {event?: string; level?: string}) => {
+        if (message.event !== 'proxyScriptLog') {
+          return;
+        }
+        if (message.level === 'error') {
+          return this.log.error(message);
+        }
+        if (message.level === 'warn') {
+          return this.log.error(message);
+        }
+        return this.log.log(message);
+      });
     }
     if (!this._proxyScriptInitialized || this._proxyScriptDisabled) {
-      promise = new Promise(function(resolve) {
-        var onMessage;
-        onMessage = function(message) {
+      promise = new OmegaPromise((resolve: () => void) => {
+        const onMessage = (message: {event?: string}) => {
           if (message.event !== 'proxyScriptLoaded') {
             return;
           }
@@ -106,31 +102,26 @@ ScriptProxyImpl = (function(superClass) {
       }
       this._proxyScriptDisabled = false;
     } else {
-      promise = Promise.resolve();
+      promise = OmegaPromise.resolve();
     }
     this._proxyScriptInitialized = true;
     return promise;
-  };
+  }
 
-  ScriptProxyImpl.prototype._proxyScriptStateChanged = function() {
+  private _proxyScriptStateChanged() {
     return browser.runtime.sendMessage({
       event: 'proxyScriptStateChanged',
       state: this._proxyScriptState,
       options: this._options
     }, {
       toProxyScript: true
-    }).catch(function(error) {
+    }).catch((error: {message?: string}) => {
       if (error && /Receiving end does not exist/.test(error.message || '')) {
         return;
       }
       throw error;
     });
-  };
+  }
+}
 
-  return ScriptProxyImpl;
-
-})(ProxyImpl);
-
-module.exports = ScriptProxyImpl;
-
-export {};
+export = ScriptProxyImpl;

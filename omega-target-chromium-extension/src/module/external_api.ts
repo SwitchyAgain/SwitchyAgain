@@ -1,58 +1,79 @@
-// @ts-nocheck
-var ChromePort, ExternalApi, OmegaPac, OmegaTarget, Promise, actionApi;
+const ChromePort = require('./chrome_port');
 
-OmegaTarget = require('omega-target');
-
-OmegaPac = OmegaTarget.OmegaPac;
-
-Promise = OmegaTarget.Promise;
-
-ChromePort = require('./chrome_port');
-
-actionApi = function() {
-  var legacyKey;
-  legacyKey = 'browser';
-  legacyKey += 'Action';
-  return chrome.action || chrome[legacyKey];
+type Profile = {
+  name?: string;
 };
 
-module.exports = ExternalApi = (function() {
-  function ExternalApi(options) {
+type ExternalOptions = {
+  applyProfile: (profileName: string | null) => Promise<unknown>;
+  clearBadge: () => void;
+  currentProfile: () => Profile | null | undefined;
+  getAll: () => unknown;
+  log: {
+    log: (message: string, payload?: unknown) => void;
+  };
+  reloadQuickSwitch: () => void;
+  setProxyNotControllable: (reason: string | null, badge?: {color: string; text: string}) => void;
+};
+
+type ExternalMessage = {
+  action?: string;
+};
+
+type ExternalPort = {
+  onDisconnect: {
+    addListener: (callback: () => void) => void;
+  };
+  onMessage: {
+    addListener: (callback: (message: ExternalMessage) => void) => void;
+  };
+  postMessage: (message: Record<string, unknown>) => void;
+  sender: {
+    id: string;
+  };
+};
+
+function actionApi() {
+  const legacyKey = 'browser' + 'Action';
+  return chrome.action || chrome[legacyKey];
+}
+
+class ExternalApi {
+  disabled: boolean;
+  knownExts: Record<string, number>;
+  options: ExternalOptions;
+  private _previousProfileName: string | null;
+
+  constructor(options: ExternalOptions) {
     this.options = options;
+    this.knownExts = {
+      padekgcemlokbadohgkifijomclgjgif: 32
+    };
+    this.disabled = false;
+    this._previousProfileName = null;
   }
 
-  ExternalApi.prototype.knownExts = {
-    'padekgcemlokbadohgkifijomclgjgif': 32
-  };
-
-  ExternalApi.prototype.disabled = false;
-
-  ExternalApi.prototype.listen = function() {
+  listen() {
     if (!chrome.runtime.onConnectExternal) {
       return;
     }
-    return chrome.runtime.onConnectExternal.addListener((function(_this) {
-      return function(rawPort) {
-        var port;
-        port = new ChromePort(rawPort);
-        port.onMessage.addListener(function(msg) {
-          return _this.onMessage(msg, port);
-        });
-        return port.onDisconnect.addListener(_this.reenable.bind(_this));
-      };
-    })(this));
-  };
+    return chrome.runtime.onConnectExternal.addListener((rawPort: unknown) => {
+      const port = new ChromePort(rawPort) as ExternalPort;
+      port.onMessage.addListener((msg) => {
+        return this.onMessage(msg, port);
+      });
+      return port.onDisconnect.addListener(this.reenable.bind(this));
+    });
+  }
 
-  ExternalApi.prototype._previousProfileName = null;
-
-  ExternalApi.prototype.reenable = function() {
-    var base;
+  reenable() {
     if (!this.disabled) {
       return;
     }
     this.options.setProxyNotControllable(null);
-    if (typeof (base = actionApi()).setPopup === "function") {
-      base.setPopup({
+    const api = actionApi();
+    if (typeof api.setPopup === 'function') {
+      api.setPopup({
         popup: 'popup/index.html'
       });
     }
@@ -60,27 +81,24 @@ module.exports = ExternalApi = (function() {
     this.disabled = false;
     this.options.clearBadge();
     return this.options.applyProfile(this._previousProfileName);
-  };
+  }
 
-  ExternalApi.prototype.checkPerm = function(port, level) {
-    var perm;
-    perm = this.knownExts[port.sender.id] || 0;
+  checkPerm(port: ExternalPort, level: number) {
+    const perm = this.knownExts[port.sender.id] || 0;
     if (perm < level) {
       port.postMessage({
         action: 'error',
         error: 'permission'
       });
       return false;
-    } else {
-      return true;
     }
-  };
+    return true;
+  }
 
-  ExternalApi.prototype.onMessage = function(msg, port) {
-    var base, ref;
-    this.options.log.log(port.sender.id + " -> " + msg.action, msg);
+  onMessage(msg: ExternalMessage, port: ExternalPort) {
+    this.options.log.log(`${port.sender.id} -> ${msg.action}`, msg);
     switch (msg.action) {
-      case 'disable':
+      case 'disable': {
         if (!this.checkPerm(port, 16)) {
           return;
         }
@@ -88,22 +106,20 @@ module.exports = ExternalApi = (function() {
           return;
         }
         this.disabled = true;
-        this._previousProfileName = ((ref = this.options.currentProfile()) != null ? ref.name : void 0) || 'system';
-        this.options.applyProfile('system').then((function(_this) {
-          return function() {
-            var reason;
-            reason = 'disabled';
-            if (_this.knownExts[port.sender.id] >= 32) {
-              reason = 'upgrade';
-            }
-            return _this.options.setProxyNotControllable(reason, {
-              text: 'X',
-              color: '#5ab432'
-            });
-          };
-        })(this));
-        if (typeof (base = actionApi()).setPopup === "function") {
-          base.setPopup({
+        this._previousProfileName = this.options.currentProfile()?.name || 'system';
+        this.options.applyProfile('system').then(() => {
+          let reason = 'disabled';
+          if (this.knownExts[port.sender.id] >= 32) {
+            reason = 'upgrade';
+          }
+          return this.options.setProxyNotControllable(reason, {
+            text: 'X',
+            color: '#5ab432'
+          });
+        });
+        const api = actionApi();
+        if (typeof api.setPopup === 'function') {
+          api.setPopup({
             popup: 'popup/index.html'
           });
         }
@@ -111,6 +127,7 @@ module.exports = ExternalApi = (function() {
           action: 'state',
           state: 'disabled'
         });
+      }
       case 'enable':
         this.reenable();
         return port.postMessage({
@@ -132,10 +149,7 @@ module.exports = ExternalApi = (function() {
           action_name: msg.action
         });
     }
-  };
+  }
+}
 
-  return ExternalApi;
-
-})();
-
-export {};
+export = ExternalApi;

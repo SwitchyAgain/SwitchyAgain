@@ -1,117 +1,102 @@
-// @ts-nocheck
-var Inspect, OmegaPac, OmegaTarget, Promise,
-  hasProp = {}.hasOwnProperty;
+type InspectInfo = {
+  frameUrl?: string;
+  linkUrl?: string;
+  menuItemId?: string;
+  pageUrl?: string;
+  srcUrl?: string;
+  [key: string]: unknown;
+};
 
-OmegaTarget = require('omega-target');
+type InspectTab = {
+  url?: string;
+  [key: string]: unknown;
+};
 
-OmegaPac = OmegaTarget.OmegaPac;
+const WEB_RESOURCE_PATTERNS = ['http://*/*', 'https://*/*', 'ftp://*/*'];
 
-Promise = OmegaTarget.Promise;
+class Inspect {
+  onInspect: (url: string, tab: InspectTab) => unknown;
+  propForMenuItem: Record<string, keyof InspectInfo>;
+  private _enabled: boolean;
 
-module.exports = Inspect = (function() {
-  Inspect.prototype._enabled = false;
-
-  function Inspect(onInspect) {
+  constructor(onInspect: (url: string, tab: InspectTab) => unknown) {
     this.onInspect = onInspect;
+    this._enabled = false;
     this._onContextMenuClicked = this._onContextMenuClicked.bind(this);
+    this.propForMenuItem = {
+      inspectPage: 'pageUrl',
+      inspectFrame: 'frameUrl',
+      inspectLink: 'linkUrl',
+      inspectElement: 'srcUrl'
+    };
   }
 
-  Inspect.prototype.enable = function() {
-    var webResource;
-    if (chrome.contextMenus == null) {
-      return;
-    }
-    if (chrome.i18n.getUILanguage == null) {
-      return;
-    }
-    if (this._enabled) {
+  enable() {
+    if (chrome.contextMenus == null || chrome.i18n.getUILanguage == null || this._enabled) {
       return;
     }
     chrome.contextMenus.onClicked.addListener(this._onContextMenuClicked);
-    webResource = ["http://*/*", "https://*/*", "ftp://*/*"];
-
-    /* Not so useful...
-    chrome.contextMenus.create({
-      id: 'inspectPage'
-      title: chrome.i18n.getMessage('contextMenu_inspectPage')
-      contexts: ['page']
-      onclick: @inspect.bind(this)
-      documentUrlPatterns: webResource
-    })
-     */
     chrome.contextMenus.create({
       id: 'inspectFrame',
       title: chrome.i18n.getMessage('contextMenu_inspectFrame'),
       contexts: ['frame'],
-      documentUrlPatterns: webResource
+      documentUrlPatterns: WEB_RESOURCE_PATTERNS
     });
     chrome.contextMenus.create({
       id: 'inspectLink',
       title: chrome.i18n.getMessage('contextMenu_inspectLink'),
       contexts: ['link'],
-      targetUrlPatterns: webResource
+      targetUrlPatterns: WEB_RESOURCE_PATTERNS
     });
     chrome.contextMenus.create({
       id: 'inspectElement',
       title: chrome.i18n.getMessage('contextMenu_inspectElement'),
       contexts: ['image', 'video', 'audio'],
-      targetUrlPatterns: webResource
+      targetUrlPatterns: WEB_RESOURCE_PATTERNS
     });
-    return this._enabled = true;
-  };
+    this._enabled = true;
+  }
 
-  Inspect.prototype.disable = function() {
-    var menuId, ref;
+  disable() {
     if (!this._enabled) {
       return;
     }
-    ref = this.propForMenuItem;
-    for (menuId in ref) {
-      if (!hasProp.call(ref, menuId)) continue;
+    for (const menuId of Object.keys(this.propForMenuItem)) {
       if (menuId === 'inspectPage') {
         continue;
       }
       try {
-        chrome.contextMenus.remove(menuId, function() {
+        chrome.contextMenus.remove(menuId, () => {
           chrome.runtime.lastError;
         });
-      } catch (error) {}
+      } catch (error) {
+      }
     }
     chrome.contextMenus.onClicked.removeListener(this._onContextMenuClicked);
-    return this._enabled = false;
-  };
+    this._enabled = false;
+  }
 
-  Inspect.prototype.propForMenuItem = {
-    'inspectPage': 'pageUrl',
-    'inspectFrame': 'frameUrl',
-    'inspectLink': 'linkUrl',
-    'inspectElement': 'srcUrl'
-  };
-
-  Inspect.prototype._onContextMenuClicked = function(info, tab) {
-    if (!this.propForMenuItem[info.menuItemId]) {
+  private _onContextMenuClicked(info: InspectInfo, tab: InspectTab) {
+    if (!info.menuItemId || !this.propForMenuItem[info.menuItemId]) {
       return;
     }
     return this.inspect(info, tab);
-  };
+  }
 
-  Inspect.prototype.inspect = function(info, tab) {
-    var url;
+  inspect(info: InspectInfo, tab: InspectTab) {
     if (!info.menuItemId) {
       return;
     }
-    url = info[this.propForMenuItem[info.menuItemId]];
+    const prop = this.propForMenuItem[info.menuItemId];
+    let url = prop ? info[prop] : undefined;
     if (!url && info.menuItemId === 'inspectPage') {
       url = tab.url;
     }
-    if (!url) {
+    if (typeof url !== 'string' || !url) {
       return;
     }
     return this.onInspect(url, tab);
-  };
+  }
+}
 
-  return Inspect;
-
-})();
-
-export {};
+export = Inspect;

@@ -1,101 +1,124 @@
-// @ts-nocheck
-var ListenerProxyImpl, NativePromise, OmegaTarget, ProxyImpl,
-  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-  hasProp = {}.hasOwnProperty;
+const OmegaTarget = require('omega-target');
+const OmegaPac = OmegaTarget.OmegaPac;
+const NativePromise = typeof Promise !== 'undefined' && Promise !== null ? Promise : null;
+const ProxyImpl = require('./proxy_impl');
 
-OmegaTarget = require('omega-target');
+type Profile = Record<string, unknown> & {
+  profileType?: string;
+};
 
-NativePromise = typeof Promise !== "undefined" && Promise !== null ? Promise : null;
+type ProxyConfig = {
+  host: string;
+  port: number;
+  scheme: string;
+};
 
-ProxyImpl = require('./proxy_impl');
+type ProxyAuth = {
+  password?: string;
+  username?: string;
+};
 
-ListenerProxyImpl = (function(superClass) {
-  extend(ListenerProxyImpl, superClass);
+type RequestDetails = {
+  url: string;
+};
 
-  ListenerProxyImpl.isSupported = function() {
-    var ref;
-    return (typeof Promise !== "undefined" && Promise !== null) && ((typeof browser !== "undefined" && browser !== null ? (ref = browser.proxy) != null ? ref.onRequest : void 0 : void 0) != null);
-  };
+type ProxyInfo = {
+  host: string;
+  password?: string;
+  port: number;
+  proxyDNS?: boolean;
+  type: string;
+  username?: string;
+};
 
-  ListenerProxyImpl.prototype.features = ['fullUrl', 'socks5Auth'];
+class ListenerProxyImpl extends ProxyImpl {
+  features: string[];
+  private _options?: unknown;
+  private _optionsReady: Promise<void>;
+  private _optionsReadyCallback: (() => void) | null;
+  private _profile?: Profile;
 
-  function ListenerProxyImpl() {
-    ListenerProxyImpl.__super__.constructor.apply(this, arguments);
-    this._optionsReady = new NativePromise((function(_this) {
-      return function(resolve) {
-        return _this._optionsReadyCallback = resolve;
-      };
-    })(this));
+  constructor(...args: unknown[]) {
+    super(...args);
+    this.features = ['fullUrl', 'socks5Auth'];
+    this._optionsReadyCallback = null;
+    this._optionsReady = new (NativePromise as PromiseConstructor)((resolve) => {
+      this._optionsReadyCallback = resolve;
+    });
     this._initRequestListeners();
   }
 
-  ListenerProxyImpl.prototype._initRequestListeners = function() {
+  static isSupported() {
+    return typeof Promise !== 'undefined' &&
+      Promise !== null &&
+      typeof browser !== 'undefined' &&
+      browser?.proxy?.onRequest != null;
+  }
+
+  private _initRequestListeners() {
     browser.proxy.onRequest.addListener(this.onRequest.bind(this), {
-      urls: ["<all_urls>"]
+      urls: ['<all_urls>']
     });
     return browser.proxy.onError.addListener(this.onError.bind(this));
-  };
+  }
 
-  ListenerProxyImpl.prototype.watchProxyChange = function(callback) {
+  watchProxyChange(_callback: (details: unknown) => void) {
     return null;
-  };
+  }
 
-  ListenerProxyImpl.prototype.applyProfile = function(profile, state, options) {
+  applyProfile(profile: Profile, _state: unknown, options: unknown) {
     this._options = options;
     this._profile = profile;
-    if (typeof this._optionsReadyCallback === "function") {
+    if (typeof this._optionsReadyCallback === 'function') {
       this._optionsReadyCallback();
     }
     this._optionsReadyCallback = null;
     return this.setProxyAuth(profile, options);
-  };
+  }
 
-  ListenerProxyImpl.prototype.onRequest = function(requestDetails) {
-    return NativePromise.resolve(this._optionsReady.then((function(_this) {
-      return function() {
-        var auth, next, profile, proxy, request, result;
-        request = OmegaPac.Conditions.requestFromUrl(requestDetails.url);
-        profile = _this._profile;
-        while (profile) {
-          result = OmegaPac.Profiles.match(profile, request);
-          if (!result) {
-            switch (profile.profileType) {
-              case 'DirectProfile':
-                return {
-                  type: 'direct'
-                };
-              case 'SystemProfile':
-                return void 0;
-              default:
-                throw new Error('Unsupported profile: ' + profile.profileType);
-            }
+  onRequest(requestDetails: RequestDetails) {
+    return (NativePromise as PromiseConstructor).resolve(this._optionsReady.then(() => {
+      const request = OmegaPac.Conditions.requestFromUrl(requestDetails.url);
+      let profile = this._profile;
+      let next;
+      while (profile) {
+        const result = OmegaPac.Profiles.match(profile, request);
+        if (!result) {
+          switch (profile.profileType) {
+            case 'DirectProfile':
+              return {
+                type: 'direct'
+              };
+            case 'SystemProfile':
+              return undefined;
+            default:
+              throw new Error(`Unsupported profile: ${profile.profileType}`);
           }
-          if (Array.isArray(result)) {
-            proxy = result[2];
-            auth = result[3];
-            if (proxy) {
-              return _this.proxyInfo(proxy, auth);
-            }
-            next = result[0];
-          } else if (result.profileName) {
-            next = OmegaPac.Profiles.nameAsKey(result.profileName);
-          } else {
-            break;
-          }
-          profile = OmegaPac.Profiles.byKey(next, _this._options);
         }
-        throw new Error('Profile not found: ' + next);
-      };
-    })(this)));
-  };
+        if (Array.isArray(result)) {
+          const proxy = result[2] as ProxyConfig | undefined;
+          const auth = result[3] as ProxyAuth | undefined;
+          if (proxy) {
+            return this.proxyInfo(proxy, auth);
+          }
+          next = result[0];
+        } else if (result.profileName) {
+          next = OmegaPac.Profiles.nameAsKey(result.profileName);
+        } else {
+          break;
+        }
+        profile = OmegaPac.Profiles.byKey(next, this._options);
+      }
+      throw new Error(`Profile not found: ${next}`);
+    }));
+  }
 
-  ListenerProxyImpl.prototype.onError = function(error) {
+  onError(error: unknown) {
     return this.log.error(error);
-  };
+  }
 
-  ListenerProxyImpl.prototype.proxyInfo = function(proxy, auth) {
-    var proxyInfo;
-    proxyInfo = {
+  proxyInfo(proxy: ProxyConfig, auth?: ProxyAuth) {
+    const proxyInfo: ProxyInfo = {
       type: proxy.scheme,
       host: proxy.host,
       port: proxy.port
@@ -111,12 +134,7 @@ ListenerProxyImpl = (function(superClass) {
       proxyInfo.proxyDNS = true;
     }
     return [proxyInfo];
-  };
+  }
+}
 
-  return ListenerProxyImpl;
-
-})(ProxyImpl);
-
-module.exports = ListenerProxyImpl;
-
-export {};
+export = ListenerProxyImpl;

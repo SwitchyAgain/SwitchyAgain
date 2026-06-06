@@ -1,89 +1,85 @@
-// @ts-nocheck
-var OmegaTarget, Promise, ProxyAuth, ProxyImpl,
-  hasProp = {}.hasOwnProperty;
+const OmegaTarget = require('omega-target');
+const OmegaPac = OmegaTarget.OmegaPac;
+const OmegaPromise = OmegaTarget.Promise;
+const ProxyAuth = require('./proxy_auth');
 
-OmegaTarget = require('omega-target');
+type Log = {
+  error: (...args: unknown[]) => void;
+};
 
-Promise = OmegaTarget.Promise;
+type Profile = Record<string, unknown> & {
+  defaultProfileName?: string;
+  name?: string;
+  profileType?: string;
+  revision?: string;
+};
 
-ProxyAuth = require('./proxy_auth');
+class ProxyImpl {
+  log: Log;
+  private _proxyAuth?: InstanceType<typeof ProxyAuth>;
 
-ProxyImpl = (function() {
-  function ProxyImpl(log) {
+  constructor(log: Log) {
     this.log = log;
   }
 
-  ProxyImpl.isSupported = function() {
+  static isSupported() {
     return false;
-  };
+  }
 
-  ProxyImpl.prototype.applyProfile = function(profile, meta) {
-    return Promise.reject();
-  };
+  applyProfile(_profile: Profile, _meta?: Profile) {
+    return OmegaPromise.reject();
+  }
 
-  ProxyImpl.prototype.watchProxyChange = function(callback) {
+  watchProxyChange(_callback: (details: unknown) => void) {
     return null;
-  };
+  }
 
-  ProxyImpl.prototype.parseExternalProfile = function(details, options) {
+  parseExternalProfile(_details: unknown, _options: unknown) {
     return null;
-  };
+  }
 
-  ProxyImpl.prototype._profileNotFound = function(name) {
-    this.log.error("Profile " + name + " not found! Things may go very, very wrong.");
+  private _profileNotFound(name: string) {
+    this.log.error(`Profile ${name} not found! Things may go very, very wrong.`);
     return OmegaPac.Profiles.create({
-      name: name,
+      name,
       profileType: 'VirtualProfile',
       defaultProfileName: 'direct'
     });
-  };
+  }
 
-  ProxyImpl.prototype.setProxyAuth = function(profile, options) {
-    return Promise["try"]((function(_this) {
-      return function() {
-        var _, name, ref_set, referenced_profiles;
-        if (_this._proxyAuth == null) {
-          _this._proxyAuth = new ProxyAuth(_this.log);
+  setProxyAuth(profile: Profile, options: unknown) {
+    return OmegaPromise.try(() => {
+      if (this._proxyAuth == null) {
+        this._proxyAuth = new ProxyAuth(this.log);
+      }
+      this._proxyAuth.listen();
+      const referencedProfiles: Profile[] = [];
+      const refSet = OmegaPac.Profiles.allReferenceSet(profile, options, {
+        profileNotFound: this._profileNotFound.bind(this)
+      });
+      for (const key of Object.keys(refSet)) {
+        const name = refSet[key];
+        const referencedProfile = OmegaPac.Profiles.byName(name, options);
+        if (referencedProfile) {
+          referencedProfiles.push(referencedProfile);
         }
-        _this._proxyAuth.listen();
-        referenced_profiles = [];
-        ref_set = OmegaPac.Profiles.allReferenceSet(profile, options, {
-          profileNotFound: _this._profileNotFound.bind(_this)
-        });
-        for (_ in ref_set) {
-          if (!hasProp.call(ref_set, _)) continue;
-          name = ref_set[_];
-          profile = OmegaPac.Profiles.byName(name, options);
-          if (profile) {
-            referenced_profiles.push(profile);
-          }
-        }
-        return _this._proxyAuth.setProxies(referenced_profiles);
-      };
-    })(this));
-  };
+      }
+      return this._proxyAuth.setProxies(referencedProfiles);
+    });
+  }
 
-  ProxyImpl.prototype.getProfilePacScript = function(profile, meta, options) {
-    var ast, prefix, profileName, script;
-    if (meta == null) {
-      meta = profile;
-    }
-    ast = OmegaPac.PacGenerator.script(options, profile, {
+  getProfilePacScript(profile: Profile, meta: Profile = profile, options: unknown) {
+    let ast = OmegaPac.PacGenerator.script(options, profile, {
       profileNotFound: this._profileNotFound.bind(this)
     });
     ast = OmegaPac.PacGenerator.compress(ast);
-    script = OmegaPac.PacGenerator.ascii(ast.print_to_string());
-    profileName = OmegaPac.PacGenerator.ascii(JSON.stringify(meta.name));
+    const script = OmegaPac.PacGenerator.ascii(ast.print_to_string());
+    let profileName = OmegaPac.PacGenerator.ascii(JSON.stringify(meta.name));
     profileName = profileName.replace(/\*/g, '\\u002a');
     profileName = profileName.replace(/\\/g, '\\u002f');
-    prefix = "/*OmegaProfile*" + profileName + "*" + meta.revision + "*/";
+    const prefix = `/*OmegaProfile*${profileName}*${meta.revision}*/`;
     return prefix + script;
-  };
+  }
+}
 
-  return ProxyImpl;
-
-})();
-
-module.exports = ProxyImpl;
-
-export {};
+export = ProxyImpl;

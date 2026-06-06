@@ -1,58 +1,74 @@
-// @ts-nocheck
-var ChromeTabs, actionApi,
-  hasProp = {}.hasOwnProperty;
+type ActionIcon = Record<string | number, ImageData>;
 
-actionApi = function() {
-  var legacyKey;
-  legacyKey = 'browser';
-  legacyKey += 'Action';
-  return chrome.action || chrome[legacyKey];
+type TabAction = {
+  icon?: ActionIcon;
+  shortTitle?: string;
+  title: string;
 };
 
-ChromeTabs = (function() {
-  ChromeTabs.prototype._defaultAction = null;
+type TabBadge = {
+  color: string;
+  text: string;
+};
 
-  ChromeTabs.prototype._badgeTab = null;
+type ChromeTab = {
+  active?: boolean;
+  id?: number;
+  url?: string;
+};
 
-  function ChromeTabs(actionForUrl) {
+type TabChangeInfo = {
+  status?: string;
+  url?: string;
+};
+
+function actionApi() {
+  const legacyKey = 'browser' + 'Action';
+  return chrome.action || chrome[legacyKey];
+}
+
+class ChromeTabs {
+  actionForUrl: (url: string) => Promise<TabAction | null | undefined>;
+  private _badgeTab: Record<string, boolean> | null;
+  private _defaultAction: TabAction | null;
+  private _dirtyTabs: Record<string, number | undefined>;
+
+  constructor(actionForUrl: (url: string) => Promise<TabAction | null | undefined>) {
     this.actionForUrl = actionForUrl;
     this._dirtyTabs = {};
-    return;
+    this._defaultAction = null;
+    this._badgeTab = null;
   }
 
-  ChromeTabs.prototype.ignoreError = function() {
+  ignoreError() {
     chrome.runtime.lastError;
-  };
+  }
 
-  ChromeTabs.prototype.watch = function() {
+  watch() {
     chrome.tabs.onUpdated.addListener(this.onUpdated.bind(this));
-    return chrome.tabs.onActivated.addListener((function(_this) {
-      return function(info) {
-        return chrome.tabs.get(info.tabId, function(tab) {
-          if (chrome.runtime.lastError) {
-            return;
-          }
-          if (_this._dirtyTabs.hasOwnProperty(info.tabId)) {
-            return _this.onUpdated(tab.id, {}, tab);
-          }
-        });
-      };
-    })(this));
-  };
+    chrome.tabs.onActivated.addListener((info: {tabId: number}) => {
+      chrome.tabs.get(info.tabId, (tab: ChromeTab) => {
+        if (chrome.runtime.lastError) {
+          return;
+        }
+        if (Object.prototype.hasOwnProperty.call(this._dirtyTabs, info.tabId)) {
+          return this.onUpdated(tab.id, {}, tab);
+        }
+      });
+    });
+  }
 
-  ChromeTabs.prototype.resetAll = function(action) {
+  resetAll(action: TabAction) {
     this._defaultAction = action;
-    chrome.tabs.query({}, (function(_this) {
-      return function(tabs) {
-        _this._dirtyTabs = {};
-        return tabs.forEach(function(tab) {
-          _this._dirtyTabs[tab.id] = tab.id;
-          if (tab.active) {
-            return _this.onUpdated(tab.id, {}, tab);
-          }
-        });
-      };
-    })(this));
+    chrome.tabs.query({}, (tabs: ChromeTab[]) => {
+      this._dirtyTabs = {};
+      tabs.forEach((tab) => {
+        this._dirtyTabs[String(tab.id)] = tab.id;
+        if (tab.active) {
+          return this.onUpdated(tab.id, {}, tab);
+        }
+      });
+    });
     if (actionApi().setPopup != null) {
       actionApi().setTitle({
         title: action.title
@@ -63,37 +79,34 @@ ChromeTabs = (function() {
       });
     }
     return this.setIcon(action.icon);
-  };
+  }
 
-  ChromeTabs.prototype.onUpdated = function(tabId, changeInfo, tab) {
-    if (this._dirtyTabs.hasOwnProperty(tab.id)) {
-      delete this._dirtyTabs[tab.id];
-    } else if (changeInfo.url == null) {
-      if ((changeInfo.status != null) && changeInfo.status !== 'loading') {
-        return;
-      }
+  onUpdated(_tabId: number | undefined, changeInfo: TabChangeInfo, tab: ChromeTab) {
+    if (Object.prototype.hasOwnProperty.call(this._dirtyTabs, tab.id)) {
+      delete this._dirtyTabs[String(tab.id)];
+    } else if (changeInfo.url == null && changeInfo.status != null && changeInfo.status !== 'loading') {
+      return;
     }
-    return this.processTab(tab, changeInfo);
-  };
+    return this.processTab(tab);
+  }
 
-  ChromeTabs.prototype.processTab = function(tab, changeInfo) {
-    var base, id, ref;
+  processTab(tab: ChromeTab) {
     if (this._badgeTab) {
-      ref = this._badgeTab;
-      for (id in ref) {
-        if (!hasProp.call(ref, id)) continue;
+      for (const id of Object.keys(this._badgeTab)) {
         try {
-          if (typeof (base = actionApi()).setBadgeText === "function") {
-            base.setBadgeText({
+          const api = actionApi();
+          if (typeof api.setBadgeText === 'function') {
+            api.setBadgeText({
               text: '',
               tabId: id
             });
           }
-        } catch (error) {}
+        } catch (error) {
+        }
         this._badgeTab = null;
       }
     }
-    if ((tab.url == null) || tab.url.indexOf("chrome") === 0) {
+    if (tab.url == null || tab.url.indexOf('chrome') === 0) {
       if (this._defaultAction) {
         actionApi().setTitle({
           title: this._defaultAction.title,
@@ -103,93 +116,86 @@ ChromeTabs = (function() {
       }
       return;
     }
-    return this.actionForUrl(tab.url).then((function(_this) {
-      return function(action) {
-        if (!action) {
-          _this.clearIcon(tab.id);
-          return;
-        }
-        _this.setIcon(action.icon, tab.id);
-        if (actionApi().setPopup != null) {
-          return actionApi().setTitle({
-            title: action.title,
-            tabId: tab.id
-          });
-        } else {
-          return actionApi().setTitle({
-            title: action.shortTitle,
-            tabId: tab.id
-          });
-        }
-      };
-    })(this));
-  };
+    return this.actionForUrl(tab.url).then((action) => {
+      if (!action) {
+        this.clearIcon(tab.id);
+        return;
+      }
+      this.setIcon(action.icon, tab.id);
+      if (actionApi().setPopup != null) {
+        return actionApi().setTitle({
+          title: action.title,
+          tabId: tab.id
+        });
+      }
+      return actionApi().setTitle({
+        title: action.shortTitle,
+        tabId: tab.id
+      });
+    });
+  }
 
-  ChromeTabs.prototype.setTabBadge = function(tab, badge) {
-    var base, base1;
+  setTabBadge(tab: ChromeTab, badge: TabBadge) {
     if (this._badgeTab == null) {
       this._badgeTab = {};
     }
-    this._badgeTab[tab.id] = true;
-    if (typeof (base = actionApi()).setBadgeText === "function") {
-      base.setBadgeText({
+    this._badgeTab[String(tab.id)] = true;
+    const api = actionApi();
+    if (typeof api.setBadgeText === 'function') {
+      api.setBadgeText({
         text: badge.text,
         tabId: tab.id
       });
     }
-    return typeof (base1 = actionApi()).setBadgeBackgroundColor === "function" ? base1.setBadgeBackgroundColor({
-      color: badge.color,
-      tabId: tab.id
-    }) : void 0;
-  };
+    const apiForColor = actionApi();
+    if (typeof apiForColor.setBadgeBackgroundColor === 'function') {
+      return apiForColor.setBadgeBackgroundColor({
+        color: badge.color,
+        tabId: tab.id
+      });
+    }
+  }
 
-  ChromeTabs.prototype.setIcon = function(icon, tabId) {
-    var params;
+  setIcon(icon?: ActionIcon, tabId?: number) {
     if (icon == null) {
       return;
     }
-    if (tabId != null) {
-      params = {
-        imageData: icon,
-        tabId: tabId
-      };
-    } else {
-      params = {
-        imageData: icon
-      };
-    }
+    const params = tabId != null ? {
+      imageData: icon,
+      tabId
+    } : {
+      imageData: icon
+    };
     return this._chromeSetIcon(params);
-  };
+  }
 
-  ChromeTabs.prototype._chromeSetIcon = function(params) {
-    var _, base, base1;
+  private _chromeSetIcon(params: {imageData: ActionIcon; tabId?: number}) {
     try {
-      return typeof (base = actionApi()).setIcon === "function" ? base.setIcon(params, this.ignoreError) : void 0;
+      const api = actionApi();
+      if (typeof api.setIcon === 'function') {
+        return api.setIcon(params, this.ignoreError);
+      }
     } catch (error) {
-      _ = error;
       params.imageData = {
         19: params.imageData[19],
         38: params.imageData[38]
       };
-      return typeof (base1 = actionApi()).setIcon === "function" ? base1.setIcon(params, this.ignoreError) : void 0;
+      const api = actionApi();
+      if (typeof api.setIcon === 'function') {
+        return api.setIcon(params, this.ignoreError);
+      }
     }
-  };
+  }
 
-  ChromeTabs.prototype.clearIcon = function(tabId) {
-    var ref;
-    if (((ref = this._defaultAction) != null ? ref.icon : void 0) == null) {
+  clearIcon(tabId?: number) {
+    if (this._defaultAction?.icon == null) {
       return;
     }
     return this._chromeSetIcon({
       imageData: this._defaultAction.icon,
-      tabId: tabId
-    }, this.ignoreError);
-  };
+      tabId
+    });
+  }
+}
 
-  return ChromeTabs;
-
-})();
-
-module.exports = ChromeTabs;
-
-export {};
+export = ChromeTabs;
