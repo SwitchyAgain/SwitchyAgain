@@ -196,6 +196,7 @@ export type SwitchRuleRowsProps = {
   onWeekdayChange?: (index: number, dayIndex: number, selected: boolean) => void;
   options?: Options | null;
   profile?: Profile | null;
+  ruleKeys?: number[];
   rules?: SwitchRuleModel[];
   selectConditionDetailsIndex?: number;
   selectConditionDetailsKey?: number;
@@ -381,16 +382,6 @@ function groupedConditionTypes(conditionTypes: ConditionTypeOption[] = []) {
 
 function conditionTypesForMode(showConditionTypes = 0): ConditionTypeOption[] {
   return switchConditionTypesForMode(showConditionTypes);
-}
-
-const switchRuleKeys = new WeakMap<object, number>();
-let nextSwitchRuleKey = 1;
-
-function switchRuleKey(rule: SwitchRuleModel) {
-  if (!switchRuleKeys.has(rule)) {
-    switchRuleKeys.set(rule, nextSwitchRuleKey++);
-  }
-  return switchRuleKeys.get(rule);
 }
 
 function getJQuery() {
@@ -798,6 +789,7 @@ function SwitchRuleRows({
   onWeekdayChange,
   options,
   profile,
+  ruleKeys,
   rules = [],
   selectConditionDetailsIndex,
   selectConditionDetailsKey,
@@ -814,7 +806,7 @@ function SwitchRuleRows({
         <SwitchRuleRow
           conditionTypes={conditionTypes}
           index={index}
-          key={switchRuleKey(rule)}
+          key={ruleKeys?.[index] ?? index}
           onAddNote={onAddNote}
           onCloneRule={onCloneRule}
           onConditionFieldChange={onConditionFieldChange}
@@ -1702,6 +1694,11 @@ export function SwitchRulesSection({
   const moveRuleRef = useRef(onMoveRule);
   const previousProfileNameRef = useRef<string | undefined>(undefined);
   const nextCloneSelectKeyRef = useRef(1);
+  const nextRuleKeyRef = useRef(1);
+  const ruleKeyProfileNameRef = useRef<string | undefined>(undefined);
+  const ruleKeysRef = useRef<number[]>([]);
+  const pendingInsertedRuleIndexRef = useRef<number | null>(null);
+  const pendingRemovedRuleIndexRef = useRef<number | null>(null);
   const [cloneSelectTarget, setCloneSelectTarget] = useState<{expectedLength: number; index: number; key: number} | null>(null);
   const [renderedRuleCount, setRenderedRuleCount] = useState(0);
 
@@ -1709,8 +1706,45 @@ export function SwitchRulesSection({
     moveRuleRef.current = onMoveRule;
   }, [onMoveRule]);
 
+  function createRuleKey() {
+    return nextRuleKeyRef.current++;
+  }
+
+  function syncRuleKeys() {
+    const profileName = profile?.name;
+    const profileChanged = ruleKeyProfileNameRef.current !== profileName;
+    let keys = ruleKeysRef.current;
+
+    if (profileChanged) {
+      ruleKeysRef.current = rules.map(() => createRuleKey());
+      keys = ruleKeysRef.current;
+      pendingInsertedRuleIndexRef.current = null;
+      pendingRemovedRuleIndexRef.current = null;
+    } else {
+      while (keys.length < rules.length) {
+        const index = Math.max(0, Math.min(pendingInsertedRuleIndexRef.current ?? keys.length, keys.length));
+        keys.splice(index, 0, createRuleKey());
+        pendingInsertedRuleIndexRef.current = null;
+      }
+      if (keys.length > rules.length) {
+        const index = Math.max(0, Math.min(pendingRemovedRuleIndexRef.current ?? rules.length, keys.length - 1));
+        keys.splice(index, keys.length - rules.length);
+        pendingRemovedRuleIndexRef.current = null;
+      }
+    }
+
+    ruleKeyProfileNameRef.current = profileName;
+    return ruleKeysRef.current;
+  }
+
+  function addRule() {
+    pendingInsertedRuleIndexRef.current = rules.length;
+    onAddRule?.();
+  }
+
   function cloneRule(index: number) {
     const targetIndex = index + 1;
+    pendingInsertedRuleIndexRef.current = targetIndex;
     setCloneSelectTarget({
       expectedLength: rules.length + 1,
       key: nextCloneSelectKeyRef.current++,
@@ -1718,6 +1752,20 @@ export function SwitchRulesSection({
     });
     setRenderedRuleCount((current) => Math.max(current, targetIndex + 1));
     onCloneRule?.(index);
+  }
+
+  function moveRule(fromIndex: number, toIndex: number) {
+    const keys = ruleKeysRef.current;
+    if (fromIndex >= 0 && fromIndex < keys.length && toIndex >= 0 && toIndex < keys.length) {
+      const key = keys.splice(fromIndex, 1)[0];
+      keys.splice(toIndex, 0, key);
+    }
+    moveRuleRef.current?.(fromIndex, toIndex);
+  }
+
+  function removeRule(index: number) {
+    pendingRemovedRuleIndexRef.current = index;
+    onRemoveRule?.(index);
   }
 
   useEffect(() => {
@@ -1775,7 +1823,7 @@ export function SwitchRulesSection({
       stop(_event: any, ui: any) {
         const sortEndIndex = ui.item.index();
         if (sortStartIndex !== sortEndIndex) {
-          moveRuleRef.current?.(sortStartIndex, sortEndIndex);
+          moveRule(sortStartIndex, sortEndIndex);
         }
       }
     });
@@ -1812,6 +1860,7 @@ export function SwitchRulesSection({
   const displayRuleCount = !editSource && loadRules && renderedRuleCount === 0 ? initialVisibleRuleCount : renderedRuleCount;
   const reserveInitialRulesSpace = !editSource && rules.length > 0 && displayRuleCount < initialVisibleRuleCount;
   const rulesWrapperMinHeight = reserveInitialRulesSpace ? 96 + initialVisibleRuleCount * 42 : undefined;
+  const ruleKeys = syncRuleKeys();
   const activeCloneSelectTarget = cloneSelectTarget &&
     rules.length >= cloneSelectTarget.expectedLength &&
     cloneSelectTarget.index < displayRuleCount &&
@@ -1859,10 +1908,11 @@ export function SwitchRulesSection({
                     onIpConditionInputChange={onIpConditionInputChange}
                     onNoteChange={onNoteChange}
                     onProfileChange={onProfileChange}
-                    onRemoveRule={onRemoveRule}
+                    onRemoveRule={removeRule}
                     onWeekdayChange={onWeekdayChange}
                     options={options}
                     profile={profile}
+                    ruleKeys={ruleKeys}
                     rules={rules}
                     selectConditionDetailsIndex={activeCloneSelectTarget?.index}
                     selectConditionDetailsKey={activeCloneSelectTarget?.key}
@@ -1875,7 +1925,7 @@ export function SwitchRulesSection({
                   <SwitchRuleFooter
                     attached={attached}
                     attachedOptions={attachedOptions}
-                    onAddRule={onAddRule}
+                    onAddRule={addRule}
                     onAttachedEnabledChange={onAttachedEnabledChange}
                     onAttachedMatchProfileChange={onAttachedMatchProfileChange}
                     onDefaultProfileChange={onDefaultProfileChange}
