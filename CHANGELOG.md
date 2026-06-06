@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.1.14
+
+React options migration completion and profile editor fixes.
+
+- Switched the production options page to the React shell and completed the
+  migrated profile route and profile content flows.
+- Fixed Auto Switch route query handling, CSP-safe PAC script preloading, and
+  the About page PAC runtime error under MV3 CSP.
+- Restored the profile title bar layout so the color and name stay on the left
+  while profile action buttons align to the right.
+- Preserved Auto Switch condition detail focus, cloned-rule selection, and
+  scroll position stability while keeping batched rule rendering.
+- Improved failed request reporting in the page info diagnostics.
+
 ## v1.1.13
 
 React options migration and popup condition fixes.
