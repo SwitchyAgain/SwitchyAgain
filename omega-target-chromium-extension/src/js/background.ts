@@ -412,9 +412,12 @@ type ProxyChangeDetails = Record<string, unknown> & {
     let parsed: unknown | null = null;
     timeout = setTimeout(() => {
       if (parsed) {
-        return options.setExternalProfile(parsed, {
+        const result = options.setExternalProfile(parsed, {
           noRevert: noRevert,
           internal: internal
+        });
+        return Promise.resolve(result).catch((error: unknown) => {
+          Log.error('Set external profile failed:', error);
         });
       }
     }, 500);

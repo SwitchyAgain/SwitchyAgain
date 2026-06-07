@@ -1449,9 +1449,11 @@ class Options {
     if (this._options['-revertProxyChanges'] && !this._isSystem) {
       if (profile.name !== this._currentProfileName && this._currentProfileName) {
         if (!(args != null ? args.noRevert : void 0)) {
-          this.applyProfile(this._revertToProfileName);
+          const revertToProfileName = this._revertToProfileName || this._currentProfileName;
           this._revertToProfileName = null;
-          return;
+          if (revertToProfileName && OmegaPac.Profiles.byName(revertToProfileName, this._options)) {
+            return this.applyProfile(revertToProfileName);
+          }
         } else {
           if (this._revertToProfileName == null) {
             this._revertToProfileName = this._currentProfileName;
