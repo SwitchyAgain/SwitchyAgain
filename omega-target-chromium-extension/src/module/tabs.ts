@@ -198,4 +198,4 @@ class ChromeTabs {
   }
 }
 
-export = ChromeTabs;
+export default ChromeTabs;

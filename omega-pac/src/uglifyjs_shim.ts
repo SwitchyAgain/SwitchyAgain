@@ -1,5 +1,5 @@
 declare const UglifyJS: unknown;
 
-require('../uglifyjs');
+import '../uglifyjs';
 
-export = UglifyJS;
+export default UglifyJS as any;

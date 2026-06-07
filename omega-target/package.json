@@ -13,7 +13,7 @@
     "omega-pac": "./build-ts/omega_pac_shim.js"
   },
   "scripts": {
-    "build": "npm run build:ts && browserify build-ts/index.js --standalone OmegaTarget --exclude bluebird --exclude jsondiffpatch --exclude omega-pac -o index.js && browserify build-ts/index.js --standalone OmegaTarget | esbuild --loader=js --minify > omega_target.min.js",
+    "build": "npm run build:ts && node ../scripts/write-cjs-wrapper.mjs --module=./build-ts/index.js --outfile=index.js && node ../scripts/bundle-esbuild.mjs --entry=build-ts/index.js --outfile=omega_target.min.js --global-name=OmegaTarget --minify",
     "build:ts": "tsc -p tsconfig.build.json",
     "build:test": "tsc -p tsconfig.test.json",
     "dev": "npm link omega-pac && npm link",

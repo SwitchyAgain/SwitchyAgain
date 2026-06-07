@@ -1,6 +1,13 @@
 /* @module omega-target/options */
 declare const options: Record<string, unknown> | null | undefined;
 
+import PromiseImpl from 'bluebird';
+import {Buffer} from 'buffer';
+import jsondiffpatchModule from 'jsondiffpatch';
+import OmegaPacImpl from 'omega-pac';
+import defaultOptions from './default_options';
+import Log from './log';
+import Storage from './storage';
 import type {
   BluebirdPromise,
   BluebirdStatic,
@@ -14,7 +21,6 @@ import type {
   StopWatching,
   StorageChanges,
   StorageLike,
-  StorageConstructor,
   StorageValue,
   StorageWatchCallback
 } from './types';
@@ -38,11 +44,9 @@ class NoOptionsError extends Error {
   }
 }
 
-const Promise = require('bluebird') as BluebirdStatic;
-const Log = require('./log') as LogLike;
-const Storage = require('./storage') as StorageConstructor;
-const OmegaPac = require('omega-pac') as OmegaPacModule;
-const jsondiffpatch = require('jsondiffpatch') as JsonDiffPatchModule;
+const Promise = PromiseImpl as BluebirdStatic;
+const OmegaPac = OmegaPacImpl as OmegaPacModule;
+const jsondiffpatch = jsondiffpatchModule as JsonDiffPatchModule;
 
 const hasProp = Object.prototype.hasOwnProperty;
 const optionNumber = (value: unknown) => Number(value);
@@ -169,10 +173,10 @@ class Options {
     this._tempProfileRules = {};
     this._tempProfileRulesByProfile = {};
     if (this._storage == null) {
-      this._storage = Storage();
+      this._storage = new Storage();
     }
     if (this._state == null) {
-      this._state = Storage();
+      this._state = new Storage();
     }
     if (this.log == null) {
       this.log = Log;
@@ -461,8 +465,7 @@ class Options {
     if (typeof options === 'string') {
       if (options[0] !== '{') {
         try {
-          const Buffer = require('buffer').Buffer;
-          options = new Buffer(options, 'base64').toString('utf8');
+          options = Buffer.from(options, 'base64').toString('utf8');
         } catch (error) {
           options = null;
         }
@@ -529,7 +532,7 @@ class Options {
    */
 
   getDefaultOptions(): OptionsData {
-    return require('./default_options')();
+    return defaultOptions();
   }
 
 
@@ -1578,4 +1581,4 @@ class Options {
 
 }
 
-export = Options;
+export default Options;

@@ -7,7 +7,7 @@ should = chai.should();
 describe('BrowserStorage', function() {
   let BrowserStorage: any, Promise: any;
 
-  BrowserStorage = require('../build-ts/browser_storage');
+  BrowserStorage = require('../build-ts/browser_storage').default;
   Promise = require('bluebird');
 
   function createStorage(data: Record<string, any>, ready: any): any {

@@ -1,10 +1,8 @@
-import OmegaTargetModule = require('omega-target');
-import ProxyImplModule = require('./proxy_impl');
+import OmegaTarget from 'omega-target';
+import ProxyImpl from './proxy_impl';
 import type {ProxyChangeWatcher, ProxyLog, ProxyProfile} from './proxy_types';
 
-const OmegaPromise = OmegaTargetModule.Promise;
-
-const ProxyImpl = ProxyImplModule;
+const OmegaPromise = OmegaTarget.Promise;
 
 type ProxyScriptState = Record<string, unknown> & {
   currentProfileName?: string;
@@ -123,4 +121,4 @@ class ScriptProxyImpl extends ProxyImpl {
   }
 }
 
-export = ScriptProxyImpl;
+export default ScriptProxyImpl;

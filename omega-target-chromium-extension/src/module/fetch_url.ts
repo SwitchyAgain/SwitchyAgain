@@ -1,8 +1,7 @@
-import OmegaTargetModule = require('omega-target');
-import Url = require('url');
-import xhrModule = require('xhr');
+import OmegaTarget from 'omega-target';
+import Url from 'url';
+import xhrModule from 'xhr';
 
-const OmegaTarget = OmegaTargetModule;
 const OmegaPromise = OmegaTarget.Promise;
 const ContentTypeRejectedError = OmegaTarget.ContentTypeRejectedError;
 
@@ -120,4 +119,4 @@ function fetchUrl(destUrl: string, optBypassCache?: boolean, optTypeHints?: stri
   return xhrWrapper(destUrl).then(getResBody);
 }
 
-export = fetchUrl;
+export default fetchUrl;

@@ -1,14 +1,12 @@
 import type {Condition, PacRequest} from './types';
 import type {AttachedCache as AttachedCacheType} from './utils';
+import U2 from './uglifyjs_shim';
+import IP from 'ip-address';
+import Url from 'url';
+import {escapeSlash, shExp2RegExp} from './shexp_utils';
+import {AttachedCache} from './utils';
 
-const U2 = require('./uglifyjs_shim');
-const IP = require('ip-address');
-const Url = require('url');
 const hasProp = Object.prototype.hasOwnProperty;
-
-const {shExp2RegExp, escapeSlash} = require('./shexp_utils') as typeof import('./shexp_utils');
-
-const {AttachedCache} = require('./utils') as typeof import('./utils');
 
 type ConditionCache = {
   analyzed?: any;
@@ -1021,4 +1019,4 @@ const ConditionsApi: ConditionsApiType = {
   }
 };
 
-export = ConditionsApi;
+export default ConditionsApi;

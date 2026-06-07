@@ -206,7 +206,11 @@ type BackgroundOmegaTarget = {
 (function() {
   const hasProp = {}.hasOwnProperty;
 
-  const OmegaTargetCurrent = Object.create(OmegaTargetChromium) as BackgroundOmegaTarget;
+  const OmegaTargetChromiumModule = OmegaTargetChromium as unknown as BackgroundOmegaTarget & {
+    default?: BackgroundOmegaTarget;
+  };
+  const OmegaTargetBase = OmegaTargetChromiumModule.default || OmegaTargetChromiumModule;
+  const OmegaTargetCurrent = Object.create(OmegaTargetBase) as BackgroundOmegaTarget;
 
   const Promise = OmegaTargetCurrent.Promise;
 

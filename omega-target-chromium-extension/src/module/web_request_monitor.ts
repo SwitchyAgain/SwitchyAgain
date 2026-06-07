@@ -6,7 +6,7 @@ type HeapQueue<T> = {
 
 type HeapConstructor = new <T>(compare: (a: T, b: T) => number) => HeapQueue<T>;
 
-import HeapModule = require('heap');
+import HeapModule from 'heap';
 
 const Heap = HeapModule as unknown as HeapConstructor;
 
@@ -348,4 +348,4 @@ class WebRequestMonitor {
   }
 }
 
-export = WebRequestMonitor;
+export default WebRequestMonitor;

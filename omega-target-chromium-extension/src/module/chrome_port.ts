@@ -106,4 +106,4 @@ class ChromePort {
   }
 }
 
-export = ChromePort;
+export default ChromePort;

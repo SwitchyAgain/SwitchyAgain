@@ -1,1 +1,1 @@
-export = OmegaTarget;
+export default OmegaTarget;

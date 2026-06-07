@@ -1,5 +1,5 @@
-import OmegaTargetModule = require('omega-target');
-import ProxyAuth = require('./proxy_auth');
+import OmegaTarget from 'omega-target';
+import ProxyAuth from './proxy_auth';
 import type {
   ExternalProxyDetails,
   ProxyChangeDetails,
@@ -8,7 +8,6 @@ import type {
   ProxyProfile
 } from './proxy_types';
 
-const OmegaTarget = OmegaTargetModule;
 const OmegaPac = OmegaTarget.OmegaPac;
 const OmegaPromise = OmegaTarget.Promise;
 
@@ -85,4 +84,4 @@ class ProxyImpl {
   }
 }
 
-export = ProxyImpl;
+export default ProxyImpl;

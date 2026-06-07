@@ -1,31 +1,19 @@
-const fs = require('fs');
-const fsp = require('fs/promises');
-const path = require('path');
-const browserify = require('browserify');
-const archiver = require('archiver');
-const esbuild = require('esbuild');
-const po2json = require('po2json/index.js');
+import * as fs from 'fs';
+import * as fsp from 'fs/promises';
+import * as path from 'path';
+import * as archiver from 'archiver';
+import * as esbuild from 'esbuild';
+import * as po2json from 'po2json/index.js';
 
 const root = path.resolve(__dirname, '..');
 const isRelease = process.argv.includes('release');
 
 type PathFilter = (filePath: string) => boolean;
 
-type BundleRequire = {
-  expose: string;
-  file: string;
-};
-
 type BundleOptions = {
-  browserifyOptions?: Record<string, unknown>;
-  entries?: string[];
-  exclude?: string[];
+  entry: string;
+  globalName: string;
   minify?: boolean;
-  require?: BundleRequire[];
-};
-
-type BundleOutput = string | {
-  toString(): string;
 };
 
 type LocaleJson = Record<string, [unknown, string]>;
@@ -69,43 +57,21 @@ async function copyTree(src: string, dest: string, filter: PathFilter = () => tr
   }
 }
 
-async function minifyBundle(output: BundleOutput) {
-  const result = await esbuild.transform(output.toString(), {
-    loader: 'js',
-    minify: true
-  });
-  return result.code;
-}
-
-function bundle(options: BundleOptions) {
-  return new Promise<BundleOutput>((resolve, reject) => {
-    const b = browserify(options.browserifyOptions || {});
-    for (const entry of options.entries || []) {
-      b.add(entry);
-    }
-    for (const excluded of options.exclude || []) {
-      b.exclude(excluded);
-    }
-    for (const item of options.require || []) {
-      b.require(item.file, {expose: item.expose});
-    }
-    b.bundle((error: unknown, output: BundleOutput) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(output);
-      }
-    });
-  });
-}
-
 async function writeBundle(dest: string, options: BundleOptions) {
-  let output = await bundle(options);
-  if (isRelease && options.minify) {
-    output = await minifyBundle(output);
-  }
   await ensureDir(dest);
-  await fsp.writeFile(dest, output);
+  await esbuild.build({
+    absWorkingDir: root,
+    bundle: true,
+    define: {global: 'globalThis'},
+    entryPoints: [options.entry],
+    format: 'iife',
+    globalName: options.globalName,
+    legalComments: 'eof',
+    minify: isRelease && !!options.minify,
+    outfile: dest,
+    platform: 'browser',
+    target: 'es5'
+  });
 }
 
 function convertPo(src: string) {
@@ -212,20 +178,12 @@ async function main() {
 
   const indexSource = path.join(root, 'build-ts/module/index.js');
   await writeBundle(path.join(root, 'index.js'), {
-    entries: [indexSource],
-    exclude: ['bluebird', 'omega-pac', 'omega-target'],
-    browserifyOptions: {
-      builtins: [],
-      standalone: 'OmegaTargetChromium',
-      debug: true
-    }
+    entry: indexSource,
+    globalName: 'OmegaTargetChromium'
   });
   await writeBundle(path.join(root, 'omega_target_chromium_extension.min.js'), {
-    entries: [indexSource],
-    require: [{file: indexSource, expose: 'OmegaTargetChromium'}],
-    browserifyOptions: {
-      standalone: 'OmegaTargetChromium'
-    },
+    entry: indexSource,
+    globalName: 'OmegaTargetChromium',
     minify: true
   });
   const fontFilter = (base: string): PathFilter => (filePath: string) => {

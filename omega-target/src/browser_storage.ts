@@ -1,5 +1,5 @@
-const Storage = require('./storage') as new () => object;
-const Promise = require('bluebird') as BluebirdStatic;
+import PromiseImpl from 'bluebird';
+import Storage from './storage';
 import type {
   BluebirdPromise,
   BluebirdStatic,
@@ -7,6 +7,8 @@ import type {
   StorageItems,
   StorageRemoveKeys
 } from './types';
+
+const Promise = PromiseImpl as BluebirdStatic;
 
 type BrowserStorageBackend = {
   ready?: unknown;
@@ -110,4 +112,4 @@ class BrowserStorage extends Storage {
   }
 }
 
-export = BrowserStorage;
+export default BrowserStorage;

@@ -10,9 +10,9 @@ describe('Profiles', function() {
     U2: any,
     ruleListResult: (profileName: any, source: any) => any,
     testProfile: (profile: any, request: any, expected: any, expectedCompiled?: any) => any;
-  Profiles = require('../build-ts/profiles');
-  Conditions = require('../build-ts/conditions');
-  U2 = require('../build-ts/uglifyjs_shim');
+  Profiles = require('../build-ts/profiles').default;
+  Conditions = require('../build-ts/conditions').default;
+  U2 = require('../build-ts/uglifyjs_shim').default;
   ruleListResult = function(profileName: any, source: any): any {
     return {
       profileName: profileName,

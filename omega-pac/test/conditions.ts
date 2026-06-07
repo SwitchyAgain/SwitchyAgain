@@ -8,8 +8,8 @@ lolex = require('lolex');
 
 describe('Conditions', function() {
   let Conditions: any, U2: any, testCond: (condition: any, request: any, should_match?: any) => any;
-  Conditions = require('../build-ts/conditions');
-  U2 = require('../build-ts/uglifyjs_shim');
+  Conditions = require('../build-ts/conditions').default;
+  U2 = require('../build-ts/uglifyjs_shim').default;
   testCond = function(condition: any, request: any, should_match?: any): any {
     let compileResult, condExpr, friendlyError, matchResult, o_request, testFunc;
     o_request = request;

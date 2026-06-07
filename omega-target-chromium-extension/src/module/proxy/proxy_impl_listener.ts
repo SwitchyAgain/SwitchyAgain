@@ -1,5 +1,5 @@
-import OmegaTargetModule = require('omega-target');
-import ProxyImplModule = require('./proxy_impl');
+import OmegaTarget from 'omega-target';
+import ProxyImpl from './proxy_impl';
 import type {
   ProxyCredentials,
   ProxyChangeWatcher,
@@ -8,11 +8,8 @@ import type {
   ProxyServer
 } from './proxy_types';
 
-const OmegaTarget = OmegaTargetModule;
 const OmegaPac = OmegaTarget.OmegaPac;
 const NativePromise = typeof Promise !== 'undefined' && Promise !== null ? Promise : null;
-
-const ProxyImpl = ProxyImplModule;
 
 type MatchedProxyServer = ProxyServer & {
   host: string;
@@ -138,4 +135,4 @@ class ListenerProxyImpl extends ProxyImpl {
   }
 }
 
-export = ListenerProxyImpl;
+export default ListenerProxyImpl;

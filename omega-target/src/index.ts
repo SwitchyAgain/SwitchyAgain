@@ -1,12 +1,11 @@
-import BrowserStorage = require('./browser_storage');
-import Log = require('./log');
-import Options = require('./options');
-import OptionsSync = require('./options_sync');
-import Storage = require('./storage');
+import OmegaPac from 'omega-pac';
+import BrowserStorage from './browser_storage';
 import * as errors from './errors';
+import Log from './log';
+import Options from './options';
+import OptionsSync from './options_sync';
+import Storage from './storage';
 import * as utils from './utils';
-
-const OmegaPac = require('omega-pac');
 
 const omegaTarget: Record<string, unknown> = {
   Log,
@@ -27,4 +26,16 @@ for (const name of Object.keys(errorExports)) {
   omegaTarget[name] = errorExports[name];
 }
 
-export = omegaTarget;
+export {
+  BrowserStorage,
+  Log,
+  Options,
+  OptionsSync,
+  Storage,
+  OmegaPac
+};
+
+export * from './errors';
+export * from './utils';
+
+export default omegaTarget;

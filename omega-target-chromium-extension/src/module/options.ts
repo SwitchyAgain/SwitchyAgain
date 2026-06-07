@@ -1,13 +1,12 @@
-import OmegaTargetModule = require('omega-target');
-import querystring = require('querystring');
-import WebRequestMonitor = require('./web_request_monitor');
-import ChromePort = require('./chrome_port');
-import fetchUrl = require('./fetch_url');
-import Url = require('url');
-import upgradeSwitchyOptions = require('./upgrade');
+import OmegaTarget from 'omega-target';
+import querystring from 'querystring';
+import Url from 'url';
+import ChromePort from './chrome_port';
+import fetchUrl from './fetch_url';
+import upgradeSwitchyOptions from './upgrade';
+import WebRequestMonitor from './web_request_monitor';
 import type {ProxyImplInstance, ProxyProfile} from './proxy/proxy_types';
 
-const OmegaTarget = OmegaTargetModule;
 const OmegaPac = OmegaTarget.OmegaPac;
 const OmegaPromise = OmegaTarget.Promise;
 
@@ -502,4 +501,4 @@ class ChromeOptions extends OmegaTarget.Options {
   }
 }
 
-export = ChromeOptions;
+export default ChromeOptions;

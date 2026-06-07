@@ -77,4 +77,4 @@ const Log = {
   }
 };
 
-export = Log;
+export default Log;

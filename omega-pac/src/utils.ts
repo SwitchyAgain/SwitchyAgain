@@ -1,9 +1,7 @@
-const Url = require('url') as {
-  parse: (url: string) => {
-    hostname?: string | null;
-  };
-};
-const tld = require('tldjs') as {
+import Url from 'url';
+import tldModule from 'tldjs';
+
+const tld = tldModule as {
   getDomain: (domain: string) => string | null;
 };
 

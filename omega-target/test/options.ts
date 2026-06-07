@@ -9,7 +9,7 @@ chai.use(require('sinon-chai'));
 describe('Options', function() {
   let Options: any, Promise: any;
 
-  Options = require('../build-ts/options');
+  Options = require('../build-ts/options').default;
   Promise = require('bluebird');
 
   describe('#setExternalProfile', function() {

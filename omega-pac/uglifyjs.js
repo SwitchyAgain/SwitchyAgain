@@ -6718,6 +6718,8 @@
     exports["OutputStream"] = OutputStream;
     exports["Compressor"] = Compressor;
     exports["SourceMap"] = SourceMap;
-})({}, function() {
-    return this;
-}());
+})({}, typeof globalThis !== "undefined" ? globalThis
+    : typeof self !== "undefined" ? self
+    : typeof window !== "undefined" ? window
+    : typeof global !== "undefined" ? global
+    : {});

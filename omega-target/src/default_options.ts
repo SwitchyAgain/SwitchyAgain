@@ -1,4 +1,4 @@
-export = function defaultOptions() {
+export default function defaultOptions() {
   return {
     schemaVersion: 2,
     '-enableQuickSwitch': false,

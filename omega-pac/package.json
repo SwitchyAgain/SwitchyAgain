@@ -8,7 +8,7 @@
     "tldjs": "^1.5.2"
   },
   "scripts": {
-    "build": "npm run build:ts && browserify build-ts/index.js --standalone OmegaPac --exclude ip-address -o index.js && browserify build-ts/index.js --standalone OmegaPac | esbuild --loader=js --minify > omega_pac.min.js",
+    "build": "npm run build:ts && node ../scripts/write-cjs-wrapper.mjs --module=./build-ts/index.js --outfile=index.js && node ../scripts/bundle-esbuild.mjs --entry=build-ts/index.js --outfile=omega_pac.min.js --global-name=OmegaPac --minify",
     "build:ts": "tsc -p tsconfig.build.json",
     "build:test": "tsc -p tsconfig.test.json",
     "dev": "npm link",

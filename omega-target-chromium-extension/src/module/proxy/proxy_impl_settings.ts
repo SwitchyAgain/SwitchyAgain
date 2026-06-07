@@ -1,6 +1,6 @@
-import OmegaTargetModule = require('omega-target');
+import OmegaTarget from 'omega-target';
 import {chromeApiPromisify} from '../chrome_api';
-import ProxyImplModule = require('./proxy_impl');
+import ProxyImpl from './proxy_impl';
 import type {
   ExternalProxyDetails,
   ProxyChangeDetails,
@@ -13,10 +13,7 @@ import type {
   ProxySettingsConfig
 } from './proxy_types';
 
-const OmegaTarget = OmegaTargetModule;
 const OmegaPac = OmegaTarget.OmegaPac;
-
-const ProxyImpl = ProxyImplModule;
 
 const FIXED_PROXY_RULE_KEYS = [
   'proxyForHttp',
@@ -316,4 +313,4 @@ class SettingsProxyImpl extends ProxyImpl {
   }
 }
 
-export = SettingsProxyImpl;
+export default SettingsProxyImpl;

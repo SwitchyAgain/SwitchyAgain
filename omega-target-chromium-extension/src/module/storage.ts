@@ -1,5 +1,5 @@
 import {chromeApiPromisify} from './chrome_api';
-import OmegaTargetModule = require('omega-target');
+import OmegaTarget from 'omega-target';
 
 type StorageItems = Record<string, unknown>;
 type StorageKeys = string | string[] | StorageItems | null;
@@ -40,7 +40,6 @@ type StorageError = Error & {
   sustained?: number;
 };
 
-const OmegaTarget = OmegaTargetModule;
 const OmegaPromise = OmegaTarget.Promise;
 
 function normalizeWatchKeys(keys: WatchKeys): WatchKeyMap {
@@ -186,4 +185,4 @@ class ChromeStorage extends OmegaTarget.Storage {
   }
 }
 
-export = ChromeStorage;
+export default ChromeStorage;

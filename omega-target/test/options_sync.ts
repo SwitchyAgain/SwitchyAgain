@@ -16,9 +16,9 @@ describe('OptionsSync', function() {
     Storage: any,
     hookPost: (...args: any[]) => any,
     hookPostBasic: (func: (...args: any[]) => any, hook: (...args: any[]) => any) => (...args: any[]) => any;
-  OptionsSync = require('../build-ts/options_sync');
-  Storage = require('../build-ts/storage');
-  Log = require('../build-ts/log');
+  OptionsSync = require('../build-ts/options_sync').default;
+  Storage = require('../build-ts/storage').default;
+  Log = require('../build-ts/log').default;
   Promise = require('bluebird');
   before(function() {
     return sinon.stub(Log, 'log');

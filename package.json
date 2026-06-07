@@ -19,7 +19,7 @@
   "devDependencies": {
     "archiver": "~0.11.0",
     "autoprefixer-core": "^5.2.1",
-    "browserify": "^10.2.6",
+    "buffer": "^3.6.2",
     "chai": "^1.10.0",
     "esbuild": "^0.28.0",
     "less": "^4.6.4",
@@ -27,8 +27,11 @@
     "mocha": "~1.20.1",
     "po2json": "^0.3.2",
     "postcss": "~4.1.12",
+    "process": "^0.11.10",
+    "querystring": "^0.2.0",
     "sinon": "^1.12.2",
     "sinon-chai": "^2.6.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "url": "^0.10.3"
   }
 }

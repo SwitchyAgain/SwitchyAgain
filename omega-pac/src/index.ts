@@ -1,6 +1,6 @@
-import Conditions = require('./conditions');
+import Conditions from './conditions';
 import * as PacGenerator from './pac_generator';
-import Profiles = require('./profiles');
+import Profiles from './profiles';
 import * as RuleList from './rule_list';
 import * as ShexpUtils from './shexp_utils';
 import * as utils from './utils';
@@ -18,4 +18,14 @@ for (const name of Object.keys(utilExports)) {
   omegaPac[name] = utilExports[name];
 }
 
-export = omegaPac;
+export {
+  Conditions,
+  PacGenerator,
+  Profiles,
+  RuleList,
+  ShexpUtils
+};
+
+export * from './utils';
+
+export default omegaPac;

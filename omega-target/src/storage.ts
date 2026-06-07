@@ -1,11 +1,10 @@
 /* @module omega-target/storage */
 
-const Promise = require('bluebird') as BluebirdStatic;
-const Log = require('./log') as LogLike;
+import PromiseImpl from 'bluebird';
+import Log from './log';
 import type {
   BluebirdPromise,
   BluebirdStatic,
-  LogLike,
   StorageApplyOperations,
   StorageChanges,
   StorageGetKeys,
@@ -15,6 +14,8 @@ import type {
   StorageWatchCallback,
   StopWatching
 } from './types';
+
+const Promise = PromiseImpl as BluebirdStatic;
 
 class RateLimitExceededError extends Error {
   constructor() {
@@ -180,4 +181,4 @@ class Storage {
   }
 }
 
-export = Storage;
+export default Storage;

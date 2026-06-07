@@ -1,15 +1,14 @@
 /* @module omega-target/options_sync */
 
-const Promise = require('bluebird') as BluebirdStatic;
-const Storage = require('./storage') as StorageModule;
-const Log = require('./log') as LogLike;
-const Revision = (require('omega-pac') as OmegaPacModule).Revision;
-const jsondiffpatch = require('jsondiffpatch') as JsonDiffPatchModule;
-const TokenBucket = (require('limiter') as LimiterModule).TokenBucket;
+import PromiseImpl from 'bluebird';
+import jsondiffpatchModule from 'jsondiffpatch';
+import limiterModule from 'limiter';
+import OmegaPac from 'omega-pac';
+import Log from './log';
+import StorageClass from './storage';
 import type {
   BluebirdStatic,
   BluebirdPromise,
-  LogLike,
   StorageApplyOperations,
   StorageChanges,
   StorageItems,
@@ -67,6 +66,12 @@ type OmegaPacModule = {
 };
 
 type TimerHandle = ReturnType<typeof setTimeout>;
+
+const Promise = PromiseImpl as BluebirdStatic;
+const Storage = StorageClass as unknown as StorageModule;
+const Revision = (OmegaPac as OmegaPacModule).Revision;
+const jsondiffpatch = jsondiffpatchModule as JsonDiffPatchModule;
+const TokenBucket = (limiterModule as LimiterModule).TokenBucket;
 
 class OptionsSync {
   static TokenBucket = TokenBucket;
@@ -343,4 +348,4 @@ class OptionsSync {
   }
 }
 
-export = OptionsSync;
+export default OptionsSync;

@@ -9,9 +9,9 @@ type OmegaPromiseConstructor = new <T>(
   ) => void
 ) => Promise<T>;
 
-import OmegaTargetModule = require('omega-target');
+import OmegaTarget from 'omega-target';
 
-const OmegaPromise = OmegaTargetModule.Promise as OmegaPromiseConstructor;
+const OmegaPromise = OmegaTarget.Promise as OmegaPromiseConstructor;
 
 function chromeRuntimeError() {
   const error = new Error(chrome.runtime.lastError?.message || 'Unknown Chrome API error.');

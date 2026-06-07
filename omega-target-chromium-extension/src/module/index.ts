@@ -1,12 +1,12 @@
-import Storage = require('./storage');
-import Options = require('./options');
-import ChromeTabs = require('./tabs');
-import ExternalApi = require('./external_api');
-import WebRequestMonitor = require('./web_request_monitor');
-import Inspect = require('./inspect');
-import Url = require('url');
-import proxy = require('./proxy');
-import omegaTarget = require('omega-target');
+import omegaTarget from 'omega-target';
+import Url from 'url';
+import ExternalApi from './external_api';
+import Inspect from './inspect';
+import Options from './options';
+import * as proxy from './proxy';
+import Storage from './storage';
+import ChromeTabs from './tabs';
+import WebRequestMonitor from './web_request_monitor';
 
 const chromiumTarget: Record<string, unknown> = {
   Storage,
@@ -25,4 +25,15 @@ for (const name of Object.keys(omegaTarget)) {
   }
 }
 
-export = chromiumTarget;
+export {
+  ChromeTabs,
+  ExternalApi,
+  Inspect,
+  Options,
+  Storage,
+  Url,
+  WebRequestMonitor,
+  proxy
+};
+
+export default chromiumTarget;

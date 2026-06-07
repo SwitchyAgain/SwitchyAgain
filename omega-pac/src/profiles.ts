@@ -10,12 +10,13 @@ import type {
   SwitchRule
 } from './types';
 import type {AttachedCache as AttachedCacheType} from './utils';
+import Conditions from './conditions';
+import * as RuleList from './rule_list';
+import * as ShexpUtils from './shexp_utils';
+import U2 from './uglifyjs_shim';
+import {AttachedCache, Revision} from './utils';
 
-const U2 = require('./uglifyjs_shim');
-const ShexpUtils = require('./shexp_utils');
 const hasProp = Object.prototype.hasOwnProperty;
-
-const {AttachedCache, Revision} = require('./utils') as typeof import('./utils');
 
 type UglifyNode = any;
 
@@ -33,12 +34,7 @@ type RuleListFormat = {
   preprocess?: (text: string) => string;
 };
 
-const Conditions = require('./conditions') as {
-  compile(condition: Condition): UglifyNode;
-  match(condition: Condition, request: PacRequest): boolean;
-};
-
-const RuleList = require('./rule_list') as Record<string, RuleListFormat>;
+const RuleListFormats = RuleList as Record<string, RuleListFormat>;
 
 type ProfileCache = {
   analyzed?: any;
@@ -708,7 +704,7 @@ const ProfilesApi: ProfilesApiType = {
       directReferenceSet(profile) {
         let refs;
         if (profile.ruleList != null) {
-          const formatHandler = RuleList[profile.format];
+          const formatHandler = RuleListFormats[profile.format];
           refs = formatHandler != null && typeof formatHandler.directReferenceSet === "function" ? formatHandler.directReferenceSet(profile) : void 0;
           if (refs) {
             return refs;
@@ -734,7 +730,7 @@ const ProfilesApi: ProfilesApiType = {
       },
       analyze(profile) {
         const format = profile.format != null ? profile.format : ProfilesApi.formatByType[profile.profileType];
-        const formatHandler = RuleList[format];
+        const formatHandler = RuleListFormats[format];
         if (!formatHandler) {
           throw new Error("Unsupported rule list format " + format + "!");
         }
@@ -761,13 +757,13 @@ const ProfilesApi: ProfilesApiType = {
         const original = profile.format != null ? profile.format : ProfilesApi.formatByType[profile.profileType];
         profile.profileType = 'RuleListProfile';
         let format = original;
-        let formatHandler = RuleList[format];
+        let formatHandler = RuleListFormats[format];
         if ((typeof formatHandler.detect === "function" ? formatHandler.detect(data) : void 0) === false) {
           format = null;
         }
-        for (const formatName in RuleList) {
-          if (!hasProp.call(RuleList, formatName)) continue;
-          const candidate = RuleList[formatName];
+        for (const formatName in RuleListFormats) {
+          if (!hasProp.call(RuleListFormats, formatName)) continue;
+          const candidate = RuleListFormats[formatName];
           const result = typeof candidate.detect === "function" ? candidate.detect(data) : void 0;
           if (result === true || (result !== false && (format == null))) {
             profile.format = format = formatName;
@@ -776,7 +772,7 @@ const ProfilesApi: ProfilesApiType = {
         if (format == null) {
           format = original;
         }
-        formatHandler = RuleList[format];
+        formatHandler = RuleListFormats[format];
         if (formatHandler.preprocess != null) {
           data = formatHandler.preprocess(data);
         }
@@ -792,4 +788,4 @@ const ProfilesApi: ProfilesApiType = {
   }
 };
 
-export = ProfilesApi;
+export default ProfilesApi;

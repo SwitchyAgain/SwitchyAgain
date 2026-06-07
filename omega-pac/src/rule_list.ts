@@ -6,8 +6,9 @@ import type {
   RuleListParseOptions,
   SwitchRule
 } from './types';
+import {Buffer} from 'buffer';
+import Conditions from './conditions';
 
-const Buffer = require('buffer').Buffer;
 const hasProp = Object.prototype.hasOwnProperty;
 
 type StrictRuleErrorFields = {
@@ -21,12 +22,6 @@ const strStartsWith = (str: string, prefix: string): boolean => {
   return str.startsWith(prefix);
 };
 
-const Conditions = require('./conditions') as {
-  fromStr(value: string): Condition | null;
-  str(condition: Condition): string;
-  urlWildcard2HostWildcard(pattern: string): string | undefined;
-};
-
 export const AutoProxy = {
     magicPrefix: 'W0F1dG9Qcm94',
     detect(text: string) {
@@ -38,7 +33,7 @@ export const AutoProxy = {
     },
     preprocess(text: string): string {
       if (strStartsWith(text, AutoProxy.magicPrefix)) {
-        text = new Buffer(text, 'base64').toString('utf8');
+        text = Buffer.from(text, 'base64').toString('utf8');
       }
       return text;
     },

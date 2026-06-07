@@ -1,4 +1,4 @@
-import OmegaTargetModule = require('omega-target');
+import OmegaTarget from 'omega-target';
 import type {
   ProxyAuthEndpoint,
   ProxyCredentials,
@@ -6,7 +6,6 @@ import type {
   ProxyProfile
 } from './proxy_types';
 
-const OmegaTarget = OmegaTargetModule;
 const OmegaPac = OmegaTarget.OmegaPac;
 
 type ProxyAuthEntry = {
@@ -154,4 +153,4 @@ class ProxyAuth {
   }
 }
 
-export = ProxyAuth;
+export default ProxyAuth;

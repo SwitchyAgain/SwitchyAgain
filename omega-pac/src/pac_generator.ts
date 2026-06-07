@@ -1,6 +1,6 @@
 import type {OptionsMap, PacGeneratorOptions, Profile, ReferenceSet} from './types';
-
-const U2 = require('./uglifyjs_shim');
+import Profiles from './profiles';
+import U2 from './uglifyjs_shim';
 
 type UglifyAst = {
   compute_char_frequency(): void;
@@ -10,7 +10,7 @@ type UglifyAst = {
   [key: string]: unknown;
 };
 
-const Profiles = require('./profiles') as {
+const ProfilesApi = Profiles as {
   allReferenceSet(profile: string | Profile, options: OptionsMap, args?: PacGeneratorOptions): ReferenceSet;
   byName(profileName: string, options: OptionsMap): Profile | undefined;
   compile(profile: Profile): unknown;
@@ -48,11 +48,11 @@ export function compress(ast: UglifyAst): UglifyAst {
 export function script(options: OptionsMap, profile: string | Profile, args?: PacGeneratorOptions) {
   let targetProfile;
   if (typeof profile === 'string') {
-    targetProfile = Profiles.byName(profile, options);
+    targetProfile = ProfilesApi.byName(profile, options);
   } else {
     targetProfile = profile;
   }
-  const refs = Profiles.allReferenceSet(targetProfile, options, {
+  const refs = ProfilesApi.allReferenceSet(targetProfile, options, {
     profileNotFound: args != null ? args.profileNotFound : void 0
   });
   const properties = [];
@@ -61,13 +61,13 @@ export function script(options: OptionsMap, profile: string | Profile, args?: Pa
     if (!(key !== '+direct')) {
       continue;
     }
-    let p = typeof targetProfile === 'object' && targetProfile.name === name ? targetProfile : Profiles.byName(name, options);
+    let p = typeof targetProfile === 'object' && targetProfile.name === name ? targetProfile : ProfilesApi.byName(name, options);
     if (p == null) {
-      p = Profiles.profileNotFound(name, args != null ? args.profileNotFound : void 0);
+      p = ProfilesApi.profileNotFound(name, args != null ? args.profileNotFound : void 0);
     }
     properties.push(new U2.AST_ObjectKeyVal({
       key: key,
-      value: Profiles.compile(p)
+      value: ProfilesApi.compile(p)
     }));
   }
   const profiles = new U2.AST_Object({
@@ -244,7 +244,7 @@ export function script(options: OptionsMap, profile: string | Profile, args?: Pa
             }),
             value: new U2.AST_Call({
               expression: factory,
-              args: [Profiles.profileResult(targetProfile.name), profiles]
+              args: [ProfilesApi.profileResult(targetProfile.name), profiles]
             })
           })
         ]

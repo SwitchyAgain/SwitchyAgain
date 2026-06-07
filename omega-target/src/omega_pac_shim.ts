@@ -1,1 +1,1 @@
-export = OmegaPac;
+export default OmegaPac;

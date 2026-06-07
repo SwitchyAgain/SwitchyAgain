@@ -1,13 +1,10 @@
-import ListenerProxyImplModule = require('./proxy_impl_listener');
-import SettingsProxyImplModule = require('./proxy_impl_settings');
+import ListenerProxyImpl from './proxy_impl_listener';
+import SettingsProxyImpl from './proxy_impl_settings';
 import type {
   ProxyImplConstructor,
   ProxyImplInstance,
   ProxyLog
 } from './proxy_types';
-
-const ListenerProxyImpl = ListenerProxyImplModule;
-const SettingsProxyImpl = SettingsProxyImplModule;
 
 export const proxyImpls: ProxyImplConstructor[] = [ListenerProxyImpl, SettingsProxyImpl];
 

@@ -102,4 +102,4 @@ class Inspect {
   }
 }
 
-export = Inspect;
+export default Inspect;

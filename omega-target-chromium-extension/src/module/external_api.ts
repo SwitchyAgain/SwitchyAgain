@@ -1,4 +1,4 @@
-import ChromePort = require('./chrome_port');
+import ChromePort from './chrome_port';
 
 type Profile = {
   name?: string;
@@ -175,4 +175,4 @@ class ExternalApi {
   }
 }
 
-export = ExternalApi;
+export default ExternalApi;

@@ -478,32 +478,35 @@ declare function require(id: string): LegacyDynamic;
 
 declare module 'omega-target' {
   const value: OmegaTargetModule;
-  export = value;
+  export default value;
 }
 
 declare module 'querystring' {
   const value: QueryStringModule;
-  export = value;
+  export default value;
 }
 
 declare module 'url' {
   const value: UrlModule;
-  export = value;
+  export default value;
 }
 
 declare module 'buffer' {
-  const value: LegacyDynamic;
-  export = value;
+  export const Buffer: {
+    from(value: string, encoding?: string): {
+      toString(encoding?: string): string;
+    };
+  };
 }
 
 declare module 'xhr' {
   const value: LegacyDynamic;
-  export = value;
+  export default value;
 }
 
 declare module 'heap' {
   const value: LegacyDynamic;
-  export = value;
+  export default value;
 }
 
 interface Window {
