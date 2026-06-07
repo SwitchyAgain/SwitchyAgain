@@ -1,8 +1,6 @@
-import chai from 'chai';
+import assert from 'assert';
 import Promise from 'bluebird';
 import BrowserStorageClass from '../src/browser_storage';
-
-const should = chai.should();
 
 describe('BrowserStorage', function() {
   let BrowserStorage: any;
@@ -47,7 +45,7 @@ describe('BrowserStorage', function() {
         resolveReady();
         return getResult;
       }).then(function(result: any) {
-        result.currentProfileName.should.equal('proxy');
+        assert.strictEqual(result.currentProfileName, 'proxy');
       });
     });
   });

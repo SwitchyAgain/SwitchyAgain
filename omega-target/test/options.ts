@@ -1,11 +1,7 @@
-import chai from 'chai';
+import assert from 'assert';
 import Promise from 'bluebird';
 import sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 import OptionsClass from '../src/options';
-
-const should = chai.should();
-chai.use(sinonChai);
 
 describe('Options', function() {
   let Options: any;
@@ -31,8 +27,9 @@ describe('Options', function() {
         profileType: 'PacProfile'
       });
 
-      options.applyProfile.should.have.been.calledOnce.and.calledWith('proxy');
-      should.equal(options._revertToProfileName, null);
+      sinon.assert.calledOnce(options.applyProfile);
+      sinon.assert.calledWith(options.applyProfile, 'proxy');
+      assert.strictEqual(options._revertToProfileName, null);
       return result;
     });
   });

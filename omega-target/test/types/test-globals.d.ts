@@ -3,28 +3,20 @@ declare var after: (callback: () => unknown) => unknown;
 declare var describe: (name: string, callback: () => unknown) => unknown;
 declare var it: (name: string, callback: (done?: () => void) => unknown) => unknown;
 
-declare module 'chai' {
+declare module 'bluebird' {
   const value: any;
+  export default value;
+}
+
+declare module 'assert' {
+  const value: {
+    deepStrictEqual(actual: unknown, expected: unknown): void;
+    strictEqual(actual: unknown, expected: unknown): void;
+  };
   export default value;
 }
 
 declare module 'sinon' {
   const value: any;
   export default value;
-}
-
-interface Object {
-  should: any;
-}
-
-interface String {
-  should: any;
-}
-
-interface Number {
-  should: any;
-}
-
-interface Boolean {
-  should: any;
 }

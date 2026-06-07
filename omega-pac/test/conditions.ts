@@ -1,9 +1,7 @@
-import chai from 'chai';
+import assert from 'assert';
 import sinon from 'sinon';
 import ConditionsApi from '../src/conditions';
 import UglifyJS from '../src/uglifyjs_shim';
-
-const should = chai.should();
 
 describe('Conditions', function() {
   let Conditions: any, U2: any, testCond: (condition: any, request: any, should_match?: any) => any;
@@ -42,7 +40,7 @@ describe('Conditions', function() {
       printCompiled = compiled ? 'COMPILED ' : '';
       printMatch = should_match ? 'to match' : 'not to match';
       msg = ("expect " + printCompiled + "condition " + printCond + " ") + (printMatch + " request " + o_request);
-      return chai.assert(false, msg);
+      assert.fail(msg);
     };
     if (matchResult !== should_match) {
       friendlyError();
@@ -144,7 +142,7 @@ describe('Conditions', function() {
       return testCond(cond, 'http://example.com/', false);
     });
     return it('should not match URL parts other than the host', function() {
-      return testCond(cond, 'http://example.net/www.example.com').should.be["false"];
+      assert.strictEqual(testCond(cond, 'http://example.net/www.example.com'), false);
     });
   });
   describe('HostWildcardCondition', function() {
@@ -180,7 +178,7 @@ describe('Conditions', function() {
       return testCond(con, 'http://example.com/', false);
     });
     it('should not match URL parts other than the host', function() {
-      return testCond(cond, 'http://example.net/www.example.com').should.be["false"];
+      assert.strictEqual(testCond(cond, 'http://example.net/www.example.com'), false);
     });
     return it('should support multiple patterns in one condition', function() {
       cond = {
@@ -266,8 +264,8 @@ describe('Conditions', function() {
         pattern: '192.168.0.0/16'
       };
       result = Conditions.analyze(cond).analyzed;
-      should.exist(result.ip);
-      return result.ip.should.eql({
+      assert.notEqual(result.ip, null);
+      assert.deepStrictEqual(result.ip, {
         conditionType: 'IpCondition',
         ip: '192.168.0.0',
         prefixLength: 16
@@ -280,8 +278,8 @@ describe('Conditions', function() {
         pattern: 'fefe:13::abc/33'
       };
       result = Conditions.analyze(cond).analyzed;
-      should.exist(result.ip);
-      return result.ip.should.eql({
+      assert.notEqual(result.ip, null);
+      assert.deepStrictEqual(result.ip, {
         conditionType: 'IpCondition',
         ip: 'fefe:13::abc',
         prefixLength: 33
@@ -294,8 +292,8 @@ describe('Conditions', function() {
         pattern: '::/0'
       };
       result = Conditions.analyze(cond).analyzed;
-      should.exist(result.ip);
-      return result.ip.should.eql({
+      assert.notEqual(result.ip, null);
+      assert.deepStrictEqual(result.ip, {
         conditionType: 'IpCondition',
         ip: '::',
         prefixLength: 0
@@ -340,9 +338,9 @@ describe('Conditions', function() {
         prefixLength: 16
       };
       request = Conditions.requestFromUrl('http://192.168.4.4/');
-      Conditions.match(cond, request).should.be["true"];
+      assert.strictEqual(Conditions.match(cond, request), true);
       compiled = Conditions.compile(cond).print_to_string();
-      return compiled.should.contain('isInNet(host,"192.168.1.1","255.255.0.0")');
+      assert.ok(compiled.includes('isInNet(host,"192.168.1.1","255.255.0.0")'));
     });
     it('should support IPv6 subnet', function() {
       let compiled, cond, request;
@@ -352,10 +350,10 @@ describe('Conditions', function() {
         prefixLength: 33
       };
       request = Conditions.requestFromUrl('http://[fefe:13::def]/');
-      Conditions.match(cond, request).should.be["true"];
+      assert.strictEqual(Conditions.match(cond, request), true);
       compiled = Conditions.compile(cond).print_to_string();
-      compiled.should.contain('isInNet(host,"fefe:13::abc","ffff:ffff:8000::")');
-      return compiled.should.contain('isInNetEx(host,"fefe:13::abc/33")');
+      assert.ok(compiled.includes('isInNet(host,"fefe:13::abc","ffff:ffff:8000::")'));
+      assert.ok(compiled.includes('isInNetEx(host,"fefe:13::abc/33")'));
     });
     it('should support IPv6 subnet with zero prefixLength', function() {
       let compiled, cond, request;
@@ -365,9 +363,9 @@ describe('Conditions', function() {
         prefixLength: 0
       };
       request = Conditions.requestFromUrl('http://[fefe:13::def]/');
-      Conditions.match(cond, request).should.be["true"];
+      assert.strictEqual(Conditions.match(cond, request), true);
       compiled = Conditions.compile(cond).print_to_string();
-      return compiled.indexOf('indexOf(').should.be.above(0);
+      assert.ok(compiled.indexOf('indexOf(') > 0);
     });
     it('should not match domain name to IP subnet', function() {
       let cond, request;
@@ -377,7 +375,7 @@ describe('Conditions', function() {
         prefixLength: 0
       };
       request = Conditions.requestFromUrl('http://www.example.com/');
-      return Conditions.match(cond, request).should.be["false"];
+      assert.strictEqual(Conditions.match(cond, request), false);
     });
     return it('should not pass domain name to isInNet function', function() {
       let compiledFunc, ipToCompiledFunc;
@@ -424,17 +422,17 @@ describe('Conditions', function() {
         return eval('(' + testFunc.print_to_string() + ')');
       };
       compiledFunc = ipToCompiledFunc('0.0.0.0', 0);
-      compiledFunc(null, 'www.example.com').should.equal(false);
-      compiledFunc(null, '127.0.0.1').should.equal(true);
+      assert.strictEqual(compiledFunc(null, 'www.example.com'), false);
+      assert.strictEqual(compiledFunc(null, '127.0.0.1'), true);
       compiledFunc = ipToCompiledFunc('0.0.0.0', 1);
-      compiledFunc(null, 'www.example.com').should.equal(false);
-      compiledFunc(null, '127.0.0.1').should.equal(true);
+      assert.strictEqual(compiledFunc(null, 'www.example.com'), false);
+      assert.strictEqual(compiledFunc(null, '127.0.0.1'), true);
       compiledFunc = ipToCompiledFunc('::', 0);
-      compiledFunc(null, 'www.example.com').should.equal(false);
-      compiledFunc(null, '::1').should.equal(true);
+      assert.strictEqual(compiledFunc(null, 'www.example.com'), false);
+      assert.strictEqual(compiledFunc(null, '::1'), true);
       compiledFunc = ipToCompiledFunc('::', 1);
-      compiledFunc(null, 'www.example.com').should.equal(false);
-      return compiledFunc(null, '::1').should.equal(true);
+      assert.strictEqual(compiledFunc(null, 'www.example.com'), false);
+      assert.strictEqual(compiledFunc(null, '::1'), true);
     });
   });
   describe('KeywordCondition', function() {
@@ -565,7 +563,7 @@ describe('Conditions', function() {
     });
     testCondTime = function(cond: any, time: string, match: boolean): any {
       clock.setSystemTime(new Date("01 Jun 2026 " + time).getTime());
-      return testCond(cond, "http://time-" + time + "/", match);
+      return testCond(cond, "http://time-" + time.replace(/:/g, "-") + ".example/", match);
     };
     it('should match requests based on hour range', function() {
       let cond;
@@ -619,8 +617,8 @@ describe('Conditions', function() {
   });
   describe('#typeFromAbbr', function() {
     return it('should get condition types by abbrs', function() {
-      Conditions.typeFromAbbr('True').should.equal('TrueCondition');
-      return Conditions.typeFromAbbr('HR').should.equal('HostRegexCondition');
+      assert.strictEqual(Conditions.typeFromAbbr('True'), 'TrueCondition');
+      assert.strictEqual(Conditions.typeFromAbbr('HR'), 'HostRegexCondition');
     });
   });
   return describe('#str and #fromStr', function() {
@@ -630,9 +628,9 @@ describe('Conditions', function() {
         conditionType: 'TrueCondition'
       };
       result = Conditions.str(condition);
-      result.should.equal('True:');
+      assert.strictEqual(result, 'True:');
       cond = Conditions.fromStr(result);
-      return cond.should.eql(condition);
+      assert.deepStrictEqual(cond, condition);
     });
     it('should encode & decode conditions with pattern correctly', function() {
       let cond, condition, result;
@@ -641,9 +639,9 @@ describe('Conditions', function() {
         pattern: '*://*.example.com/*'
       };
       result = Conditions.str(condition);
-      result.should.equal('UrlWildcard: ' + condition.pattern);
+      assert.strictEqual(result, 'UrlWildcard: ' + condition.pattern);
       cond = Conditions.fromStr(result);
-      return cond.should.eql(condition);
+      assert.deepStrictEqual(cond, condition);
     });
     it('should encode & decode False while preserving pattern', function() {
       let cond, condition, result;
@@ -652,9 +650,9 @@ describe('Conditions', function() {
         pattern: 'a b c'
       };
       result = Conditions.str(condition);
-      result.should.equal('Disabled: a b c');
+      assert.strictEqual(result, 'Disabled: a b c');
       cond = Conditions.fromStr(result);
-      return cond.should.eql(condition);
+      assert.deepStrictEqual(cond, condition);
     });
     it('should encode & decode FalseCondition without any pattern', function() {
       let cond, condition, result;
@@ -662,9 +660,9 @@ describe('Conditions', function() {
         conditionType: 'FalseCondition'
       };
       result = Conditions.str(condition);
-      result.should.equal('Disabled:');
+      assert.strictEqual(result, 'Disabled:');
       cond = Conditions.fromStr(result);
-      return cond.should.eql(condition);
+      assert.deepStrictEqual(cond, condition);
     });
     it('should encode & decode HostWildcardCondition using shorthand syntax', function() {
       let cond, condition, result;
@@ -673,9 +671,9 @@ describe('Conditions', function() {
         pattern: '*.example.com'
       };
       result = Conditions.str(condition);
-      result.should.equal(condition.pattern);
+      assert.strictEqual(result, condition.pattern);
       cond = Conditions.fromStr(result);
-      return cond.should.eql(condition);
+      assert.deepStrictEqual(cond, condition);
     });
     it('should encode & decode HostWildcardCondition ending with colon', function() {
       let cond, condition, result;
@@ -684,9 +682,9 @@ describe('Conditions', function() {
         pattern: 'bogus:'
       };
       result = Conditions.str(condition);
-      result.should.equal('HostWildcard: ' + condition.pattern);
+      assert.strictEqual(result, 'HostWildcard: ' + condition.pattern);
       cond = Conditions.fromStr(result);
-      return cond.should.eql(condition);
+      assert.deepStrictEqual(cond, condition);
     });
     it('should encode & decode BypassCondition correctly', function() {
       let cond, condition, result;
@@ -695,9 +693,9 @@ describe('Conditions', function() {
         pattern: '127.0.0.1/16'
       };
       result = Conditions.str(condition);
-      result.should.equal('Bypass: 127.0.0.1/16');
+      assert.strictEqual(result, 'Bypass: 127.0.0.1/16');
       cond = Conditions.fromStr(result);
-      return cond.should.eql(condition);
+      assert.deepStrictEqual(cond, condition);
     });
     it('should add brackets for IPv6 hosts in BypassCondition', function() {
       let cond, condition, result;
@@ -706,10 +704,10 @@ describe('Conditions', function() {
         pattern: '::1'
       };
       result = Conditions.str(condition);
-      result.should.equal('Bypass: [::1]');
+      assert.strictEqual(result, 'Bypass: [::1]');
       cond = Conditions.fromStr(result);
-      cond.conditionType.should.equal('BypassCondition');
-      return cond.pattern.should.equal('[::1]');
+      assert.strictEqual(cond.conditionType, 'BypassCondition');
+      assert.strictEqual(cond.pattern, '[::1]');
     });
     it('should add brackets for IPv6 hosts with scheme in BypassCondition', function() {
       let cond, condition, result;
@@ -718,10 +716,10 @@ describe('Conditions', function() {
         pattern: 'http://::1'
       };
       result = Conditions.str(condition);
-      result.should.equal('Bypass: http://[::1]');
+      assert.strictEqual(result, 'Bypass: http://[::1]');
       cond = Conditions.fromStr(result);
-      cond.conditionType.should.equal('BypassCondition');
-      return cond.pattern.should.equal('http://[::1]');
+      assert.strictEqual(cond.conditionType, 'BypassCondition');
+      assert.strictEqual(cond.pattern, 'http://[::1]');
     });
     it('should encode & decode IpCondition correctly', function() {
       let cond, condition, result;
@@ -731,20 +729,20 @@ describe('Conditions', function() {
         prefixLength: 16
       };
       result = Conditions.str(condition);
-      result.should.equal('Ip: 127.0.0.1/16');
+      assert.strictEqual(result, 'Ip: 127.0.0.1/16');
       cond = Conditions.fromStr(result);
-      return cond.should.eql(condition);
+      assert.deepStrictEqual(cond, condition);
     });
     it('should provide sensible fallbacks for invalid IpCondition', function() {
       let cond;
       cond = Conditions.fromStr('Ip: foo/-233');
-      cond.should.eql({
+      assert.deepStrictEqual(cond, {
         conditionType: 'IpCondition',
         ip: '0.0.0.0',
         prefixLength: 0
       });
       cond = Conditions.fromStr('Ip: nonsense stuff');
-      return cond.should.eql({
+      assert.deepStrictEqual(cond, {
         conditionType: 'IpCondition',
         ip: '0.0.0.0',
         prefixLength: 0
@@ -753,13 +751,13 @@ describe('Conditions', function() {
     it('should assume full match for IpCondition without prefixLength', function() {
       let cond;
       cond = Conditions.fromStr('Ip: 127.0.0.1');
-      cond.should.eql({
+      assert.deepStrictEqual(cond, {
         conditionType: 'IpCondition',
         ip: '127.0.0.1',
         prefixLength: 32
       });
       cond = Conditions.fromStr('Ip: ::1');
-      return cond.should.eql({
+      assert.deepStrictEqual(cond, {
         conditionType: 'IpCondition',
         ip: '::1',
         prefixLength: 128
@@ -768,7 +766,7 @@ describe('Conditions', function() {
     it('should provide sensible fallbacks for invalid IpCondition', function() {
       let cond;
       cond = Conditions.fromStr('Ip: 0.0.0.0/-233');
-      return cond.should.eql({
+      assert.deepStrictEqual(cond, {
         conditionType: 'IpCondition',
         ip: '0.0.0.0',
         prefixLength: 0
@@ -782,20 +780,20 @@ describe('Conditions', function() {
         maxValue: 7
       };
       result = Conditions.str(condition);
-      result.should.equal('HostLevels: 4~7');
+      assert.strictEqual(result, 'HostLevels: 4~7');
       cond = Conditions.fromStr(result);
-      return cond.should.eql(condition);
+      assert.deepStrictEqual(cond, condition);
     });
     it('should provide sensible fallbacks for HostLevels out of range', function() {
       let cond;
       cond = Conditions.fromStr('HostLevels: A~-1');
-      cond.should.eql({
+      assert.deepStrictEqual(cond, {
         conditionType: 'HostLevelsCondition',
         minValue: 1,
         maxValue: 1
       });
       cond = Conditions.fromStr('HostLevels: nonsense');
-      return cond.should.eql({
+      assert.deepStrictEqual(cond, {
         conditionType: 'HostLevelsCondition',
         minValue: 1,
         maxValue: 1
@@ -809,20 +807,20 @@ describe('Conditions', function() {
         endDay: 6
       };
       result = Conditions.str(condition);
-      result.should.equal('Weekday: 3~6');
+      assert.strictEqual(result, 'Weekday: 3~6');
       cond = Conditions.fromStr(result);
-      return cond.should.eql(condition);
+      assert.deepStrictEqual(cond, condition);
     });
     it('should provide sensible fallbacks for Weekday out of range', function() {
       let cond;
       cond = Conditions.fromStr('Weekday: -1~100');
-      cond.should.eql({
+      assert.deepStrictEqual(cond, {
         conditionType: 'WeekdayCondition',
         startDay: 0,
         endDay: 0
       });
       cond = Conditions.fromStr('Weekday: nonsense');
-      return cond.should.eql({
+      assert.deepStrictEqual(cond, {
         conditionType: 'WeekdayCondition',
         startDay: 0,
         endDay: 0
@@ -835,17 +833,17 @@ describe('Conditions', function() {
         days: 'SMTWtFs'
       };
       result = Conditions.str(condition);
-      result.should.equal('Weekday: SMTWtFs');
+      assert.strictEqual(result, 'Weekday: SMTWtFs');
       cond = Conditions.fromStr(result);
-      cond.should.eql(condition);
+      assert.deepStrictEqual(cond, condition);
       condition = {
         conditionType: 'WeekdayCondition',
         days: 'SM-W-Fs'
       };
       result = Conditions.str(condition);
-      result.should.equal('Weekday: SM-W-Fs');
+      assert.strictEqual(result, 'Weekday: SM-W-Fs');
       cond = Conditions.fromStr(result);
-      return cond.should.eql(condition);
+      assert.deepStrictEqual(cond, condition);
     });
     it('should encode & decode TimeCondition correctly', function() {
       let cond, condition, result;
@@ -855,39 +853,39 @@ describe('Conditions', function() {
         endHour: 23
       };
       result = Conditions.str(condition);
-      result.should.equal('Hour: 7~23');
+      assert.strictEqual(result, 'Hour: 7~23');
       cond = Conditions.fromStr(result);
-      return cond.should.eql(condition);
+      assert.deepStrictEqual(cond, condition);
     });
     it('should provide sensible fallbacks for Hour out of range', function() {
       let cond;
       cond = Conditions.fromStr('Hour: -1~100');
-      cond.should.eql({
+      assert.deepStrictEqual(cond, {
         conditionType: 'TimeCondition',
         startHour: 0,
         endHour: 0
       });
       cond = Conditions.fromStr('Hour: nonsense');
-      return cond.should.eql({
+      assert.deepStrictEqual(cond, {
         conditionType: 'TimeCondition',
         startHour: 0,
         endHour: 0
       });
     });
     it('should parse conditions with extra spaces correctly', function() {
-      return Conditions.fromStr('url:    *abcde*   ').should.eql({
+      assert.deepStrictEqual(Conditions.fromStr('url:    *abcde*   '), {
         conditionType: 'UrlWildcardCondition',
         pattern: '*abcde*'
       });
     });
     it('should parse abbreviated condition types correctly', function() {
-      return Conditions.fromStr('url: *://*.example.com/*').should.eql({
+      assert.deepStrictEqual(Conditions.fromStr('url: *://*.example.com/*'), {
         conditionType: 'UrlWildcardCondition',
         pattern: '*://*.example.com/*'
       });
     });
     return it('should parse escaped HostWildcardCondition starting with colon', function() {
-      return Conditions.fromStr(': :bogus:').should.eql({
+      assert.deepStrictEqual(Conditions.fromStr(': :bogus:'), {
         conditionType: 'HostWildcardCondition',
         pattern: ':bogus:'
       });

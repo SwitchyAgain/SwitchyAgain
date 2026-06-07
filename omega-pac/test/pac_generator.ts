@@ -1,7 +1,5 @@
-import chai from 'chai';
+import assert from 'assert';
 import * as PacGenerator from '../src/pac_generator';
-
-const should = chai.should();
 
 describe('PacGenerator', function() {
   let options;
@@ -70,18 +68,18 @@ describe('PacGenerator', function() {
       beautify: true,
       comments: true
     });
-    pac.should.not.be.empty;
+    assert.notStrictEqual(pac, '');
     func = eval("(function () { " + pac + "\n return FindProxyForURL; })()");
     result = func('http://www.example.com/', 'www.example.com');
-    return result.should.equal('PROXY 127.0.0.1:8888');
+    return assert.strictEqual(result, 'PROXY 127.0.0.1:8888');
   });
   return it('should be able to compress pac scripts', function() {
     let ast, func, pac, result;
     ast = PacGenerator.script(options, 'auto');
     pac = (PacGenerator.compress(ast) as any).print_to_string();
-    pac.should.not.be.empty;
+    assert.notStrictEqual(pac, '');
     func = eval("(function () { " + pac + "\n return FindProxyForURL; })()");
     result = func('http://www.example.com/', 'www.example.com');
-    return result.should.equal('PROXY 127.0.0.1:8888');
+    return assert.strictEqual(result, 'PROXY 127.0.0.1:8888');
   });
 });

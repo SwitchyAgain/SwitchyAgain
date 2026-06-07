@@ -1,31 +1,29 @@
-import chai from 'chai';
+import assert from 'assert';
 import * as Utils from '../src/utils';
-
-const should = chai.should();
 
 describe('getBaseDomain', function() {
   let getBaseDomain;
   getBaseDomain = Utils.getBaseDomain;
   it('should return domains with zero level unchanged', function() {
-    return getBaseDomain('someinternaldomain').should.equal('someinternaldomain');
+    return assert.strictEqual(getBaseDomain('someinternaldomain'), 'someinternaldomain');
   });
   it('should return domains with one level unchanged', function() {
-    getBaseDomain('example.com').should.equal('example.com');
-    getBaseDomain('e.test').should.equal('e.test');
-    return getBaseDomain('a.b').should.equal('a.b');
+    assert.strictEqual(getBaseDomain('example.com'), 'example.com');
+    assert.strictEqual(getBaseDomain('e.test'), 'e.test');
+    return assert.strictEqual(getBaseDomain('a.b'), 'a.b');
   });
   it('should treat two-segment TLD as one component', function() {
-    getBaseDomain('images.google.co.uk').should.equal('google.co.uk');
-    getBaseDomain('images.google.co.jp').should.equal('google.co.jp');
-    return getBaseDomain('example.com.cn').should.equal('example.com.cn');
+    assert.strictEqual(getBaseDomain('images.google.co.uk'), 'google.co.uk');
+    assert.strictEqual(getBaseDomain('images.google.co.jp'), 'google.co.jp');
+    return assert.strictEqual(getBaseDomain('example.com.cn'), 'example.com.cn');
   });
   it('should not mistake short domains with two-segment TLDs', function() {
-    getBaseDomain('a.bc.com').should.equal('bc.com');
-    return getBaseDomain('i.t.co').should.equal('t.co');
+    assert.strictEqual(getBaseDomain('a.bc.com'), 'bc.com');
+    return assert.strictEqual(getBaseDomain('i.t.co'), 't.co');
   });
   return it('should not try to modify IP address literals', function() {
-    getBaseDomain('127.0.0.1').should.equal('127.0.0.1');
-    getBaseDomain('[::1]').should.equal('[::1]');
-    return getBaseDomain('::f').should.equal('::f');
+    assert.strictEqual(getBaseDomain('127.0.0.1'), '127.0.0.1');
+    assert.strictEqual(getBaseDomain('[::1]'), '[::1]');
+    return assert.strictEqual(getBaseDomain('::f'), '::f');
   });
 });

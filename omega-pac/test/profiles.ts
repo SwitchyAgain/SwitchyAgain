@@ -1,9 +1,7 @@
-import chai from 'chai';
+import assert from 'assert';
 import ConditionsApi from '../src/conditions';
 import ProfilesApi from '../src/profiles';
 import UglifyJS from '../src/uglifyjs_shim';
-
-const should = chai.should();
 
 describe('Profiles', function() {
   let Conditions: any,
@@ -38,27 +36,27 @@ describe('Profiles', function() {
       matchResult = Profiles.match(profile, request);
       try {
         if (expected.source != null) {
-          chai.assert.equal(matchResult.profileName, expected.profileName);
-          chai.assert.equal(matchResult.source, expected.source);
+          assert.strictEqual(matchResult.profileName, expected.profileName);
+          assert.strictEqual(matchResult.source, expected.source);
         } else {
-          chai.assert.deepEqual(matchResult, expected);
+          assert.deepStrictEqual(matchResult, expected);
         }
       } catch (error) {
         _ = error;
         printResult = JSON.stringify(matchResult);
         msg = ("expect profile to return " + (JSON.stringify(expected)) + " ") + ("instead of " + printResult + " for request " + o_request);
-        chai.assert(false, msg);
+        assert.fail(msg);
       }
     }
     if (compileResult !== expectedCompiled) {
       msg = ("expect COMPILED profile to return " + expectedCompiled + " ") + ("instead of " + compileResult + " for request " + o_request);
-      chai.assert(false, msg);
+      assert.fail(msg);
     }
     return expected;
   };
   describe('#pacResult', function() {
     it('should return DIRECT for no proxy', function() {
-      return Profiles.pacResult().should.equal("DIRECT");
+      assert.strictEqual(Profiles.pacResult(), "DIRECT");
     });
     it('should return a valid PAC result for a proxy', function() {
       let proxy;
@@ -67,7 +65,7 @@ describe('Profiles', function() {
         host: "127.0.0.1",
         port: 8888
       };
-      return Profiles.pacResult(proxy).should.equal("PROXY 127.0.0.1:8888");
+      assert.strictEqual(Profiles.pacResult(proxy), "PROXY 127.0.0.1:8888");
     });
     return it('should return special compatible result for SOCKS5', function() {
       let compatibleResult, proxy;
@@ -77,15 +75,15 @@ describe('Profiles', function() {
         port: 8888
       };
       compatibleResult = "SOCKS5 127.0.0.1:8888; SOCKS 127.0.0.1:8888";
-      return Profiles.pacResult(proxy).should.equal(compatibleResult);
+      assert.strictEqual(Profiles.pacResult(proxy), compatibleResult);
     });
   });
   describe('#byName', function() {
     it('should get profiles from builtin profiles', function() {
       let profile;
       profile = Profiles.byName('direct');
-      profile.should.be.an('object');
-      return profile.profileType.should.equal('DirectProfile');
+      assert.strictEqual(typeof profile, 'object');
+      assert.strictEqual(profile.profileType, 'DirectProfile');
     });
     return it('should get profiles from given options', function() {
       let profile;
@@ -93,7 +91,7 @@ describe('Profiles', function() {
       profile = Profiles.byName('profile', {
         "+profile": profile
       });
-      return profile.should.equal(profile);
+      assert.strictEqual(profile, profile);
     });
   });
   describe('#allReferenceSet', function() {
@@ -105,7 +103,7 @@ describe('Profiles', function() {
       getAllReferenceSet = function() {
         return Profiles.allReferenceSet(profile, {});
       };
-      return getAllReferenceSet.should["throw"](Error);
+      assert.throws(getAllReferenceSet, Error);
     });
     return it('should process a dumb profile for each missing profile if requested', function() {
       let refs;
@@ -113,25 +111,25 @@ describe('Profiles', function() {
       refs = Profiles.allReferenceSet(profile, {}, {
         profileNotFound: 'dumb'
       });
-      return refs['+bogus'].should.equal('bogus');
+      assert.strictEqual(refs['+bogus'], 'bogus');
     });
   });
   describe('SystemProfile', function() {
     it('should be builtin with the name "system"', function() {
       let profile;
       profile = Profiles.byName('system');
-      profile.should.be.an('object');
-      return profile.profileType.should.equal('SystemProfile');
+      assert.strictEqual(typeof profile, 'object');
+      assert.strictEqual(profile.profileType, 'SystemProfile');
     });
     it('should not match request to profiles', function() {
       let profile;
       profile = Profiles.byName('system');
-      return should.not.exist(Profiles.match(profile, {}));
+      assert.equal(Profiles.match(profile, {}), null);
     });
     return it('should throw when trying to compile', function() {
       let profile;
       profile = Profiles.byName('system');
-      return should["throw"](function() {
+      assert.throws(function() {
         return Profiles.compile(profile);
       });
     });
@@ -140,8 +138,8 @@ describe('Profiles', function() {
     it('should be builtin with the name "direct"', function() {
       let profile;
       profile = Profiles.byName('direct');
-      profile.should.be.an('object');
-      return profile.profileType.should.equal('DirectProfile');
+      assert.strictEqual(typeof profile, 'object');
+      assert.strictEqual(profile.profileType, 'DirectProfile');
     });
     return it('should return "DIRECT" when compiled', function() {
       let profile;
@@ -215,13 +213,13 @@ describe('Profiles', function() {
       return testProfile(p, 'ftp://www.example.com:9999/abc', null, 'PROXY www.example.com:8080');
     });
     it('should return includable for non-file pacUrl', function() {
-      return Profiles.isIncludable(profile).should.be["true"];
+      assert.strictEqual(Profiles.isIncludable(profile), true);
     });
     return it('should return not includable for file: pacUrl', function() {
       let p;
       p = Profiles.create('test', 'PacProfile');
       p.pacUrl = 'file:///proxy.pac';
-      return Profiles.isIncludable(p).should.be["false"];
+      assert.strictEqual(Profiles.isIncludable(p), false);
     });
   });
   describe('SwitchProfile', function() {
@@ -262,7 +260,7 @@ describe('Profiles', function() {
     it('should calulate directly referenced profiles correctly', function() {
       let set;
       set = Profiles.directReferenceSet(profile);
-      return set.should.eql({
+      assert.deepStrictEqual(set, {
         '+company': 'company',
         '+example': 'example',
         '+abc': 'abc',
@@ -276,7 +274,7 @@ describe('Profiles', function() {
       profile.defaultProfileName = 'abc';
       profile.revision = 'b';
       newSet = Profiles.directReferenceSet(profile);
-      return newSet.should.eql({
+      assert.deepStrictEqual(newSet, {
         '+company': 'company',
         '+example': 'example',
         '+abc': 'abc'
@@ -289,7 +287,7 @@ describe('Profiles', function() {
       profile.defaultProfileName = 'abc';
       Profiles.dropCache(profile);
       newSet = Profiles.directReferenceSet(profile);
-      return newSet.should.eql({
+      assert.deepStrictEqual(newSet, {
         '+company': 'company',
         '+example': 'example',
         '+abc': 'abc'
@@ -314,7 +312,7 @@ describe('Profiles', function() {
     it('should calulate directly referenced profiles correctly', function() {
       let set;
       set = Profiles.directReferenceSet(profile);
-      return set.should.eql({
+      assert.deepStrictEqual(set, {
         '+example': 'example',
         '+default': 'default'
       });
@@ -328,7 +326,7 @@ describe('Profiles', function() {
         defaultProfileName: 'alsoIgnored',
         ruleList: '[SwitchyOmega Conditions]\n@with result\n!*.example.org\n*.example.com +ABC\n* +DEF'
       });
-      return set.should.eql({
+      assert.deepStrictEqual(set, {
         '+ABC': 'ABC',
         '+DEF': 'DEF'
       });
@@ -351,7 +349,7 @@ describe('Profiles', function() {
         matchProfileName: 'match',
         defaultProfileName: 'default'
       };
-      Profiles.directReferenceSet(p).should.be.an('object');
+      assert.strictEqual(typeof Profiles.directReferenceSet(p), 'object');
       return testProfile(p, 'http://localhost/example.com', ['+default', null]);
     });
     return it('should switch to AutoProxy format on update if detected', function() {
@@ -359,9 +357,9 @@ describe('Profiles', function() {
       profile.format = 'Switchy';
       profile.defaultProfileName = 'default';
       profile.matchProfileName = 'example';
-      profile.format.should.equal('Switchy');
+      assert.strictEqual(profile.format, 'Switchy');
       Profiles.update(profile, '[AutoProxy]\nexample.org');
-      profile.format.should.equal('AutoProxy');
+      assert.strictEqual(profile.format, 'AutoProxy');
       testProfile(profile, 'http://localhost/example.com', ['+default', null]);
       return testProfile(profile, 'http://localhost/example.org', ruleListResult('example', 'example.org'));
     });

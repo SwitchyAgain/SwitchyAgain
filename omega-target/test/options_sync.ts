@@ -1,14 +1,11 @@
-import chai from 'chai';
+import assert from 'assert';
 import Promise from 'bluebird';
 import sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 import LogClass from '../src/log';
 import OptionsSyncClass from '../src/options_sync';
 import StorageClass from '../src/storage';
 
-const should = chai.should();
 const slice = [].slice;
-chai.use(sinonChai);
 
 describe('OptionsSync', function() {
   let Log: any,
@@ -55,7 +52,7 @@ describe('OptionsSync', function() {
       oldVal = {
         revision: '1'
       };
-      return sync.merge('example', newVal, oldVal).should.equal(newVal);
+      return assert.strictEqual(sync.merge('example', newVal, oldVal), newVal);
     });
     it('should use oldVal when sync is disabled in newVal', function() {
       let newVal, oldVal;
@@ -68,7 +65,7 @@ describe('OptionsSync', function() {
         revision: '1',
         is: 'oldVal'
       };
-      return sync.merge('example', newVal, oldVal).should.equal(oldVal);
+      return assert.strictEqual(sync.merge('example', newVal, oldVal), oldVal);
     });
     it('should use oldVal when sync is disabled in oldVal', function() {
       let newVal, oldVal;
@@ -81,7 +78,7 @@ describe('OptionsSync', function() {
         is: 'oldVal',
         syncOptions: 'disabled'
       };
-      return sync.merge('example', newVal, oldVal).should.equal(oldVal);
+      return assert.strictEqual(sync.merge('example', newVal, oldVal), oldVal);
     });
     it('should favor oldVal when revisions are equal', function() {
       let newVal, oldVal;
@@ -93,7 +90,7 @@ describe('OptionsSync', function() {
         revision: '1',
         is: 'oldVal'
       };
-      return sync.merge('example', newVal, oldVal).should.equal(oldVal);
+      return assert.strictEqual(sync.merge('example', newVal, oldVal), oldVal);
     });
     it('should favor oldVal when newVal deeply equals oldVal', function() {
       let newVal, oldVal;
@@ -105,7 +102,7 @@ describe('OptionsSync', function() {
         they: 'are',
         the: 'same'
       };
-      return sync.merge('example', newVal, oldVal).should.equal(oldVal);
+      return assert.strictEqual(sync.merge('example', newVal, oldVal), oldVal);
     });
     return it('should choose newVal when newVal is different', function() {
       let newVal, oldVal;
@@ -117,7 +114,7 @@ describe('OptionsSync', function() {
         they: 'are',
         not: 'identical'
       };
-      return sync.merge('example', newVal, oldVal).should.equal(newVal);
+      return assert.strictEqual(sync.merge('example', newVal, oldVal), newVal);
     });
   });
   describe('#requestPush', function() {
@@ -130,7 +127,7 @@ describe('OptionsSync', function() {
       sync.requestPush({
         a: 1
       });
-      return sync.pendingChanges().should.eql({
+      return assert.deepStrictEqual(sync.pendingChanges(), {
         a: 1
       });
     });
@@ -140,10 +137,12 @@ describe('OptionsSync', function() {
         if (storage.set.callCount === 0 || storage.remove.callCount === 0) {
           return;
         }
-        storage.set.should.have.been.calledOnce.and.calledWith({
+        sinon.assert.calledOnce(storage.set);
+        sinon.assert.calledWith(storage.set, {
           b: 1
         });
-        storage.remove.should.have.been.calledOnce.and.calledWith(['a']);
+        sinon.assert.calledOnce(storage.remove);
+        sinon.assert.calledWith(storage.remove, ['a']);
         return done();
       };
       storage = new Storage();
@@ -167,11 +166,13 @@ describe('OptionsSync', function() {
         if (storage.set.callCount === 0 || storage.remove.callCount === 0) {
           return;
         }
-        storage.set.should.have.been.calledOnce.and.calledWith({
+        sinon.assert.calledOnce(storage.set);
+        sinon.assert.calledWith(storage.set, {
           c: 1,
           d: 1
         });
-        storage.remove.should.have.been.calledOnce.and.calledWith(['a', 'b']);
+        sinon.assert.calledOnce(storage.remove);
+        sinon.assert.calledWith(storage.remove, ['a', 'b']);
         return done();
       };
       storage = new Storage();
@@ -229,15 +230,15 @@ describe('OptionsSync', function() {
             return Promise.reject(err);
           }
         }
-        storage.set.should.have.been.calledTwice;
-        storage.set.should.have.been.calledWith(options);
-        storage.set.should.have.been.calledWith({
+        sinon.assert.calledTwice(storage.set);
+        sinon.assert.calledWith(storage.set, options);
+        sinon.assert.calledWith(storage.set, {
           b: {
             is: 'b'
           }
         });
-        options['+a'].syncOptions.should.equal('disabled');
-        options['+a'].syncError.reason.should.equal('quotaPerItem');
+        assert.strictEqual(options['+a'].syncOptions, 'disabled');
+        assert.strictEqual(options['+a'].syncError.reason, 'quotaPerItem');
         done();
         return Promise.resolve();
       };
@@ -258,7 +259,8 @@ describe('OptionsSync', function() {
       });
       storage = new Storage();
       hookPost(storage, 'set', function() {
-        storage.set.should.have.been.calledOnce.and.calledWith({
+        sinon.assert.calledOnce(storage.set);
+        sinon.assert.calledWith(storage.set, {
           a: 1,
           b: 2,
           c: 3
@@ -275,11 +277,13 @@ describe('OptionsSync', function() {
         if (storage.set.callCount === 0 || storage.remove.callCount === 0) {
           return;
         }
-        storage.set.should.have.been.calledOnce.and.calledWith({
+        sinon.assert.calledOnce(storage.set);
+        sinon.assert.calledWith(storage.set, {
           b: 2,
           c: 3
         });
-        storage.remove.should.have.been.calledOnce.and.calledWith(['d']);
+        sinon.assert.calledOnce(storage.remove);
+        sinon.assert.calledWith(storage.remove, ['d']);
         return done();
       };
       remote = new Storage();
@@ -310,12 +314,14 @@ describe('OptionsSync', function() {
         if (storage.set.callCount === 0 || storage.remove.callCount === 0) {
           return;
         }
-        remote.watch.should.have.been.calledOnce;
-        storage.set.should.have.been.calledOnce.and.calledWith({
+        sinon.assert.calledOnce(remote.watch);
+        sinon.assert.calledOnce(storage.set);
+        sinon.assert.calledWith(storage.set, {
           b: 2,
           c: 3
         });
-        storage.remove.should.have.been.calledOnce.and.calledWith(['d']);
+        sinon.assert.calledOnce(storage.remove);
+        sinon.assert.calledWith(storage.remove, ['d']);
         return done();
       };
       remote = new Storage();

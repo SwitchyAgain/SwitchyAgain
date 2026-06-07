@@ -1,7 +1,6 @@
-import chai from 'chai';
+import assert from 'assert';
 import * as RuleList from '../src/rule_list';
 
-const should = chai.should();
 
 describe('RuleList', function() {
   describe('AutoProxy', function() {
@@ -11,8 +10,8 @@ describe('RuleList', function() {
       let line, result;
       line = 'example.com';
       result = parse(line, 'match', 'notmatch');
-      result.should.have.length(1);
-      return result[0].should.eql({
+      assert.strictEqual(result.length, 1);
+      return assert.deepStrictEqual(result[0], {
         source: line,
         profileName: 'match',
         condition: {
@@ -25,8 +24,8 @@ describe('RuleList', function() {
       let line, result;
       line = 'example*.com';
       result = parse(line, 'match', 'notmatch');
-      result.should.have.length(1);
-      return result[0].should.eql({
+      assert.strictEqual(result.length, 1);
+      return assert.deepStrictEqual(result[0], {
         source: line,
         profileName: 'match',
         condition: {
@@ -39,8 +38,8 @@ describe('RuleList', function() {
       let line, result;
       line = '||example.com';
       result = parse(line, 'match', 'notmatch');
-      result.should.have.length(1);
-      return result[0].should.eql({
+      assert.strictEqual(result.length, 1);
+      return assert.deepStrictEqual(result[0], {
         source: line,
         profileName: 'match',
         condition: {
@@ -53,8 +52,8 @@ describe('RuleList', function() {
       let line, result;
       line = '|https://ssl.example.com';
       result = parse(line, 'match', 'notmatch');
-      result.should.have.length(1);
-      return result[0].should.eql({
+      assert.strictEqual(result.length, 1);
+      return assert.deepStrictEqual(result[0], {
         source: line,
         profileName: 'match',
         condition: {
@@ -67,8 +66,8 @@ describe('RuleList', function() {
       let line, result;
       line = '|http://example.com';
       result = parse(line, 'match', 'notmatch');
-      result.should.have.length(1);
-      return result[0].should.eql({
+      assert.strictEqual(result.length, 1);
+      return assert.deepStrictEqual(result[0], {
         source: line,
         profileName: 'match',
         condition: {
@@ -81,8 +80,8 @@ describe('RuleList', function() {
       let line, result;
       line = '/^https?:\\/\\/[^\\/]+example\.com/';
       result = parse(line, 'match', 'notmatch');
-      result.should.have.length(1);
-      return result[0].should.eql({
+      assert.strictEqual(result.length, 1);
+      return assert.deepStrictEqual(result[0], {
         source: line,
         profileName: 'match',
         condition: {
@@ -94,13 +93,13 @@ describe('RuleList', function() {
     it('should ignore comment lines', function() {
       let result;
       result = parse('!example.com', 'match', 'notmatch');
-      return result.should.have.length(0);
+      return assert.strictEqual(result.length, 0);
     });
     it('should parse multiple lines', function() {
       let result;
       result = parse('example.com\n!comment\n||example.com', 'match', 'notmatch');
-      result.should.have.length(2);
-      result[0].should.eql({
+      assert.strictEqual(result.length, 2);
+      assert.deepStrictEqual(result[0], {
         source: 'example.com',
         profileName: 'match',
         condition: {
@@ -108,7 +107,7 @@ describe('RuleList', function() {
           pattern: 'example.com'
         }
       });
-      return result[1].should.eql({
+      return assert.deepStrictEqual(result[1], {
         source: '||example.com',
         profileName: 'match',
         condition: {
@@ -120,8 +119,8 @@ describe('RuleList', function() {
     return it('should put exclusive rules first', function() {
       let result;
       result = parse('example.com\n@@||example.com', 'match', 'notmatch');
-      result.should.have.length(2);
-      result[0].should.eql({
+      assert.strictEqual(result.length, 2);
+      assert.deepStrictEqual(result[0], {
         source: '@@||example.com',
         profileName: 'notmatch',
         condition: {
@@ -129,7 +128,7 @@ describe('RuleList', function() {
           pattern: '*.example.com'
         }
       });
-      return result[1].should.eql({
+      return assert.deepStrictEqual(result[1], {
         source: 'example.com',
         profileName: 'match',
         condition: {
@@ -160,7 +159,7 @@ describe('RuleList', function() {
       let list, result;
       list = compose({});
       result = parse(list, 'match', 'notmatch');
-      return result.should.have.length(0);
+      return assert.strictEqual(result.length, 0);
     });
     it('should ignore stuff before #BEGIN or after #END.', function() {
       let list, result;
@@ -168,7 +167,7 @@ describe('RuleList', function() {
       list += '[RegExp]\r\ntest\r\n';
       list = '[Wildcard]\r\ntest\r\n' + list;
       result = parse(list, 'match', 'notmatch');
-      return result.should.have.length(0);
+      return assert.strictEqual(result.length, 0);
     });
     it('should parse wildcard rules', function() {
       let list, result;
@@ -176,8 +175,8 @@ describe('RuleList', function() {
         'Wildcard': ['*://example.com/abc/*']
       });
       result = parse(list, 'match', 'notmatch');
-      result.should.have.length(1);
-      return result[0].should.eql({
+      assert.strictEqual(result.length, 1);
+      return assert.deepStrictEqual(result[0], {
         source: '*://example.com/abc/*',
         profileName: 'match',
         condition: {
@@ -192,8 +191,8 @@ describe('RuleList', function() {
         'RegExp': ['^http://www\.example\.com/.*']
       });
       result = parse(list, 'match', 'notmatch');
-      result.should.have.length(1);
-      return result[0].should.eql({
+      assert.strictEqual(result.length, 1);
+      return assert.deepStrictEqual(result[0], {
         source: '^http://www\.example\.com/.*',
         profileName: 'match',
         condition: {
@@ -208,8 +207,8 @@ describe('RuleList', function() {
         'RegExp': ['!^http://www\.example\.com/.*']
       });
       result = parse(list, 'match', 'notmatch');
-      result.should.have.length(1);
-      return result[0].should.eql({
+      assert.strictEqual(result.length, 1);
+      return assert.deepStrictEqual(result[0], {
         source: '!^http://www\.example\.com/.*',
         profileName: 'notmatch',
         condition: {
@@ -225,8 +224,8 @@ describe('RuleList', function() {
         'RegExp': ['^http://www\.example\.com/.*', '^http://example\.com/.*']
       });
       result = parse(list, 'match', 'notmatch');
-      result.should.have.length(4);
-      result[0].should.eql({
+      assert.strictEqual(result.length, 4);
+      assert.deepStrictEqual(result[0], {
         source: 'http://www.example.com/*',
         profileName: 'match',
         condition: {
@@ -234,7 +233,7 @@ describe('RuleList', function() {
           pattern: 'http://www.example.com/*'
         }
       });
-      result[1].should.eql({
+      assert.deepStrictEqual(result[1], {
         source: 'http://example.com/*',
         profileName: 'match',
         condition: {
@@ -242,7 +241,7 @@ describe('RuleList', function() {
           pattern: 'http://example.com/*'
         }
       });
-      result[2].should.eql({
+      assert.deepStrictEqual(result[2], {
         source: '^http://www\.example\.com/.*',
         profileName: 'match',
         condition: {
@@ -250,7 +249,7 @@ describe('RuleList', function() {
           pattern: '^http://www\.example\.com/.*'
         }
       });
-      return result[3].should.eql({
+      return assert.deepStrictEqual(result[3], {
         source: '^http://example\.com/.*',
         profileName: 'match',
         condition: {
@@ -266,8 +265,8 @@ describe('RuleList', function() {
         'RegExp': ['!^http://www\.example\.com/.*']
       });
       result = parse(list, 'match', 'notmatch');
-      result.should.have.length(2);
-      result[0].should.eql({
+      assert.strictEqual(result.length, 2);
+      assert.deepStrictEqual(result[0], {
         source: '!^http://www\.example\.com/.*',
         profileName: 'notmatch',
         condition: {
@@ -275,7 +274,7 @@ describe('RuleList', function() {
           pattern: '^http://www.example\.com/.*'
         }
       });
-      return result[1].should.eql({
+      return assert.deepStrictEqual(result[1], {
         source: 'http://www\.example\.com/*',
         profileName: 'match',
         condition: {
@@ -295,7 +294,7 @@ describe('RuleList', function() {
         rules: []
       });
       result = parse(list, 'match', 'notmatch');
-      return result.should.have.length(0);
+      return assert.strictEqual(result.length, 0);
     });
     it('should ignore comment lines.', function() {
       let list, result;
@@ -304,7 +303,7 @@ describe('RuleList', function() {
       });
       list += ';*.example.com \r\n';
       result = parse(list, 'match', 'notmatch');
-      return result.should.have.length(0);
+      return assert.strictEqual(result.length, 0);
     });
     it('should compose and parse HostWildcardCondition', function() {
       let list, result, rule;
@@ -321,8 +320,8 @@ describe('RuleList', function() {
         defaultProfileName: 'notmatch'
       });
       result = parse(list, 'match', 'notmatch');
-      result.should.have.length(1);
-      return result[0].should.eql(rule);
+      assert.strictEqual(result.length, 1);
+      return assert.deepStrictEqual(result[0], rule);
     });
     it('should compose and parse HostRegexCondition', function() {
       let list, result, rule;
@@ -339,8 +338,8 @@ describe('RuleList', function() {
         defaultProfileName: 'notmatch'
       });
       result = parse(list, 'match', 'notmatch');
-      result.should.have.length(1);
-      return result[0].should.eql(rule);
+      assert.strictEqual(result.length, 1);
+      return assert.deepStrictEqual(result[0], rule);
     });
     it('should compose and parse disabled rules', function() {
       let list, result, rule;
@@ -357,8 +356,8 @@ describe('RuleList', function() {
         defaultProfileName: 'notmatch'
       });
       result = parse(list, 'match', 'notmatch');
-      result.should.have.length(1);
-      return result[0].should.eql(rule);
+      assert.strictEqual(result.length, 1);
+      return assert.deepStrictEqual(result[0], rule);
     });
     it('should compose and parse exclusive rules', function() {
       let list, result, rule;
@@ -375,8 +374,8 @@ describe('RuleList', function() {
         defaultProfileName: 'notmatch'
       });
       result = parse(list, 'match', 'notmatch');
-      result.should.have.length(1);
-      return result[0].should.eql(rule);
+      assert.strictEqual(result.length, 1);
+      return assert.deepStrictEqual(result[0], rule);
     });
     it('should compose and parse conditions starting with special chars', function() {
       let list, result, rule;
@@ -393,8 +392,8 @@ describe('RuleList', function() {
         defaultProfileName: 'notmatch'
       });
       result = parse(list, 'match', 'notmatch');
-      result.should.have.length(1);
-      return result[0].should.eql(rule);
+      assert.strictEqual(result.length, 1);
+      return assert.deepStrictEqual(result[0], rule);
     });
     it('should parse multiple conditions', function() {
       let list, result, rules;
@@ -420,7 +419,7 @@ describe('RuleList', function() {
         defaultProfileName: 'notmatch'
       });
       result = parse(list, 'match', 'notmatch');
-      return result.should.eql(rules);
+      return assert.deepStrictEqual(result, rules);
     });
     it('should respect the top-down order of conditions', function() {
       let list, result, rules;
@@ -446,7 +445,7 @@ describe('RuleList', function() {
         defaultProfileName: 'notmatch'
       });
       result = parse(list, 'match', 'notmatch');
-      return result.should.eql(rules);
+      return assert.deepStrictEqual(result, rules);
     });
     it('should add a default rule when results are enabled', function() {
       let list, result;
@@ -456,10 +455,10 @@ describe('RuleList', function() {
       }, {
         withResult: true
       });
-      list.split(/\r|\n/).should.contain('@with result');
+      assert.ok(list.split(/\r|\n/).indexOf('@with result') >= 0);
       result = parse(list, 'ignored', 'alsoIgnored');
-      result.should.have.length(1);
-      return result[0].should.eql({
+      assert.strictEqual(result.length, 1);
+      return assert.deepStrictEqual(result[0], {
         source: '*',
         condition: {
           conditionType: 'HostWildcardCondition',
@@ -502,7 +501,7 @@ describe('RuleList', function() {
         },
         profileName: 'ghi'
       });
-      return result.should.eql(rules);
+      return assert.deepStrictEqual(result, rules);
     });
     return it('should compose and parse exclusive conditions with results', function() {
       let list, result, rules;
@@ -539,7 +538,7 @@ describe('RuleList', function() {
         },
         profileName: 'default profile'
       });
-      return result.should.eql(rules);
+      return assert.deepStrictEqual(result, rules);
     });
   });
 });
