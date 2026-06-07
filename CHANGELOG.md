@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.1.15
+
+React popup and options migration fixes.
+
+- Continued the React TypeScript migration by tightening popup runtime,
+  profile map, state, and condition API boundaries across the popup page and
+  extension popup bridge.
+- Restored the Auto Switch rule drag helper so reordered rules again show a
+  floating row while preserving the migrated React drag-and-drop behavior.
+- Kept the migrated popup and options UI behavior aligned with the legacy
+  Bootstrap controls and workflows.
+
 ## v1.1.14
 
 React options migration completion and profile editor fixes.
