@@ -510,8 +510,29 @@ main .profile-header {
   user-select: none;
 }
 
+.switch-rule-row-dragging {
+  visibility: hidden;
+}
+
 .switch-rule-row-dragging .sort-bar {
   cursor: grabbing;
+}
+
+.switch-rule-drag-helper {
+  position: fixed;
+  z-index: 1040;
+  margin: 0;
+  pointer-events: none;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .2);
+
+  td {
+    background-color: #fff;
+  }
+
+  .sort-bar {
+    cursor: grabbing;
+  }
 }
 
 .switch-rule-row td.has-icon {

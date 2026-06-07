@@ -122,6 +122,7 @@ export type SwitchRuleTableHeaderProps = {
 };
 
 export type SwitchRuleRowProps = {
+  cellWidths?: number[];
   conditionTypes?: ConditionTypeOption[];
   isDragging?: boolean;
   index: number;
@@ -367,7 +368,12 @@ type WindowWithBrowserProxy = Window & {
 };
 
 type RuleDragState = {
+  cellWidths: number[];
+  clientY: number;
   pointerId: number;
+  pointerOffsetY: number;
+  rowLeft: number;
+  rowWidth: number;
   startIndex: number;
   targetIndex: number;
 };
@@ -554,6 +560,7 @@ function DraftInput({
 }
 
 function SwitchRuleRow({
+  cellWidths,
   conditionTypes = [],
   isDragging = false,
   index,
@@ -581,6 +588,9 @@ function SwitchRuleRow({
   const isUrlConditionType = getUrlConditionTypeMap();
   const hasUrlIcon = !!isUrlConditionType[conditionType];
   const hasWarning = conditionHasWarning(condition);
+  const cellStyle = (cellIndex: number): React.CSSProperties | undefined => (
+    cellWidths?.[cellIndex] != null ? {width: `${cellWidths[cellIndex]}px`} : undefined
+  );
 
   function formatIpCondition(condition: SwitchRuleCondition) {
     if (condition?.ip) {
@@ -708,10 +718,10 @@ function SwitchRuleRow({
 
   return (
     <tr className={`switch-rule-row ${isDragging ? 'switch-rule-row-dragging' : ''}`} data-rule-index={index}>
-      <td className="sort-bar" onPointerDown={(event) => onSortPointerDown?.(index, event)}>
+      <td className="sort-bar" style={cellStyle(0)} onPointerDown={(event) => onSortPointerDown?.(index, event)}>
         <span className="glyphicon glyphicon-sort" />
       </td>
-      <td className={hasUrlIcon ? 'has-icon' : undefined}>
+      <td className={hasUrlIcon ? 'has-icon' : undefined} style={cellStyle(1)}>
         <select
           className="form-control"
           value={conditionType}
@@ -733,8 +743,8 @@ function SwitchRuleRow({
           </a>
         )}
       </td>
-      <td className={hasWarning ? 'has-warning' : undefined}>{renderConditionDetails()}</td>
-      <td className="switch-rule-row-target">
+      <td className={hasWarning ? 'has-warning' : undefined} style={cellStyle(2)}>{renderConditionDetails()}</td>
+      <td className="switch-rule-row-target" style={cellStyle(3)}>
         <div className={conditionType === 'NeverCondition' ? 'disabled' : undefined}>
           <ProfileSelect
             name={rule.profileName || ''}
@@ -744,7 +754,7 @@ function SwitchRuleRow({
           />
         </div>
       </td>
-      <td>
+      <td style={cellStyle(4)}>
         <button type="button" className="btn btn-danger btn-sm" title={message('options_deleteRule', 'Delete rule')} onClick={() => onRemoveRule?.(index)}>
           <span className="glyphicon glyphicon-trash" />
         </button>{' '}
@@ -758,7 +768,7 @@ function SwitchRuleRow({
         )}
       </td>
       {showNotes && (
-        <td>
+        <td style={cellStyle(5)}>
           <DraftInput
             value={rule.note || ''}
             onChange={(value) => onNoteChange?.(index, value)}
@@ -832,6 +842,53 @@ function SwitchRuleRows({
         );
       })}
     </>
+  );
+}
+
+function SwitchRuleDragPreview({
+  drag,
+  options,
+  profile,
+  rules = [],
+  showConditionTypes = 0,
+  showNotes = false
+}: {
+  drag?: RuleDragState | null;
+  options?: Options | null;
+  profile: NamedSwitchProfileModel;
+  rules?: SwitchRule[];
+  showConditionTypes?: number;
+  showNotes?: boolean;
+}) {
+  if (!drag) {
+    return null;
+  }
+  const rule = rules[drag.startIndex];
+  if (!rule) {
+    return null;
+  }
+  const conditionTypes = conditionTypesForMode(showConditionTypes);
+  const resultProfiles = resultProfilesFor(options, profile);
+  const style: React.CSSProperties = {
+    left: `${drag.rowLeft}px`,
+    top: `${drag.clientY - drag.pointerOffsetY}px`,
+    width: `${drag.rowWidth}px`
+  };
+  return (
+    <table className="switch-rules switch-rule-drag-helper table table-bordered table-condensed" style={style}>
+      <tbody>
+        <SwitchRuleRow
+          cellWidths={drag.cellWidths}
+          conditionTypes={conditionTypes}
+          index={drag.startIndex}
+          options={options}
+          resultProfiles={resultProfiles}
+          rule={rule}
+          showNotes={showNotes}
+          weekdayList={OmegaPac.Conditions.getWeekdayList(rule.condition) || []}
+        />
+      </tbody>
+    </table>
   );
 }
 
@@ -1833,10 +1890,20 @@ export function SwitchRulesSection({
     if (index < 0 || index >= visibleCount) {
       return;
     }
+    const row = event.currentTarget.closest<HTMLTableRowElement>('.switch-rule-row');
+    if (!row) {
+      return;
+    }
+    const rowRect = row.getBoundingClientRect();
     event.preventDefault();
     event.currentTarget.setPointerCapture?.(event.pointerId);
     updateRuleDrag({
+      cellWidths: Array.from(row.cells).map((cell) => cell.getBoundingClientRect().width),
+      clientY: event.clientY,
       pointerId: event.pointerId,
+      pointerOffsetY: event.clientY - rowRect.top,
+      rowLeft: rowRect.left,
+      rowWidth: rowRect.width,
       startIndex: index,
       targetIndex: index
     });
@@ -1890,12 +1957,11 @@ export function SwitchRulesSection({
       }
       event.preventDefault();
       const targetIndex = ruleDragTargetIndex(event.clientY);
-      if (targetIndex !== current.targetIndex) {
-        updateRuleDrag({
-          ...current,
-          targetIndex
-        });
-      }
+      updateRuleDrag({
+        ...current,
+        clientY: event.clientY,
+        targetIndex
+      });
     };
 
     const finishDrag = (event: PointerEvent) => {
@@ -2025,6 +2091,14 @@ export function SwitchRulesSection({
                 </tbody>
               </table>
             )}
+            <SwitchRuleDragPreview
+              drag={ruleDrag}
+              options={options}
+              profile={profile}
+              rules={rules}
+              showConditionTypes={showConditionTypes}
+              showNotes={showNotes}
+            />
           </div>
         )}
       </section>

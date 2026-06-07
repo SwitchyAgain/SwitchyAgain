@@ -377,24 +377,77 @@ interface OmegaDebugApi {
 
 type PopupApiCallback<T = unknown> = (error?: unknown, result?: T) => void;
 
+type PopupApiProfileKey = `+${string}`;
+
+type PopupApiProfile = {
+  builtin?: boolean;
+  color?: string;
+  defaultProfileName?: string;
+  desc?: string;
+  name: string;
+  profileType?: string;
+  validResultProfiles?: string[];
+  [key: string]: unknown;
+};
+
+type PopupApiProfileMap = Record<PopupApiProfileKey, PopupApiProfile | undefined>;
+
 type PopupApiPageInfo = {
+  domain?: string;
+  errorCount?: number;
+  summary?: Record<string, {errorCount?: number}>;
+  tempRuleProfileName?: string;
   url?: string;
   [key: string]: unknown;
 };
 
+type PopupApiState = {
+  availableProfiles?: PopupApiProfileMap;
+  currentProfileCanAddRule?: boolean;
+  currentProfileName?: string;
+  externalProfile?: PopupApiProfile;
+  isSystemProfile?: boolean;
+  lastProfileNameForCondition?: string;
+  proxyNotControllable?: string;
+  refreshOnProfileChange?: boolean;
+  showExternalProfile?: boolean;
+  validResultProfiles?: string[];
+};
+
+type PopupApiStateKey = keyof PopupApiState;
+type PopupApiWritableStateKey = 'lastProfileNameForCondition';
+
+type PopupApiConditionType =
+  | 'HostRegexCondition'
+  | 'HostWildcardCondition'
+  | 'KeywordCondition'
+  | 'UrlRegexCondition'
+  | 'UrlWildcardCondition';
+
+type PopupApiCondition = {
+  conditionType: PopupApiConditionType;
+  pattern: string;
+};
+
+type PopupApiConditionInput = PopupApiCondition | PopupApiCondition[];
+
 interface OmegaTargetPopupApi {
-  addCondition(condition: unknown, profileName: string, addToBottom: boolean, cb?: PopupApiCallback): void;
-  addProfile(profile: unknown, cb?: PopupApiCallback): void;
+  addCondition(condition: PopupApiConditionInput, profileName: string, addToBottom: boolean, cb?: PopupApiCallback): void;
+  addProfile(profile: PopupApiProfile, cb?: PopupApiCallback): void;
   addTempRule(domain: string, profileName: string, cb?: PopupApiCallback): void;
   applyProfile(name: string, cb?: PopupApiCallback): void;
   getActivePageInfo(cb: PopupApiCallback<PopupApiPageInfo>): void;
   getMessage(messageName: string, substitutions?: string | string[]): string;
-  getState(keys: string[], cb?: PopupApiCallback<Record<string, unknown>>): void;
+  getState(keys: PopupApiStateKey[], cb?: PopupApiCallback<PopupApiState>): void;
   openManage(cb?: PopupApiCallback): void;
   openManage(domain?: string, profileName?: string, cb?: PopupApiCallback): void;
   openOptions(hash?: string | null, cb?: PopupApiCallback): void;
   setDefaultProfile(profileName: string, defaultProfileName: string, cb?: PopupApiCallback): void;
-  setState(name: string, value: unknown, cb?: PopupApiCallback): void;
+  setState(
+    name: PopupApiWritableStateKey,
+    value: PopupApiState[PopupApiWritableStateKey],
+    cb?: PopupApiCallback
+  ): void;
 }
 
 type ProxyFindFunction = (url: string, host: string, details?: unknown) => unknown;

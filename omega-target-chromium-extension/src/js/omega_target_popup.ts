@@ -5,25 +5,20 @@ type BackgroundResponse<T = unknown> = {
   result?: T;
 };
 
-type PopupPageInfo = {
-  url?: string;
-  [key: string]: unknown;
-};
-
 type PageInfoRequest = {
   tabId?: number;
   url: string;
 };
 
 type PopupBackgroundMethodArgs = {
-  addCondition: [condition: unknown, profileName: string, addToBottom: boolean];
-  addProfile: [profile: unknown];
+  addCondition: [condition: PopupApiConditionInput, profileName: string, addToBottom: boolean];
+  addProfile: [profile: PopupApiProfile];
   addTempRule: [domain: string, profileName: string];
   applyProfile: [name: string];
   getPageInfo: [args: PageInfoRequest];
-  getState: [keys: string[]];
+  getState: [keys: PopupApiStateKey[]];
   setDefaultProfile: [profileName: string, defaultProfileName: string];
-  setState: [name: string, value: unknown];
+  setState: [name: PopupApiWritableStateKey, value: PopupApiState[PopupApiWritableStateKey]];
 };
 
 type PopupBackgroundMethodResult = {
@@ -31,8 +26,8 @@ type PopupBackgroundMethodResult = {
   addProfile: unknown;
   addTempRule: unknown;
   applyProfile: unknown;
-  getPageInfo: PopupPageInfo;
-  getState: Record<string, unknown>;
+  getPageInfo: PopupApiPageInfo;
+  getState: PopupApiState;
   setDefaultProfile: unknown;
   setState: unknown;
 };
@@ -114,7 +109,7 @@ const isManifestV3 = chrome.runtime.getManifest &&
   chrome.runtime.getManifest().manifest_version >= 3;
 const localStatePrefix = 'omega.local.';
 
-function cacheActivePageInfo(info?: PopupPageInfo | null) {
+function cacheActivePageInfo(info?: PopupApiPageInfo | null) {
   if (!info || !info.url || typeof localStorage === 'undefined') return;
   try {
     localStorage[localStatePrefix + 'web.last_page_info'] = JSON.stringify(info);
@@ -123,16 +118,18 @@ function cacheActivePageInfo(info?: PopupPageInfo | null) {
 }
 
 (globalThis as typeof globalThis & {OmegaTargetPopup: OmegaTargetPopupApi}).OmegaTargetPopup = {
-  getState(keys: string[], cb?: PopupCallback<Record<string, unknown>>) {
+  getState(keys: PopupApiStateKey[], cb?: PopupCallback<PopupApiState>) {
     if (isManifestV3 || typeof localStorage === 'undefined' ||
         !localStorage.length) {
       callBackground('getState', [keys], cb);
       return;
     }
-    const results: Record<string, unknown> = {};
-    keys.forEach((key: string) => {
+    const results: Partial<PopupApiState> = {};
+    keys.forEach((key: PopupApiStateKey) => {
       try {
-        results[key] = JSON.parse(localStorage['omega.local.' + key]);
+        Object.assign(results, {
+          [key]: JSON.parse(localStorage['omega.local.' + key])
+        });
       } catch (_) {
         return null;
       }
@@ -174,11 +171,11 @@ function cacheActivePageInfo(info?: PopupPageInfo | null) {
       if (cb) return cb();
     });
   },
-  getActivePageInfo(cb: PopupCallback<PopupPageInfo>) {
+  getActivePageInfo(cb: PopupCallback<PopupApiPageInfo>) {
     chrome.tabs.query({active: true, lastFocusedWindow: true}, (tabs) => {
       if (tabs.length === 0 || !tabs[0].url) return cb();
       const args = {tabId: tabs[0].id, url: tabs[0].url};
-      callBackground('getPageInfo', [args], (err?: unknown, info?: PopupPageInfo) => {
+      callBackground('getPageInfo', [args], (err?: unknown, info?: PopupApiPageInfo) => {
         if (!err) cacheActivePageInfo(info);
         cb(err, info);
       });
@@ -191,14 +188,14 @@ function cacheActivePageInfo(info?: PopupPageInfo | null) {
   addTempRule(domain: string, profileName: string, cb?: PopupCallback) {
     callBackgroundNoReply('addTempRule', [domain, profileName], cb);
   },
-  addCondition(condition: unknown, profileName: string, addToBottom: boolean, cb?: PopupCallback) {
+  addCondition(condition: PopupApiConditionInput, profileName: string, addToBottom: boolean, cb?: PopupCallback) {
     callBackgroundWithRefresh('addCondition',
       [condition, profileName, addToBottom], cb);
   },
-  addProfile(profile: unknown, cb?: PopupCallback) {
+  addProfile(profile: PopupApiProfile, cb?: PopupCallback) {
     callBackgroundWithRefresh('addProfile', [profile], cb);
   },
-  setState(name: string, value: unknown, cb?: PopupCallback) {
+  setState(name: PopupApiWritableStateKey, value: PopupApiState[PopupApiWritableStateKey], cb?: PopupCallback) {
     callBackground('setState', [name, value], cb);
   },
   openManage(domainOrCallback?: string | PopupCallback, _profileName?: string, cb?: PopupCallback) {

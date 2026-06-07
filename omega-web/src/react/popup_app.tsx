@@ -2,8 +2,13 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import {
   PageInfo,
+  PopupCondition,
+  PopupConditionType,
+  PopupMode,
   PopupState,
   Profile,
+  ProfileKey,
+  ProfileMap,
   callbackPromise,
   closePopup,
   getPopupPageInfo,
@@ -13,13 +18,19 @@ import {
   waitForPopupTarget
 } from './popup_target';
 
-const conditionTypes = [
+const defaultConditionType: PopupConditionType = 'HostWildcardCondition';
+
+const conditionTypes: readonly PopupConditionType[] = [
   'HostWildcardCondition',
   'HostRegexCondition',
   'UrlWildcardCondition',
   'UrlRegexCondition',
   'KeywordCondition'
 ];
+
+function isPopupConditionType(value: string): value is PopupConditionType {
+  return conditionTypes.includes(value as PopupConditionType);
+}
 
 const iconForProfileType: Record<string, string> = {
   AutoDetectProfile: 'glyphicon-file',
@@ -53,7 +64,7 @@ function popupErrorMessage(error: unknown) {
   return String(candidate?.message || error);
 }
 
-function modeFromHash() {
+function modeFromHash(): PopupMode {
   if (location.hash === '#!requestInfo') {
     return 'requestInfo';
   }
@@ -76,25 +87,32 @@ function displayProfileName(profile?: Profile, override?: string) {
   return popupMessage(`profile_${profile.name}`, profile.name);
 }
 
-function profileTarget(profile?: Profile, availableProfiles?: Record<string, Profile>) {
+function profileKey(profileName?: string): ProfileKey | undefined {
+  return profileName ? `+${profileName}` as ProfileKey : undefined;
+}
+
+function profileFromMap(availableProfiles?: ProfileMap, profileName?: string) {
+  const key = profileKey(profileName);
+  return key ? availableProfiles?.[key] : undefined;
+}
+
+function profileTarget(profile?: Profile, availableProfiles?: ProfileMap) {
   if (profile?.profileType === 'VirtualProfile') {
-    return availableProfiles?.[`+${profile.defaultProfileName}`] || profile;
+    return profileFromMap(availableProfiles, profile.defaultProfileName) || profile;
   }
   return profile;
 }
 
 function visibleMenuProfiles(state?: PopupState) {
-  return Object.keys(state?.availableProfiles || {})
-    .map((key) => state?.availableProfiles?.[key])
+  return Object.values(state?.availableProfiles || {})
     .filter((profile): profile is Profile => !!profile && !profile.builtin && profile.name.charAt(0) !== '_')
     .sort(compareProfile);
 }
 
 function visibleResultProfiles(state?: PopupState) {
-  const available = state?.availableProfiles || {};
   return (state?.validResultProfiles || [])
     .filter((name) => name.charAt(0) !== '_' || name.charAt(1) !== '_')
-    .map((name) => available[`+${name}`])
+    .map((name) => profileFromMap(state?.availableProfiles, name))
     .filter((profile): profile is Profile => !!profile)
     .sort(compareProfile);
 }
@@ -108,7 +126,7 @@ function requestDomains(info?: PageInfo) {
     .sort((a, b) => b.errorCount - a.errorCount);
 }
 
-function suggestCondition(domain = '') {
+function suggestCondition(domain = ''): Record<PopupConditionType, string> {
   let currentDomain = domain;
   let currentDomainEscaped = currentDomain.replace(/\./g, '\\.');
   let domainLooksLikeIp = false;
@@ -151,7 +169,7 @@ function lastResultProfile(state?: PopupState, pageInfo?: PageInfo) {
   return profiles[0]?.name || 'direct';
 }
 
-function profileTitle(profile?: Profile, availableProfiles?: Record<string, Profile>) {
+function profileTitle(profile?: Profile, availableProfiles?: ProfileMap) {
   let current = profile;
   let desc = '';
   while (current) {
@@ -216,7 +234,7 @@ function PopupApp() {
   const showAddCondition = !!(state?.currentProfileCanAddRule && hasPageDomain && hasResultProfiles);
   const showTempRule = !!(hasPageDomain && hasResultProfiles);
 
-  function showMode(nextMode: 'condition' | 'external' | 'requestInfo') {
+  function showMode(nextMode: Exclude<PopupMode, 'menu'>) {
     location.hash = nextMode === 'condition' ? '#!addRule' : `#!${nextMode}`;
     setMode(nextMode);
     setDefaultMenuOpen('');
@@ -393,13 +411,13 @@ function PopupApp() {
     return <ExternalProfileForm state={state} onClose={closeToMenu} />;
   }
 
-  const directProfile = state.availableProfiles?.['+direct'] || {
+  const directProfile = profileFromMap(state.availableProfiles, 'direct') || {
     builtin: true,
     color: '#aaa',
     name: 'direct',
     profileType: 'DirectProfile'
   };
-  const systemProfile = state.availableProfiles?.['+system'] || {
+  const systemProfile = profileFromMap(state.availableProfiles, 'system') || {
     builtin: true,
     color: '#000',
     name: 'system',
@@ -559,7 +577,7 @@ function MenuProfileItem({
 }) {
   const hasDefaultMenu = !!(profile?.validResultProfiles?.length && onDefaultMenuToggle && onDefaultProfileChange);
   const resultProfiles = (profile?.validResultProfiles || [])
-    .map((name) => state.availableProfiles?.[`+${name}`])
+    .map((name) => profileFromMap(state.availableProfiles, name))
     .filter((item): item is Profile => !!item)
     .sort(compareProfile);
   const classes = [
@@ -618,13 +636,13 @@ function ConditionForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
   const selectedProfile = lastResultProfile(state, pageInfo);
   const [profile, setProfile] = useState(selectedProfile);
   const suggestions = useMemo(() => suggestCondition(pageInfo?.domain || ''), [pageInfo?.domain]);
-  const [conditionType, setConditionType] = useState(conditionTypes[0]);
+  const [conditionType, setConditionType] = useState(defaultConditionType);
   const [pattern, setPattern] = useState(suggestions.HostWildcardCondition);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => setProfile(selectedProfile), [selectedProfile]);
-  useEffect(() => setPattern(suggestions[conditionType as keyof typeof suggestions] || ''), [conditionType, suggestions]);
+  useEffect(() => setPattern(suggestions[conditionType] || ''), [conditionType, suggestions]);
 
   function openConditionHelp() {
     const currentProfileName = encodeURIComponent(state.currentProfileName || '');
@@ -636,10 +654,11 @@ function ConditionForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
     setSaving(true);
     setError('');
     try {
-      await callbackPromise<void>((callback) => popupTarget().addCondition?.({
+      const condition: PopupCondition = {
         conditionType,
         pattern
-      }, profile, true, callback));
+      };
+      await callbackPromise<void>((callback) => popupTarget().addCondition?.(condition, profile, true, callback));
       popupTarget().setState?.('lastProfileNameForCondition', profile);
       closePopup();
     } catch (err: unknown) {
@@ -653,7 +672,7 @@ function ConditionForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
       <fieldset>
         <legend>
           {popupMessage('popup_addConditionTo', 'Add condition to')}
-          <span className="profile-inline"><ProfileInline profile={state.availableProfiles?.[`+${state.currentProfileName}`]} availableProfiles={state.availableProfiles} /></span>
+          <span className="profile-inline"><ProfileInline profile={profileFromMap(state.availableProfiles, state.currentProfileName)} availableProfiles={state.availableProfiles} /></span>
         </legend>
         {error && <p className="om-alert">{error}</p>}
         <div className="form-group">
@@ -664,7 +683,12 @@ function ConditionForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
               <span className="glyphicon glyphicon-new-window" />
             </button>
           </label>
-          <select className="form-control" value={conditionType} onChange={(event) => setConditionType(event.currentTarget.value)}>
+          <select className="form-control" value={conditionType} onChange={(event) => {
+            const nextConditionType = event.currentTarget.value;
+            if (isPopupConditionType(nextConditionType)) {
+              setConditionType(nextConditionType);
+            }
+          }}>
             {conditionTypes.map((type) => (
               <option key={type} value={type}>{popupMessage(`condition_${type}`, type)}</option>
             ))}
@@ -711,7 +735,7 @@ function RequestInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state
 
   async function submitRequestInfo(event: React.FormEvent) {
     event.preventDefault();
-    const conditions = domains
+    const conditions: PopupCondition[] = domains
       .filter((domain) => checkedDomains[domain.domain])
       .map((domain) => ({
         conditionType: 'HostWildcardCondition',
@@ -737,7 +761,7 @@ function RequestInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state
     <form className="request-info-details om-popup-form" onSubmit={submitRequestInfo}>
       <fieldset>
         {state.currentProfileCanAddRule
-          ? <legend>{popupMessage('popup_addConditionTo', 'Add condition to')}<span className="profile-inline"><ProfileInline profile={state.availableProfiles?.[`+${state.currentProfileName}`]} availableProfiles={state.availableProfiles} /></span></legend>
+          ? <legend>{popupMessage('popup_addConditionTo', 'Add condition to')}<span className="profile-inline"><ProfileInline profile={profileFromMap(state.availableProfiles, state.currentProfileName)} availableProfiles={state.availableProfiles} /></span></legend>
           : <legend>{popupMessage('popup_requestErrorHeading', 'Request failures')}</legend>}
         {error && <p className="om-alert">{error}</p>}
         <div className="text-warning">{popupMessage('popup_requestErrorWarning', 'Some requests have failed.')}</div>
@@ -782,7 +806,7 @@ function ExternalProfileForm({state, onClose}: {state: PopupState; onClose: () =
   const [externalName, setExternalName] = useState(state.externalProfile?.name || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const externalNameConflict = !!externalName && !!state.availableProfiles?.[`+${externalName}`];
+  const externalNameConflict = !!externalName && !!profileFromMap(state.availableProfiles, externalName);
   const externalNameHidden = externalName.charAt(0) === '_';
 
   async function submitExternal(event: React.FormEvent) {
@@ -883,7 +907,7 @@ function ProfileInline({
   label,
   profile
 }: {
-  availableProfiles?: Record<string, Profile>;
+  availableProfiles?: ProfileMap;
   legacySpacing?: boolean;
   label?: string;
   profile?: Profile;

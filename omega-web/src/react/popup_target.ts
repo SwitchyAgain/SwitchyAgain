@@ -1,12 +1,15 @@
 import {message} from './options_client';
-import type {Profile as ProfileModel} from './profile_types';
+import type {NamedProfile, ProfileKey} from './profile_types';
 
-export type Profile = ProfileModel & {
+export type {ProfileKey};
+
+export type Profile = NamedProfile & {
   defaultProfileName?: string;
   desc?: string;
-  name: string;
   validResultProfiles?: string[];
 };
+
+export type ProfileMap = Record<ProfileKey, Profile | undefined>;
 
 export type PageInfo = {
   domain?: string;
@@ -17,7 +20,7 @@ export type PageInfo = {
 };
 
 export type PopupState = {
-  availableProfiles?: Record<string, Profile>;
+  availableProfiles?: ProfileMap;
   currentProfileCanAddRule?: boolean;
   currentProfileName?: string;
   externalProfile?: Profile;
@@ -29,14 +32,30 @@ export type PopupState = {
   validResultProfiles?: string[];
 };
 
-export type PopupCondition = Record<string, unknown> | Array<Record<string, unknown>>;
+export type PopupStateKey = keyof PopupState;
+export type PopupWritableStateKey = 'lastProfileNameForCondition';
+export type PopupMode = 'condition' | 'external' | 'menu' | 'requestInfo';
+
+export type PopupConditionType =
+  | 'HostRegexCondition'
+  | 'HostWildcardCondition'
+  | 'KeywordCondition'
+  | 'UrlRegexCondition'
+  | 'UrlWildcardCondition';
+
+export type PopupCondition = {
+  conditionType: PopupConditionType;
+  pattern: string;
+};
+
+export type PopupConditionInput = PopupCondition | PopupCondition[];
 
 export type PopupCallback<T = unknown> = (error?: unknown, result?: T) => void;
 export type PopupVoidCallback = PopupCallback<void>;
 
 export type PopupTarget = {
   addCondition?: (
-    condition: PopupCondition,
+    condition: PopupConditionInput,
     profileName: string,
     addToBottom: boolean,
     callback?: PopupVoidCallback
@@ -46,7 +65,7 @@ export type PopupTarget = {
   applyProfile?: (name: string, callback?: PopupVoidCallback) => void;
   getActivePageInfo?: (callback: PopupCallback<PageInfo>) => void;
   getMessage?: (key: string, substitutions?: string | string[]) => string;
-  getState?: (keys: string[], callback: PopupCallback<PopupState>) => void;
+  getState?: (keys: PopupStateKey[], callback: PopupCallback<PopupState>) => void;
   openManage?: {
     (callback?: PopupVoidCallback): void;
     (domain?: string, profileName?: string, callback?: PopupVoidCallback): void;
@@ -57,7 +76,11 @@ export type PopupTarget = {
     defaultProfileName: string,
     callback?: PopupVoidCallback
   ) => void;
-  setState?: (name: string, value: unknown, callback?: PopupCallback) => void;
+  setState?: <TKey extends PopupWritableStateKey>(
+    name: TKey,
+    value: PopupState[TKey],
+    callback?: PopupCallback
+  ) => void;
 };
 
 declare global {
@@ -123,7 +146,7 @@ function popupMethodUnavailable(methodName: keyof PopupTarget) {
   return new Error(`Popup target method unavailable: ${methodName}.`);
 }
 
-export function getPopupState(keys: string[]) {
+export function getPopupState(keys: PopupStateKey[]) {
   return callbackPromise<PopupState>((callback) => {
     const getState = popupTarget().getState;
     if (!getState) {
