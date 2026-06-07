@@ -1,9 +1,9 @@
 import assert from 'assert';
 import Promise from 'bluebird';
-import sinon from 'sinon';
 import LogClass from '../src/log';
 import OptionsSyncClass from '../src/options_sync';
 import StorageClass from '../src/storage';
+import {assertCalledOnce, assertCalledTwice, assertCalledWith, spyOn, stubOn} from './helpers/test_helpers';
 
 const slice = [].slice;
 
@@ -17,7 +17,7 @@ describe('OptionsSync', function() {
   Storage = StorageClass;
   Log = LogClass;
   before(function() {
-    return sinon.stub(Log, 'log');
+    return stubOn(Log, 'log');
   });
   after(function() {
     return Log.log.restore();
@@ -137,12 +137,12 @@ describe('OptionsSync', function() {
         if (storage.set.callCount === 0 || storage.remove.callCount === 0) {
           return;
         }
-        sinon.assert.calledOnce(storage.set);
-        sinon.assert.calledWith(storage.set, {
+        assertCalledOnce(storage.set);
+        assertCalledWith(storage.set, {
           b: 1
         });
-        sinon.assert.calledOnce(storage.remove);
-        sinon.assert.calledWith(storage.remove, ['a']);
+        assertCalledOnce(storage.remove);
+        assertCalledWith(storage.remove, ['a']);
         return done();
       };
       storage = new Storage();
@@ -151,8 +151,8 @@ describe('OptionsSync', function() {
       });
       hookPost(storage, 'set', check);
       hookPost(storage, 'remove', check);
-      sinon.spy(storage, 'set');
-      sinon.spy(storage, 'remove');
+      spyOn(storage, 'set');
+      spyOn(storage, 'remove');
       sync = new OptionsSync(storage, unlimited);
       sync.debounce = 0;
       return sync.requestPush({
@@ -166,13 +166,13 @@ describe('OptionsSync', function() {
         if (storage.set.callCount === 0 || storage.remove.callCount === 0) {
           return;
         }
-        sinon.assert.calledOnce(storage.set);
-        sinon.assert.calledWith(storage.set, {
+        assertCalledOnce(storage.set);
+        assertCalledWith(storage.set, {
           c: 1,
           d: 1
         });
-        sinon.assert.calledOnce(storage.remove);
-        sinon.assert.calledWith(storage.remove, ['a', 'b']);
+        assertCalledOnce(storage.remove);
+        assertCalledWith(storage.remove, ['a', 'b']);
         return done();
       };
       storage = new Storage();
@@ -182,8 +182,8 @@ describe('OptionsSync', function() {
       });
       hookPost(storage, 'set', check);
       hookPost(storage, 'remove', check);
-      sinon.spy(storage, 'set');
-      sinon.spy(storage, 'remove');
+      spyOn(storage, 'set');
+      spyOn(storage, 'remove');
       sync = new OptionsSync(storage, unlimited);
       sync.debounce = 0;
       sync.requestPush({
@@ -230,9 +230,9 @@ describe('OptionsSync', function() {
             return Promise.reject(err);
           }
         }
-        sinon.assert.calledTwice(storage.set);
-        sinon.assert.calledWith(storage.set, options);
-        sinon.assert.calledWith(storage.set, {
+        assertCalledTwice(storage.set);
+        assertCalledWith(storage.set, options);
+        assertCalledWith(storage.set, {
           b: {
             is: 'b'
           }
@@ -242,7 +242,7 @@ describe('OptionsSync', function() {
         done();
         return Promise.resolve();
       };
-      sinon.spy(storage, 'set');
+      spyOn(storage, 'set');
       sync = new OptionsSync(storage, unlimited);
       sync.debounce = 0;
       return sync.requestPush(options);
@@ -259,15 +259,15 @@ describe('OptionsSync', function() {
       });
       storage = new Storage();
       hookPost(storage, 'set', function() {
-        sinon.assert.calledOnce(storage.set);
-        sinon.assert.calledWith(storage.set, {
+        assertCalledOnce(storage.set);
+        assertCalledWith(storage.set, {
           a: 1,
           b: 2,
           c: 3
         });
         return done();
       });
-      sinon.spy(storage, 'set');
+      spyOn(storage, 'set');
       sync = new OptionsSync(remote);
       return sync.copyTo(storage);
     });
@@ -277,13 +277,13 @@ describe('OptionsSync', function() {
         if (storage.set.callCount === 0 || storage.remove.callCount === 0) {
           return;
         }
-        sinon.assert.calledOnce(storage.set);
-        sinon.assert.calledWith(storage.set, {
+        assertCalledOnce(storage.set);
+        assertCalledWith(storage.set, {
           b: 2,
           c: 3
         });
-        sinon.assert.calledOnce(storage.remove);
-        sinon.assert.calledWith(storage.remove, ['d']);
+        assertCalledOnce(storage.remove);
+        assertCalledWith(storage.remove, ['d']);
         return done();
       };
       remote = new Storage();
@@ -301,8 +301,8 @@ describe('OptionsSync', function() {
       });
       hookPost(storage, 'set', check);
       hookPost(storage, 'remove', check);
-      sinon.spy(storage, 'set');
-      sinon.spy(storage, 'remove');
+      spyOn(storage, 'set');
+      spyOn(storage, 'remove');
       sync = new OptionsSync(remote);
       sync.copyTo(storage);
     });
@@ -314,14 +314,14 @@ describe('OptionsSync', function() {
         if (storage.set.callCount === 0 || storage.remove.callCount === 0) {
           return;
         }
-        sinon.assert.calledOnce(remote.watch);
-        sinon.assert.calledOnce(storage.set);
-        sinon.assert.calledWith(storage.set, {
+        assertCalledOnce(remote.watch);
+        assertCalledOnce(storage.set);
+        assertCalledWith(storage.set, {
           b: 2,
           c: 3
         });
-        sinon.assert.calledOnce(storage.remove);
-        sinon.assert.calledWith(storage.remove, ['d']);
+        assertCalledOnce(storage.remove);
+        assertCalledWith(storage.remove, ['d']);
         return done();
       };
       remote = new Storage();
@@ -341,7 +341,7 @@ describe('OptionsSync', function() {
           });
         }), 10);
       });
-      sinon.spy(remote, 'watch');
+      spyOn(remote, 'watch');
       storage = new Storage();
       storage.set({
         a: 1,
@@ -350,8 +350,8 @@ describe('OptionsSync', function() {
       });
       hookPost(storage, 'set', check);
       hookPost(storage, 'remove', check);
-      sinon.spy(storage, 'set');
-      sinon.spy(storage, 'remove');
+      spyOn(storage, 'set');
+      spyOn(storage, 'remove');
       sync = new OptionsSync(remote);
       sync.pullThrottle = 0;
       return sync.watchAndPull(storage);

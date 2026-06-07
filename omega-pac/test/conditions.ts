@@ -1,7 +1,7 @@
 import assert from 'assert';
-import sinon from 'sinon';
 import ConditionsApi from '../src/conditions';
 import UglifyJS from '../src/uglifyjs_shim';
+import {useFakeDate} from './helpers/fake_date';
 
 describe('Conditions', function() {
   let Conditions: any, U2: any, testCond: (condition: any, request: any, should_match?: any) => any;
@@ -454,7 +454,7 @@ describe('Conditions', function() {
     let clock: any, testCondDay: (cond: any, day: number, match: boolean) => any;
     clock = null;
     before(function() {
-      return clock = sinon.useFakeTimers(0, 'Date');
+      return clock = useFakeDate(0);
     });
     after(function() {
       return clock.uninstall();
@@ -556,7 +556,7 @@ describe('Conditions', function() {
     let clock: any, testCondTime: (cond: any, time: string, match: boolean) => any;
     clock = null;
     before(function() {
-      return clock = sinon.useFakeTimers(0, 'Date');
+      return clock = useFakeDate(0);
     });
     after(function() {
       return clock.uninstall();

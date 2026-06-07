@@ -1,7 +1,7 @@
 import assert from 'assert';
 import Promise from 'bluebird';
-import sinon from 'sinon';
 import OptionsClass from '../src/options';
+import {assertCalledOnce, assertCalledWith, stubReturns} from './helpers/test_helpers';
 
 describe('Options', function() {
   let Options: any;
@@ -20,15 +20,15 @@ describe('Options', function() {
       options._isSystem = false;
       options._currentProfileName = 'proxy';
       options._revertToProfileName = null;
-      options.applyProfile = sinon.stub().returns(Promise.resolve());
+      options.applyProfile = stubReturns(Promise.resolve());
 
       const result = options.setExternalProfile({
         name: '',
         profileType: 'PacProfile'
       });
 
-      sinon.assert.calledOnce(options.applyProfile);
-      sinon.assert.calledWith(options.applyProfile, 'proxy');
+      assertCalledOnce(options.applyProfile);
+      assertCalledWith(options.applyProfile, 'proxy');
       assert.strictEqual(options._revertToProfileName, null);
       return result;
     });

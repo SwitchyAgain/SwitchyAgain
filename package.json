@@ -17,6 +17,8 @@
     "typecheck": "npm run typecheck --workspace omega-pac && npm run typecheck --workspace omega-target && npm run typecheck --workspace omega-web && npm run typecheck --workspace omega-target-chromium-extension"
   },
   "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^25.9.2",
     "archiver": "~0.11.0",
     "autoprefixer-core": "^5.2.1",
     "buffer": "^3.6.2",
@@ -27,7 +29,6 @@
     "postcss": "~4.1.12",
     "process": "^0.11.10",
     "querystring": "^0.2.0",
-    "sinon": "^1.12.2",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3",
     "url": "^0.10.3"
