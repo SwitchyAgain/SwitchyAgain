@@ -33,7 +33,17 @@ import {
   UnsupportedProfile,
   VirtualProfile
 } from './profile_content';
-import {Profile, isNamedProfile, profileByName} from './profile_widgets';
+import {
+  Profile,
+  isBuiltinProfile,
+  isFixedProfile,
+  isNamedProfile,
+  isNamedProfileType,
+  isPacProfile,
+  isRuleListProfile,
+  isVirtualProfile,
+  profileByName
+} from './profile_widgets';
 import {
   AttachedOptions,
   NamedSwitchProfileModel,
@@ -76,6 +86,7 @@ import type {
   ProfileAuth,
   ProfileAuthMap,
   ProfileAuthKey,
+  ProfileType,
   PacProfileField,
   RuleListProfileField,
   RuleListProfileModel,
@@ -293,7 +304,7 @@ function hasProxyScriptApi() {
 function firstFixedProfileName(options: Options) {
   let profileName = '';
   OmegaPac.Profiles.each(options, (_key, profile) => {
-    if (!profileName && profile.profileType === 'FixedProfile' && isNamedProfile(profile)) {
+    if (!profileName && isFixedProfile(profile)) {
       profileName = profile.name;
     }
   });
@@ -378,13 +389,28 @@ function objectOption<T extends object>(value: unknown): Partial<T> {
   return value && typeof value === 'object' ? value as Partial<T> : {};
 }
 
-function profileOption<TProfile extends ProfileModel>(options: Options, name: string) {
-  const value = options[profileKey(name)];
-  return value && typeof value === 'object' ? value as TProfile : undefined;
+function isSwitchProfile(value: unknown): value is NamedSwitchProfileModel {
+  return isNamedProfileType<NamedSwitchProfileModel>(value, 'SwitchProfile');
 }
 
-function profileDraft<TProfile extends ProfileModel>(options: Options, name: string) {
+function profileOption<TProfile extends ProfileModel>(
+  options: Options,
+  name: string,
+  guard?: (profile: unknown) => profile is TProfile
+) {
+  const value = options[profileKey(name)];
+  if (!value || typeof value !== 'object') {
+    return undefined;
+  }
+  if (guard && !guard(value)) {
+    return undefined;
+  }
+  return value as TProfile;
+}
+
+function profileDraft<TProfile extends ProfileModel>(options: Options, name: string, defaults?: Partial<TProfile>) {
   return {
+    ...defaults,
     ...objectOption<TProfile>(options[profileKey(name)])
   } as TProfile;
 }
@@ -409,17 +435,15 @@ function updateProfileRevision(profile: ProfileModel) {
 
 function attachedProfileOption(options: Options, identity: ReturnType<typeof attachedIdentity>): NamedRuleListProfileModel | undefined {
   const value = options[identity.attachedKey];
-  return isNamedProfile(value) ? value : undefined;
+  return isRuleListProfile(value) ? value : undefined;
 }
 
 function attachedProfileDraft(options: Options, identity: ReturnType<typeof attachedIdentity>) {
   const draft: NamedRuleListProfileModel = {
+    profileType: 'RuleListProfile',
     ...objectOption<RuleListProfileModel>(options[identity.attachedKey]),
     name: identity.attachedName
-  };
-  if (!draft.profileType) {
-    draft.profileType = 'RuleListProfile';
-  }
+  } as NamedRuleListProfileModel;
   return draft;
 }
 
@@ -750,13 +774,17 @@ export function OptionsApp() {
     });
   }
 
-  function updateProfile<TProfile extends ProfileModel = ProfileModel>(profileName: string, updater: (profile: TProfile) => void) {
+  function updateProfile<TProfile extends ProfileModel = ProfileModel>(
+    profileName: string,
+    updater: (profile: TProfile) => void,
+    defaults?: Partial<TProfile>
+  ) {
     setOptions((current) => {
       if (!current) {
         return current;
       }
       const nextOptions = cloneOptions(current);
-      const profile = profileDraft<TProfile>(nextOptions, profileName);
+      const profile = profileDraft<TProfile>(nextOptions, profileName, defaults);
       updater(profile);
       updateProfileRevision(profile);
       setProfileOption(nextOptions, profileName, profile);
@@ -904,7 +932,7 @@ export function OptionsApp() {
       .finally(() => setProfileUpdating(profileName, false));
   }
 
-  function createProfile(profileSpec: {name: string; profileType: string}) {
+  function createProfile(profileSpec: {name: string; profileType: ProfileType}) {
     updateOptionsDraft((nextOptions) => {
       const profile = OmegaPac.Profiles.create(profileSpec);
       const choice = Math.floor(Math.random() * PROFILE_COLORS.length);
@@ -942,7 +970,7 @@ export function OptionsApp() {
     const hadAttached = Boolean(profileByName(sourceOptions, attachedName));
     const targetAttachedExists = Boolean(profileByName(sourceOptions, toAttachedName));
     const originalDefaultProfileName = targetAttachedExists
-      ? profileOption<SwitchProfileModel>(sourceOptions, fromName)?.defaultProfileName
+      ? profileOption<NamedSwitchProfileModel>(sourceOptions, fromName, isSwitchProfile)?.defaultProfileName
       : undefined;
 
     return Promise.resolve()
@@ -1052,7 +1080,7 @@ export function OptionsApp() {
       return;
     }
     const profile = profileByName(options, profileName);
-    if (!profile || profile.profileType === 'DirectProfile' || profile.profileType === 'SystemProfile') {
+    if (!profile || isBuiltinProfile(profile)) {
       return;
     }
     const exported = createPacExport(options, profileName);
@@ -1233,86 +1261,89 @@ export function OptionsApp() {
         return Object.keys(OmegaPac.Profiles.referencedBySet(profile.name, options)).length > 0;
       };
       const content = (() => {
-        switch (profile.profileType) {
-          case 'FixedProfile':
-            return (
-              <FixedProfileContent
-                profile={profile}
-                onBypassListChange={(value) => updateProfileField<FixedProfileModel, 'bypassList'>(profile.name, 'bypassList', value)}
-                onEditProxyAuth={(scheme) => requestFixedProxyAuth(profile, scheme)}
-                onProxyChange={(field, value, changeOptions) => updateFixedProfileProxy(profile.name, field, value, changeOptions)}
-              />
-            );
-          case 'PacProfile':
-            return (
-              <PacProfile
-                profile={profile}
-                referenced={referenced()}
-                onDownload={downloadProfile}
-                onEditProxyAuth={() => requestPacProxyAuth(profile)}
-                onProfileChange={(field, value) => updateProfileField<PacProfileModel, PacProfileField>(profile.name, field, value)}
-                pacProfilesUnsupported={pacProfilesUnsupported}
-                updating={profileUpdating(updatingProfiles, profile.name)}
-              />
-            );
-          case 'RuleListProfile':
-            return (
-              <RuleListProfile
-                options={options}
-                profile={profile}
-                onDownload={downloadProfile}
-                onProfileChange={(field, value) => updateProfileField<RuleListProfileModel, RuleListProfileField>(profile.name, field, value)}
-                updating={profileUpdating(updatingProfiles, profile.name)}
-              />
-            );
-          case 'VirtualProfile':
-            return (
-              <VirtualProfile
-                options={options}
-                profile={profile}
-                onReplaceProfile={requestReplaceProfile}
-                onTargetChange={(name) => updateProfileField<VirtualProfileModel, 'defaultProfileName'>(profile.name, 'defaultProfileName', name)}
-              />
-            );
-          case 'SwitchProfile':
-            return (
-              <SwitchProfilePreview
-                onDownload={downloadProfile}
-                options={options}
-                profile={profile}
-                updatingProfiles={updatingProfiles}
-                updateOptionsDraft={updateOptionsDraft}
-                updateProfile={updateProfile}
-                showConditionHelp={route.params?.help === 'condition'}
-              />
-            );
-          default:
-            return <UnsupportedProfile profile={profile} />;
+        if (isFixedProfile(profile)) {
+          return (
+            <FixedProfileContent
+              profile={profile}
+              onBypassListChange={(value) => updateProfileField<FixedProfileModel, 'bypassList'>(profile.name, 'bypassList', value)}
+              onEditProxyAuth={(scheme) => requestFixedProxyAuth(profile, scheme)}
+              onProxyChange={(field, value, changeOptions) => updateFixedProfileProxy(profile.name, field, value, changeOptions)}
+            />
+          );
         }
+        if (isPacProfile(profile)) {
+          return (
+            <PacProfile
+              profile={profile}
+              referenced={referenced()}
+              onDownload={downloadProfile}
+              onEditProxyAuth={() => requestPacProxyAuth(profile)}
+              onProfileChange={(field, value) => updateProfileField<PacProfileModel, PacProfileField>(profile.name, field, value)}
+              pacProfilesUnsupported={pacProfilesUnsupported}
+              updating={profileUpdating(updatingProfiles, profile.name)}
+            />
+          );
+        }
+        if (isRuleListProfile(profile)) {
+          return (
+            <RuleListProfile
+              options={options}
+              profile={profile}
+              onDownload={downloadProfile}
+              onProfileChange={(field, value) => updateProfileField<RuleListProfileModel, RuleListProfileField>(profile.name, field, value)}
+              updating={profileUpdating(updatingProfiles, profile.name)}
+            />
+          );
+        }
+        if (isVirtualProfile(profile)) {
+          return (
+            <VirtualProfile
+              options={options}
+              profile={profile}
+              onReplaceProfile={requestReplaceProfile}
+              onTargetChange={(name) => updateProfileField<VirtualProfileModel, 'defaultProfileName'>(profile.name, 'defaultProfileName', name)}
+            />
+          );
+        }
+        if (isSwitchProfile(profile)) {
+          return (
+            <SwitchProfilePreview
+              onDownload={downloadProfile}
+              options={options}
+              profile={profile}
+              updatingProfiles={updatingProfiles}
+              updateOptionsDraft={updateOptionsDraft}
+              updateProfile={updateProfile}
+              showConditionHelp={route.params?.help === 'condition'}
+            />
+          );
+        }
+        return <UnsupportedProfile profile={profile} />;
       })();
-      const identity = profile.profileType === 'SwitchProfile' ? attachedIdentity(profile.name) : null;
+      const switchProfile = isSwitchProfile(profile) ? profile : null;
+      const identity = switchProfile ? attachedIdentity(switchProfile.name) : null;
       const attached = identity ? attachedProfileOption(options, identity) : null;
-      const attachedOptions = identity ? createAttachedOptions(profile, attached) : null;
-      const showConditionTypes = profile.profileType === 'SwitchProfile'
-        ? numberOption(options['-showConditionTypes'], detectAdvancedConditionTypes(profile))
+      const attachedOptions = switchProfile ? createAttachedOptions(switchProfile, attached) : null;
+      const showConditionTypes = switchProfile
+        ? numberOption(options['-showConditionTypes'], detectAdvancedConditionTypes(switchProfile))
         : 0;
-      const ruleListOptions = profile.profileType === 'SwitchProfile'
+      const ruleListOptions = switchProfile
         ? exportRuleListOptions(options, showConditionTypes)
         : {legacy: false, warning: false};
       return (
         <>
           <div className="react-profile-shell-host">
             <ProfileShell
-              exportRuleListAvailable={profile.profileType === 'SwitchProfile'}
+              exportRuleListAvailable={!!switchProfile}
               exportRuleListWarning={ruleListOptions.warning}
               profile={profile}
               profileColor={profile.color}
-              scriptable={profile.profileType !== 'DirectProfile' && profile.profileType !== 'SystemProfile'}
+              scriptable={!isBuiltinProfile(profile)}
               onColorChange={(color) => updateProfile(profile.name, (nextProfile) => {
                 nextProfile.color = color;
               })}
               onDelete={() => requestDeleteProfile(profile)}
-              onExportRuleList={() => attachedOptions && exportRuleList(profile, attachedOptions, ruleListOptions.legacy)}
+              onExportRuleList={() => switchProfile && attachedOptions && exportRuleList(switchProfile, attachedOptions, ruleListOptions.legacy)}
               onExportScript={() => exportScript(profile.name)}
               onRename={() => requestRenameProfile(profile)}
             />

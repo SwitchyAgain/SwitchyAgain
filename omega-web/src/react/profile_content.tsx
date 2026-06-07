@@ -7,6 +7,7 @@ import {
   ProfileInline,
   ProfileSelect,
   PROFILE_ICONS,
+  isVirtualProfile,
   profileByName,
   resultProfilesFor
 } from './profile_widgets';
@@ -40,6 +41,7 @@ import type {
   NamedRuleListProfileModel,
   NamedVirtualProfileModel,
   PacProfileField,
+  ProfileType,
   ProxyEditor,
   RuleListProfileField
 } from './profile_types';
@@ -50,7 +52,7 @@ const SWITCH_RULE_BATCH_DELAY_MS = 32;
 
 export type UnsupportedProfileProps = {
   profile?: {
-    profileType?: string;
+    profileType?: ProfileType;
   } | null;
 };
 
@@ -251,7 +253,7 @@ export function ProfileShell({
   scriptable = false
 }: ProfileShellProps) {
   const color = normalizeColor(profileColor || profile.color);
-  const isVirtual = profile.profileType === 'VirtualProfile';
+  const isVirtual = isVirtualProfile(profile);
 
   return (
     <>

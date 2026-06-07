@@ -72,11 +72,13 @@ export type SwitchProfileModel = Profile & {
   color?: string;
   defaultProfileName?: string;
   name?: string;
-  profileType?: string;
+  profileType?: 'SwitchProfile';
   rules?: SwitchRule[];
 };
 
-export type NamedSwitchProfileModel = SwitchProfileModel & NamedProfile;
+export type NamedSwitchProfileModel = SwitchProfileModel & NamedProfile & {
+  profileType: 'SwitchProfile';
+};
 
 export type AttachedOptions = {
   defaultProfileName?: string;

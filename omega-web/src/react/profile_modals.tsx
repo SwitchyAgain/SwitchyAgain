@@ -1,6 +1,7 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {message} from './options_client';
 import {PROFILE_ICONS, Profile} from './profile_widgets';
+import type {ProfileType} from './profile_types';
 
 export type RenameProfileProps = {
   fromName?: string;
@@ -14,7 +15,7 @@ export type RenameProfileProps = {
 export type NewProfileProps = {
   isProfileNameHidden?: (name: string) => boolean;
   isProfileNameReserved?: (name: string) => boolean;
-  onClose?: (profile: {name: string; profileType: string}) => void;
+  onClose?: (profile: {name: string; profileType: ProfileType}) => void;
   onDismiss?: () => void;
   pacProfilesUnsupported?: boolean;
   profileByName?: (name: string) => Profile | null;
@@ -185,9 +186,9 @@ function ProfileTypeOption({
   extraHelp?: string;
   icon: string;
   name: string;
-  onChange: (type: string) => void;
+  onChange: (type: ProfileType) => void;
   title: string;
-  value: string;
+  value: ProfileType;
   warning?: string;
 }) {
   return (
@@ -228,7 +229,7 @@ export function NewProfileModal({
   profileByName
 }: NewProfileProps) {
   const [name, setName] = useState('');
-  const [profileType, setProfileType] = useState('FixedProfile');
+  const [profileType, setProfileType] = useState<ProfileType>('FixedProfile');
   const errors = useMemo(() => profileNameErrors(name, '', isProfileNameReserved, profileByName), [
     isProfileNameReserved,
     name,
