@@ -12,6 +12,7 @@
     "build:pac": "npm run build --workspace omega-pac",
     "build:target": "npm run build --workspace omega-target",
     "build:web": "npm run build --workspace omega-web",
+    "package:dist": "node scripts/package-dist.mjs",
     "release": "npm run release --workspace omega-target-chromium-extension",
     "test": "npm run test --workspace omega-pac && npm run test --workspace omega-target",
     "typecheck": "npm run typecheck --workspace omega-pac && npm run typecheck --workspace omega-target && npm run typecheck --workspace omega-web && npm run typecheck --workspace omega-target-chromium-extension"
