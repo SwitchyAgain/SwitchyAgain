@@ -439,12 +439,20 @@ export function createSource(profile: SwitchProfileModel, attachedOptions: Attac
   };
 }
 
+function optionProfileName(value: unknown) {
+  if (!value || typeof value !== 'object') {
+    return '';
+  }
+  const name = (value as Record<string, unknown>).name;
+  return typeof name === 'string' ? name : '';
+}
+
 export function parseSource(code: string, options: Options | null | undefined) {
   const profilesByKey: Record<string, string> = {};
   for (const key of Object.keys(options || {})) {
-    const profile = options?.[key] as {name?: string} | undefined;
-    if (key.charAt(0) === '+' && profile?.name) {
-      profilesByKey[key] = profile.name;
+    const name = optionProfileName(options?.[key]);
+    if (key.charAt(0) === '+' && name) {
+      profilesByKey[key] = name;
     }
   }
   try {
@@ -460,7 +468,7 @@ export function parseSource(code: string, options: Options | null | undefined) {
       rules: OmegaPac.RuleList.Switchy.parseOmega(code, null, null, {
         source: false,
         strict: true
-      }) as SwitchRule[]
+      })
     };
   } catch (error) {
     return {

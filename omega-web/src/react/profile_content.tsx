@@ -24,7 +24,6 @@ import type {
   ConditionFieldValue,
   ConditionTypeOption,
   NamedSwitchProfileModel,
-  SwitchProfileModel,
   SwitchRule,
   SwitchRuleCondition,
   SwitchRuleSourceState
@@ -38,9 +37,9 @@ import type {
   NamedPacProfileModel,
   NamedRuleListProfileModel,
   NamedVirtualProfileModel,
-  PacProfileModel,
+  PacProfileField,
   ProxyEditor,
-  RuleListProfileModel
+  RuleListProfileField
 } from './profile_types';
 
 const INITIAL_SWITCH_RULE_BATCH_SIZE = 15;
@@ -62,7 +61,7 @@ export type VirtualProfileProps = {
 
 export type RuleListProfileProps = {
   onDownload?: (name: string) => void;
-  onProfileChange?: (field: keyof RuleListProfileModel, value: string) => void;
+  onProfileChange?: (field: RuleListProfileField, value: string) => void;
   options?: Options | null;
   profile: NamedRuleListProfileModel;
   updating?: boolean;
@@ -71,7 +70,7 @@ export type RuleListProfileProps = {
 export type PacProfileProps = {
   onDownload?: (name: string) => void;
   onEditProxyAuth?: () => void;
-  onProfileChange?: (field: keyof PacProfileModel, value: string) => void;
+  onProfileChange?: (field: PacProfileField, value: string) => void;
   pacProfilesUnsupported?: boolean;
   profile: NamedPacProfileModel;
   referenced?: boolean;
@@ -89,7 +88,7 @@ export type SwitchAttachedProfileProps = {
   attached?: NamedRuleListProfileModel | null;
   attachedRuleListError?: {message?: string} | null;
   onAttachNew?: () => void;
-  onAttachedChange?: (field: keyof RuleListProfileModel, value: string) => void;
+  onAttachedChange?: (field: RuleListProfileField, value: string) => void;
   onDownload?: (name: string) => void;
   updating?: boolean;
 };
@@ -879,7 +878,7 @@ export function PacProfile({
     });
   }, [profile.name, profile.pacScript, profile.pacUrl]);
 
-  function changeField(field: keyof PacProfileModel, value: string) {
+  function changeField(field: PacProfileField, value: string) {
     setDraft((current) => ({...current, [field]: value}));
     onProfileChange?.(field, value);
   }
@@ -1300,7 +1299,7 @@ export function SwitchAttachedProfile({
     });
   }, [attached?.name, attached?.format, attached?.ruleList, attached?.sourceUrl]);
 
-  function changeField(field: keyof RuleListProfileModel, value: string) {
+  function changeField(field: RuleListProfileField, value: string) {
     setDraft((current) => ({...current, [field]: value}));
     onAttachedChange?.(field, value);
   }
@@ -2375,7 +2374,7 @@ export function RuleListProfile({
     profile.sourceUrl
   ]);
 
-  function changeField(field: keyof RuleListProfileModel, value: string) {
+  function changeField(field: RuleListProfileField, value: string) {
     setDraft((current) => ({...current, [field]: value}));
     onProfileChange?.(field, value);
   }

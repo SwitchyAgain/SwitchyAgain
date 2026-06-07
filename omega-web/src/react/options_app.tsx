@@ -75,7 +75,11 @@ import type {
   Profile as ProfileModel,
   ProfileAuth,
   ProfileAuthMap,
-  RuleListProfileModel
+  ProfileAuthKey,
+  PacProfileField,
+  RuleListProfileField,
+  RuleListProfileModel,
+  VirtualProfileModel
 } from './profile_types';
 
 type RouteName = 'about' | 'general' | 'io' | 'profile' | 'ui';
@@ -126,7 +130,7 @@ type ModalState =
   }
   | {
     auth?: ProfileAuth;
-    authKey: string;
+    authKey: ProfileAuthKey;
     authSupported: boolean;
     kind: 'proxyAuth';
     profileName: string;
@@ -374,6 +378,55 @@ function objectOption<T extends object>(value: unknown): Partial<T> {
   return value && typeof value === 'object' ? value as Partial<T> : {};
 }
 
+function profileOption<TProfile extends ProfileModel>(options: Options, name: string) {
+  const value = options[profileKey(name)];
+  return value && typeof value === 'object' ? value as TProfile : undefined;
+}
+
+function profileDraft<TProfile extends ProfileModel>(options: Options, name: string) {
+  return {
+    ...objectOption<TProfile>(options[profileKey(name)])
+  } as TProfile;
+}
+
+function setProfileOption<TProfile extends ProfileModel>(options: Options, name: string, profile: TProfile) {
+  options[profileKey(name)] = profile;
+}
+
+function deleteProfileOption(options: Options, name: string) {
+  delete options[profileKey(name)];
+}
+
+function deleteAttachedProfileOption(options: Options, profileName: string) {
+  deleteProfileOption(options, createAttachedName(profileName));
+}
+
+function updateProfileRevision(profile: ProfileModel) {
+  if (typeof OmegaPac !== 'undefined' && OmegaPac?.Profiles?.updateRevision) {
+    OmegaPac.Profiles.updateRevision(profile);
+  }
+}
+
+function attachedProfileOption(options: Options, identity: ReturnType<typeof attachedIdentity>): NamedRuleListProfileModel | undefined {
+  const value = options[identity.attachedKey];
+  return isNamedProfile(value) ? value : undefined;
+}
+
+function attachedProfileDraft(options: Options, identity: ReturnType<typeof attachedIdentity>) {
+  const draft: NamedRuleListProfileModel = {
+    ...objectOption<RuleListProfileModel>(options[identity.attachedKey]),
+    name: identity.attachedName
+  };
+  if (!draft.profileType) {
+    draft.profileType = 'RuleListProfile';
+  }
+  return draft;
+}
+
+function profileUpdating(updatingProfiles: Record<string, boolean>, profileName: string) {
+  return !!updatingProfiles[profileKey(profileName)];
+}
+
 function ModalFrame({
   children,
   onDismiss
@@ -471,7 +524,7 @@ function SwitchProfilePreview({
   updateProfile: <TProfile extends ProfileModel = ProfileModel>(profileName: string, updater: (profile: TProfile) => void) => void;
 }) {
   const identity = attachedIdentity(profile.name);
-  const attached = (options[identity.attachedKey] || null) as NamedRuleListProfileModel | null;
+  const attached = attachedProfileOption(options, identity) || null;
   const attachedOptions = createAttachedOptions(profile, attached);
   const showConditionTypes = numberOption(options['-showConditionTypes'], detectAdvancedConditionTypes(profile));
 
@@ -481,13 +534,9 @@ function SwitchProfilePreview({
 
   function mutateAttached(updater: (nextAttached: RuleListProfileModel) => void) {
     updateOptionsDraft((nextOptions) => {
-      const nextAttached = {
-        ...objectOption<RuleListProfileModel>(nextOptions[identity.attachedKey])
-      } as RuleListProfileModel;
+      const nextAttached = attachedProfileDraft(nextOptions, identity);
       updater(nextAttached);
-      if (typeof OmegaPac !== 'undefined' && OmegaPac?.Profiles?.updateRevision) {
-        OmegaPac.Profiles.updateRevision(nextAttached);
-      }
+      updateProfileRevision(nextAttached);
       nextOptions[identity.attachedKey] = nextAttached;
     });
   }
@@ -512,8 +561,11 @@ function SwitchProfilePreview({
       };
     }
     updateOptionsDraft((nextOptions) => {
-      const nextProfile = nextOptions[profileKey(profile.name)] as SwitchProfileModel;
-      const nextAttached = (nextOptions[identity.attachedKey] || null) as RuleListProfileModel | null;
+      const nextProfile = profileOption<SwitchProfileModel>(nextOptions, profile.name);
+      if (!nextProfile) {
+        return;
+      }
+      const nextAttached = attachedProfileOption(nextOptions, identity) || null;
       applyParsedSource(nextProfile, nextAttached, attachedOptions, identity.attachedName, result.rules || []);
     });
     return {
@@ -530,9 +582,12 @@ function SwitchProfilePreview({
       onApplySource={applySource}
       onAddRule={() => mutateProfile((nextProfile) => addRule(nextProfile, attachedOptions.defaultProfileName))}
       onAttachNew={() => updateOptionsDraft((nextOptions) => {
-        const nextProfile = nextOptions[profileKey(profile.name)] as SwitchProfileModel;
+        const nextProfile = profileOption<SwitchProfileModel>(nextOptions, profile.name);
+        if (!nextProfile) {
+          return;
+        }
         attachNew(nextOptions, identity.attachedKey, nextProfile, identity.attachedName, attachedOptions);
-        OmegaPac.Profiles.updateRevision(nextProfile);
+        updateProfileRevision(nextProfile);
       })}
       onAttachedChange={(field, value) => mutateAttached((nextAttached) => {
         nextAttached[field] = value;
@@ -551,13 +606,16 @@ function SwitchProfilePreview({
         updateConditionType(nextProfile.rules?.[index], type);
       })}
       onDefaultProfileChange={(name) => updateOptionsDraft((nextOptions) => {
-        const nextProfile = nextOptions[profileKey(profile.name)] as SwitchProfileModel;
-        const nextAttached = (nextOptions[identity.attachedKey] || null) as RuleListProfileModel | null;
+        const nextProfile = profileOption<SwitchProfileModel>(nextOptions, profile.name);
+        if (!nextProfile) {
+          return;
+        }
+        const nextAttached = attachedProfileOption(nextOptions, identity) || null;
         setDefaultProfile(nextProfile, nextAttached, attachedOptions, name);
         if (nextAttached) {
-          OmegaPac.Profiles.updateRevision(nextAttached);
+          updateProfileRevision(nextAttached);
         }
-        OmegaPac.Profiles.updateRevision(nextProfile);
+        updateProfileRevision(nextProfile);
       })}
       onDownload={onDownload}
       onIpConditionInputChange={(index, value) => mutateProfile((nextProfile) => {
@@ -573,11 +631,11 @@ function SwitchProfilePreview({
         updateRuleProfile(nextProfile.rules?.[index], name);
       })}
       onRemoveAttached={() => updateOptionsDraft((nextOptions) => {
-        const nextProfile = nextOptions[profileKey(profile.name)] as SwitchProfileModel;
-        const nextAttached = nextOptions[identity.attachedKey] as RuleListProfileModel | undefined;
-        if (nextAttached) {
+        const nextProfile = profileOption<SwitchProfileModel>(nextOptions, profile.name);
+        const nextAttached = attachedProfileOption(nextOptions, identity);
+        if (nextProfile && nextAttached) {
           removeAttached(nextOptions, identity.attachedKey, nextProfile, nextAttached);
-          OmegaPac.Profiles.updateRevision(nextProfile);
+          updateProfileRevision(nextProfile);
         }
       })}
       onRemoveRule={(index) => mutateProfile((nextProfile) => removeRule(nextProfile, index))}
@@ -590,7 +648,7 @@ function SwitchProfilePreview({
       rules={profile.rules || []}
       show={showConditionHelp}
       showConditionTypes={showConditionTypes}
-      updating={attached?.name ? !!updatingProfiles[profileKey(attached.name)] : false}
+      updating={attached ? profileUpdating(updatingProfiles, attached.name) : false}
     />
   );
 }
@@ -698,16 +756,54 @@ export function OptionsApp() {
         return current;
       }
       const nextOptions = cloneOptions(current);
-      const key = profileKey(profileName);
-      const profile = {
-        ...objectOption<TProfile>(nextOptions[key])
-      } as TProfile;
+      const profile = profileDraft<TProfile>(nextOptions, profileName);
       updater(profile);
-      if (typeof OmegaPac !== 'undefined' && OmegaPac?.Profiles?.updateRevision) {
-        OmegaPac.Profiles.updateRevision(profile);
-      }
-      nextOptions[key] = profile;
+      updateProfileRevision(profile);
+      setProfileOption(nextOptions, profileName, profile);
       return nextOptions;
+    });
+  }
+
+  function updateProfileField<TProfile extends ProfileModel, TField extends keyof TProfile>(
+    profileName: string,
+    field: TField,
+    value: TProfile[TField]
+  ) {
+    updateProfile<TProfile>(profileName, (nextProfile) => {
+      nextProfile[field] = value;
+    });
+  }
+
+  function updateFixedProfileProxy(
+    profileName: string,
+    field: FixedProfileProxyField,
+    value?: FixedProfileModel[FixedProfileProxyField],
+    changeOptions?: {clearAuth?: boolean}
+  ) {
+    updateProfile<FixedProfileModel>(profileName, (nextProfile) => {
+      if (changeOptions?.clearAuth && nextProfile.auth) {
+        nextProfile.auth[field] = void 0;
+      }
+      if (typeof value === 'undefined') {
+        delete nextProfile[field];
+        return;
+      }
+      nextProfile[field] = value;
+    });
+  }
+
+  function updateProfileAuth(profileName: string, authKey: ProfileAuthKey, auth: ProfileAuth) {
+    updateProfile<ProfileModel & {auth?: ProfileAuthMap}>(profileName, (nextProfile) => {
+      if (!auth?.username) {
+        if (nextProfile.auth) {
+          delete nextProfile.auth[authKey];
+        }
+        return;
+      }
+      if (!nextProfile.auth) {
+        nextProfile.auth = {};
+      }
+      nextProfile.auth[authKey] = auth;
     });
   }
 
@@ -815,8 +911,8 @@ export function OptionsApp() {
       if (profile.color == null) {
         profile.color = PROFILE_COLORS[choice];
       }
-      OmegaPac.Profiles.updateRevision(profile);
-      nextOptions[profileKey(profile)] = profile;
+      updateProfileRevision(profile);
+      setProfileOption(nextOptions, profileSpec.name, profile);
     });
     setModal(null);
     navigate('profile', {
@@ -846,7 +942,7 @@ export function OptionsApp() {
     const hadAttached = Boolean(profileByName(sourceOptions, attachedName));
     const targetAttachedExists = Boolean(profileByName(sourceOptions, toAttachedName));
     const originalDefaultProfileName = targetAttachedExists
-      ? (profileByName(sourceOptions, fromName) as SwitchProfileModel | null)?.defaultProfileName
+      ? profileOption<SwitchProfileModel>(sourceOptions, fromName)?.defaultProfileName
       : undefined;
 
     return Promise.resolve()
@@ -860,12 +956,12 @@ export function OptionsApp() {
         if (targetAttachedExists) {
           chain = chain.then((currentOptions) => {
             const nextOptions = cloneOptions(currentOptions);
-            const nextProfile = nextOptions[profileKey(toName)] as SwitchProfileModel | undefined;
+            const nextProfile = profileOption<SwitchProfileModel>(nextOptions, toName);
             if (nextProfile) {
               nextProfile.defaultProfileName = 'direct';
-              OmegaPac.Profiles.updateRevision(nextProfile);
+              updateProfileRevision(nextProfile);
             }
-            delete nextOptions[profileKey(toAttachedName)];
+            deleteProfileOption(nextOptions, toAttachedName);
             const patch = optionsPatch(currentOptions, nextOptions);
             return isPatchEmpty(patch) ? currentOptions : patchOptions(patch);
           });
@@ -874,10 +970,10 @@ export function OptionsApp() {
         if (originalDefaultProfileName) {
           chain = chain.then((currentOptions) => {
             const nextOptions = cloneOptions(currentOptions);
-            const nextProfile = nextOptions[profileKey(toName)] as SwitchProfileModel | undefined;
+            const nextProfile = profileOption<SwitchProfileModel>(nextOptions, toName);
             if (nextProfile) {
               nextProfile.defaultProfileName = originalDefaultProfileName;
-              OmegaPac.Profiles.updateRevision(nextProfile);
+              updateProfileRevision(nextProfile);
             }
             const patch = optionsPatch(currentOptions, nextOptions);
             return isPatchEmpty(patch) ? currentOptions : patchOptions(patch);
@@ -925,8 +1021,8 @@ export function OptionsApp() {
     }
     const profileName = profile.name;
     updateOptionsDraft((nextOptions) => {
-      delete nextOptions[profileKey(createAttachedName(profileName))];
-      delete nextOptions[profileKey(profileName)];
+      deleteAttachedProfileOption(nextOptions, profileName);
+      deleteProfileOption(nextOptions, profileName);
       if (nextOptions['-startupProfileName'] === profileName) {
         nextOptions['-startupProfileName'] = '';
       }
@@ -942,10 +1038,7 @@ export function OptionsApp() {
     navigate('ui');
   }
 
-  function exportRuleList(profile: SwitchProfileModel, attachedOptions: AttachedOptions, legacy: boolean) {
-    if (!profile?.name) {
-      return;
-    }
+  function exportRuleList(profile: NamedSwitchProfileModel, attachedOptions: AttachedOptions, legacy: boolean) {
     const defaultProfileName = attachedOptions.defaultProfileName || 'direct';
     const text = legacy
       ? composeLegacyRuleList(profile.rules || [], defaultProfileName)
@@ -1008,18 +1101,7 @@ export function OptionsApp() {
   }
 
   function saveProxyAuth(auth: ProfileAuth, authModal: Extract<ModalState, {kind: 'proxyAuth'}>) {
-    updateProfile<Profile & {auth?: ProfileAuthMap}>(authModal.profileName, (nextProfile) => {
-      if (!auth?.username) {
-        if (nextProfile.auth) {
-          delete nextProfile.auth[authModal.authKey];
-        }
-        return;
-      }
-      if (!nextProfile.auth) {
-        nextProfile.auth = {};
-      }
-      nextProfile.auth[authModal.authKey] = auth;
-    });
+    updateProfileAuth(authModal.profileName, authModal.authKey, auth);
     setModal(null);
   }
 
@@ -1156,20 +1238,9 @@ export function OptionsApp() {
             return (
               <FixedProfileContent
                 profile={profile}
-                onBypassListChange={(value) => updateProfile<FixedProfileModel>(profile.name, (nextProfile) => {
-                  nextProfile.bypassList = value;
-                })}
+                onBypassListChange={(value) => updateProfileField<FixedProfileModel, 'bypassList'>(profile.name, 'bypassList', value)}
                 onEditProxyAuth={(scheme) => requestFixedProxyAuth(profile, scheme)}
-                onProxyChange={(field, value, changeOptions) => updateProfile<FixedProfileModel>(profile.name, (nextProfile) => {
-                  if (changeOptions?.clearAuth && nextProfile.auth) {
-                    nextProfile.auth[field] = void 0;
-                  }
-                  if (typeof value === 'undefined') {
-                    delete nextProfile[field];
-                    return;
-                  }
-                  nextProfile[field] = value;
-                })}
+                onProxyChange={(field, value, changeOptions) => updateFixedProfileProxy(profile.name, field, value, changeOptions)}
               />
             );
           case 'PacProfile':
@@ -1179,11 +1250,9 @@ export function OptionsApp() {
                 referenced={referenced()}
                 onDownload={downloadProfile}
                 onEditProxyAuth={() => requestPacProxyAuth(profile)}
-                onProfileChange={(field, value) => updateProfile(profile.name, (nextProfile) => {
-                  nextProfile[field] = value;
-                })}
+                onProfileChange={(field, value) => updateProfileField<PacProfileModel, PacProfileField>(profile.name, field, value)}
                 pacProfilesUnsupported={pacProfilesUnsupported}
-                updating={!!updatingProfiles[profileKey(profile.name)]}
+                updating={profileUpdating(updatingProfiles, profile.name)}
               />
             );
           case 'RuleListProfile':
@@ -1192,10 +1261,8 @@ export function OptionsApp() {
                 options={options}
                 profile={profile}
                 onDownload={downloadProfile}
-                onProfileChange={(field, value) => updateProfile(profile.name, (nextProfile) => {
-                  nextProfile[field] = value;
-                })}
-                updating={!!updatingProfiles[profileKey(profile.name)]}
+                onProfileChange={(field, value) => updateProfileField<RuleListProfileModel, RuleListProfileField>(profile.name, field, value)}
+                updating={profileUpdating(updatingProfiles, profile.name)}
               />
             );
           case 'VirtualProfile':
@@ -1204,9 +1271,7 @@ export function OptionsApp() {
                 options={options}
                 profile={profile}
                 onReplaceProfile={requestReplaceProfile}
-                onTargetChange={(name) => updateProfile(profile.name, (nextProfile) => {
-                  nextProfile.defaultProfileName = name;
-                })}
+                onTargetChange={(name) => updateProfileField<VirtualProfileModel, 'defaultProfileName'>(profile.name, 'defaultProfileName', name)}
               />
             );
           case 'SwitchProfile':
@@ -1226,7 +1291,7 @@ export function OptionsApp() {
         }
       })();
       const identity = profile.profileType === 'SwitchProfile' ? attachedIdentity(profile.name) : null;
-      const attached = identity ? options[identity.attachedKey] as NamedRuleListProfileModel | undefined : null;
+      const attached = identity ? attachedProfileOption(options, identity) : null;
       const attachedOptions = identity ? createAttachedOptions(profile, attached) : null;
       const showConditionTypes = profile.profileType === 'SwitchProfile'
         ? numberOption(options['-showConditionTypes'], detectAdvancedConditionTypes(profile))

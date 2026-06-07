@@ -71,6 +71,8 @@ export type PacProfileModel = Profile & {
 
 export type NamedPacProfileModel = PacProfileModel & NamedProfile;
 
+export type PacProfileField = 'pacScript' | 'pacUrl';
+
 export type ProxyEditor = {
   host?: string;
   port?: number | string;
@@ -78,6 +80,8 @@ export type ProxyEditor = {
 };
 
 export type FixedProfileProxyField = 'fallbackProxy' | 'proxyForHttp' | 'proxyForHttps';
+
+export type ProfileAuthKey = 'all' | FixedProfileProxyField;
 
 export type FixedProfileScheme = '' | 'http' | 'https';
 
@@ -95,3 +99,10 @@ export type FixedProfileModel = Profile & {
 };
 
 export type NamedFixedProfileModel = FixedProfileModel & NamedProfile;
+
+export type RuleListProfileField =
+  | 'defaultProfileName'
+  | 'format'
+  | 'matchProfileName'
+  | 'ruleList'
+  | 'sourceUrl';
