@@ -1,4 +1,4 @@
-const ChromePort = require('./chrome_port');
+import ChromePort = require('./chrome_port');
 
 type Profile = {
   name?: string;
@@ -58,7 +58,7 @@ class ExternalApi {
       return;
     }
     return chrome.runtime.onConnectExternal.addListener((rawPort: unknown) => {
-      const port = new ChromePort(rawPort) as unknown as ExternalPort;
+      const port = new ChromePort(rawPort as ChromeRuntimePort) as unknown as ExternalPort;
       port.onMessage.addListener((msg) => {
         return this.onMessage(msg, port);
       });

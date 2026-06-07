@@ -28,9 +28,9 @@ type LocalStorageShimConstructor = {
     global.window = global as unknown as Window & typeof globalThis;
   }
 
-  var chromeApi = global.chrome;
+  const chromeApi = global.chrome;
   if (chromeApi) {
-    var legacyActionKey = 'browser';
+    let legacyActionKey = 'browser';
     legacyActionKey += 'Action';
     if (!chromeApi[legacyActionKey] && chromeApi.action) {
       chromeApi[legacyActionKey] = chromeApi.action;
@@ -38,28 +38,28 @@ type LocalStorageShimConstructor = {
   }
 
   if (typeof global.localStorage === 'undefined') {
-    var data: Record<string, string> = {};
-    var dirty: Record<string, boolean> = {};
-    var ready: Promise<unknown> = Promise.resolve();
-    var persist = function(key: string) {
+    let data: Record<string, string> = {};
+    const dirty: Record<string, boolean> = {};
+    let ready: Promise<unknown> = Promise.resolve();
+    const persist = (key: string) => {
       dirty[key] = true;
       if (chromeApi && chromeApi.storage && chromeApi.storage.local) {
-        var item: Record<string, unknown> = {};
+        const item: Record<string, unknown> = {};
         item['__localStorage__.' + key] = data[key];
         chromeApi.storage.local.set(item);
       }
     };
 
     if (chromeApi && chromeApi.storage && chromeApi.storage.local) {
-      ready = new Promise<unknown>(function(resolve) {
-        chromeApi.storage.local.get(null, function(items) {
-          var prefix = '__localStorage__.';
+      ready = new Promise<unknown>((resolve) => {
+        chromeApi.storage.local.get(null, (items) => {
+          const prefix = '__localStorage__.';
           if (items) {
-            Object.keys(items).forEach(function(key: string) {
-              if (key.substr(0, prefix.length) !== prefix) {
+            Object.keys(items).forEach((key: string) => {
+              if (!key.startsWith(prefix)) {
                 return;
               }
-              var localKey = key.substr(prefix.length);
+              const localKey = key.slice(prefix.length);
               if (!dirty[localKey]) {
                 data[localKey] = items[key] as string;
               }
@@ -70,55 +70,55 @@ type LocalStorageShimConstructor = {
       });
     }
 
-    var LocalStorageShim = function() {} as unknown as LocalStorageShimConstructor;
+    const LocalStorageShim = function() {} as unknown as LocalStorageShimConstructor;
     Object.defineProperty(LocalStorageShim.prototype, 'length', {
-      get: function() {
+      get() {
         return Object.keys(data).length;
       }
     });
-    LocalStorageShim.prototype.key = function(index: number) {
+    LocalStorageShim.prototype.key = (index: number) => {
       return Object.keys(data)[index] || null;
     };
-    LocalStorageShim.prototype.getItem = function(key: unknown) {
-      var storageKey = String(key);
+    LocalStorageShim.prototype.getItem = (key: unknown) => {
+      const storageKey = String(key);
       return Object.prototype.hasOwnProperty.call(data, storageKey) ? data[storageKey] : null;
     };
-    LocalStorageShim.prototype.setItem = function(key: unknown, value: unknown) {
-      var storageKey = String(key);
+    LocalStorageShim.prototype.setItem = (key: unknown, value: unknown) => {
+      const storageKey = String(key);
       data[storageKey] = String(value);
       persist(storageKey);
     };
-    LocalStorageShim.prototype.removeItem = function(key: unknown) {
-      var storageKey = String(key);
+    LocalStorageShim.prototype.removeItem = (key: unknown) => {
+      const storageKey = String(key);
       delete data[storageKey];
       if (chromeApi && chromeApi.storage && chromeApi.storage.local) {
         chromeApi.storage.local.remove('__localStorage__.' + storageKey);
       }
     };
-    LocalStorageShim.prototype.clear = function() {
-      Object.keys(data).forEach(function(key: string) {
+    LocalStorageShim.prototype.clear = () => {
+      Object.keys(data).forEach((key: string) => {
         dirty[key] = true;
       });
       data = {};
     };
 
-    var localStorageShim = new LocalStorageShim();
+    const localStorageShim = new LocalStorageShim();
     Object.defineProperty(localStorageShim, 'ready', {
       value: ready
     });
 
     global.localStorage = new Proxy(localStorageShim, {
-      get: function(target, prop) {
+      get(target, prop) {
         if (prop in target) {
           return (target as Record<PropertyKey, unknown>)[prop];
         }
         return target.getItem(prop);
       },
-      set: function(target, prop, value) {
+      set(target, prop, value) {
         target.setItem(prop, value);
         return true;
       },
-      deleteProperty: function(target, prop) {
+      deleteProperty(target, prop) {
         target.removeItem(prop);
         return true;
       }
@@ -126,11 +126,11 @@ type LocalStorageShimConstructor = {
   }
 
   if (typeof global.saveAs === 'undefined') {
-    global.saveAs = function(blob: Blob, filename: string) {
+    global.saveAs = (blob: Blob, filename: string) => {
       if (!chromeApi || !chromeApi.downloads || typeof URL === 'undefined') {
         return;
       }
-      var url = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
       chromeApi.downloads.download({url: url, filename: filename, saveAs: true});
     };
   }

@@ -1,4 +1,4 @@
-module.exports = function() {
+export = function defaultOptions() {
   return {
     schemaVersion: 2,
     '-enableQuickSwitch': false,
@@ -58,6 +58,4 @@ module.exports = function() {
       defaultProfileName: 'direct'
     }
   };
-};
-
-export {};
+}

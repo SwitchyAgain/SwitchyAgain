@@ -1,95 +1,85 @@
 /* @module omega-target/options */
 declare const options: Record<string, unknown> | null | undefined;
 
-type CoffeeScriptSuperClass = {
-  __super__: {
-    constructor: {
-      apply: (
-        self: unknown,
-        args: IArguments
-      ) => {
-        constructor: (message?: string) => void;
-      };
-    };
+import type {
+  BluebirdPromise,
+  BluebirdStatic,
+  JsonDiffPatchModule,
+  LogLike,
+  OmegaPacModule,
+  OptionsData,
+  OptionsSyncLike,
+  ProfileLike,
+  ProxyImplLike,
+  StopWatching,
+  StorageLike,
+  StorageConstructor
+} from './types';
+
+class ProfileNotExistError extends Error {
+  profileName: string;
+
+  constructor(profileName: string) {
+    super("Profile " + profileName + " does not exist!");
+    this.name = 'ProfileNotExistError';
+    this.profileName = profileName;
+    Object.setPrototypeOf(this, ProfileNotExistError.prototype);
+  }
+}
+
+class NoOptionsError extends Error {
+  constructor() {
+    super();
+    this.name = 'NoOptionsError';
+    Object.setPrototypeOf(this, NoOptionsError.prototype);
+  }
+}
+
+const Promise = require('bluebird') as BluebirdStatic;
+const Log = require('./log') as LogLike;
+const Storage = require('./storage') as StorageConstructor;
+const OmegaPac = require('omega-pac') as OmegaPacModule;
+const jsondiffpatch = require('jsondiffpatch') as JsonDiffPatchModule;
+
+const hasProp = Object.prototype.hasOwnProperty;
+const optionNumber = (value: unknown) => Number(value);
+
+type TempRule = {
+  condition: {
+    conditionType: string;
+    pattern: string;
+    [key: string]: unknown;
   };
+  isTempRule?: boolean;
+  profileName?: string | null;
+  [key: string]: unknown;
 };
 
-var Log, OmegaPac, Options, Promise, Storage, jsondiffpatch,
-  bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-  hasProp = {}.hasOwnProperty;
+class Options {
+  static ProfileNotExistError = ProfileNotExistError;
+  static NoOptionsError = NoOptionsError;
 
-Promise = require('bluebird');
-
-Log = require('./log');
-
-Storage = require('./storage');
-
-OmegaPac = require('omega-pac');
-
-jsondiffpatch = require('jsondiffpatch');
-
-Options = (function() {
-
-  /**
-   * The entire set of options including profiles and other settings.
-   * @typedef OmegaOptions
-   * @type {object}
-   */
-
-  /**
-   * All the options, in a map from key to value.
-   * @type OmegaOptions
-   */
-  var NoOptionsError, ProfileNotExistError;
-
-  Options.prototype._options = null;
-
-  Options.prototype._storage = null;
-
-  Options.prototype._state = null;
-
-  Options.prototype._currentProfileName = null;
-
-  Options.prototype._revertToProfileName = null;
-
-  Options.prototype._watchingProfiles = {};
-
-  Options.prototype._tempProfile = null;
-
-  Options.prototype._tempProfileActive = false;
-
-  Options.prototype.fallbackProfileName = 'system';
-
-  Options.prototype._isSystem = false;
-
-  Options.prototype.debugStr = 'Options';
-
-  Options.prototype.ready = null;
-
-  Options.ProfileNotExistError = ProfileNotExistError = (function(superClass) {
-    extend(ProfileNotExistError, superClass);
-
-    function ProfileNotExistError(profileName1) {
-      this.profileName = profileName1;
-      (ProfileNotExistError as unknown as CoffeeScriptSuperClass).__super__.constructor.apply(this, arguments).constructor("Profile " + this.profileName + " does not exist!");
-    }
-
-    return ProfileNotExistError;
-
-  })(Error);
-
-  Options.NoOptionsError = NoOptionsError = (function(superClass) {
-    extend(NoOptionsError, superClass);
-
-    function NoOptionsError() {
-      (NoOptionsError as unknown as CoffeeScriptSuperClass).__super__.constructor.apply(this, arguments);
-    }
-
-    return NoOptionsError;
-
-  })(Error);
-
+  _options: OptionsData | null = null;
+  _storage: StorageLike | null = null;
+  _state: StorageLike | null = null;
+  _currentProfileName: string | null = null;
+  _revertToProfileName: string | null = null;
+  _watchingProfiles: Record<string, string> = {};
+  _tempProfile: ProfileLike | null = null;
+  _tempProfileActive = false;
+  _tempProfileRules: Record<string, TempRule> = {};
+  _tempProfileRulesByProfile: Record<string, TempRule[]> = {};
+  _externalProfile: ProfileLike | null = null;
+  _syncWatchStop: StopWatching | null = null;
+  _watchStop: StopWatching | null = null;
+  fallbackProfileName = 'system';
+  _isSystem = false;
+  debugStr = 'Options';
+  log: LogLike = Log;
+  sync: OptionsSyncLike | null = null;
+  proxyImpl: ProxyImplLike | null = null;
+  optionsLoaded: BluebirdPromise<unknown> | null = null;
+  ready: BluebirdPromise<unknown> | null = null;
 
   /**
    * Transform options values (especially profiles) for syncing.
@@ -97,14 +87,12 @@ Options = (function() {
    * @param {{}} key The key of the options
    * @returns {{}} The transformed value
    */
-
-  Options.transformValueForSync = function(value, key) {
-    var k, profile, v;
+  static transformValueForSync(value, key) {
     if (key[0] === '+') {
       if (OmegaPac.Profiles.updateUrl(value)) {
-        profile = {};
-        for (k in value) {
-          v = value[k];
+        const profile = {};
+        for (const k in value) {
+          const v = value[k];
           if (k === 'lastUpdate' || k === 'ruleList' || k === 'pacScript') {
             continue;
           }
@@ -114,15 +102,19 @@ Options = (function() {
       }
     }
     return value;
-  };
+  }
 
-  function Options(options, _storage, _state, log, sync, proxyImpl) {
+  /**
+   * The entire set of options including profiles and other settings.
+   * @typedef OmegaOptions
+   * @type {object}
+   */
+  constructor(options, _storage, _state, log, sync, proxyImpl) {
     this._storage = _storage;
     this._state = _state;
     this.log = log;
     this.sync = sync;
     this.proxyImpl = proxyImpl;
-    this._setOptions = bind(this._setOptions, this);
     this._options = {};
     this._tempProfileRules = {};
     this._tempProfileRulesByProfile = {};
@@ -138,19 +130,11 @@ Options = (function() {
     if (options == null) {
       this.init();
     } else {
-      this.ready = this._storage.remove().then((function(_this) {
-        return function() {
-          return _this._storage.set(options);
-        };
-      })(this)).then((function(_this) {
-        return function() {
-          return _this.init();
-        };
-      })(this));
+      this.ready = this._storage.remove()
+        .then(() => this._storage.set(options))
+        .then(() => this.init());
     }
   }
-
-
   /**
    * Attempt to load options from local and remote storage.
    * @param {?{}} args Extra arguments
@@ -158,9 +142,9 @@ Options = (function() {
    * @returns {Promise<OmegaOptions>} The loaded options
    */
 
-  Options.prototype.loadOptions = function(arg) {
-    var loadRaw, ref, retry;
-    retry = (arg != null ? arg : {}).retry;
+  loadOptions(arg?) {
+    let loadRaw;
+    let retry = (arg != null ? arg : {}).retry;
     if (retry == null) {
       retry = 3;
     }
@@ -172,137 +156,132 @@ Options = (function() {
       this._watchStop();
     }
     this._watchStop = null;
-    loadRaw = typeof options !== "undefined" && options !== null ? Promise.resolve(options) : !((ref = this.sync) != null ? ref.enabled : void 0) ? (this.sync == null ? this._state.set({
-      'syncOptions': 'unsupported'
-    }) : void 0, this._storage.get(null)) : (this._state.set({
-      'syncOptions': 'sync'
-    }), this._syncWatchStop = this.sync.watchAndPull(this._storage), this.sync.copyTo(this._storage)["catch"](Storage.StorageUnavailableError, (function(_this) {
-      return function() {
-        console.error('Warning: Sync storage is not available in this ' + 'browser! Disabling options sync.');
-        if (typeof _this._syncWatchStop === "function") {
-          _this._syncWatchStop();
-        }
-        _this._syncWatchStop = null;
-        _this.sync = null;
-        return _this._state.set({
+    if (typeof options !== "undefined" && options !== null) {
+      loadRaw = Promise.resolve(options);
+    } else if (!(this.sync != null && this.sync.enabled)) {
+      if (this.sync == null) {
+        this._state.set({
           'syncOptions': 'unsupported'
         });
-      };
-    })(this)).then((function(_this) {
-      return function() {
-        return _this._storage.get(null);
-      };
-    })(this)));
-    return this.optionsLoaded = loadRaw.then((function(_this) {
-      return function(options) {
-        return _this.upgrade(options);
-      };
-    })(this)).then((function(_this) {
-      return function(arg1) {
-        var changes, options;
-        options = arg1[0], changes = arg1[1];
-        return _this._storage.apply({
+      }
+      loadRaw = this._storage.get(null);
+    } else {
+      this._state.set({
+        'syncOptions': 'sync'
+      });
+      this._syncWatchStop = this.sync.watchAndPull(this._storage);
+      loadRaw = this.sync.copyTo(this._storage)
+        .catch(Storage.StorageUnavailableError, () => {
+        console.error('Warning: Sync storage is not available in this ' + 'browser! Disabling options sync.');
+        if (typeof this._syncWatchStop === "function") {
+          this._syncWatchStop();
+        }
+        this._syncWatchStop = null;
+        this.sync = null;
+        return this._state.set({
+          'syncOptions': 'unsupported'
+        });
+        })
+        .then(() => this._storage.get(null));
+    }
+    return this.optionsLoaded = loadRaw.then((loadedOptions) => {
+      return this.upgrade(loadedOptions);
+    }).then((arg1) => {
+        const loadedOptions = arg1[0];
+        const changes = arg1[1];
+        return this._storage.apply({
           changes: changes
-        })["return"](options);
-      };
-    })(this)).tap((function(_this) {
-      return function(options) {
-        _this._options = options;
-        _this._watchStop = _this._watch();
-        return _this._state.get({
+        }).return(loadedOptions);
+    }).tap((loadedOptions) => {
+        this._options = loadedOptions;
+        this._watchStop = this._watch();
+        return this._state.get({
           'syncOptions': ''
-        }).then(function(arg1) {
-          var syncOptions;
-          syncOptions = arg1.syncOptions;
+        }).then((arg1) => {
+          const syncOptions = arg1.syncOptions;
           if (syncOptions) {
             return;
           }
-          _this._state.set({
+          this._state.set({
             'syncOptions': 'conflict'
           });
-          return _this.sync.storage.get('schemaVersion').then(function(arg2) {
-            var schemaVersion;
-            schemaVersion = arg2.schemaVersion;
+          return this.sync.storage.get('schemaVersion').then((arg2) => {
+            const schemaVersion = arg2.schemaVersion;
             if (!schemaVersion) {
-              return _this._state.set({
+              return this._state.set({
                 'syncOptions': 'pristine'
               });
             }
           });
         });
-      };
-    })(this))["catch"]((function(_this) {
-      return function(e) {
-        var getFallbackOptions;
+    }).catch((e) => {
         if (!(retry > 0)) {
           return Promise.reject(e);
         }
-        getFallbackOptions = Promise.resolve().then(function() {
+        const getFallbackOptions = Promise.resolve().then(() => {
           if (e instanceof NoOptionsError) {
-            _this._state.get({
+            this._state.get({
               'firstRun': 'new',
               'web.switchGuide': 'showOnFirstUse'
-            }).then(function(items) {
-              return _this._state.set(items);
+            }).then((items) => {
+              return this._state.set(items);
             });
-            if (_this.sync == null) {
+            if (this.sync == null) {
               return null;
             }
-            return _this._state.get({
+            return this._state.get({
               'syncOptions': ''
-            }).then(function(arg1) {
-              var syncOptions;
-              syncOptions = arg1.syncOptions;
+            }).then((arg1) => {
+              const syncOptions = arg1.syncOptions;
               if (syncOptions === 'conflict') {
                 return;
               }
-              return _this.sync.storage.get(null).then(function(options) {
+              return this.sync.storage.get(null).then((options) => {
                 if (!options['schemaVersion']) {
-                  _this._state.set({
+                  this._state.set({
                     'syncOptions': 'pristine'
                   });
                   return null;
                 } else {
-                  _this._state.set({
+                  this._state.set({
                     'syncOptions': 'sync'
                   });
-                  _this.sync.enabled = true;
-                  _this.log.log('Options#loadOptions::fromSync', options);
+                  this.sync.enabled = true;
+                  this.log.log('Options#loadOptions::fromSync', options);
                   return options;
                 }
-              })["catch"](function() {
+              }).catch(() => {
                 return null;
               });
             });
           } else {
-            _this.log.error(e.stack);
-            _this._state.remove(['syncOptions']);
+            this.log.error(e.stack);
+            this._state.remove(['syncOptions']);
             return null;
           }
         });
-        return getFallbackOptions.then(function(options) {
-          var prevEnabled;
-          if (options == null) {
-            options = _this.parseOptions(_this.getDefaultOptions());
+        return getFallbackOptions.then((fallbackOptions) => {
+          let prevEnabled;
+          if (fallbackOptions == null) {
+            fallbackOptions = this.parseOptions(this.getDefaultOptions());
           }
-          if (_this.sync != null) {
-            prevEnabled = _this.sync.enabled;
-            _this.sync.enabled = false;
+          if (this.sync != null) {
+            prevEnabled = this.sync.enabled;
+            this.sync.enabled = false;
           }
-          return _this._storage.remove().then(function() {
-            return _this._storage.set(options);
-          }).then(function() {
-            if (_this.sync != null) {
-              _this.sync.enabled = prevEnabled;
+          return this._storage.remove().then(() => {
+            return this._storage.set(fallbackOptions);
+          }).then(() => {
+            if (this.sync != null) {
+              this.sync.enabled = prevEnabled;
             }
-            return _this.loadOptions({
+            return this.loadOptions({
               retry: retry - 1
             });
           });
         });
-      };
-    })(this));
-  };
+    });
+  }
 
 
   /**
@@ -310,71 +289,57 @@ Options = (function() {
    * @returns {Promise<OmegaOptions>} A promise that is fulfilled on ready.
    */
 
-  Options.prototype.init = function() {
-    this.ready = this.loadOptions().then((function(_this) {
-      return function() {
-        if (_this._options['-startupProfileName']) {
-          return _this.applyProfile(_this._options['-startupProfileName']);
+  init() {
+    this.ready = this.loadOptions().then(() => {
+        if (this._options['-startupProfileName']) {
+          return this.applyProfile(this._options['-startupProfileName']);
         } else {
-          return _this._state.get({
-            'currentProfileName': _this.fallbackProfileName,
+          return this._state.get({
+            'currentProfileName': this.fallbackProfileName,
             'isSystemProfile': false
-          }).then(function(st) {
+          }).then((st) => {
             if (st['isSystemProfile']) {
-              return _this.applyProfile('system');
+              return this.applyProfile('system');
             } else {
-              return _this.applyProfile(st['currentProfileName'] || _this.fallbackProfileName);
+              return this.applyProfile(st['currentProfileName'] || this.fallbackProfileName);
             }
           });
         }
-      };
-    })(this))["catch"]((function(_this) {
-      return function(err) {
+    }).catch((err) => {
         if (!(err instanceof ProfileNotExistError)) {
-          _this.log.error(err);
+          this.log.error(err);
         }
-        return _this.applyProfile(_this.fallbackProfileName);
-      };
-    })(this))["catch"]((function(_this) {
-      return function(err) {
-        return _this.log.error(err);
-      };
-    })(this)).then((function(_this) {
-      return function() {
-        return _this.getAll();
-      };
-    })(this));
-    this.ready.then((function(_this) {
-      return function() {
-        var firstRunTask, ref;
-        if ((ref = _this.sync) != null ? ref.enabled : void 0) {
-          _this.sync.requestPush(_this._options);
+        return this.applyProfile(this.fallbackProfileName);
+    }).catch((err) => {
+        return this.log.error(err);
+    }).then(() => {
+        return this.getAll();
+    });
+    this.ready.then(() => {
+        if (this.sync != null && this.sync.enabled) {
+          this.sync.requestPush(this._options);
         }
-        firstRunTask = _this._state.get({
+        const firstRunTask = this._state.get({
           'firstRun': ''
-        }).then(function(arg) {
-          var firstRun;
-          firstRun = arg.firstRun;
+        }).then((arg) => {
+          const firstRun = arg.firstRun;
           if (firstRun) {
-            return _this.onFirstRun(firstRun);
+            return this.onFirstRun(firstRun);
           }
         });
-        if (_this._options['-downloadInterval'] > 0) {
-          return Promise.all([firstRunTask, _this.updateProfile()]);
+        if (optionNumber(this._options['-downloadInterval']) > 0) {
+          return Promise.all([firstRunTask, this.updateProfile()]);
         }
         return firstRunTask;
-      };
-    })(this))["catch"]((function(_this) {
-      return function(err) {
-        return _this.log.error('Post-initialization task failed:', err);
-      };
-    })(this));
+    }).catch((err) => {
+        return this.log.error('Post-initialization task failed:', err);
+    });
     return this.ready;
-  };
+  }
 
-  Options.prototype.toString = function() {
+  toString() {
     return "<Options>";
-  };
+  }
 
 
   /**
@@ -384,9 +349,9 @@ Options = (function() {
    * @returns {string} Description of the profile with details
    */
 
-  Options.prototype.printProfile = function(profile) {
+  printProfile(profile) {
     return null;
-  };
+  }
 
 
   /**
@@ -403,18 +368,16 @@ Options = (function() {
    * @returns {Promise<[OmegaOptions, {}]>} The new options and the changes.
    */
 
-  Options.prototype.upgrade = function(options, changes) {
-    var autoDetectUsed, version;
+  upgrade(options, changes?) {
     if (changes == null) {
       changes = {};
     }
-    version = options != null ? options['schemaVersion'] : void 0;
+    let version = options != null ? options['schemaVersion'] : void 0;
     if (version === 1) {
-      autoDetectUsed = false;
-      OmegaPac.Profiles.each(options, function(key, profile) {
-        var refs;
+      let autoDetectUsed = false;
+      OmegaPac.Profiles.each(options, (_key, profile) => {
         if (!autoDetectUsed) {
-          refs = OmegaPac.Profiles.directReferenceSet(profile);
+          const refs = OmegaPac.Profiles.directReferenceSet(profile);
           if (refs['+auto_detect']) {
             return autoDetectUsed = true;
           }
@@ -435,7 +398,7 @@ Options = (function() {
     } else {
       return Promise.reject(new Error("Invalid schemaVerion " + version + "!"));
     }
-  };
+  }
 
 
   /**
@@ -444,29 +407,27 @@ Options = (function() {
    * @returns {Promise<OmegaOptions>} The parsed options.
    */
 
-  Options.prototype.parseOptions = function(options) {
-    var Buffer, _;
+  parseOptions(options) {
     if (typeof options === 'string') {
       if (options[0] !== '{') {
         try {
-          Buffer = require('buffer').Buffer;
+          const Buffer = require('buffer').Buffer;
           options = new Buffer(options, 'base64').toString('utf8');
         } catch (error) {
-          _ = error;
           options = null;
         }
       }
-      options = (function() {
-        try {
-          return JSON.parse(options);
-        } catch (error) {}
-      })();
+      try {
+        options = JSON.parse(options);
+      } catch (error) {
+        options = undefined;
+      }
     }
     if (!options) {
       throw new Error('Invalid options!');
     }
     return options;
-  };
+  }
 
 
   /**
@@ -475,35 +436,31 @@ Options = (function() {
    * @returns {Promise<OmegaOptions>} The options just applied
    */
 
-  Options.prototype.reset = function(options) {
-    var preserveProfileName;
+  reset(options?) {
     this.log.method('Options#reset', this, arguments);
-    preserveProfileName = options != null ? this._currentProfileName : null;
+    const preserveProfileName = options != null ? this._currentProfileName : null;
     if (options == null) {
       options = this.getDefaultOptions();
     }
-    return this.upgrade(this.parseOptions(options)).then((function(_this) {
-      return function(arg) {
-        var opt;
-        opt = arg[0];
-        if (_this.sync != null) {
-          _this.sync.enabled = false;
+    return this.upgrade(this.parseOptions(options)).then((arg) => {
+        const opt = arg[0];
+        if (this.sync != null) {
+          this.sync.enabled = false;
         }
-        _this._state.remove(['syncOptions']);
-        return _this._storage.remove().then(function() {
-          return _this._storage.set(opt);
-        }).then(function() {
+        this._state.remove(['syncOptions']);
+        return this._storage.remove().then(() => {
+          return this._storage.set(opt);
+        }).then(() => {
           if (preserveProfileName && !opt['-startupProfileName'] && OmegaPac.Profiles.byName(preserveProfileName, opt)) {
-            _this._state.set({
+            this._state.set({
               'currentProfileName': preserveProfileName,
               'isSystemProfile': preserveProfileName === 'system'
             });
           }
-          return _this.init();
+          return this.init();
         });
-      };
-    })(this));
-  };
+    });
+  }
 
 
   /**
@@ -511,9 +468,9 @@ Options = (function() {
    * @param {reason} reason The value of 'firstRun' in state.
    */
 
-  Options.prototype.onFirstRun = function(reason) {
+  onFirstRun(reason) {
     return null;
-  };
+  }
 
 
   /**
@@ -521,9 +478,9 @@ Options = (function() {
    * @returns {?OmegaOptions} The default options.
    */
 
-  Options.prototype.getDefaultOptions = function() {
+  getDefaultOptions() {
     return require('./default_options')();
-  };
+  }
 
 
   /**
@@ -531,9 +488,9 @@ Options = (function() {
    * @returns {?OmegaOptions} The options.
    */
 
-  Options.prototype.getAll = function() {
+  getAll() {
     return this._options;
-  };
+  }
 
 
   /**
@@ -541,9 +498,9 @@ Options = (function() {
    * @returns {?{}} The profile, or undefined if no such profile.
    */
 
-  Options.prototype.profile = function(name) {
+  profile(name) {
     return OmegaPac.Profiles.byName(name, this._options);
-  };
+  }
 
 
   /**
@@ -552,17 +509,16 @@ Options = (function() {
    * @returns {Promise<OmegaOptions>} The updated options
    */
 
-  Options.prototype.patch = function(patch) {
-    var changes, delta, key;
+  patch(patch) {
     if (!patch) {
       return;
     }
     this.log.method('Options#patch', this, arguments);
     this._options = jsondiffpatch.patch(this._options, patch);
-    changes = {};
-    for (key in patch) {
+    const changes = {};
+    for (const key in patch) {
       if (!hasProp.call(patch, key)) continue;
-      delta = patch[key];
+      const delta = patch[key];
       if (delta.length === 3 && delta[1] === 0 && delta[2] === 0) {
         changes[key] = void 0;
       } else {
@@ -570,17 +526,16 @@ Options = (function() {
       }
     }
     return this._setOptions(changes);
-  };
+  }
 
-  Options.prototype._setOptions = function(changes, args) {
-    var checkRev, currentProfileAffected, j, key, len, profilesChanged, ref, ref1, ref2, ref3, removed, result, value;
-    removed = [];
-    checkRev = (ref = args != null ? args.checkRevision : void 0) != null ? ref : false;
-    profilesChanged = false;
-    currentProfileAffected = false;
-    for (key in changes) {
+  _setOptions = (changes, args?) => {
+    const removed = [];
+    const checkRev = (args != null && args.checkRevision != null) ? args.checkRevision : false;
+    let profilesChanged = false;
+    let currentProfileAffected: false | 'removed' | 'changed' = false;
+    for (const key in changes) {
       if (!hasProp.call(changes, key)) continue;
-      value = changes[key];
+      const value = changes[key];
       if (typeof value === 'undefined') {
         delete this._options[key];
         removed.push(key);
@@ -593,7 +548,7 @@ Options = (function() {
       } else {
         if (key[0] === '+') {
           if (checkRev && this._options[key]) {
-            result = OmegaPac.Revision.compare(this._options[key].revision, value.revision);
+            const result = OmegaPac.Revision.compare((this._options[key] as ProfileLike).revision, (value as ProfileLike).revision);
             if (result >= 0) {
               continue;
             }
@@ -620,123 +575,110 @@ Options = (function() {
           this._setAvailableProfiles();
         }
     }
-    if ((ref1 = args != null ? args.persist : void 0) != null ? ref1 : true) {
-      if ((ref2 = this.sync) != null ? ref2.enabled : void 0) {
-        if ((ref3 = this.sync) != null) {
-          ref3.requestPush(changes);
-        }
+    if ((args != null && args.persist != null) ? args.persist : true) {
+      if (this.sync != null && this.sync.enabled) {
+        this.sync.requestPush(changes);
       }
-      for (j = 0, len = removed.length; j < len; j++) {
-        key = removed[j];
+      for (const key of removed) {
         delete changes[key];
       }
-      return this._storage.set(changes).then((function(_this) {
-        return function() {
-          _this._storage.remove(removed);
-          return _this._options;
-        };
-      })(this));
+      return this._storage.set(changes).then(() => {
+        this._storage.remove(removed);
+        return this._options;
+      });
     }
   };
 
-  Options.prototype._watch = function() {
-    var handler;
-    handler = (function(_this) {
-      return function(changes) {
-        var monitorWebRequests, quickSwitchProfiles, refresh, showExternal, showMenu;
+  _watch() {
+    const handler = (changes?) => {
         if (changes) {
-          _this._setOptions(changes, {
+          this._setOptions(changes, {
             checkRevision: true,
             persist: false
           });
         } else {
-          changes = _this._options;
+          changes = this._options;
         }
-        refresh = changes['-refreshOnProfileChange'];
+        const refresh = changes['-refreshOnProfileChange'];
         if (refresh != null) {
-          _this._state.set({
+          this._state.set({
             'refreshOnProfileChange': refresh
           });
         }
         if (Object.prototype.hasOwnProperty.call(changes, '-showExternalProfile')) {
-          showExternal = changes['-showExternalProfile'];
+          let showExternal = changes['-showExternalProfile'];
           if (showExternal == null) {
             showExternal = true;
-            _this._setOptions({
+            this._setOptions({
               '-showExternalProfile': true
             }, {
               persist: true
             });
           }
-          _this._state.set({
+          this._state.set({
             'showExternalProfile': showExternal
           });
         }
-        quickSwitchProfiles = changes['-quickSwitchProfiles'];
-        quickSwitchProfiles = _this._cleanUpQuickSwitchProfiles(quickSwitchProfiles);
+        let quickSwitchProfiles = changes['-quickSwitchProfiles'];
+        quickSwitchProfiles = this._cleanUpQuickSwitchProfiles(quickSwitchProfiles);
         if ((changes['-enableQuickSwitch'] != null) || (quickSwitchProfiles != null)) {
-          _this.reloadQuickSwitch();
+          this.reloadQuickSwitch();
         }
         if (changes['-downloadInterval'] != null) {
-          _this.schedule('updateProfile', _this._options['-downloadInterval'], function() {
-            return _this.updateProfile();
+          this.schedule('updateProfile', this._options['-downloadInterval'], () => {
+            return this.updateProfile();
           });
         }
-        if ((changes['-showInspectMenu'] != null) || changes === _this._options) {
-          showMenu = _this._options['-showInspectMenu'];
+        if ((changes['-showInspectMenu'] != null) || changes === this._options) {
+          let showMenu = this._options['-showInspectMenu'];
           if (showMenu == null) {
             showMenu = true;
-            _this._setOptions({
+            this._setOptions({
               '-showInspectMenu': true
             }, {
               persist: true
             });
           }
-          _this.setInspect({
+          this.setInspect({
             showMenu: showMenu
           });
         }
-        if ((changes['-monitorWebRequests'] != null) || changes === _this._options) {
-          monitorWebRequests = _this._options['-monitorWebRequests'];
+        if ((changes['-monitorWebRequests'] != null) || changes === this._options) {
+          let monitorWebRequests = this._options['-monitorWebRequests'];
           if (monitorWebRequests == null) {
             monitorWebRequests = true;
-            _this._setOptions({
+            this._setOptions({
               '-monitorWebRequests': true
             }, {
               persist: true
             });
           }
-          return _this.setMonitorWebRequests(monitorWebRequests);
+          return this.setMonitorWebRequests(monitorWebRequests);
         }
-      };
-    })(this);
+    };
     handler();
     return this._storage.watch(null, handler);
-  };
+  }
 
-  Options.prototype._cleanUpQuickSwitchProfiles = function(quickSwitchProfiles) {
-    var seenQuickSwitchProfile, validQuickSwitchProfiles;
+  _cleanUpQuickSwitchProfiles(quickSwitchProfiles) {
     if (quickSwitchProfiles == null) {
       return;
     }
-    seenQuickSwitchProfile = {};
-    validQuickSwitchProfiles = quickSwitchProfiles.filter((function(_this) {
-      return function(name) {
-        var key;
+    const seenQuickSwitchProfile = {};
+    const validQuickSwitchProfiles = quickSwitchProfiles.filter((name) => {
         if (!name) {
           return false;
         }
-        key = OmegaPac.Profiles.nameAsKey(name);
+        const key = OmegaPac.Profiles.nameAsKey(name);
         if (seenQuickSwitchProfile[key]) {
           return false;
         }
-        if (!OmegaPac.Profiles.byName(name, _this._options)) {
+        if (!OmegaPac.Profiles.byName(name, this._options)) {
           return false;
         }
         seenQuickSwitchProfile[key] = true;
         return true;
-      };
-    })(this));
+    });
     if (validQuickSwitchProfiles.length !== quickSwitchProfiles.length) {
       this._setOptions({
         '-quickSwitchProfiles': validQuickSwitchProfiles
@@ -745,7 +687,7 @@ Options = (function() {
       });
     }
     return validQuickSwitchProfiles;
-  };
+  }
 
 
   /**
@@ -753,9 +695,8 @@ Options = (function() {
    * @returns {Promise} A promise which is fulfilled when the quick switch is set
    */
 
-  Options.prototype.reloadQuickSwitch = function() {
-    var profiles;
-    profiles = this._options['-quickSwitchProfiles'];
+  reloadQuickSwitch() {
+    let profiles = this._options['-quickSwitchProfiles'] as string[];
     if (profiles.length < 2) {
       profiles = null;
     }
@@ -764,7 +705,7 @@ Options = (function() {
     } else {
       return this.setQuickSwitch(null, !!profiles);
     }
-  };
+  }
 
 
   /**
@@ -775,9 +716,9 @@ Options = (function() {
    * @returns {Promise} A promise which is fulfilled when the settings apply
    */
 
-  Options.prototype.setInspect = function() {
+  setInspect(settings?) {
     return Promise.resolve();
-  };
+  }
 
 
   /**
@@ -787,9 +728,9 @@ Options = (function() {
    * @returns {Promise} A promise which is fulfilled when the settings apply
    */
 
-  Options.prototype.setMonitorWebRequests = function() {
+  setMonitorWebRequests(enabled?) {
     return Promise.resolve();
-  };
+  }
 
 
   /**
@@ -804,18 +745,18 @@ Options = (function() {
    * @returns {function} Calling the returned function will stop watching.
    */
 
-  Options.prototype.watch = function(callback) {
+  watch(callback) {
     return this._storage.watch(null, callback);
-  };
+  }
 
-  Options.prototype._profileNotFound = function(name) {
+  _profileNotFound(name) {
     this.log.error("Profile " + name + " not found! Things may go very, very wrong.");
     return OmegaPac.Profiles.create({
       name: name,
       profileType: 'VirtualProfile',
       defaultProfileName: 'direct'
     });
-  };
+  }
 
 
   /**
@@ -823,49 +764,47 @@ Options = (function() {
    * @param {?string|Object} profile The name of the profile, or the profile.
    * @param {bool=false} compress Compress the script if true.
    * @returns {string} The compiled
-   */
+  */
 
-  Options.prototype.pacForProfile = function(profile, compress) {
-    var ast;
+  pacForProfile(profile, compress) {
     if (compress == null) {
       compress = false;
     }
-    ast = OmegaPac.PacGenerator.script(this._options, profile, {
+    let ast = OmegaPac.PacGenerator.script(this._options, profile, {
       profileNotFound: this._profileNotFound.bind(this)
     });
     if (compress) {
       ast = OmegaPac.PacGenerator.compress(ast);
     }
     return Promise.resolve(OmegaPac.PacGenerator.ascii(ast.print_to_string()));
-  };
+  }
 
-  Options.prototype._setAvailableProfiles = function() {
-    var allReferenceSet, currentIncludable, profile, profiles, results;
-    profile = this._currentProfileName ? this.currentProfile() : null;
-    profiles = {};
-    currentIncludable = profile && OmegaPac.Profiles.isIncludable(profile);
-    allReferenceSet = null;
+  _setAvailableProfiles() {
+    const profile = this._currentProfileName ? this.currentProfile() : null;
+    const profiles = {};
+    const currentIncludable = profile && OmegaPac.Profiles.isIncludable(profile);
+    let allReferenceSet = null;
+    let results;
     if (!profile || !OmegaPac.Profiles.isInclusive(profile)) {
       results = [];
     }
-    OmegaPac.Profiles.each(this._options, (function(_this) {
-      return function(key, p) {
+    OmegaPac.Profiles.each(this._options, (key, p) => {
         profiles[key] = {
           name: p.name,
           profileType: p.profileType,
           color: p.color,
-          desc: _this.printProfile(p),
+          desc: this.printProfile(p),
           builtin: p.builtin ? true : void 0
         };
         if (p.profileType === 'VirtualProfile') {
           profiles[key].defaultProfileName = p.defaultProfileName;
           if (allReferenceSet == null) {
-            allReferenceSet = profile ? OmegaPac.Profiles.allReferenceSet(profile, _this._options, {
-              profileNotFound: _this._profileNotFound.bind(_this)
+            allReferenceSet = profile ? OmegaPac.Profiles.allReferenceSet(profile, this._options, {
+              profileNotFound: this._profileNotFound.bind(this)
             }) : {};
           }
           if (allReferenceSet[key]) {
-            profiles[key].validResultProfiles = OmegaPac.Profiles.validResultProfilesFor(p, _this._options).map(function(result) {
+            profiles[key].validResultProfiles = OmegaPac.Profiles.validResultProfilesFor(p, this._options).map((result) => {
               return result.name;
             });
           }
@@ -873,11 +812,10 @@ Options = (function() {
         if (currentIncludable && OmegaPac.Profiles.isIncludable(p)) {
           return results != null ? results.push(p.name) : void 0;
         }
-      };
-    })(this));
+    });
     if (profile && OmegaPac.Profiles.isInclusive(profile)) {
       results = OmegaPac.Profiles.validResultProfilesFor(profile, this._options);
-      results = results.map(function(profile) {
+      results = results.map((profile) => {
         return profile.name;
       });
     }
@@ -885,7 +823,7 @@ Options = (function() {
       'availableProfiles': profiles,
       'validResultProfiles': results
     });
-  };
+  }
 
 
   /**
@@ -898,12 +836,11 @@ Options = (function() {
    * @param {bool=false} options.system Whether options is in system mode.
    * @param {{}=undefined} options.reason will be passed to currentProfileChanged
    * @returns {Promise} A promise which is fulfilled when the profile is applied.
-   */
+  */
 
-  Options.prototype.applyProfile = function(name, options) {
-    var applyProxy, j, key, l, len, len1, list, profile, ref, removedKeys, rule;
+  applyProfile(name, options?) {
     this.log.method('Options#applyProfile', this, arguments);
-    profile = OmegaPac.Profiles.byName(name, this._options);
+    const profile = OmegaPac.Profiles.byName(name, this._options);
     if (!profile) {
       return Promise.reject(new ProfileNotExistError(name));
     }
@@ -923,6 +860,7 @@ Options = (function() {
       return Promise.resolve();
     }
     this._tempProfileActive = false;
+    let applyProxy;
     if ((this._tempProfile != null) && OmegaPac.Profiles.isIncludable(profile)) {
       this._tempProfileActive = true;
       if (this._tempProfile.defaultProfileName !== profile.name) {
@@ -930,23 +868,21 @@ Options = (function() {
         this._tempProfile.color = profile.color;
         OmegaPac.Profiles.updateRevision(this._tempProfile);
       }
-      removedKeys = [];
-      ref = this._tempProfileRulesByProfile;
-      for (key in ref) {
+      const removedKeys = [];
+      const ref = this._tempProfileRulesByProfile;
+      for (const key in ref) {
         if (!hasProp.call(ref, key)) continue;
-        list = ref[key];
+        const list = ref[key];
         if (!OmegaPac.Profiles.byKey(key, this._options)) {
           removedKeys.push(key);
-          for (j = 0, len = list.length; j < len; j++) {
-            rule = list[j];
+          for (const rule of list) {
             rule.profileName = null;
             this._tempProfile.rules.splice(this._tempProfile.rules.indexOf(rule), 1);
           }
         }
       }
       if (removedKeys.length > 0) {
-        for (l = 0, len1 = removedKeys.length; l < len1; l++) {
-          key = removedKeys[l];
+        for (const key of removedKeys) {
           delete this._tempProfileRulesByProfile[key];
         }
         OmegaPac.Profiles.updateRevision(this._tempProfile);
@@ -961,32 +897,26 @@ Options = (function() {
     if ((options != null) && options.update === false) {
       return applyProxy;
     }
-    applyProxy.then((function(_this) {
-      return function() {
-        var ref1, updateProfiles;
-        if (!(_this._options['-downloadInterval'] > 0)) {
+    applyProxy.then(() => {
+        if (!(optionNumber(this._options['-downloadInterval']) > 0)) {
           return;
         }
-        if (_this._currentProfileName !== profile.name) {
+        if (this._currentProfileName !== profile.name) {
           return;
         }
-        updateProfiles = [];
-        ref1 = _this._watchingProfiles;
-        for (key in ref1) {
-          name = ref1[key];
+        const updateProfiles = [];
+        for (const key in this._watchingProfiles) {
+          const name = this._watchingProfiles[key];
           updateProfiles.push(name);
         }
         if (updateProfiles.length > 0) {
-          return _this.updateProfile(updateProfiles);
+          return this.updateProfile(updateProfiles);
         }
-      };
-    })(this))["catch"]((function(_this) {
-      return function(error) {
-        return _this.log.error('Profile update after apply failed:', error);
-      };
-    })(this));
+    }).catch((error) => {
+        return this.log.error('Profile update after apply failed:', error);
+    });
     return applyProxy;
-  };
+  }
 
 
   /**
@@ -994,13 +924,13 @@ Options = (function() {
    * @returns {{}} The current profile
    */
 
-  Options.prototype.currentProfile = function() {
+  currentProfile() {
     if (this._currentProfileName) {
       return OmegaPac.Profiles.byName(this._currentProfileName, this._options);
     } else {
       return this._externalProfile;
     }
-  };
+  }
 
 
   /**
@@ -1008,9 +938,9 @@ Options = (function() {
    * @returns {boolean} True if system mode is activated
    */
 
-  Options.prototype.isSystem = function() {
+  isSystem() {
     return this._isSystem;
-  };
+  }
 
 
   /**
@@ -1018,9 +948,9 @@ Options = (function() {
    * In base class, this method is not implemented and will not do anything.
    */
 
-  Options.prototype.currentProfileChanged = function() {
+  currentProfileChanged(reason?) {
     return null;
-  };
+  }
 
 
   /**
@@ -1031,9 +961,9 @@ Options = (function() {
    * @returns {Promise} A promise which is fulfilled when the quick switch is set
    */
 
-  Options.prototype.setQuickSwitch = function(quickSwitch, canEnable) {
+  setQuickSwitch(quickSwitch, canEnable) {
     return Promise.resolve();
-  };
+  }
 
 
   /**
@@ -1046,30 +976,29 @@ Options = (function() {
    * @returns {Promise} A promise which is fulfilled when the schedule is set
    */
 
-  Options.prototype.schedule = function(name, periodInMinutes, callback) {
+  schedule(name, periodInMinutes, callback) {
     return Promise.resolve();
-  };
+  }
 
 
   /**
    * Return true if the match result of current profile does not change with URLs
    * @returns {bool} Whether @match always return the same result for requests
-   */
+  */
 
-  Options.prototype.isCurrentProfileStatic = function() {
-    var currentProfile;
+  isCurrentProfileStatic() {
     if (!this._currentProfileName) {
       return true;
     }
     if (this._tempProfileActive) {
       return false;
     }
-    currentProfile = this.currentProfile();
+    const currentProfile = this.currentProfile();
     if (OmegaPac.Profiles.isInclusive(currentProfile)) {
       return false;
     }
     return true;
-  };
+  }
 
 
   /**
@@ -1081,15 +1010,12 @@ Options = (function() {
    * profiles or errors.
    * A value is an error if `value instanceof Error`. Otherwise the value is an
    * updated profile.
-   */
+  */
 
-  Options.prototype.updateProfile = function(name, opt_bypass_cache) {
-    var results;
+  updateProfile(name?, opt_bypass_cache?) {
     this.log.method('Options#updateProfile', this, arguments);
-    results = {};
-    OmegaPac.Profiles.each(this._options, (function(_this) {
-      return function(key, profile) {
-        var fetchResult, type_hints, url;
+    const results = {};
+    OmegaPac.Profiles.each(this._options, (key, profile) => {
         if (name != null) {
           if (Array.isArray(name)) {
             if (!(name.indexOf(profile.name) >= 0)) {
@@ -1101,37 +1027,35 @@ Options = (function() {
             }
           }
         }
-        url = OmegaPac.Profiles.updateUrl(profile);
+        const url = OmegaPac.Profiles.updateUrl(profile);
         if (url) {
-          type_hints = OmegaPac.Profiles.updateContentTypeHints(profile);
-          fetchResult = _this.fetchUrl(url, opt_bypass_cache, type_hints);
-          return results[key] = fetchResult.then(function(data) {
-            var changes;
+          const type_hints = OmegaPac.Profiles.updateContentTypeHints(profile);
+          const fetchResult = this.fetchUrl(url, opt_bypass_cache, type_hints);
+          return results[key] = fetchResult.then((data) => {
             if (!data) {
               return profile;
             }
-            profile = OmegaPac.Profiles.byKey(key, _this._options);
+            profile = OmegaPac.Profiles.byKey(key, this._options);
             profile.lastUpdate = new Date().toISOString();
             if (OmegaPac.Profiles.update(profile, data)) {
               OmegaPac.Profiles.dropCache(profile);
-              changes = {};
+              const changes = {};
               changes[key] = profile;
-              return _this._setOptions(changes)["return"](profile);
+              return this._setOptions(changes).return(profile);
             } else {
               return profile;
             }
-          })["catch"](function(reason) {
+          }).catch((reason) => {
             if (reason instanceof Error) {
               return reason;
             } else {
-              return new Error(reason);
+              return new Error(String(reason));
             }
           });
         }
-      };
-    })(this));
+    });
     return Promise.props(results);
-  };
+  }
 
 
   /**
@@ -1143,30 +1067,29 @@ Options = (function() {
    * @returns {Promise<String>} The text content fetched from the url
    */
 
-  Options.prototype.fetchUrl = function(url, opt_bypass_cache, opt_type_hints) {
+  fetchUrl(url, opt_bypass_cache, opt_type_hints) {
     return Promise.reject(new Error('not implemented'));
-  };
+  }
 
-  Options.prototype._replaceRefChanges = function(fromName, toName, changes) {
-    var i, j, quickSwitch, ref;
+  _replaceRefChanges(fromName, toName, changes?) {
     if (changes == null) {
       changes = {};
     }
-    OmegaPac.Profiles.each(this._options, function(key, p) {
+    OmegaPac.Profiles.each(this._options, (_key, p) => {
       if (p.name === fromName || p.name === toName) {
         return;
       }
       if (OmegaPac.Profiles.replaceRef(p, fromName, toName)) {
         OmegaPac.Profiles.updateRevision(p);
-        return changes[OmegaPac.Profiles.nameAsKey(p)] = p;
+        changes[OmegaPac.Profiles.nameAsKey(p)] = p;
       }
     });
     if (this._options['-startupProfileName'] === fromName) {
       changes['-startupProfileName'] = toName;
     }
-    quickSwitch = this._options['-quickSwitchProfiles'];
+    const quickSwitch = this._options['-quickSwitchProfiles'] as string[];
     if (quickSwitch.indexOf(toName) < 0) {
-      for (i = j = 0, ref = quickSwitch.length; 0 <= ref ? j < ref : j > ref; i = 0 <= ref ? ++j : --j) {
+      for (let i = 0; i < quickSwitch.length; i++) {
         if (quickSwitch[i] === fromName) {
           quickSwitch[i] = toName;
           changes['-quickSwitchProfiles'] = quickSwitch;
@@ -1174,7 +1097,7 @@ Options = (function() {
       }
     }
     return changes;
-  };
+  }
 
 
   /**
@@ -1182,22 +1105,21 @@ Options = (function() {
    * @param {String} fromName The original profile name
    * @param {String} toname The target profile name
    * @returns {Promise<OmegaOptions>} The updated options
-   */
+  */
 
-  Options.prototype.replaceRef = function(fromName, toName) {
-    var changes, fromKey, key, profile, value;
+  replaceRef(fromName, toName) {
     this.log.method('Options#replaceRef', this, arguments);
-    profile = OmegaPac.Profiles.byName(fromName, this._options);
+    const profile = OmegaPac.Profiles.byName(fromName, this._options);
     if (!profile) {
       return Promise.reject(new ProfileNotExistError(fromName));
     }
-    changes = this._replaceRefChanges(fromName, toName);
-    for (key in changes) {
+    const changes = this._replaceRefChanges(fromName, toName);
+    for (const key in changes) {
       if (!hasProp.call(changes, key)) continue;
-      value = changes[key];
+      const value = changes[key];
       this._options[key] = value;
     }
-    fromKey = OmegaPac.Profiles.nameAsKey(fromName);
+    const fromKey = OmegaPac.Profiles.nameAsKey(fromName);
     if (this._watchingProfiles[fromKey]) {
       if (this._currentProfileName === fromName) {
         this._currentProfileName = toName;
@@ -1205,7 +1127,7 @@ Options = (function() {
       this.applyProfile(this._currentProfileName);
     }
     return this._setOptions(changes);
-  };
+  }
 
 
   /**
@@ -1213,28 +1135,27 @@ Options = (function() {
    * @param {String} fromName The original profile name
    * @param {String} toname The target profile name
    * @returns {Promise<OmegaOptions>} The updated options
-   */
+  */
 
-  Options.prototype.renameProfile = function(fromName, toName) {
-    var changes, fromKey, key, profile, value;
+  renameProfile(fromName, toName) {
     this.log.method('Options#renameProfile', this, arguments);
     if (OmegaPac.Profiles.byName(toName, this._options)) {
       return Promise.reject(new Error("Target name " + name + " already taken!"));
     }
-    profile = OmegaPac.Profiles.byName(fromName, this._options);
+    const profile = OmegaPac.Profiles.byName(fromName, this._options);
     if (!profile) {
       return Promise.reject(new ProfileNotExistError(fromName));
     }
     profile.name = toName;
-    changes = {};
+    const changes = {};
     changes[OmegaPac.Profiles.nameAsKey(profile)] = profile;
     this._replaceRefChanges(fromName, toName, changes);
-    for (key in changes) {
+    for (const key in changes) {
       if (!hasProp.call(changes, key)) continue;
-      value = changes[key];
+      const value = changes[key];
       this._options[key] = value;
     }
-    fromKey = OmegaPac.Profiles.nameAsKey(fromName);
+    const fromKey = OmegaPac.Profiles.nameAsKey(fromName);
     changes[fromKey] = void 0;
     delete this._options[fromKey];
     if (this._watchingProfiles[fromKey]) {
@@ -1244,7 +1165,7 @@ Options = (function() {
       this.applyProfile(this._currentProfileName);
     }
     return this._setOptions(changes);
-  };
+  }
 
 
   /**
@@ -1252,30 +1173,29 @@ Options = (function() {
    * @param {String} domain The domain for the temp rule.
    * @param {String} profileName The profile to apply for the domain.
    * @returns {Promise} A promise which is fulfilled when the rule is applied.
-   */
+  */
 
-  Options.prototype.addTempRule = function(domain, profileName) {
-    var changed, currentProfile, key, list, profile, rule, rulesByProfile;
+  addTempRule(domain, profileName) {
     this.log.method('Options#addTempRule', this, arguments);
     if (!this._currentProfileName) {
       return Promise.resolve();
     }
-    profile = OmegaPac.Profiles.byName(profileName, this._options);
+    const profile = OmegaPac.Profiles.byName(profileName, this._options);
     if (!profile) {
       return Promise.reject(new ProfileNotExistError(profileName));
     }
     if (this._tempProfile == null) {
       this._tempProfile = OmegaPac.Profiles.create('', 'SwitchProfile');
-      currentProfile = this.currentProfile();
+      const currentProfile = this.currentProfile();
       this._tempProfile.color = currentProfile.color;
       this._tempProfile.defaultProfileName = currentProfile.name;
     }
-    changed = false;
-    rule = this._tempProfileRules[domain];
+    let changed = false;
+    let rule = this._tempProfileRules[domain];
     if (rule && rule.profileName) {
       if (rule.profileName !== profileName) {
-        key = OmegaPac.Profiles.nameAsKey(rule.profileName);
-        list = this._tempProfileRulesByProfile[key];
+        const key = OmegaPac.Profiles.nameAsKey(rule.profileName);
+        const list = this._tempProfileRulesByProfile[key];
         list.splice(list.indexOf(rule), 1);
         rule.profileName = profileName;
         changed = true;
@@ -1293,8 +1213,8 @@ Options = (function() {
       this._tempProfileRules[domain] = rule;
       changed = true;
     }
-    key = OmegaPac.Profiles.nameAsKey(profileName);
-    rulesByProfile = this._tempProfileRulesByProfile[key];
+    const key = OmegaPac.Profiles.nameAsKey(profileName);
+    let rulesByProfile = this._tempProfileRulesByProfile[key];
     if (rulesByProfile == null) {
       rulesByProfile = this._tempProfileRulesByProfile[key] = [];
     }
@@ -1305,7 +1225,7 @@ Options = (function() {
     } else {
       return Promise.resolve();
     }
-  };
+  }
 
 
   /**
@@ -1313,11 +1233,10 @@ Options = (function() {
    * @param {String} domain The domain of the temp rule.
    * @returns {Promise<?String>} The profile name for the domain, or null if such
    * rule does not exist.
-   */
+  */
 
-  Options.prototype.queryTempRule = function(domain) {
-    var rule;
-    rule = this._tempProfileRules[domain];
+  queryTempRule(domain) {
+    const rule = this._tempProfileRules[domain];
     if (rule) {
       if (rule.profileName) {
         return rule.profileName;
@@ -1326,7 +1245,7 @@ Options = (function() {
       }
     }
     return null;
-  };
+  }
 
 
   /**
@@ -1334,30 +1253,29 @@ Options = (function() {
    * @param {Object.<String,{}>} cond The condition to add
    * @param {string>} profileName The name of the result profile of the rule.
    * @returns {Promise} A promise which is fulfilled when the condition is saved.
-   */
+  */
 
-  Options.prototype.addCondition = function(condition, profileName, addToBottom) {
-    var changes, cond, i, j, l, len, profile, ref, tag, target;
+  addCondition(condition, profileName, addToBottom) {
     this.log.method('Options#addCondition', this, arguments);
     if (!this._currentProfileName) {
       return Promise.resolve();
     }
-    profile = OmegaPac.Profiles.byName(this._currentProfileName, this._options);
+    const profile = OmegaPac.Profiles.byName(this._currentProfileName, this._options);
     if ((profile != null ? profile.rules : void 0) == null) {
       return Promise.reject(new Error("Cannot add condition to Profile " + (profile != null ? profile.name : this._currentProfileName) + " (" + (profile != null ? profile.profileType : 'UnknownProfile') + ")"));
     }
-    target = OmegaPac.Profiles.byName(profileName, this._options);
+    const target = OmegaPac.Profiles.byName(profileName, this._options);
     if (target == null) {
       return Promise.reject(new ProfileNotExistError(profileName));
     }
     if (!Array.isArray(condition)) {
       condition = [condition];
     }
-    for (j = 0, len = condition.length; j < len; j++) {
-      cond = condition[j];
-      tag = OmegaPac.Conditions.tag(cond);
-      for (i = l = 0, ref = profile.rules.length; 0 <= ref ? l < ref : l > ref; i = 0 <= ref ? ++l : --l) {
-        if (OmegaPac.Conditions.tag(profile.rules[i].condition) === tag) {
+    for (const cond of condition) {
+      const tag = OmegaPac.Conditions.tag(cond);
+      for (let i = 0; i < profile.rules.length; i++) {
+        const existingCondition = profile.rules[i].condition as Record<string, unknown>;
+        if (OmegaPac.Conditions.tag(existingCondition) === tag) {
           profile.rules.splice(i, 1);
           break;
         }
@@ -1375,10 +1293,10 @@ Options = (function() {
       }
     }
     OmegaPac.Profiles.updateRevision(profile);
-    changes = {};
+    const changes = {};
     changes[OmegaPac.Profiles.nameAsKey(profile)] = profile;
     return this._setOptions(changes);
-  };
+  }
 
 
   /**
@@ -1386,46 +1304,44 @@ Options = (function() {
    * @param {string>} profileName The name of the profile to modify.
    * @param {string>} defaultProfileName The defaultProfileName to set.
    * @returns {Promise} A promise which is fulfilled when the profile is saved.
-   */
+  */
 
-  Options.prototype.setDefaultProfile = function(profileName, defaultProfileName) {
-    var changes, profile, target;
+  setDefaultProfile(profileName, defaultProfileName) {
     this.log.method('Options#setDefaultProfile', this, arguments);
-    profile = OmegaPac.Profiles.byName(profileName, this._options);
+    const profile = OmegaPac.Profiles.byName(profileName, this._options);
     if (profile == null) {
       return Promise.reject(new ProfileNotExistError(profileName));
     } else if (profile.defaultProfileName == null) {
       return Promise.reject(new Error(("Profile " + this.profile.name + " ") + "(@{profile.type}) does not have defaultProfileName!"));
     }
-    target = OmegaPac.Profiles.byName(defaultProfileName, this._options);
+    const target = OmegaPac.Profiles.byName(defaultProfileName, this._options);
     if (target == null) {
       return Promise.reject(new ProfileNotExistError(defaultProfileName));
     }
     profile.defaultProfileName = defaultProfileName;
     OmegaPac.Profiles.updateRevision(profile);
-    changes = {};
+    const changes = {};
     changes[OmegaPac.Profiles.nameAsKey(profile)] = profile;
     return this._setOptions(changes);
-  };
+  }
 
 
   /**
    * Add a profile to the options
    * @param {{}} profile The profile to create
    * @returns {Promise<{}>} The saved profile
-   */
+  */
 
-  Options.prototype.addProfile = function(profile) {
-    var changes;
+  addProfile(profile) {
     this.log.method('Options#addProfile', this, arguments);
     if (OmegaPac.Profiles.byName(profile.name, this._options)) {
       return Promise.reject(new Error("Target name " + profile.name + " already taken!"));
     } else {
-      changes = {};
+      const changes = {};
       changes[OmegaPac.Profiles.nameAsKey(profile)] = profile;
       return this._setOptions(changes);
     }
-  };
+  }
 
 
   /**
@@ -1433,25 +1349,26 @@ Options = (function() {
    * @param {{}} request The request to test
    * @returns {Promise<{profile: {}, results: {}[]}>} The last matched profile
    * and the matching details
-   */
+  */
 
-  Options.prototype.matchProfile = function(request) {
-    var lastProfile, next, profile, result, results;
+  matchProfile(request) {
     if (!this._currentProfileName) {
       return Promise.resolve({
         profile: this._externalProfile,
         results: []
       });
     }
-    results = [];
-    profile = this._tempProfileActive ? this._tempProfile : OmegaPac.Profiles.byName(this._currentProfileName, this._options);
+    const results = [];
+    let profile = this._tempProfileActive ? this._tempProfile : OmegaPac.Profiles.byName(this._currentProfileName, this._options);
+    let lastProfile;
     while (profile) {
       lastProfile = profile;
-      result = OmegaPac.Profiles.match(profile, request);
+      const result = OmegaPac.Profiles.match(profile, request);
       if (result == null) {
         break;
       }
       results.push(result);
+      let next;
       if (Array.isArray(result)) {
         next = result[0];
       } else if (result.profileName) {
@@ -1465,7 +1382,7 @@ Options = (function() {
       profile: lastProfile,
       results: results
     });
-  };
+  }
 
 
   /**
@@ -1476,10 +1393,9 @@ Options = (function() {
    * @param {boolean=false} args.internal If true, treat the profile change as
    * caused by the options itself instead of external reasons.
    * @returns {Promise} A promise which is fulfilled when the profile is set
-   */
+  */
 
-  Options.prototype.setExternalProfile = function(profile, args) {
-    var p;
+  setExternalProfile(profile, args) {
     if (this._options['-revertProxyChanges'] && !this._isSystem) {
       if (profile.name !== this._currentProfileName && this._currentProfileName) {
         if (!(args != null ? args.noRevert : void 0)) {
@@ -1493,7 +1409,7 @@ Options = (function() {
         }
       }
     }
-    p = OmegaPac.Profiles.byName(profile.name, this._options);
+    const p = OmegaPac.Profiles.byName(profile.name, this._options);
     if (p) {
       if (args != null ? args.internal : void 0) {
         return this.applyProfile(p.name, {
@@ -1520,7 +1436,7 @@ Options = (function() {
       });
       this.currentProfileChanged('external');
     }
-  };
+  }
 
 
   /**
@@ -1531,28 +1447,26 @@ Options = (function() {
    * @returns {Promise} A promise which is fulfilled when the syncing is switched
    */
 
-  Options.prototype.setOptionsSync = function(enabled, args) {
+  setOptionsSync(enabled, args) {
     this.log.method('Options#setOptionsSync', this, arguments);
     if (this.sync == null) {
       return Promise.reject(new Error('Options syncing is unsupported.'));
     }
     return this._state.get({
       'syncOptions': ''
-    }).then((function(_this) {
-      return function(arg) {
-        var syncOptions;
-        syncOptions = arg.syncOptions;
+    }).then((arg) => {
+        const syncOptions = arg.syncOptions;
         if (!enabled) {
           if (syncOptions === 'sync') {
-            _this._state.set({
+            this._state.set({
               'syncOptions': 'conflict'
             });
           }
-          _this.sync.enabled = false;
-          if (typeof _this._syncWatchStop === "function") {
-            _this._syncWatchStop();
+          this.sync.enabled = false;
+          if (typeof this._syncWatchStop === "function") {
+            this._syncWatchStop();
           }
-          _this._syncWatchStop = null;
+          this._syncWatchStop = null;
           return;
         }
         if (syncOptions === 'conflict') {
@@ -1563,27 +1477,26 @@ Options = (function() {
         if (syncOptions === 'sync') {
           return;
         }
-        return _this._state.set({
+        return this._state.set({
           'syncOptions': 'sync'
-        }).then(function() {
+        }).then(() => {
           if (syncOptions === 'conflict') {
-            _this.sync.enabled = false;
-            return _this._storage.remove().then(function() {
-              _this.sync.enabled = true;
-              return _this.init();
+            this.sync.enabled = false;
+            return this._storage.remove().then(() => {
+              this.sync.enabled = true;
+              return this.init();
             });
           } else {
-            _this.sync.enabled = true;
-            if (typeof _this._syncWatchStop === "function") {
-              _this._syncWatchStop();
+            this.sync.enabled = true;
+            if (typeof this._syncWatchStop === "function") {
+              this._syncWatchStop();
             }
-            _this.sync.requestPush(_this._options);
-            _this._syncWatchStop = _this.sync.watchAndPull(_this._storage);
+            this.sync.requestPush(this._options);
+            this._syncWatchStop = this.sync.watchAndPull(this._storage);
           }
         });
-      };
-    })(this));
-  };
+    });
+  }
 
 
   /**
@@ -1591,7 +1504,7 @@ Options = (function() {
    * @returns {Promise} A promise which is fulfilled when the syncing is reset.
    */
 
-  Options.prototype.resetOptionsSync = function() {
+  resetOptionsSync() {
     this.log.method('Options#resetOptionsSync', this, arguments);
     if (this.sync == null) {
       return Promise.reject(new Error('Options syncing is unsupported.'));
@@ -1604,19 +1517,13 @@ Options = (function() {
     this._state.set({
       'syncOptions': 'conflict'
     });
-    return this.sync.storage.remove().then((function(_this) {
-      return function() {
-        return _this._state.set({
+    return this.sync.storage.remove().then(() => {
+        return this._state.set({
           'syncOptions': 'pristine'
         });
-      };
-    })(this));
-  };
+    });
+  }
 
-  return Options;
+}
 
-})();
-
-module.exports = Options;
-
-export {};
+export = Options;

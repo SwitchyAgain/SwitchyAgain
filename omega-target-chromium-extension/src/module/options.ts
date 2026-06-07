@@ -1,11 +1,14 @@
-const OmegaTarget = require('omega-target');
+import OmegaTargetModule = require('omega-target');
+import querystring = require('querystring');
+import WebRequestMonitor = require('./web_request_monitor');
+import ChromePort = require('./chrome_port');
+import fetchUrl = require('./fetch_url');
+import Url = require('url');
+import upgradeSwitchyOptions = require('./upgrade');
+
+const OmegaTarget = OmegaTargetModule;
 const OmegaPac = OmegaTarget.OmegaPac;
 const OmegaPromise = OmegaTarget.Promise;
-const querystring = require('querystring');
-const WebRequestMonitor = require('./web_request_monitor');
-const ChromePort = require('./chrome_port');
-const fetchUrl = require('./fetch_url');
-const Url = require('url');
 
 type BadgeOptions = {
   color: string;
@@ -88,6 +91,8 @@ function actionApi(): ChromeActionApi {
   const legacyKey = 'browser' + 'Action';
   return (chrome.action || chrome[legacyKey]) as ChromeActionApi;
 }
+
+interface ChromeOptions extends OmegaOptionsBase {}
 
 class ChromeOptions extends OmegaTarget.Options {
   externalApi: ExternalApiLike;
@@ -246,13 +251,13 @@ class ChromeOptions extends OmegaTarget.Options {
               if (!url) {
                 return;
               }
-              if (url.substr(0, 6) === 'chrome') {
+              if (url.slice(0, 6) === 'chrome') {
                 return;
               }
-              if (url.substr(0, 6) === 'about:') {
+              if (url.slice(0, 6) === 'about:') {
                 return;
               }
-              if (url.substr(0, 4) === 'moz-') {
+              if (url.slice(0, 4) === 'moz-') {
                 return;
               }
               return chrome.tabs.reload(tab.id, () => {
@@ -434,7 +439,7 @@ class ChromeOptions extends OmegaTarget.Options {
         };
         let upgraded;
         try {
-          upgraded = require('./upgrade')(oldOptions, i18n);
+          upgraded = upgradeSwitchyOptions(oldOptions as Record<string, string>, i18n);
         } catch (error) {
           this.log.error(error);
           return OmegaPromise.reject(error);
@@ -488,10 +493,10 @@ class ChromeOptions extends OmegaTarget.Options {
       if (!url) {
         return result;
       }
-      if (url.substr(0, 6) === 'chrome') {
+      if (url.slice(0, 6) === 'chrome') {
         const errorPagePrefix = 'chrome://errorpage/';
-        if (url.substr(0, errorPagePrefix.length) === errorPagePrefix) {
-          url = querystring.parse(url.substr(url.indexOf('?') + 1)).lasturl as string | undefined;
+        if (url.startsWith(errorPagePrefix)) {
+          url = querystring.parse(url.slice(url.indexOf('?') + 1)).lasturl as string | undefined;
           if (!url) {
             return result;
           }
@@ -499,10 +504,10 @@ class ChromeOptions extends OmegaTarget.Options {
           return result;
         }
       }
-      if (url.substr(0, 6) === 'about:') {
+      if (url.slice(0, 6) === 'about:') {
         return result;
       }
-      if (url.substr(0, 4) === 'moz-') {
+      if (url.slice(0, 4) === 'moz-') {
         return result;
       }
       const domain = OmegaPac.getBaseDomain(Url.parse(url).hostname);

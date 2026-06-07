@@ -86,12 +86,12 @@ class BrowserStorage extends Storage {
         } else {
           let index = 0;
           while (true) {
-            const key = this.proto.key.call(index);
+            const key = this.proto.key.call(this.storage, index);
             if (key === null) {
               break;
             }
-            if (this.key!.substr(0, this.prefix.length) === this.prefix) {
-              this.proto.removeItem.call(this.storage, this.prefix + keys);
+            if (key.startsWith(this.prefix)) {
+              this.proto.removeItem.call(this.storage, key);
             } else {
               index++;
             }
@@ -110,6 +110,4 @@ class BrowserStorage extends Storage {
   }
 }
 
-module.exports = BrowserStorage;
-
-export {};
+export = BrowserStorage;

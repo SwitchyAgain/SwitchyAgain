@@ -100,7 +100,7 @@ export function profilesForFilter(options: Options | null | undefined, filter?: 
     return [];
   }
   if (typeof filter === 'object' || (typeof filter === 'string' && filter.charAt(0) === '+')) {
-    return OmegaPac.Profiles.validResultProfilesFor(typeof filter === 'string' ? filter.substr(1) : filter, options) as Profile[];
+    return OmegaPac.Profiles.validResultProfilesFor(typeof filter === 'string' ? filter.slice(1) : filter, options) as Profile[];
   }
   if (filter === 'all') {
     return allProfilesFromOptions(options);

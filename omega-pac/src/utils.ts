@@ -7,14 +7,14 @@ const tld = require('tldjs') as {
   getDomain: (domain: string) => string | null;
 };
 
-type CacheHost = Record<string, unknown>;
+export type CacheHost = Record<string, unknown>;
 
 type CacheEntry<T> = {
   tag: unknown;
   value: T;
 };
 
-const Revision = {
+export const Revision = {
   fromTime(time?: Date | number | string): string {
     time = time ? new Date(time) : new Date();
     return time.getTime().toString(16);
@@ -32,9 +32,7 @@ const Revision = {
   }
 };
 
-exports.Revision = Revision;
-
-class AttachedCache {
+export class AttachedCache {
   prop: string;
   tag: (obj: CacheHost) => unknown;
 
@@ -77,28 +75,24 @@ class AttachedCache {
   }
 }
 
-exports.AttachedCache = AttachedCache;
-
-exports.isIp = function(domain: string): boolean {
+export function isIp(domain: string): boolean {
   if (domain.indexOf(':') > 0) return true;
   const lastCharCode = domain.charCodeAt(domain.length - 1);
   if (48 <= lastCharCode && lastCharCode <= 57) return true;
   return false;
-};
+}
 
-exports.getBaseDomain = function(domain: string): string {
-  if (exports.isIp(domain)) return domain;
+export function getBaseDomain(domain: string): string {
+  if (isIp(domain)) return domain;
   return tld.getDomain(domain) || domain;
-};
+}
 
-exports.wildcardForDomain = function(domain: string): string {
-  if (exports.isIp(domain)) return domain;
-  return '*.' + exports.getBaseDomain(domain);
-};
+export function wildcardForDomain(domain: string): string {
+  if (isIp(domain)) return domain;
+  return '*.' + getBaseDomain(domain);
+}
 
-exports.wildcardForUrl = function(url: string): string {
+export function wildcardForUrl(url: string): string {
   const domain = Url.parse(url).hostname;
-  return exports.wildcardForDomain(domain as string);
-};
-
-export {};
+  return wildcardForDomain(domain as string);
+}

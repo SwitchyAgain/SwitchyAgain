@@ -34,12 +34,11 @@ type WebExtProxyMessage = {
 };
 
 (globalThis as typeof globalThis & {FindProxyForURL: ProxyFindFunction}).FindProxyForURL = (function () {
-  var OmegaPac = require('omega-pac');
-  var options: Record<string, unknown> = {};
-  var state: WebExtProxyState = {};
-  var activeProfile: WebExtProxyProfile | null = null;
-  var fallbackResult = 'DIRECT';
-  var pacCache = {};
+  const OmegaPac = require('omega-pac');
+  let options: Record<string, unknown> = {};
+  let state: WebExtProxyState = {};
+  let activeProfile: WebExtProxyProfile | null = null;
+  const fallbackResult = 'DIRECT';
 
   init();
 
@@ -54,11 +53,11 @@ type WebExtProxyMessage = {
     // This is even more strict than Chromium restricting HTTPS URLs.
     // Therefore, it leads to different behavior than the icon and badge.
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1337001
-    var request = OmegaPac.Conditions.requestFromUrl(url);
-    var profile = activeProfile;
-    var matchResult, next;
+    const request = OmegaPac.Conditions.requestFromUrl(url);
+    let profile = activeProfile;
+    let next;
     while (profile) {
-      matchResult = OmegaPac.Profiles.match(profile, request)
+      const matchResult = OmegaPac.Profiles.match(profile, request)
       if (!matchResult) {
         if (profile.profileType === 'DirectProfile') {
           return 'DIRECT';
@@ -70,10 +69,10 @@ type WebExtProxyMessage = {
 
       if (Array.isArray(matchResult)) {
         next = matchResult[0];
-        var proxy = matchResult[2] as WebExtProxyServer | undefined;
-        var auth = matchResult[3] as WebExtProxyAuth | undefined;
+        const proxy = matchResult[2] as WebExtProxyServer | undefined;
+        const auth = matchResult[3] as WebExtProxyAuth | undefined;
         if (proxy) {
-          var proxyInfo: WebExtProxyInfo = {
+          const proxyInfo: WebExtProxyInfo = {
             type: proxy.scheme,
             host: proxy.host,
             port: proxy.port,
@@ -107,19 +106,19 @@ type WebExtProxyMessage = {
     // We don't have console here and alert is not implemented.
     // Throwing and messaging seems to be the only ways to communicate.
     // MOZ: alert(): https://bugzilla.mozilla.org/show_bug.cgi?id=1353510
-    var result = browser.runtime.sendMessage({
+    const result = browser.runtime.sendMessage({
       event: 'proxyScriptLog',
       message: message,
       error: error,
       level: 'warn',
     });
     if (result && result.catch) {
-      result.catch(function() {});
+      result.catch(() => {});
     }
   }
 
   function init() {
-    browser.runtime.onMessage.addListener(function(message: WebExtProxyMessage) {
+    browser.runtime.onMessage.addListener((message: WebExtProxyMessage) => {
       if (message.event === 'proxyScriptStateChanged') {
         state = message.state!;
         options = message.options!;
@@ -131,9 +130,9 @@ type WebExtProxyMessage = {
         }
       }
     });
-    var result = browser.runtime.sendMessage({event: 'proxyScriptLoaded'});
+    const result = browser.runtime.sendMessage({event: 'proxyScriptLoaded'});
     if (result && result.catch) {
-      result.catch(function() {});
+      result.catch(() => {});
     }
   }
 })();

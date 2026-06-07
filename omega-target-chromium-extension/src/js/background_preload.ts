@@ -9,18 +9,13 @@ type ContextMenuOptions = Record<string, unknown> & {
 type ContextMenuClickHandler = (info: unknown, tab: ChromeTab) => unknown;
 
 (function() {
-  var actionContext: string;
-  var addContextMenu: (options: ContextMenuOptions, onclick?: ContextMenuClickHandler) => unknown;
-  var createContextMenus: (() => unknown) | undefined;
-  var ref;
-
   window.UglifyJS_NoUnsafeEval = true;
 
   localStorage['log'] = '';
 
   localStorage['logLastError'] = '';
 
-  window.OmegaContextMenuQuickSwitchHandler = function() {
+  window.OmegaContextMenuQuickSwitchHandler = () => {
     return null;
   };
 
@@ -28,9 +23,9 @@ type ContextMenuClickHandler = (info: unknown, tab: ChromeTab) => unknown;
     window.OmegaContextMenuClickHandlers = {};
   }
 
-  actionContext = chrome.action != null ? "action" : "browser_action";
+  const actionContext = chrome.action != null ? "action" : "browser_action";
 
-  addContextMenu = function(options: ContextMenuOptions, onclick?: ContextMenuClickHandler) {
+  const addContextMenu = (options: ContextMenuOptions, onclick?: ContextMenuClickHandler) => {
     if (onclick) {
       if (options.id) {
         window.OmegaContextMenuClickHandlers[options.id] = onclick;
@@ -42,15 +37,15 @@ type ContextMenuClickHandler = (info: unknown, tab: ChromeTab) => unknown;
     return chrome.contextMenus.create(options);
   };
 
-  if (((ref = chrome.contextMenus) != null ? ref.onClicked : void 0) != null) {
-    chrome.contextMenus.onClicked.addListener(function(info: {menuItemId: string}, tab: ChromeTab) {
-      var base, name;
-      return typeof (base = window.OmegaContextMenuClickHandlers)[name = info.menuItemId] === "function" ? base[name](info, tab) : void 0;
+  if (chrome.contextMenus?.onClicked != null) {
+    chrome.contextMenus.onClicked.addListener((info: {menuItemId: string}, tab: ChromeTab) => {
+      const handler = window.OmegaContextMenuClickHandlers[info.menuItemId];
+      return typeof handler === "function" ? handler(info, tab) : void 0;
     });
   }
 
   if (chrome.contextMenus != null) {
-    createContextMenus = function() {
+    const createContextMenus = () => {
       if (chrome.i18n.getUILanguage != null) {
         return addContextMenu({
           id: 'enableQuickSwitch',
@@ -58,7 +53,7 @@ type ContextMenuClickHandler = (info: unknown, tab: ChromeTab) => unknown;
           type: 'checkbox',
           checked: false,
           contexts: [actionContext]
-        }, function(info: {checked: boolean}) {
+        }, (info: {checked: boolean}) => {
           return window.OmegaContextMenuQuickSwitchHandler(info);
         });
       }

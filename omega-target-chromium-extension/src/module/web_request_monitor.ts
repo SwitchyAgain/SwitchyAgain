@@ -6,7 +6,9 @@ type HeapQueue<T> = {
 
 type HeapConstructor = new <T>(compare: (a: T, b: T) => number) => HeapQueue<T>;
 
-const Heap = require('heap') as unknown as HeapConstructor;
+import HeapModule = require('heap');
+
+const Heap = HeapModule as unknown as HeapConstructor;
 
 type RequestStatus = 'start' | 'ongoing' | 'timeout' | 'error' | 'timeoutAbort' | 'done';
 type EventCategory = 'done' | 'error' | 'ongoing';

@@ -129,39 +129,38 @@ class OptionsSync {
   /**
    * Merge newVal and oldVal of a given key.
    */
-  merge = (() => {
-    const diff = jsondiffpatch.create({
-      objectHash(obj: StorageValue) {
-        return JSON.stringify(obj);
-      },
-      textDiff: {
-        minLength: 1 / 0
-      }
-    }) as JsonDiffPatch;
-    return function(key: string, newVal: StorageValue, oldVal: StorageValue): StorageValue {
-      let result;
-      const oldProfile = oldVal as SyncableProfileValue | null | undefined;
-      const newProfile = newVal as SyncableProfileValue | null | undefined;
-      if (newVal === oldVal) {
+  _mergeDiff: JsonDiffPatch = jsondiffpatch.create({
+    objectHash(obj: StorageValue) {
+      return JSON.stringify(obj);
+    },
+    textDiff: {
+      minLength: 1 / 0
+    }
+  }) as JsonDiffPatch;
+
+  merge = (key: string, newVal: StorageValue, oldVal: StorageValue): StorageValue => {
+    let result;
+    const oldProfile = oldVal as SyncableProfileValue | null | undefined;
+    const newProfile = newVal as SyncableProfileValue | null | undefined;
+    if (newVal === oldVal) {
+      return oldVal;
+    }
+    if ((oldProfile != null ? oldProfile.syncOptions : void 0) === 'disabled' ||
+        (newProfile != null ? newProfile.syncOptions : void 0) === 'disabled') {
+      return oldVal;
+    }
+    if ((oldProfile != null ? oldProfile.revision : void 0) != null &&
+        (newProfile != null ? newProfile.revision : void 0) != null) {
+      result = Revision.compare(oldProfile.revision, newProfile.revision);
+      if (result >= 0) {
         return oldVal;
       }
-      if ((oldProfile != null ? oldProfile.syncOptions : void 0) === 'disabled' ||
-          (newProfile != null ? newProfile.syncOptions : void 0) === 'disabled') {
-        return oldVal;
-      }
-      if ((oldProfile != null ? oldProfile.revision : void 0) != null &&
-          (newProfile != null ? newProfile.revision : void 0) != null) {
-        result = Revision.compare(oldProfile.revision, newProfile.revision);
-        if (result >= 0) {
-          return oldVal;
-        }
-      }
-      if (diff.diff(oldVal, newVal) == null) {
-        return oldVal;
-      }
-      return newVal;
-    };
-  })();
+    }
+    if (this._mergeDiff.diff(oldVal, newVal) == null) {
+      return oldVal;
+    }
+    return newVal;
+  };
 
   /**
    * Request pushing the changes to remote storage.
@@ -344,6 +343,4 @@ class OptionsSync {
   }
 }
 
-module.exports = OptionsSync;
-
-export {};
+export = OptionsSync;

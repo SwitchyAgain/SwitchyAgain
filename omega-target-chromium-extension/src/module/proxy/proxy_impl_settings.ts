@@ -1,6 +1,9 @@
-const OmegaTarget = require('omega-target');
+import OmegaTargetModule = require('omega-target');
+import {chromeApiPromisify} from '../chrome_api';
+import ProxyImplModule = require('./proxy_impl');
+
+const OmegaTarget = OmegaTargetModule;
 const OmegaPac = OmegaTarget.OmegaPac;
-const {chromeApiPromisify} = require('../chrome_api');
 
 type ProxyImplBase = {
   getProfilePacScript(profile: Record<string, unknown>, meta: Record<string, unknown>, options: unknown): string;
@@ -9,7 +12,7 @@ type ProxyImplBase = {
 
 type ProxyImplConstructor = new (...args: unknown[]) => ProxyImplBase;
 
-const ProxyImpl = require('./proxy_impl') as unknown as ProxyImplConstructor;
+const ProxyImpl = ProxyImplModule as unknown as ProxyImplConstructor;
 
 type ProxyServer = {
   host?: string;
@@ -161,7 +164,7 @@ class SettingsProxyImpl extends ProxyImpl {
   private _formatBypassItem(condition: Condition) {
     const str = OmegaPac.Conditions.str(condition);
     const index = str.indexOf(' ');
-    return str.substr(index + 1);
+    return str.slice(index + 1);
   }
 
   private _proxyChangeListener(details: unknown) {
@@ -231,7 +234,7 @@ class SettingsProxyImpl extends ProxyImpl {
 
     script = script.trim();
     const magic = '/*OmegaProfile*';
-    if (script.substr(0, magic.length) === magic) {
+    if (script.startsWith(magic)) {
       const end = script.indexOf('*/');
       if (end > 0) {
         const tokens = script.substring(magic.length, end).split('*');

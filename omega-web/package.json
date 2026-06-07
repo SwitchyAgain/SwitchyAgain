@@ -16,10 +16,10 @@
     "@types/react-dom": "^19.2.3"
   },
   "scripts": {
-    "build": "npm run build:ts && node build.js",
-    "build:ts": "npm run clean:ts && tsc -p tsconfig.scripts.json && tsc -p tsconfig.react.json",
+    "build": "npm run build:ts && node build-ts/build.js",
+    "build:ts": "npm run clean:ts && tsc -p tsconfig.scripts.json && tsc -p tsconfig.react.json && tsc -p tsconfig.build-script.json",
     "clean:ts": "node -e \"require('fs').rmSync('build-ts', {recursive: true, force: true})\"",
     "dev": "npm link omega-pac && npm link",
-    "typecheck": "tsc -p tsconfig.scripts.json --noEmit && tsc -p tsconfig.react.json"
+    "typecheck": "tsc -p tsconfig.scripts.json --noEmit && tsc -p tsconfig.react.json && tsc -p tsconfig.build-script.json --noEmit"
   }
 }

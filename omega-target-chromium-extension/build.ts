@@ -6,8 +6,10 @@ const archiver = require('archiver');
 const esbuild = require('esbuild');
 const po2json = require('po2json/index.js');
 
-const root = __dirname;
+const root = path.resolve(__dirname, '..');
 const isRelease = process.argv.includes('release');
+
+type PathFilter = (filePath: string) => boolean;
 
 async function ensureDir(filePath) {
   await fsp.mkdir(path.dirname(filePath), {recursive: true});
@@ -18,7 +20,7 @@ async function copyFile(src, dest) {
   await fsp.copyFile(src, dest);
 }
 
-async function copyTree(src, dest, filter = () => true) {
+async function copyTree(src, dest, filter: PathFilter = () => true) {
   const entries = await fsp.readdir(src, {withFileTypes: true});
   for (const entry of entries) {
     const srcPath = path.join(src, entry.name);
@@ -125,7 +127,7 @@ async function writeReleaseManifest(dest, target) {
   await fsp.writeFile(dest, JSON.stringify(manifest));
 }
 
-async function listFiles(dir, filter = () => true) {
+async function listFiles(dir, filter: PathFilter = () => true) {
   const files = [];
   async function visit(current) {
     const entries = await fsp.readdir(current, {withFileTypes: true});
@@ -175,7 +177,7 @@ async function main() {
   await fsp.rm(path.join(root, 'build'), {recursive: true, force: true});
   await fsp.rm(path.join(root, 'tmp'), {recursive: true, force: true});
 
-  const indexSource = path.join(root, 'index.source.js');
+  const indexSource = path.join(root, 'build-ts/module/index.js');
   await writeBundle(path.join(root, 'index.js'), {
     entries: [indexSource],
     exclude: ['bluebird', 'omega-pac', 'omega-target'],
@@ -205,6 +207,7 @@ async function main() {
   for (const script of ['background.js', 'background_preload.js', 'omega_debug.js']) {
     await copyFile(path.join(root, 'build-ts/js', script), path.join(root, 'build/js', script));
   }
+  await copyFile(path.join(root, 'build-ts/js/service_worker.js'), path.join(root, 'build/service_worker.js'));
   await copyTree(path.join(root, 'overlay'), path.join(root, 'build'));
   await copyFile(path.resolve(root, '../COPYING'), path.join(root, 'build/COPYING'));
   await copyFile(path.resolve(root, '../AUTHORS'), path.join(root, 'build/AUTHORS'));

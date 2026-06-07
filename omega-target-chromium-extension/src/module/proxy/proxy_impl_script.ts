@@ -1,4 +1,7 @@
-const OmegaPromise = require('omega-target').Promise;
+import OmegaTargetModule = require('omega-target');
+import ProxyImplModule = require('./proxy_impl');
+
+const OmegaPromise = OmegaTargetModule.Promise;
 
 type ProxyImplBase = {
   log: {
@@ -10,7 +13,7 @@ type ProxyImplBase = {
 
 type ProxyImplConstructor = new (...args: unknown[]) => ProxyImplBase;
 
-const ProxyImpl = require('./proxy_impl') as unknown as ProxyImplConstructor;
+const ProxyImpl = ProxyImplModule as unknown as ProxyImplConstructor;
 
 type Profile = Record<string, unknown> & {
   name?: string;

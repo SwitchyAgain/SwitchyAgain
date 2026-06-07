@@ -3,20 +3,17 @@
     "allowJs": false,
     "declaration": false,
     "ignoreDeprecations": "6.0",
-    "module": "none",
+    "module": "commonjs",
     "noEmit": false,
     "noImplicitAny": false,
-    "outDir": "build-ts/js",
-    "rootDir": "src/js",
+    "outDir": "build-ts",
     "skipLibCheck": true,
     "sourceMap": false,
     "strict": false,
-    "target": "es5"
+    "target": "es2020"
   },
   "include": [
-    "src/js/draw_omega.ts",
-    "src/js/log_error.ts",
-    "src/js/omega_pac_preload.ts",
-    "types/**/*.d.ts"
+    "build.ts",
+    "types/build-globals.d.ts"
   ]
 }

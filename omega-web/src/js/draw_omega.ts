@@ -1,4 +1,24 @@
-var drawOmega = function (ctx, outerCircleColor, innerCircleColor) {
+type OmegaIconCanvasContext = {
+  globalCompositeOperation: string;
+  fillStyle: string;
+  beginPath(): void;
+  arc(
+    x: number,
+    y: number,
+    radius: number,
+    startAngle: number,
+    endAngle: number,
+    counterclockwise?: boolean
+  ): void;
+  closePath(): void;
+  fill(): void;
+};
+
+function drawOmega(
+  ctx: OmegaIconCanvasContext,
+  outerCircleColor: string,
+  innerCircleColor?: string | null
+) {
   ctx.globalCompositeOperation = "source-over";
   ctx.fillStyle = outerCircleColor;
   ctx.beginPath();
@@ -16,4 +36,4 @@ var drawOmega = function (ctx, outerCircleColor, innerCircleColor) {
   ctx.arc(0.5, 0.5, 0.25, 0, Math.PI * 2, true);
   ctx.closePath();
   ctx.fill();
-};
+}

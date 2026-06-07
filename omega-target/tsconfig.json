@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
-    "allowJs": true,
-    "checkJs": false,
+    "allowJs": false,
     "forceConsistentCasingInFileNames": true,
     "module": "commonjs",
     "noEmit": true,
@@ -11,7 +10,6 @@
     "target": "es2015"
   },
   "include": [
-    "src/**/*.js",
     "src/**/*.ts",
     "types/**/*.d.ts"
   ],

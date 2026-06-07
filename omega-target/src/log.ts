@@ -77,6 +77,4 @@ const Log = {
   }
 };
 
-module.exports = Log;
-
-export {};
+export = Log;

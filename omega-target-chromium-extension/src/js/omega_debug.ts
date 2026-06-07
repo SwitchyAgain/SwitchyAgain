@@ -1,19 +1,18 @@
 (function() {
   window.OmegaDebug = {
-    getProjectVersion: function() {
+    getProjectVersion() {
       return chrome.runtime.getManifest().version;
     },
-    getExtensionVersion: function() {
+    getExtensionVersion() {
       return chrome.runtime.getManifest().version;
     },
-    downloadLog: function() {
-      var blob, filename, ref, url;
-      blob = new Blob([localStorage['log']], {
+    downloadLog() {
+      const blob = new Blob([localStorage['log']], {
         type: "text/plain;charset=utf-8"
       });
-      filename = "OmegaLog_" + (Date.now()) + ".txt";
-      if ((typeof browser !== "undefined" && browser !== null ? (ref = browser.downloads) != null ? ref.download : void 0 : void 0) != null) {
-        url = URL.createObjectURL(blob);
+      const filename = `OmegaLog_${Date.now()}.txt`;
+      if (typeof browser !== "undefined" && browser !== null && browser.downloads?.download != null) {
+        const url = URL.createObjectURL(blob);
         return browser.downloads.download({
           url: url,
           filename: filename
@@ -22,31 +21,30 @@
         return saveAs(blob, filename);
       }
     },
-    resetOptions: function() {
+    resetOptions() {
       localStorage.clear();
       localStorage['omega.local.syncOptions'] = '"conflict"';
       chrome.storage.local.clear();
       return chrome.runtime.reload();
     },
-    reportIssue: function() {
-      var body, env, err, extensionVersion, finalUrl, projectVersion, url;
-      url = 'https://github.com/FelisCatus/SwitchyOmega/issues/new?title=&body=';
-      finalUrl = url;
+    reportIssue() {
+      const url = 'https://github.com/FelisCatus/SwitchyOmega/issues/new?title=&body=';
+      let finalUrl = url;
       try {
-        projectVersion = OmegaDebug.getProjectVersion();
-        extensionVersion = OmegaDebug.getExtensionVersion();
-        env = {
+        const projectVersion = OmegaDebug.getProjectVersion();
+        const extensionVersion = OmegaDebug.getExtensionVersion();
+        const env = {
           extensionVersion: extensionVersion,
           projectVersion: extensionVersion,
           userAgent: navigator.userAgent
         };
-        body = chrome.i18n.getMessage('popup_issueTemplate', [env.projectVersion, env.userAgent]);
-        body || (body = "\n\n\n<!-- Please write your comment ABOVE this line. -->\nSwitchyOmega " + env.projectVersion + "\n" + env.userAgent);
+        let body = chrome.i18n.getMessage('popup_issueTemplate', [env.projectVersion, env.userAgent]);
+        body || (body = `\n\n\n<!-- Please write your comment ABOVE this line. -->\nSwitchyOmega ${env.projectVersion}\n${env.userAgent}`);
         finalUrl = url + encodeURIComponent(body);
-        err = localStorage['logLastError'];
+        const err = localStorage['logLastError'];
         if (err) {
-          body += "\n```\n" + err + "\n```";
-          finalUrl = (url + encodeURIComponent(body)).substr(0, 2000);
+          body += `\n\`\`\`\n${err}\n\`\`\``;
+          finalUrl = (url + encodeURIComponent(body)).slice(0, 2000);
         }
       } catch (error) {}
       return chrome.tabs.create({

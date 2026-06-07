@@ -7,7 +7,9 @@ type OmegaPromiseConstructor = new <T>(
   ) => void
 ) => Promise<T>;
 
-const OmegaPromise = require('omega-target').Promise as OmegaPromiseConstructor;
+import OmegaTargetModule = require('omega-target');
+
+const OmegaPromise = OmegaTargetModule.Promise as OmegaPromiseConstructor;
 
 export function chromeApiPromisify(target: ChromeApiTarget, method: string) {
   return (...args: unknown[]) => {

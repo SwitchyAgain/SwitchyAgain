@@ -9,7 +9,7 @@ lolex = require('lolex');
 describe('Conditions', function() {
   var Conditions, U2, testCond;
   Conditions = require('../build-ts/conditions');
-  U2 = require('../uglifyjs-shim');
+  U2 = require('../build-ts/uglifyjs_shim');
   testCond = function(condition, request, should_match) {
     var compileResult, condExpr, friendlyError, matchResult, o_request, testFunc;
     o_request = request;
@@ -57,14 +57,14 @@ describe('Conditions', function() {
     return it('should always return true', function() {
       return testCond({
         conditionType: 'TrueCondition'
-      }, {}, 'match');
+      }, {}, true);
     });
   });
   describe('FalseCondition', function() {
     return it('should always return false', function() {
       return testCond({
         conditionType: 'FalseCondition'
-      }, {}, !'match');
+      }, {}, false);
     });
   });
   describe('UrlRegexCondition', function() {
@@ -74,10 +74,10 @@ describe('Conditions', function() {
       pattern: 'example\\.com'
     };
     it('should match requests based on regex pattern', function() {
-      return testCond(cond, 'http://www.example.com/', 'match');
+      return testCond(cond, 'http://www.example.com/', true);
     });
     it('should not match requests not matching the pattern', function() {
-      return testCond(cond, 'http://www.example.net/', !'match');
+      return testCond(cond, 'http://www.example.net/', false);
     });
     it('should support regex meta chars', function() {
       var con;
@@ -85,7 +85,7 @@ describe('Conditions', function() {
         conditionType: 'UrlRegexCondition',
         pattern: 'exam.*\\.com'
       };
-      return testCond(con, 'http://www.example.com/', 'match');
+      return testCond(con, 'http://www.example.com/', true);
     });
     return it('should fallback to not match if pattern is invalid', function() {
       var con;
@@ -93,7 +93,7 @@ describe('Conditions', function() {
         conditionType: 'UrlRegexCondition',
         pattern: ')Invalid('
       };
-      return testCond(con, 'http://www.example.com/', !'match');
+      return testCond(con, 'http://www.example.com/', false);
     });
   });
   describe('UrlWildcardCondition', function() {
@@ -103,33 +103,33 @@ describe('Conditions', function() {
       pattern: '*example.com*'
     };
     it('should match requests based on wildcard pattern', function() {
-      return testCond(cond, 'http://www.example.com/', 'match');
+      return testCond(cond, 'http://www.example.com/', true);
     });
     it('should not match requests not matching the pattern', function() {
-      return testCond(cond, 'http://www.example.net/', !'match');
+      return testCond(cond, 'http://www.example.net/', false);
     });
     it('should support wildcard question marks', function() {
       cond = {
         conditionType: 'UrlWildcardCondition',
         pattern: '*exam???.com*'
       };
-      return testCond(cond, 'http://www.example.com/', 'match');
+      return testCond(cond, 'http://www.example.com/', true);
     });
     it('should not support regex meta chars', function() {
       cond = {
         conditionType: 'UrlWildcardCondition',
         pattern: '.*example.com.*'
       };
-      return testCond(cond, 'http://example.com/', !'match');
+      return testCond(cond, 'http://example.com/', false);
     });
     return it('should support multiple patterns in one condition', function() {
       cond = {
         conditionType: 'UrlWildcardCondition',
         pattern: '*.example.com/*|*.example.net/*'
       };
-      testCond(cond, 'http://a.example.com/abc', 'match');
-      testCond(cond, 'http://b.example.net/def', 'match');
-      return testCond(cond, 'http://c.example.org/ghi', !'match');
+      testCond(cond, 'http://a.example.com/abc', true);
+      testCond(cond, 'http://b.example.net/def', true);
+      return testCond(cond, 'http://c.example.org/ghi', false);
     });
   });
   describe('HostRegexCondition', function() {
@@ -139,10 +139,10 @@ describe('Conditions', function() {
       pattern: '.*\\.example\\.com'
     };
     it('should match requests based on regex pattern', function() {
-      return testCond(cond, 'http://www.example.com/', 'match');
+      return testCond(cond, 'http://www.example.com/', true);
     });
     it('should not match requests not matching the pattern', function() {
-      return testCond(cond, 'http://example.com/', !'match');
+      return testCond(cond, 'http://example.com/', false);
     });
     return it('should not match URL parts other than the host', function() {
       return testCond(cond, 'http://example.net/www.example.com').should.be["false"];
@@ -155,10 +155,10 @@ describe('Conditions', function() {
       pattern: '*.example.com'
     };
     it('should match requests based on wildcard pattern', function() {
-      return testCond(cond, 'http://www.example.com/', 'match');
+      return testCond(cond, 'http://www.example.com/', true);
     });
     it('should also match hostname without the optional level', function() {
-      return testCond(cond, 'http://example.com/', 'match');
+      return testCond(cond, 'http://example.com/', true);
     });
     it('should process patterns like *.*example.com correctly', function() {
       var con;
@@ -166,10 +166,10 @@ describe('Conditions', function() {
         conditionType: 'HostWildcardCondition',
         pattern: '*.*example.com'
       };
-      testCond(con, 'http://example.com/', 'match');
-      testCond(con, 'http://www.example.com/', 'match');
-      testCond(con, 'http://www.some-example.com/', 'match');
-      return testCond(con, 'http://xample.com/', !'match');
+      testCond(con, 'http://example.com/', true);
+      testCond(con, 'http://www.example.com/', true);
+      testCond(con, 'http://www.some-example.com/', true);
+      return testCond(con, 'http://xample.com/', false);
     });
     it('should allow override of the magical behavior', function() {
       var con;
@@ -177,8 +177,8 @@ describe('Conditions', function() {
         conditionType: 'HostWildcardCondition',
         pattern: '**.example.com'
       };
-      testCond(con, 'http://www.example.com/', 'match');
-      return testCond(con, 'http://example.com/', !'match');
+      testCond(con, 'http://www.example.com/', true);
+      return testCond(con, 'http://example.com/', false);
     });
     it('should not match URL parts other than the host', function() {
       return testCond(cond, 'http://example.net/www.example.com').should.be["false"];
@@ -188,9 +188,9 @@ describe('Conditions', function() {
         conditionType: 'HostWildcardCondition',
         pattern: '*.example.com|*.example.net'
       };
-      testCond(cond, 'http://a.example.com/abc', 'match');
-      testCond(cond, 'http://example.net/def', 'match');
-      return testCond(cond, 'http://c.example.org/ghi', !'match');
+      testCond(cond, 'http://a.example.com/abc', true);
+      testCond(cond, 'http://example.net/def', true);
+      return testCond(cond, 'http://c.example.org/ghi', false);
     });
   });
   describe('BypassCondition', function() {
@@ -200,18 +200,18 @@ describe('Conditions', function() {
         conditionType: 'BypassCondition',
         pattern: '.example.com'
       };
-      testCond(cond, 'http://www.example.com/', 'match');
-      testCond(cond, 'http://example.com/', !'match');
+      testCond(cond, 'http://www.example.com/', true);
+      testCond(cond, 'http://example.com/', false);
       cond.pattern = '*.example.com';
-      testCond(cond, 'http://www.example.com/', 'match');
-      testCond(cond, 'http://example.com/', !'match');
+      testCond(cond, 'http://www.example.com/', true);
+      testCond(cond, 'http://example.com/', false);
       cond.pattern = 'example.com';
-      testCond(cond, 'http://example.com/', 'match');
-      testCond(cond, 'http://www.example.com/', !'match');
+      testCond(cond, 'http://example.com/', true);
+      testCond(cond, 'http://www.example.com/', false);
       cond.pattern = '*example.com';
-      testCond(cond, 'http://example.com/', 'match');
-      testCond(cond, 'http://www.example.com/', 'match');
-      return testCond(cond, 'http://anotherexample.com/', 'match');
+      testCond(cond, 'http://example.com/', true);
+      testCond(cond, 'http://www.example.com/', true);
+      return testCond(cond, 'http://anotherexample.com/', true);
     });
     it('should match the scheme specified in the pattern', function() {
       var cond;
@@ -219,8 +219,8 @@ describe('Conditions', function() {
         conditionType: 'BypassCondition',
         pattern: 'http://example.com'
       };
-      testCond(cond, 'http://example.com/', 'match');
-      return testCond(cond, 'https://example.com/', !'match');
+      testCond(cond, 'http://example.com/', true);
+      return testCond(cond, 'https://example.com/', false);
     });
     it('should match the port specified in the pattern', function() {
       var cond;
@@ -228,8 +228,8 @@ describe('Conditions', function() {
         conditionType: 'BypassCondition',
         pattern: 'http://example.com:8080'
       };
-      testCond(cond, 'http://example.com:8080/', 'match');
-      return testCond(cond, 'http://example.com:888/', !'match');
+      testCond(cond, 'http://example.com:8080/', true);
+      return testCond(cond, 'http://example.com:888/', false);
     });
     it('should correctly support patterns using IPv4 literals', function() {
       var cond;
@@ -237,8 +237,8 @@ describe('Conditions', function() {
         conditionType: 'BypassCondition',
         pattern: 'http://127.0.0.1:8080'
       };
-      testCond(cond, 'http://127.0.0.1:8080/', 'match');
-      return testCond(cond, 'http://127.0.0.2:8080/', !'match');
+      testCond(cond, 'http://127.0.0.1:8080/', true);
+      return testCond(cond, 'http://127.0.0.2:8080/', false);
     });
     it('should correctly support IPv6 canonicalization', function() {
       var cond, result;
@@ -247,8 +247,8 @@ describe('Conditions', function() {
         pattern: 'http://[0:0::1]:8080'
       };
       result = Conditions.analyze(cond);
-      testCond(cond, 'http://[::1]:8080/', 'match');
-      return testCond(cond, 'http://[1::1]:8080/', !'match');
+      testCond(cond, 'http://[::1]:8080/', true);
+      return testCond(cond, 'http://[1::1]:8080/', false);
     });
     it('should correctly support IPv6 canonicalization 2', function() {
       var cond, result;
@@ -257,8 +257,8 @@ describe('Conditions', function() {
         pattern: '[::1]'
       };
       result = Conditions.analyze(cond);
-      testCond(cond, 'http://[::1]:8080/', 'match');
-      return testCond(cond, 'http://[1::1]:8080/', !'match');
+      testCond(cond, 'http://[::1]:8080/', true);
+      return testCond(cond, 'http://[1::1]:8080/', false);
     });
     it('should parse IPv4 CIDR notation', function() {
       var cond, result;
@@ -308,7 +308,7 @@ describe('Conditions', function() {
         conditionType: 'BypassCondition',
         pattern: '<local>'
       };
-      return testCond(cond, 'http://127.0.0.1:8080/', 'match');
+      return testCond(cond, 'http://127.0.0.1:8080/', true);
     });
     it('should match [::1] when <local> is used', function() {
       var cond;
@@ -316,7 +316,7 @@ describe('Conditions', function() {
         conditionType: 'BypassCondition',
         pattern: '<local>'
       };
-      return testCond(cond, 'http://[::1]:8080/', 'match');
+      return testCond(cond, 'http://[::1]:8080/', true);
     });
     return it('should match any host without dots when <local> is used', function() {
       var cond;
@@ -324,12 +324,12 @@ describe('Conditions', function() {
         conditionType: 'BypassCondition',
         pattern: '<local>'
       };
-      testCond(cond, 'http://localhost:8080/', 'match');
-      testCond(cond, 'http://intranet:8080/', 'match');
-      testCond(cond, 'http://foobar/', 'match');
-      testCond(cond, 'http://example.com/', !'match');
-      testCond(cond, 'http://[::ffff:eeee]/', 'match');
-      return testCond(cond, 'http://[::1.2.3.4]/', !'match');
+      testCond(cond, 'http://localhost:8080/', true);
+      testCond(cond, 'http://intranet:8080/', true);
+      testCond(cond, 'http://foobar/', true);
+      testCond(cond, 'http://example.com/', false);
+      testCond(cond, 'http://[::ffff:eeee]/', true);
+      return testCond(cond, 'http://[::1.2.3.4]/', false);
     });
   });
   describe('IpCondition', function() {
@@ -445,12 +445,12 @@ describe('Conditions', function() {
       pattern: 'example.com'
     };
     it('should match requests based on substring', function() {
-      testCond(cond, 'http://www.example.com/', 'match');
-      return testCond(cond, 'http://www.example.net/', !'match');
+      testCond(cond, 'http://www.example.com/', true);
+      return testCond(cond, 'http://www.example.net/', false);
     });
     return it('should not match HTTPS requests', function() {
-      testCond(cond, 'https://example.com/', !'match');
-      return testCond(cond, 'https://example.net/', !'match');
+      testCond(cond, 'https://example.com/', false);
+      return testCond(cond, 'https://example.net/', false);
     });
   });
   describe('WeekdayCondition', function() {
@@ -475,13 +475,13 @@ describe('Conditions', function() {
         startDay: 3,
         endDay: 5
       };
-      testCondDay(cond, 0, !'match');
-      testCondDay(cond, 1, !'match');
-      testCondDay(cond, 2, !'match');
-      testCondDay(cond, 3, 'match');
-      testCondDay(cond, 4, 'match');
-      testCondDay(cond, 5, 'match');
-      return testCondDay(cond, 6, !'match');
+      testCondDay(cond, 0, false);
+      testCondDay(cond, 1, false);
+      testCondDay(cond, 2, false);
+      testCondDay(cond, 3, true);
+      testCondDay(cond, 4, true);
+      testCondDay(cond, 5, true);
+      return testCondDay(cond, 6, false);
     });
     it('should match the day if startDay == endDay', function() {
       var cond;
@@ -490,13 +490,13 @@ describe('Conditions', function() {
         startDay: 3,
         endDay: 3
       };
-      testCondDay(cond, 0, !'match');
-      testCondDay(cond, 1, !'match');
-      testCondDay(cond, 2, !'match');
-      testCondDay(cond, 3, 'match');
-      testCondDay(cond, 4, !'match');
-      testCondDay(cond, 5, !'match');
-      return testCondDay(cond, 6, !'match');
+      testCondDay(cond, 0, false);
+      testCondDay(cond, 1, false);
+      testCondDay(cond, 2, false);
+      testCondDay(cond, 3, true);
+      testCondDay(cond, 4, false);
+      testCondDay(cond, 5, false);
+      return testCondDay(cond, 6, false);
     });
     it('should not match anything if startDay > endDay', function() {
       var cond;
@@ -505,13 +505,13 @@ describe('Conditions', function() {
         startDay: 4,
         endDay: 3
       };
-      testCondDay(cond, 0, !'match');
-      testCondDay(cond, 1, !'match');
-      testCondDay(cond, 2, !'match');
-      testCondDay(cond, 3, !'match');
-      testCondDay(cond, 4, !'match');
-      testCondDay(cond, 5, !'match');
-      return testCondDay(cond, 6, !'match');
+      testCondDay(cond, 0, false);
+      testCondDay(cond, 1, false);
+      testCondDay(cond, 2, false);
+      testCondDay(cond, 3, false);
+      testCondDay(cond, 4, false);
+      testCondDay(cond, 5, false);
+      return testCondDay(cond, 6, false);
     });
     it('should match according to .days', function() {
       var cond;
@@ -519,24 +519,24 @@ describe('Conditions', function() {
         conditionType: 'WeekdayCondition',
         days: 'SMTWtFs'
       };
-      testCondDay(cond, 0, 'match');
-      testCondDay(cond, 1, 'match');
-      testCondDay(cond, 2, 'match');
-      testCondDay(cond, 3, 'match');
-      testCondDay(cond, 4, 'match');
-      testCondDay(cond, 5, 'match');
-      testCondDay(cond, 6, 'match');
+      testCondDay(cond, 0, true);
+      testCondDay(cond, 1, true);
+      testCondDay(cond, 2, true);
+      testCondDay(cond, 3, true);
+      testCondDay(cond, 4, true);
+      testCondDay(cond, 5, true);
+      testCondDay(cond, 6, true);
       cond = {
         conditionType: 'WeekdayCondition',
         days: 'S-TW-F-'
       };
-      testCondDay(cond, 0, 'match');
-      testCondDay(cond, 1, !'match');
-      testCondDay(cond, 2, 'match');
-      testCondDay(cond, 3, 'match');
-      testCondDay(cond, 4, !'match');
-      testCondDay(cond, 5, 'match');
-      return testCondDay(cond, 6, !'match');
+      testCondDay(cond, 0, true);
+      testCondDay(cond, 1, false);
+      testCondDay(cond, 2, true);
+      testCondDay(cond, 3, true);
+      testCondDay(cond, 4, false);
+      testCondDay(cond, 5, true);
+      return testCondDay(cond, 6, false);
     });
     return it('should prefer .days to .startDay and .endDay', function() {
       var cond;
@@ -546,13 +546,13 @@ describe('Conditions', function() {
         startDay: 0,
         endDay: 0
       };
-      testCondDay(cond, 0, !'match');
-      testCondDay(cond, 1, !'match');
-      testCondDay(cond, 2, 'match');
-      testCondDay(cond, 3, 'match');
-      testCondDay(cond, 4, !'match');
-      testCondDay(cond, 5, !'match');
-      return testCondDay(cond, 6, !'match');
+      testCondDay(cond, 0, false);
+      testCondDay(cond, 1, false);
+      testCondDay(cond, 2, true);
+      testCondDay(cond, 3, true);
+      testCondDay(cond, 4, false);
+      testCondDay(cond, 5, false);
+      return testCondDay(cond, 6, false);
     });
   });
   describe('TimeCondition', function() {
@@ -575,15 +575,15 @@ describe('Conditions', function() {
         startHour: 7,
         endHour: 9
       };
-      testCondTime(cond, '00:00:00', !'match');
-      testCondTime(cond, '06:00:00', !'match');
-      testCondTime(cond, '07:00:00', 'match');
-      testCondTime(cond, '08:00:00', 'match');
-      testCondTime(cond, '09:00:00', 'match');
-      testCondTime(cond, '09:59:59', 'match');
-      testCondTime(cond, '10:00:00', !'match');
-      testCondTime(cond, '19:00:00', !'match');
-      return testCondTime(cond, '23:00:00', !'match');
+      testCondTime(cond, '00:00:00', false);
+      testCondTime(cond, '06:00:00', false);
+      testCondTime(cond, '07:00:00', true);
+      testCondTime(cond, '08:00:00', true);
+      testCondTime(cond, '09:00:00', true);
+      testCondTime(cond, '09:59:59', true);
+      testCondTime(cond, '10:00:00', false);
+      testCondTime(cond, '19:00:00', false);
+      return testCondTime(cond, '23:00:00', false);
     });
     it('should match the hour if startHour == endHour', function() {
       var cond;
@@ -592,13 +592,13 @@ describe('Conditions', function() {
         startHour: 7,
         endHour: 7
       };
-      testCondTime(cond, '00:00:00', !'match');
-      testCondTime(cond, '06:00:00', !'match');
-      testCondTime(cond, '07:00:00', 'match');
-      testCondTime(cond, '07:00:01', 'match');
-      testCondTime(cond, '07:59:59', 'match');
-      testCondTime(cond, '08:00:00', !'match');
-      return testCondTime(cond, '19:00:00', !'match');
+      testCondTime(cond, '00:00:00', false);
+      testCondTime(cond, '06:00:00', false);
+      testCondTime(cond, '07:00:00', true);
+      testCondTime(cond, '07:00:01', true);
+      testCondTime(cond, '07:59:59', true);
+      testCondTime(cond, '08:00:00', false);
+      return testCondTime(cond, '19:00:00', false);
     });
     return it('should not match anything if startHour > endHour', function() {
       var cond;
@@ -607,15 +607,15 @@ describe('Conditions', function() {
         startHour: 7,
         endHour: 6
       };
-      testCondTime(cond, '00:00:00', !'match');
-      testCondTime(cond, '06:00:00', !'match');
-      testCondTime(cond, '06:59:59', !'match');
-      testCondTime(cond, '07:00:00', !'match');
-      testCondTime(cond, '08:00:00', !'match');
-      testCondTime(cond, '09:00:00', !'match');
-      testCondTime(cond, '10:00:00', !'match');
-      testCondTime(cond, '19:00:00', !'match');
-      return testCondTime(cond, '23:00:00', !'match');
+      testCondTime(cond, '00:00:00', false);
+      testCondTime(cond, '06:00:00', false);
+      testCondTime(cond, '06:59:59', false);
+      testCondTime(cond, '07:00:00', false);
+      testCondTime(cond, '08:00:00', false);
+      testCondTime(cond, '09:00:00', false);
+      testCondTime(cond, '10:00:00', false);
+      testCondTime(cond, '19:00:00', false);
+      return testCondTime(cond, '23:00:00', false);
     });
   });
   describe('#typeFromAbbr', function() {

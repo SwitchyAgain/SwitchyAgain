@@ -401,7 +401,7 @@ export function updateRuleWeekday(rule: SwitchRule | undefined, dayIndex: number
   }
   rule.condition.days || (rule.condition.days = '-------');
   const char = selected ? 'SMTWtFs'[dayIndex] : '-';
-  rule.condition.days = rule.condition.days.substr(0, dayIndex) + char + rule.condition.days.substr(dayIndex + 1);
+  rule.condition.days = rule.condition.days.slice(0, dayIndex) + char + rule.condition.days.slice(dayIndex + 1);
   delete rule.condition.startDay;
   delete rule.condition.endDay;
   return true;

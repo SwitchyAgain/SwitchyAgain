@@ -2,6 +2,7 @@ declare var exports: Record<string, unknown>;
 declare var module: {
   exports: unknown;
 };
+declare var OmegaPac: unknown;
 
 declare function require(id: './default_options'): () => Record<string, unknown>;
 declare function require(id: 'buffer'): {

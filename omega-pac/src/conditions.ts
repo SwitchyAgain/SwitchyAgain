@@ -1,128 +1,123 @@
-export {};
-var AttachedCache, IP, U2, Url, escapeSlash, ref, shExp2RegExp,
-  hasProp = {}.hasOwnProperty;
+import type {Condition, PacRequest} from './types';
 
-U2 = require('../uglifyjs-shim');
+const U2 = require('./uglifyjs_shim');
+const IP = require('ip-address');
+const Url = require('url');
+const hasProp = Object.prototype.hasOwnProperty;
 
-IP = require('ip-address');
+const {shExp2RegExp, escapeSlash} = require('./shexp_utils') as typeof import('./shexp_utils');
 
-Url = require('url');
+const {AttachedCache} = require('./utils') as typeof import('./utils');
 
-ref = require('./shexp_utils'), shExp2RegExp = ref.shExp2RegExp, escapeSlash = ref.escapeSlash;
+type ConditionCache = {
+  analyzed?: unknown;
+  compiled?: unknown;
+  [key: string]: unknown;
+};
 
-AttachedCache = require('./utils').AttachedCache;
-
-module.exports = exports = {
-  requestFromUrl: function(url) {
-    var req;
+const ConditionsApi = {
+  requestFromUrl(url): PacRequest {
     if (typeof url === 'string') {
       url = Url.parse(url);
     }
-    return req = {
+    return {
       url: Url.format(url),
       host: url.hostname,
       scheme: url.protocol.replace(':', '')
     };
   },
-  urlWildcard2HostWildcard: function(pattern) {
-    var result;
-    result = pattern.match(/^\*:\/\/((?:\w|[?*._\-])+)\/\*$/);
+  urlWildcard2HostWildcard(pattern: string) {
+    const result = pattern.match(/^\*:\/\/((?:\w|[?*._\-])+)\/\*$/);
     return result != null ? result[1] : void 0;
   },
-  tag: function(condition) {
-    return exports._condCache.tag(condition);
+  tag(condition: Condition) {
+    return ConditionsApi._condCache.tag(condition);
   },
-  analyze: function(condition) {
-    return exports._condCache.get(condition, function() {
+  analyze(condition: Condition) {
+    return ConditionsApi._condCache.get(condition, () => {
       return {
-        analyzed: exports._handler(condition.conditionType).analyze.call(exports, condition)
+        analyzed: ConditionsApi._handler(condition.conditionType).analyze.call(ConditionsApi, condition)
       };
     });
   },
-  match: function(condition, request) {
-    var cache;
-    cache = exports.analyze(condition);
-    return exports._handler(condition.conditionType).match.call(exports, condition, request, cache);
+  match(condition: Condition, request: PacRequest) {
+    const cache = ConditionsApi.analyze(condition);
+    return ConditionsApi._handler(condition.conditionType).match.call(ConditionsApi, condition, request, cache);
   },
-  compile: function(condition) {
-    var cache, handler;
-    cache = exports.analyze(condition);
+  compile(condition: Condition) {
+    const cache = ConditionsApi.analyze(condition) as ConditionCache;
     if (cache.compiled) {
       return cache.compiled;
     }
-    handler = exports._handler(condition.conditionType);
-    return cache.compiled = handler.compile.call(exports, condition, cache);
+    const handler = ConditionsApi._handler(condition.conditionType);
+    return cache.compiled = handler.compile.call(ConditionsApi, condition, cache);
   },
-  str: function(condition, arg) {
-    var abbr, endCode, handler, part, result, str, typeStr;
-    abbr = (arg != null ? arg : {
+  str(condition: Condition, arg?: {abbr?: number}) {
+    const abbr = (arg != null ? arg : {
       abbr: -1
     }).abbr;
-    handler = exports._handler(condition.conditionType);
+    const handler = ConditionsApi._handler(condition.conditionType);
     if (handler.abbrs[0].length === 0) {
-      endCode = condition.pattern.charCodeAt(condition.pattern.length - 1);
-      if (endCode !== exports.colonCharCode && condition.pattern.indexOf(' ') < 0) {
+      const endCode = condition.pattern.charCodeAt(condition.pattern.length - 1);
+      if (endCode !== ConditionsApi.colonCharCode && condition.pattern.indexOf(' ') < 0) {
         return condition.pattern;
       }
     }
-    str = handler.str;
-    typeStr = typeof abbr === 'number' ? handler.abbrs[(handler.abbrs.length + abbr) % handler.abbrs.length] : condition.conditionType;
-    result = typeStr + ':';
-    part = str ? str.call(exports, condition) : condition.pattern;
+    const str = handler.str;
+    const typeStr = typeof abbr === 'number' ? handler.abbrs[(handler.abbrs.length + abbr) % handler.abbrs.length] : condition.conditionType;
+    let result = typeStr + ':';
+    const part = str ? str.call(ConditionsApi, condition) : condition.pattern;
     if (part) {
       result += ' ' + part;
     }
     return result;
   },
   colonCharCode: ':'.charCodeAt(0),
-  fromStr: function(str) {
-    var condition, conditionType, fromStr, i;
+  fromStr(str: string): Condition | null {
     str = str.trim();
-    i = str.indexOf(' ');
+    let i = str.indexOf(' ');
     if (i < 0) {
       i = str.length;
     }
-    if (str.charCodeAt(i - 1) === exports.colonCharCode) {
-      conditionType = str.substr(0, i - 1);
-      str = str.substr(i + 1).trim();
+    let conditionType;
+    if (str.charCodeAt(i - 1) === ConditionsApi.colonCharCode) {
+      conditionType = str.slice(0, i - 1);
+      str = str.slice(i + 1).trim();
     } else {
       conditionType = '';
     }
-    conditionType = exports.typeFromAbbr(conditionType);
+    conditionType = ConditionsApi.typeFromAbbr(conditionType);
     if (!conditionType) {
       return null;
     }
-    condition = {
+    const condition: Condition = {
       conditionType: conditionType
     };
-    fromStr = exports._handler(condition.conditionType).fromStr;
+    const fromStr = ConditionsApi._handler(condition.conditionType).fromStr;
     if (fromStr) {
-      return fromStr.call(exports, str, condition);
+      return fromStr.call(ConditionsApi, str, condition);
     } else {
       condition.pattern = str;
       return condition;
     }
   },
   _abbrs: null,
-  typeFromAbbr: function(abbr) {
-    var ab, abbrs, j, len, ref1, type;
-    if (!exports._abbrs) {
-      exports._abbrs = {};
-      ref1 = exports._conditionTypes;
-      for (type in ref1) {
+  typeFromAbbr(abbr) {
+    if (!ConditionsApi._abbrs) {
+      ConditionsApi._abbrs = {};
+      const ref1 = ConditionsApi._conditionTypes;
+      for (const type in ref1) {
         if (!hasProp.call(ref1, type)) continue;
-        abbrs = ref1[type].abbrs;
-        exports._abbrs[type.toUpperCase()] = type;
-        for (j = 0, len = abbrs.length; j < len; j++) {
-          ab = abbrs[j];
-          exports._abbrs[ab.toUpperCase()] = type;
+        const abbrs = ref1[type].abbrs;
+        ConditionsApi._abbrs[type.toUpperCase()] = type;
+        for (const ab of abbrs) {
+          ConditionsApi._abbrs[ab.toUpperCase()] = type;
         }
       }
     }
-    return exports._abbrs[abbr.toUpperCase()];
+    return ConditionsApi._abbrs[abbr.toUpperCase()];
   },
-  comment: function(comment, node) {
-    var base;
+  comment(comment, node) {
     if (!comment) {
       return node;
     }
@@ -130,15 +125,15 @@ module.exports = exports = {
       node.start = {};
     }
     Object.defineProperty(node.start, '_comments_dumped', {
-      get: function() {
+      get() {
         return false;
       },
-      set: function() {
+      set() {
         return false;
       }
     });
-    if ((base = node.start).comments_before == null) {
-      base.comments_before = [];
+    if (node.start.comments_before == null) {
+      node.start.comments_before = [];
     }
     node.start.comments_before.push({
       type: 'comment2',
@@ -146,18 +141,16 @@ module.exports = exports = {
     });
     return node;
   },
-  safeRegex: function(expr) {
-    var _;
+  safeRegex(expr) {
     try {
       return new RegExp(expr);
     } catch (error) {
-      _ = error;
       return /(?!)/;
     }
   },
-  regTest: function(expr, regexp) {
+  regTest(expr, regexp) {
     if (typeof regexp === 'string') {
-      regexp = exports.safeRegex(escapeSlash(regexp));
+      regexp = ConditionsApi.safeRegex(escapeSlash(regexp));
     }
     if (typeof expr === 'string') {
       expr = new U2.AST_SymbolRef({
@@ -174,38 +167,37 @@ module.exports = exports = {
       })
     });
   },
-  isInt: function(num) {
+  isInt(num) {
     return typeof num === 'number' && !isNaN(num) && parseFloat(String(num)) === parseInt(String(num), 10);
   },
-  between: function(val, min, max, comment) {
-    var pos, str, tmpl;
+  between(val, min, max, comment) {
     if (min === max) {
       if (typeof min === 'number') {
         min = new U2.AST_Number({
           value: min
         });
       }
-      return exports.comment(comment, new U2.AST_Binary({
+      return ConditionsApi.comment(comment, new U2.AST_Binary({
         left: val,
         operator: '===',
         right: min
       }));
     }
     if (min > max) {
-      return exports.comment(comment, new U2.AST_False);
+      return ConditionsApi.comment(comment, new U2.AST_False);
     }
-    if (exports.isInt(min) && exports.isInt(max) && max - min < 32) {
+    if (ConditionsApi.isInt(min) && ConditionsApi.isInt(max) && max - min < 32) {
       comment || (comment = min + " <= value && value <= " + max);
-      tmpl = "0123456789abcdefghijklmnopqrstuvwxyz";
-      str = max < tmpl.length ? tmpl.substr(min, max - min + 1) : tmpl.substr(0, max - min + 1);
-      pos = min === 0 ? val : new U2.AST_Binary({
+      const tmpl = "0123456789abcdefghijklmnopqrstuvwxyz";
+      const str = max < tmpl.length ? tmpl.slice(min, max + 1) : tmpl.slice(0, max - min + 1);
+      const pos = min === 0 ? val : new U2.AST_Binary({
         left: val,
         operator: '-',
         right: new U2.AST_Number({
           value: min
         })
       });
-      return exports.comment(comment, new U2.AST_Binary({
+      return ConditionsApi.comment(comment, new U2.AST_Binary({
         left: new U2.AST_Call({
           expression: new U2.AST_Dot({
             expression: new U2.AST_String({
@@ -231,7 +223,7 @@ module.exports = exports = {
         value: max
       });
     }
-    return exports.comment(comment, new U2.AST_Call({
+    return ConditionsApi.comment(comment, new U2.AST_Call({
       args: [val, min, max],
       expression: new U2.AST_Function({
         argnames: [
@@ -271,12 +263,11 @@ module.exports = exports = {
       })
     }));
   },
-  parseIp: function(ip) {
-    var addr;
+  parseIp(ip) {
     if (ip.charCodeAt(0) === '['.charCodeAt(0)) {
-      ip = ip.substr(1, ip.length - 2);
+      ip = ip.slice(1, -1);
     }
-    addr = new IP.v4.Address(ip);
+    let addr = new IP.v4.Address(ip);
     if (!addr.isValid()) {
       addr = new IP.v6.Address(ip);
       if (!addr.isValid()) {
@@ -285,35 +276,33 @@ module.exports = exports = {
     }
     return addr;
   },
-  normalizeIp: function(addr) {
-    var ref1;
-    return ((ref1 = addr.correctForm) != null ? ref1 : addr.canonicalForm).call(addr);
+  normalizeIp(addr) {
+    return (addr.correctForm != null ? addr.correctForm : addr.canonicalForm).call(addr);
   },
   ipv6Max: new IP.v6.Address('::/0').endAddress().canonicalForm(),
   localHosts: ["127.0.0.1", "[::1]", "localhost"],
-  getWeekdayList: function(condition) {
-    var i, j, k, results, results1;
+  getWeekdayList(condition) {
     if (condition.days) {
-      results = [];
-      for (i = j = 0; j < 7; i = ++j) {
+      const results = [];
+      for (let i = 0; i < 7; i++) {
         results.push(condition.days.charCodeAt(i) > 64);
       }
       return results;
     } else {
-      results1 = [];
-      for (i = k = 0; k < 7; i = ++k) {
+      const results1 = [];
+      for (let i = 0; i < 7; i++) {
         results1.push((condition.startDay <= i && i <= condition.endDay));
       }
       return results1;
     }
   },
-  _condCache: new AttachedCache(function(condition) {
-    var result, tag;
-    tag = exports._handler(condition.conditionType).tag;
-    result = tag ? tag.apply(exports, arguments) : exports.str(condition);
-    return condition.conditionType + '$' + result;
+  _condCache: new AttachedCache((condition) => {
+    const typedCondition = condition as Condition;
+    const tag = ConditionsApi._handler(typedCondition.conditionType).tag;
+    const result = tag ? tag.call(ConditionsApi, typedCondition) : ConditionsApi.str(typedCondition);
+    return typedCondition.conditionType + '$' + result;
   }),
-  _setProp: function(obj, prop, value) {
+  _setProp(obj, prop, value) {
     if (!Object.prototype.hasOwnProperty.call(obj, prop)) {
       Object.defineProperty(obj, prop, {
         writable: true
@@ -321,12 +310,11 @@ module.exports = exports = {
     }
     return obj[prop] = value;
   },
-  _handler: function(conditionType) {
-    var handler;
+  _handler(conditionType) {
     if (typeof conditionType !== 'string') {
       conditionType = conditionType.conditionType;
     }
-    handler = exports._conditionTypes[conditionType];
+    const handler = ConditionsApi._conditionTypes[conditionType];
     if (handler == null) {
       throw new Error("Unknown condition type: " + conditionType);
     }
@@ -335,34 +323,34 @@ module.exports = exports = {
   _conditionTypes: {
     'TrueCondition': {
       abbrs: ['True'],
-      analyze: function(condition) {
+      analyze(condition) {
         return null;
       },
-      match: function() {
+      match() {
         return true;
       },
-      compile: function(condition) {
+      compile(condition) {
         return new U2.AST_True;
       },
-      str: function(condition) {
+      str(condition) {
         return '';
       },
-      fromStr: function(str, condition) {
+      fromStr(str, condition) {
         return condition;
       }
     },
     'FalseCondition': {
       abbrs: ['False', 'Disabled'],
-      analyze: function(condition) {
+      analyze(condition) {
         return null;
       },
-      match: function() {
+      match() {
         return false;
       },
-      compile: function(condition) {
+      compile(condition) {
         return new U2.AST_False;
       },
-      fromStr: function(str, condition) {
+      fromStr(str, condition) {
         if (str.length > 0) {
           condition.pattern = str;
         }
@@ -371,113 +359,99 @@ module.exports = exports = {
     },
     'UrlRegexCondition': {
       abbrs: ['UR', 'URegex', 'UrlR', 'UrlRegex'],
-      analyze: function(condition) {
+      analyze(condition) {
         return this.safeRegex(escapeSlash(condition.pattern));
       },
-      match: function(condition, request, cache) {
+      match(condition, request, cache) {
         return cache.analyzed.test(request.url);
       },
-      compile: function(condition, cache) {
+      compile(condition, cache) {
         return this.regTest('url', cache.analyzed);
       }
     },
     'UrlWildcardCondition': {
       abbrs: ['U', 'UW', 'Url', 'UrlW', 'UWild', 'UWildcard', 'UrlWild', 'UrlWildcard'],
-      analyze: function(condition) {
-        var parts, pattern;
-        parts = (function() {
-          var j, len, ref1, results;
-          ref1 = condition.pattern.split('|');
-          results = [];
-          for (j = 0, len = ref1.length; j < len; j++) {
-            pattern = ref1[j];
-            if (pattern) {
-              results.push(shExp2RegExp(pattern, {
-                trimAsterisk: true
-              }));
-            }
+      analyze(condition) {
+        const parts = [];
+        for (const pattern of condition.pattern.split('|')) {
+          if (pattern) {
+            parts.push(shExp2RegExp(pattern, {
+              trimAsterisk: true
+            }));
           }
-          return results;
-        })();
+        }
         return this.safeRegex(parts.join('|'));
       },
-      match: function(condition, request, cache) {
+      match(condition, request, cache) {
         return cache.analyzed.test(request.url);
       },
-      compile: function(condition, cache) {
+      compile(condition, cache) {
         return this.regTest('url', cache.analyzed);
       }
     },
     'HostRegexCondition': {
       abbrs: ['R', 'HR', 'Regex', 'HostR', 'HRegex', 'HostRegex'],
-      analyze: function(condition) {
+      analyze(condition) {
         return this.safeRegex(escapeSlash(condition.pattern));
       },
-      match: function(condition, request, cache) {
+      match(condition, request, cache) {
         return cache.analyzed.test(request.host);
       },
-      compile: function(condition, cache) {
+      compile(condition, cache) {
         return this.regTest('host', cache.analyzed);
       }
     },
     'HostWildcardCondition': {
       abbrs: ['', 'H', 'W', 'HW', 'Wild', 'Wildcard', 'Host', 'HostW', 'HWild', 'HWildcard', 'HostWild', 'HostWildcard'],
-      analyze: function(condition) {
-        var parts, pattern;
-        parts = (function() {
-          var j, len, ref1, results;
-          ref1 = condition.pattern.split('|');
-          results = [];
-          for (j = 0, len = ref1.length; j < len; j++) {
-            pattern = ref1[j];
-            if (!(pattern)) {
-              continue;
-            }
-            if (pattern.charCodeAt(0) === '.'.charCodeAt(0)) {
-              pattern = '*' + pattern;
-            }
-            if (pattern.indexOf('**.') === 0) {
-              results.push(shExp2RegExp(pattern.substring(1), {
-                trimAsterisk: true
-              }));
-            } else if (pattern.indexOf('*.') === 0) {
-              results.push(shExp2RegExp(pattern.substring(2), {
-                trimAsterisk: false
-              }).replace(/./, '(?:^|\\.)').replace(/\.\*\$$/, ''));
-            } else {
-              results.push(shExp2RegExp(pattern, {
-                trimAsterisk: true
-              }));
-            }
+      analyze(condition) {
+        const parts = [];
+        for (let pattern of condition.pattern.split('|')) {
+          if (!(pattern)) {
+            continue;
           }
-          return results;
-        })();
+          if (pattern.charCodeAt(0) === '.'.charCodeAt(0)) {
+            pattern = '*' + pattern;
+          }
+          if (pattern.indexOf('**.') === 0) {
+            parts.push(shExp2RegExp(pattern.substring(1), {
+              trimAsterisk: true
+            }));
+          } else if (pattern.indexOf('*.') === 0) {
+            parts.push(shExp2RegExp(pattern.substring(2), {
+              trimAsterisk: false
+            }).replace(/./, '(?:^|\\.)').replace(/\.\*\$$/, ''));
+          } else {
+            parts.push(shExp2RegExp(pattern, {
+              trimAsterisk: true
+            }));
+          }
+        }
         return this.safeRegex(parts.join('|'));
       },
-      match: function(condition, request, cache) {
+      match(condition, request, cache) {
         return cache.analyzed.test(request.host);
       },
-      compile: function(condition, cache) {
+      compile(condition, cache) {
         return this.regTest('host', cache.analyzed);
       }
     },
     'BypassCondition': {
       abbrs: ['B', 'Bypass'],
-      analyze: function(condition) {
-        var addr, cache, matchPort, parts, pos, prefixLen, ref1, scheme, server, serverIp, serverRegex;
-        cache = {
+      analyze(condition) {
+        const cache = {
           host: null,
           ip: null,
+          port: null,
           scheme: null,
           url: null,
           normalizedPattern: ''
         };
-        server = condition.pattern;
+        let server = condition.pattern;
         if (server === '<local>') {
           cache.host = server;
           return cache;
         }
-        parts = server.split('://');
+        let parts = server.split('://');
         if (parts.length > 1) {
           cache.scheme = parts[0];
           cache.normalizedPattern = cache.scheme + '://';
@@ -485,8 +459,8 @@ module.exports = exports = {
         }
         parts = server.split('/');
         if (parts.length > 1) {
-          addr = this.parseIp(parts[0]);
-          prefixLen = parseInt(parts[1]);
+          const addr = this.parseIp(parts[0]);
+          const prefixLen = parseInt(parts[1]);
           if (addr && !isNaN(prefixLen)) {
             cache.ip = {
               conditionType: 'IpCondition',
@@ -497,9 +471,10 @@ module.exports = exports = {
             return cache;
           }
         }
-        serverIp = this.parseIp(server);
+        let serverIp = this.parseIp(server);
+        let matchPort;
         if (serverIp == null) {
-          pos = server.lastIndexOf(':');
+          const pos = server.lastIndexOf(':');
           if (pos >= 0) {
             matchPort = server.substring(pos + 1);
             server = server.substring(0, pos);
@@ -525,19 +500,19 @@ module.exports = exports = {
           if ((serverIp != null) && !serverIp.v4) {
             server = '[' + server + ']';
           }
-          serverRegex = shExp2RegExp(server);
+          let serverRegex = shExp2RegExp(server);
           serverRegex = serverRegex.substring(1, serverRegex.length - 1);
-          scheme = (ref1 = cache.scheme) != null ? ref1 : '[^:]+';
+          const scheme = cache.scheme != null ? cache.scheme : '[^:]+';
           cache.url = this.safeRegex('^' + scheme + ':\\/\\/' + serverRegex + ':' + matchPort + '\\/');
         } else if (server !== '*') {
-          serverRegex = shExp2RegExp(server, {
+          const serverRegex = shExp2RegExp(server, {
             trimAsterisk: true
           });
           cache.host = this.safeRegex(serverRegex);
         }
         return cache;
       },
-      match: function(condition, request, cache) {
+      match(condition, request, cache) {
         cache = cache.analyzed;
         if ((cache.scheme != null) && cache.scheme !== request.scheme) {
           return false;
@@ -559,25 +534,23 @@ module.exports = exports = {
         }
         return true;
       },
-      str: function(condition) {
-        var analyze, cache;
-        analyze = this._handler(condition).analyze;
-        cache = analyze.call(exports, condition);
+      str(condition) {
+        const analyze = this._handler(condition).analyze;
+        const cache = analyze.call(ConditionsApi, condition);
         if (cache.normalizedPattern) {
           return cache.normalizedPattern;
         } else {
           return condition.pattern;
         }
       },
-      compile: function(condition, cache) {
-        var conditions, hostEquals;
+      compile(condition, cache) {
         cache = cache.analyzed;
         if (cache.url != null) {
           return this.regTest('url', cache.url);
         }
-        conditions = [];
+        const conditions = [];
         if (cache.host === '<local>') {
-          hostEquals = function(host) {
+          const hostEquals = (host) => {
             return new U2.AST_Binary({
               left: new U2.AST_SymbolRef({
                 name: 'host'
@@ -648,13 +621,13 @@ module.exports = exports = {
     },
     'KeywordCondition': {
       abbrs: ['K', 'KW', 'Keyword'],
-      analyze: function(condition) {
+      analyze(condition) {
         return null;
       },
-      match: function(condition, request) {
+      match(condition, request) {
         return request.scheme === 'http' && request.url.indexOf(condition.pattern) >= 0;
       },
-      compile: function(condition) {
+      compile(condition) {
         return new U2.AST_Binary({
           left: new U2.AST_Binary({
             left: new U2.AST_SymbolRef({
@@ -690,29 +663,28 @@ module.exports = exports = {
     },
     'IpCondition': {
       abbrs: ['Ip'],
-      analyze: function(condition) {
-        var addr, cache, ip, mask;
-        cache = {
+      analyze(condition) {
+        const cache = {
           addr: null,
+          mask: null,
           normalized: null
         };
-        ip = condition.ip;
+        let ip = condition.ip;
         if (ip.charCodeAt(0) === '['.charCodeAt(0)) {
-          ip = ip.substr(1, ip.length - 2);
+          ip = ip.slice(1, -1);
         }
-        addr = ip + '/' + condition.prefixLength;
+        const addr = ip + '/' + condition.prefixLength;
         cache.addr = this.parseIp(addr);
         if (cache.addr == null) {
           throw new Error("Invalid IP address " + addr);
         }
         cache.normalized = this.normalizeIp(cache.addr);
-        mask = cache.addr.v4 ? new IP.v4.Address('255.255.255.255/' + cache.addr.subnetMask) : new IP.v6.Address(this.ipv6Max + '/' + cache.addr.subnetMask);
+        const mask = cache.addr.v4 ? new IP.v4.Address('255.255.255.255/' + cache.addr.subnetMask) : new IP.v6.Address(this.ipv6Max + '/' + cache.addr.subnetMask);
         cache.mask = this.normalizeIp(mask.startAddress());
         return cache;
       },
-      match: function(condition, request, cache) {
-        var addr;
-        addr = this.parseIp(request.host);
+      match(condition, request, cache) {
+        const addr = this.parseIp(request.host);
         if (addr == null) {
           return false;
         }
@@ -722,10 +694,9 @@ module.exports = exports = {
         }
         return addr.isInSubnet(cache.addr);
       },
-      compile: function(condition, cache) {
-        var hostIsInNet, hostIsInNetEx, hostLooksLikeIp;
+      compile(condition, cache) {
         cache = cache.analyzed;
-        hostLooksLikeIp = cache.addr.v4 ? new U2.AST_Binary({
+        const hostLooksLikeIp = cache.addr.v4 ? new U2.AST_Binary({
           left: new U2.AST_Sub({
             expression: new U2.AST_SymbolRef({
               name: 'host'
@@ -769,7 +740,7 @@ module.exports = exports = {
         if (cache.addr.subnetMask === 0) {
           return hostLooksLikeIp;
         }
-        hostIsInNet = new U2.AST_Call({
+        let hostIsInNet = new U2.AST_Call({
           expression: new U2.AST_SymbolRef({
             name: 'isInNet'
           }),
@@ -784,7 +755,7 @@ module.exports = exports = {
           ]
         });
         if (!cache.addr.v4) {
-          hostIsInNetEx = new U2.AST_Call({
+          const hostIsInNetEx = new U2.AST_Call({
             expression: new U2.AST_SymbolRef({
               name: 'isInNetEx'
             }),
@@ -819,12 +790,11 @@ module.exports = exports = {
           right: hostIsInNet
         });
       },
-      str: function(condition) {
+      str(condition) {
         return condition.ip + '/' + condition.prefixLength;
       },
-      fromStr: function(str, condition) {
-        var addr;
-        addr = this.parseIp(str);
+      fromStr(str, condition) {
+        const addr = this.parseIp(str);
         if (addr != null) {
           condition.ip = addr.addressMinusSuffix;
           condition.prefixLength = addr.subnetMask;
@@ -837,14 +807,13 @@ module.exports = exports = {
     },
     'HostLevelsCondition': {
       abbrs: ['Lv', 'Level', 'Levels', 'HL', 'HLv', 'HLevel', 'HLevels', 'HostL', 'HostLv', 'HostLevel', 'HostLevels'],
-      analyze: function(condition) {
+      analyze(condition) {
         return '.'.charCodeAt(0);
       },
-      match: function(condition, request, cache) {
-        var dotCharCode, dotCount, i, j, ref1;
-        dotCharCode = cache.analyzed;
-        dotCount = 0;
-        for (i = j = 0, ref1 = request.host.length; 0 <= ref1 ? j < ref1 : j > ref1; i = 0 <= ref1 ? ++j : --j) {
+      match(condition, request, cache) {
+        const dotCharCode = cache.analyzed;
+        let dotCount = 0;
+        for (let i = 0; i < request.host.length; i++) {
           if (request.host.charCodeAt(i) === dotCharCode) {
             dotCount++;
             if (dotCount > condition.maxValue) {
@@ -854,9 +823,8 @@ module.exports = exports = {
         }
         return dotCount >= condition.minValue;
       },
-      compile: function(condition) {
-        var val;
-        val = new U2.AST_Dot({
+      compile(condition) {
+        const val = new U2.AST_Dot({
           property: 'length',
           expression: new U2.AST_Call({
             args: [
@@ -874,12 +842,11 @@ module.exports = exports = {
         });
         return this.between(val, condition.minValue + 1, condition.maxValue + 1, condition.minValue + " <= hostLevels <= " + condition.maxValue);
       },
-      str: function(condition) {
+      str(condition) {
         return condition.minValue + '~' + condition.maxValue;
       },
-      fromStr: function(str, condition) {
-        var maxValue, minValue, ref1;
-        ref1 = str.split('~'), minValue = ref1[0], maxValue = ref1[1];
+      fromStr(str, condition) {
+        const [minValue, maxValue] = str.split('~');
         condition.minValue = parseInt(minValue, 10);
         condition.maxValue = parseInt(maxValue, 10);
         if (!(condition.minValue > 0)) {
@@ -893,20 +860,18 @@ module.exports = exports = {
     },
     'WeekdayCondition': {
       abbrs: ['WD', 'Week', 'Day', 'Weekday'],
-      analyze: function(condition) {
+      analyze(condition) {
         return null;
       },
-      match: function(condition, request) {
-        var day;
-        day = new Date().getDay();
+      match(condition, request) {
+        const day = new Date().getDay();
         if (condition.days) {
           return condition.days.charCodeAt(day) > 64;
         }
         return condition.startDay <= day && day <= condition.endDay;
       },
-      compile: function(condition) {
-        var getDay;
-        getDay = new U2.AST_Call({
+      compile(condition) {
+        const getDay = new U2.AST_Call({
           args: [],
           expression: new U2.AST_Dot({
             property: 'getDay',
@@ -938,25 +903,24 @@ module.exports = exports = {
           return this.between(getDay, condition.startDay, condition.endDay);
         }
       },
-      str: function(condition) {
+      str(condition) {
         if (condition.days) {
           return condition.days;
         } else {
           return condition.startDay + '~' + condition.endDay;
         }
       },
-      fromStr: function(str, condition) {
-        var endDay, ref1, ref2, ref3, startDay;
+      fromStr(str, condition) {
         if (str.indexOf('~') < 0 && str.length === 7) {
           condition.days = str;
         } else {
-          ref1 = str.split('~'), startDay = ref1[0], endDay = ref1[1];
+          const [startDay, endDay] = str.split('~');
           condition.startDay = parseInt(startDay, 10);
           condition.endDay = parseInt(endDay, 10);
-          if (!((0 <= (ref2 = condition.startDay) && ref2 <= 6))) {
+          if (!((0 <= condition.startDay && condition.startDay <= 6))) {
             condition.startDay = 0;
           }
-          if (!((0 <= (ref3 = condition.endDay) && ref3 <= 6))) {
+          if (!((0 <= condition.endDay && condition.endDay <= 6))) {
             condition.endDay = 0;
           }
         }
@@ -965,17 +929,15 @@ module.exports = exports = {
     },
     'TimeCondition': {
       abbrs: ['T', 'Time', 'Hour'],
-      analyze: function(condition) {
+      analyze(condition) {
         return null;
       },
-      match: function(condition, request) {
-        var hour;
-        hour = new Date().getHours();
+      match(condition, request) {
+        const hour = new Date().getHours();
         return condition.startHour <= hour && hour <= condition.endHour;
       },
-      compile: function(condition) {
-        var val;
-        val = new U2.AST_Call({
+      compile(condition) {
+        const val = new U2.AST_Call({
           args: [],
           expression: new U2.AST_Dot({
             property: 'getHours',
@@ -989,18 +951,17 @@ module.exports = exports = {
         });
         return this.between(val, condition.startHour, condition.endHour);
       },
-      str: function(condition) {
+      str(condition) {
         return condition.startHour + '~' + condition.endHour;
       },
-      fromStr: function(str, condition) {
-        var endHour, ref1, ref2, ref3, startHour;
-        ref1 = str.split('~'), startHour = ref1[0], endHour = ref1[1];
+      fromStr(str, condition) {
+        const [startHour, endHour] = str.split('~');
         condition.startHour = parseInt(startHour, 10);
         condition.endHour = parseInt(endHour, 10);
-        if (!((0 <= (ref2 = condition.startHour) && ref2 < 24))) {
+        if (!((0 <= condition.startHour && condition.startHour < 24))) {
           condition.startHour = 0;
         }
-        if (!((0 <= (ref3 = condition.endHour) && ref3 < 24))) {
+        if (!((0 <= condition.endHour && condition.endHour < 24))) {
           condition.endHour = 0;
         }
         return condition;
@@ -1008,3 +969,5 @@ module.exports = exports = {
     }
   }
 };
+
+export = ConditionsApi;

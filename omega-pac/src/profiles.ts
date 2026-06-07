@@ -1,34 +1,43 @@
-var AST_Raw, AttachedCache, Conditions, Revision, RuleList, ShexpUtils, U2, ref1,
-  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-  hasProp = {}.hasOwnProperty;
+import type {
+  Condition,
+  OptionsMap,
+  PacRequest,
+  Profile,
+  ProfileMatchResult,
+  ProxyServer,
+  ReferenceSet,
+  ReferenceSetOptions
+} from './types';
 
-U2 = require('../uglifyjs-shim');
+const U2 = require('./uglifyjs_shim');
+const ShexpUtils = require('./shexp_utils');
+const Conditions = require('./conditions');
+const RuleList = require('./rule_list');
+const hasProp = Object.prototype.hasOwnProperty;
 
-ShexpUtils = require('./shexp_utils');
+const {AttachedCache, Revision} = require('./utils') as typeof import('./utils');
 
-Conditions = require('./conditions');
+type ProfileCache = {
+  analyzed?: unknown;
+  compiled?: unknown;
+  directReferenceSet?: ReferenceSet;
+  [key: string]: unknown;
+};
 
-RuleList = require('./rule_list');
+class AST_Raw extends U2.AST_SymbolRef {
+  aborts: () => boolean;
 
-ref1 = require('./utils'), AttachedCache = ref1.AttachedCache, Revision = ref1.Revision;
-
-AST_Raw = (function(superClass) {
-  extend(AST_Raw, superClass);
-
-  function AST_Raw(raw) {
-    U2.AST_SymbolRef.call(this, {
+  constructor(raw) {
+    super({
       name: raw
     });
-    this.aborts = function() {
+    this.aborts = () => {
       return false;
     };
   }
+}
 
-  return AST_Raw;
-
-})(U2.AST_SymbolRef);
-
-module.exports = exports = {
+const ProfilesApi = {
   builtinProfiles: {
     '+direct': {
       name: 'direct',
@@ -69,14 +78,13 @@ module.exports = exports = {
     'AutoProxyRuleListProfile': 'AutoProxy'
   },
   ruleListFormats: ['Switchy', 'AutoProxy'],
-  parseHostPort: function(str, scheme) {
-    var host, port, sep;
-    sep = str.lastIndexOf(':');
+  parseHostPort(str: string, scheme: string): ProxyServer | undefined {
+    const sep = str.lastIndexOf(':');
     if (sep < 0) {
       return;
     }
-    port = parseInt(str.substr(sep + 1)) || 80;
-    host = str.substr(0, sep);
+    const port = parseInt(str.slice(sep + 1)) || 80;
+    const host = str.slice(0, sep);
     if (!host) {
       return;
     }
@@ -86,54 +94,50 @@ module.exports = exports = {
       port: port
     };
   },
-  pacResult: function(proxy) {
+  pacResult(proxy?: ProxyServer | null): string {
     if (proxy) {
       if (proxy.scheme === 'socks5') {
         return "SOCKS5 " + proxy.host + ":" + proxy.port + "; SOCKS " + proxy.host + ":" + proxy.port;
       } else {
-        return exports.pacProtocols[proxy.scheme] + " " + proxy.host + ":" + proxy.port;
+        return ProfilesApi.pacProtocols[proxy.scheme] + " " + proxy.host + ":" + proxy.port;
       }
     } else {
       return 'DIRECT';
     }
   },
-  isFileUrl: function(url) {
-    return !!((url != null ? url.substr(0, 5).toUpperCase() : void 0) === 'FILE:');
+  isFileUrl(url?: string | null): boolean {
+    return !!((url != null ? url.slice(0, 5).toUpperCase() : void 0) === 'FILE:');
   },
-  nameAsKey: function(profileName) {
+  nameAsKey(profileName: string | Profile): string {
     if (typeof profileName !== 'string') {
       profileName = profileName.name;
     }
     return '+' + profileName;
   },
-  byName: function(profileName, options) {
-    var key, ref2;
+  byName(profileName: string | Profile, options?: OptionsMap): Profile | undefined {
     if (typeof profileName === 'string') {
-      key = exports.nameAsKey(profileName);
-      profileName = (ref2 = exports.builtinProfiles[key]) != null ? ref2 : options[key];
+      const key = ProfilesApi.nameAsKey(profileName);
+      profileName = ProfilesApi.builtinProfiles[key] != null ? ProfilesApi.builtinProfiles[key] : options != null ? options[key] : void 0;
     }
-    return profileName;
+    return profileName as Profile | undefined;
   },
-  byKey: function(key, options) {
-    var ref2;
+  byKey(key: string | Profile, options?: OptionsMap): Profile | undefined {
     if (typeof key === 'string') {
-      key = (ref2 = exports.builtinProfiles[key]) != null ? ref2 : options[key];
+      key = ProfilesApi.builtinProfiles[key] != null ? ProfilesApi.builtinProfiles[key] : options != null ? options[key] : void 0;
     }
-    return key;
+    return key as Profile | undefined;
   },
-  each: function(options, callback) {
-    var charCodePlus, key, profile, ref2, results;
-    charCodePlus = '+'.charCodeAt(0);
-    for (key in options) {
-      profile = options[key];
+  each(options: OptionsMap, callback: (key: string, profile: Profile) => unknown) {
+    const charCodePlus = '+'.charCodeAt(0);
+    for (const key in options) {
+      const profile = options[key] as Profile;
       if (key.charCodeAt(0) === charCodePlus) {
         callback(key, profile);
       }
     }
-    ref2 = exports.builtinProfiles;
-    results = [];
-    for (key in ref2) {
-      profile = ref2[key];
+    const results = [];
+    for (const key in ProfilesApi.builtinProfiles) {
+      const profile = ProfilesApi.builtinProfiles[key];
       if (key.charCodeAt(0) === charCodePlus) {
         results.push(callback(key, profile));
       } else {
@@ -142,43 +146,40 @@ module.exports = exports = {
     }
     return results;
   },
-  profileResult: function(profileName) {
-    var key;
-    key = exports.nameAsKey(profileName);
+  profileResult(profileName: string | Profile) {
+    let key = ProfilesApi.nameAsKey(profileName);
     if (key === '+direct') {
-      key = exports.pacResult();
+      key = ProfilesApi.pacResult();
     }
     return new U2.AST_String({
       value: key
     });
   },
-  isIncludable: function(profile) {
-    var includable;
-    includable = exports._handler(profile).includable;
+  isIncludable(profile: Profile): boolean {
+    let includable = ProfilesApi._handler(profile).includable;
     if (typeof includable === 'function') {
-      includable = includable.call(exports, profile);
+      includable = includable.call(ProfilesApi, profile);
     }
     return !!includable;
   },
-  isInclusive: function(profile) {
-    return !!exports._handler(profile).inclusive;
+  isInclusive(profile: Profile): boolean {
+    return !!ProfilesApi._handler(profile).inclusive;
   },
-  updateUrl: function(profile) {
-    var ref2;
-    return (ref2 = exports._handler(profile).updateUrl) != null ? ref2.call(exports, profile) : void 0;
+  updateUrl(profile: Profile) {
+    const updateUrl = ProfilesApi._handler(profile).updateUrl;
+    return updateUrl != null ? updateUrl.call(ProfilesApi, profile) : void 0;
   },
-  updateContentTypeHints: function(profile) {
-    var ref2;
-    return (ref2 = exports._handler(profile).updateContentTypeHints) != null ? ref2.call(exports, profile) : void 0;
+  updateContentTypeHints(profile: Profile) {
+    const updateContentTypeHints = ProfilesApi._handler(profile).updateContentTypeHints;
+    return updateContentTypeHints != null ? updateContentTypeHints.call(ProfilesApi, profile) : void 0;
   },
-  update: function(profile, data) {
-    return exports._handler(profile).update.call(exports, profile, data);
+  update(profile: Profile, data: unknown): boolean {
+    return ProfilesApi._handler(profile).update.call(ProfilesApi, profile, data);
   },
-  tag: function(profile) {
-    return exports._profileCache.tag(profile);
+  tag(profile: Profile) {
+    return ProfilesApi._profileCache.tag(profile);
   },
-  create: function(profile, opt_profileType) {
-    var create;
+  create(profile: string | Profile, opt_profileType?: string): Profile {
     if (typeof profile === 'string') {
       profile = {
         name: profile,
@@ -187,53 +188,50 @@ module.exports = exports = {
     } else if (opt_profileType) {
       profile.profileType = opt_profileType;
     }
-    create = exports._handler(profile).create;
+    const create = ProfilesApi._handler(profile).create;
     if (!create) {
       return profile;
     }
-    create.call(exports, profile);
-    return profile;
+    create.call(ProfilesApi, profile);
+    return profile as Profile;
   },
-  updateRevision: function(profile, revision) {
+  updateRevision(profile: Profile, revision?: string): string {
     if (revision == null) {
       revision = Revision.fromTime();
     }
     return profile.revision = revision;
   },
-  replaceRef: function(profile, fromName, toName) {
-    var handler;
-    if (!exports.isInclusive(profile)) {
+  replaceRef(profile: Profile, fromName: string, toName: string): boolean {
+    if (!ProfilesApi.isInclusive(profile)) {
       return false;
     }
-    handler = exports._handler(profile);
-    return handler.replaceRef.call(exports, profile, fromName, toName);
+    const handler = ProfilesApi._handler(profile);
+    return handler.replaceRef.call(ProfilesApi, profile, fromName, toName);
   },
-  analyze: function(profile) {
-    var analyze, cache, result;
-    cache = exports._profileCache.get(profile, {});
+  analyze(profile: Profile) {
+    const cache = ProfilesApi._profileCache.get(profile, {}) as ProfileCache;
     if (!Object.prototype.hasOwnProperty.call(cache, 'analyzed')) {
-      analyze = exports._handler(profile).analyze;
-      result = analyze != null ? analyze.call(exports, profile) : void 0;
+      const analyze = ProfilesApi._handler(profile).analyze;
+      const result = analyze != null ? analyze.call(ProfilesApi, profile) : void 0;
       cache.analyzed = result;
     }
     return cache;
   },
-  dropCache: function(profile) {
-    return exports._profileCache.drop(profile);
+  dropCache(profile) {
+    return ProfilesApi._profileCache.drop(profile);
   },
-  directReferenceSet: function(profile) {
-    var cache, handler;
-    if (!exports.isInclusive(profile)) {
+  directReferenceSet(profile: Profile): ReferenceSet {
+    if (!ProfilesApi.isInclusive(profile)) {
       return {};
     }
-    cache = exports._profileCache.get(profile, {});
+    const cache = ProfilesApi._profileCache.get(profile, {}) as ProfileCache;
     if (cache.directReferenceSet) {
       return cache.directReferenceSet;
     }
-    handler = exports._handler(profile);
-    return cache.directReferenceSet = handler.directReferenceSet.call(exports, profile);
+    const handler = ProfilesApi._handler(profile);
+    return cache.directReferenceSet = handler.directReferenceSet.call(ProfilesApi, profile);
   },
-  profileNotFound: function(name, action) {
+  profileNotFound(name, action) {
     if (action == null) {
       throw new Error("Profile " + name + " does not exist!");
     }
@@ -247,7 +245,7 @@ module.exports = exports = {
       case 'ignore':
         return null;
       case 'dumb':
-        return exports.create({
+        return ProfilesApi.create({
           name: name,
           profileType: 'VirtualProfile',
           defaultProfileName: 'direct'
@@ -255,24 +253,23 @@ module.exports = exports = {
     }
     throw action;
   },
-  allReferenceSet: function(profile, options, opt_args) {
-    var has_out, key, name, o_profile, ref2, result;
-    o_profile = profile;
-    profile = exports.byName(profile, options);
-    if (profile == null) {
-      profile = typeof exports.profileNotFound === "function" ? exports.profileNotFound(o_profile, opt_args.profileNotFound) : void 0;
-    }
+  allReferenceSet(profile: string | Profile, options: OptionsMap, opt_args?: ReferenceSetOptions): ReferenceSet {
+    const o_profile = profile;
     if (opt_args == null) {
       opt_args = {};
     }
-    has_out = opt_args.out != null;
-    result = opt_args.out != null ? opt_args.out : opt_args.out = {};
-    if (profile) {
-      result[exports.nameAsKey(profile.name)] = profile.name;
-      ref2 = exports.directReferenceSet(profile);
-      for (key in ref2) {
-        name = ref2[key];
-        exports.allReferenceSet(name, options, opt_args);
+    let resolvedProfile = ProfilesApi.byName(profile, options);
+    if (resolvedProfile == null) {
+      resolvedProfile = typeof ProfilesApi.profileNotFound === "function" ? ProfilesApi.profileNotFound(o_profile, opt_args.profileNotFound) : void 0;
+    }
+    const has_out = opt_args.out != null;
+    const result = opt_args.out != null ? opt_args.out : opt_args.out = {};
+    if (resolvedProfile) {
+      result[ProfilesApi.nameAsKey(resolvedProfile.name)] = resolvedProfile.name;
+      const ref2 = ProfilesApi.directReferenceSet(resolvedProfile);
+      for (const key in ref2) {
+        const name = ref2[key];
+        ProfilesApi.allReferenceSet(name, options, opt_args);
       }
     }
     if (!has_out) {
@@ -280,18 +277,17 @@ module.exports = exports = {
     }
     return result;
   },
-  referencedBySet: function(profile, options, opt_args) {
-    var has_out, profileKey, result;
-    profileKey = exports.nameAsKey(profile);
+  referencedBySet(profile: string | Profile, options: OptionsMap, opt_args?: ReferenceSetOptions): ReferenceSet {
+    const profileKey = ProfilesApi.nameAsKey(profile);
     if (opt_args == null) {
       opt_args = {};
     }
-    has_out = opt_args.out != null;
-    result = opt_args.out != null ? opt_args.out : opt_args.out = {};
-    exports.each(options, function(key, prof) {
-      if (exports.directReferenceSet(prof)[profileKey]) {
+    const has_out = opt_args.out != null;
+    const result = opt_args.out != null ? opt_args.out : opt_args.out = {};
+    ProfilesApi.each(options, (key, prof) => {
+      if (ProfilesApi.directReferenceSet(prof)[profileKey]) {
         result[key] = prof.name;
-        return exports.referencedBySet(prof, options, opt_args);
+        return ProfilesApi.referencedBySet(prof, options, opt_args);
       }
     });
     if (!has_out) {
@@ -299,55 +295,51 @@ module.exports = exports = {
     }
     return result;
   },
-  validResultProfilesFor: function(profile, options) {
-    var profileKey, ref, result;
-    profile = exports.byName(profile, options);
-    if (!exports.isInclusive(profile)) {
+  validResultProfilesFor(profile: string | Profile, options: OptionsMap): Profile[] {
+    profile = ProfilesApi.byName(profile, options);
+    if (!ProfilesApi.isInclusive(profile)) {
       return [];
     }
-    profileKey = exports.nameAsKey(profile);
-    ref = exports.referencedBySet(profile, options);
+    const profileKey = ProfilesApi.nameAsKey(profile);
+    const ref = ProfilesApi.referencedBySet(profile, options);
     ref[profileKey] = profileKey;
-    result = [];
-    exports.each(options, function(key, prof) {
-      if (!ref[key] && exports.isIncludable(prof)) {
+    const result = [];
+    ProfilesApi.each(options, (key, prof) => {
+      if (!ref[key] && ProfilesApi.isIncludable(prof)) {
         return result.push(prof);
       }
     });
     return result;
   },
-  match: function(profile, request, opt_profileType) {
-    var cache, match;
+  match(profile: Profile, request: PacRequest, opt_profileType?: string): ProfileMatchResult {
     if (opt_profileType == null) {
       opt_profileType = profile.profileType;
     }
-    cache = exports.analyze(profile);
-    match = exports._handler(opt_profileType).match;
-    return match != null ? match.call(exports, profile, request, cache) : void 0;
+    const cache = ProfilesApi.analyze(profile) as ProfileCache;
+    const match = ProfilesApi._handler(opt_profileType).match;
+    return match != null ? match.call(ProfilesApi, profile, request, cache) : void 0;
   },
-  compile: function(profile, opt_profileType) {
-    var cache, handler;
+  compile(profile: Profile, opt_profileType?: string) {
     if (opt_profileType == null) {
       opt_profileType = profile.profileType;
     }
-    cache = exports.analyze(profile);
+    const cache = ProfilesApi.analyze(profile);
     if (cache.compiled) {
       return cache.compiled;
     }
-    handler = exports._handler(opt_profileType);
-    return cache.compiled = handler.compile.call(exports, profile, cache);
+    const handler = ProfilesApi._handler(opt_profileType);
+    return cache.compiled = handler.compile.call(ProfilesApi, profile, cache);
   },
-  _profileCache: new AttachedCache(function(profile) {
+  _profileCache: new AttachedCache((profile) => {
     return profile.revision;
   }),
-  _handler: function(profileType) {
-    var handler;
+  _handler(profileType) {
     if (typeof profileType !== 'string') {
       profileType = profileType.profileType;
     }
-    handler = profileType;
+    let handler = profileType;
     while (typeof handler === 'string') {
-      handler = exports._profileTypes[handler];
+      handler = ProfilesApi._profileTypes[handler];
     }
     if (handler == null) {
       throw new Error("Unknown profile type: " + profileType);
@@ -356,13 +348,13 @@ module.exports = exports = {
   },
   _profileTypes: {
     'SystemProfile': {
-      compile: function(profile) {
+      compile(profile) {
         throw new Error("SystemProfile cannot be used in PAC scripts");
       }
     },
     'DirectProfile': {
       includable: true,
-      compile: function(profile) {
+      compile(profile) {
         return new U2.AST_String({
           value: this.pacResult()
         });
@@ -370,7 +362,7 @@ module.exports = exports = {
     },
     'FixedProfile': {
       includable: true,
-      create: function(profile) {
+      create(profile) {
         return profile.bypassList != null ? profile.bypassList : profile.bypassList = [
           {
             conditionType: 'BypassCondition',
@@ -384,12 +376,9 @@ module.exports = exports = {
           }
         ];
       },
-      match: function(profile, request) {
-        var cond, i, j, len, len1, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, s;
+      match(profile, request) {
         if (profile.bypassList) {
-          ref2 = profile.bypassList;
-          for (i = 0, len = ref2.length; i < len; i++) {
-            cond = ref2[i];
+          for (const cond of profile.bypassList) {
             if (Conditions.match(cond, request)) {
               return [
                 this.pacResult(), cond, {
@@ -399,33 +388,30 @@ module.exports = exports = {
             }
           }
         }
-        ref3 = this.schemes;
-        for (j = 0, len1 = ref3.length; j < len1; j++) {
-          s = ref3[j];
+        for (const s of this.schemes) {
           if (s.scheme === request.scheme && profile[s.prop]) {
-            return [this.pacResult(profile[s.prop]), s.scheme, profile[s.prop], (ref4 = (ref5 = profile.auth) != null ? ref5[s.prop] : void 0) != null ? ref4 : (ref6 = profile.auth) != null ? ref6['all'] : void 0];
+            const auth = (profile.auth != null ? profile.auth[s.prop] : void 0) != null ? profile.auth[s.prop] : profile.auth != null ? profile.auth['all'] : void 0;
+            return [this.pacResult(profile[s.prop]), s.scheme, profile[s.prop], auth];
           }
         }
-        return [this.pacResult(profile.fallbackProxy), '', profile.fallbackProxy, (ref7 = (ref8 = profile.auth) != null ? ref8.fallbackProxy : void 0) != null ? ref7 : (ref9 = profile.auth) != null ? ref9['all'] : void 0];
+        const auth = (profile.auth != null ? profile.auth.fallbackProxy : void 0) != null ? profile.auth.fallbackProxy : profile.auth != null ? profile.auth['all'] : void 0;
+        return [this.pacResult(profile.fallbackProxy), '', profile.fallbackProxy, auth];
       },
-      compile: function(profile) {
-        var body, cond, condition, conditions, i, len, ref2, ret, s;
+      compile(profile) {
         if ((!profile.bypassList || !profile.fallbackProxy) && !profile.proxyForHttp && !profile.proxyForHttps && !profile.proxyForFtp) {
           return new U2.AST_String({
             value: this.pacResult(profile.fallbackProxy)
           });
         }
-        body = [
+        const body = [
           new U2.AST_Directive({
             value: 'use strict'
           })
         ];
         if (profile.bypassList && profile.bypassList.length) {
-          conditions = null;
-          ref2 = profile.bypassList;
-          for (i = 0, len = ref2.length; i < len; i++) {
-            cond = ref2[i];
-            condition = Conditions.compile(cond);
+          let conditions = null;
+          for (const cond of profile.bypassList) {
+            const condition = Conditions.compile(cond);
             if (conditions != null) {
               conditions = new U2.AST_Binary({
                 left: conditions,
@@ -456,16 +442,13 @@ module.exports = exports = {
             expression: new U2.AST_SymbolRef({
               name: 'scheme'
             }),
-            body: (function() {
-              var j, len1, ref3, results;
-              ref3 = this.schemes;
-              results = [];
-              for (j = 0, len1 = ref3.length; j < len1; j++) {
-                s = ref3[j];
+            body: (() => {
+              const results = [];
+              for (const s of this.schemes) {
                 if (!(!s.scheme || profile[s.prop])) {
                   continue;
                 }
-                ret = [
+                const ret = [
                   new U2.AST_Return({
                     value: new U2.AST_String({
                       value: this.pacResult(profile[s.prop])
@@ -486,7 +469,7 @@ module.exports = exports = {
                 }
               }
               return results;
-            }).call(this)
+            })()
           }));
         }
         return new U2.AST_Function({
@@ -504,13 +487,13 @@ module.exports = exports = {
       }
     },
     'PacProfile': {
-      includable: function(profile) {
+      includable(profile) {
         return !this.isFileUrl(profile.pacUrl);
       },
-      create: function(profile) {
+      create(profile) {
         return profile.pacScript != null ? profile.pacScript : profile.pacScript = 'function FindProxyForURL(url, host) {\n  return "DIRECT";\n}';
       },
-      compile: function(profile) {
+      compile(profile) {
         return new U2.AST_Call({
           args: [new U2.AST_This],
           expression: new U2.AST_Dot({
@@ -528,17 +511,17 @@ module.exports = exports = {
           })
         });
       },
-      updateUrl: function(profile) {
+      updateUrl(profile) {
         if (this.isFileUrl(profile.pacUrl)) {
           return void 0;
         } else {
           return profile.pacUrl;
         }
       },
-      updateContentTypeHints: function() {
+      updateContentTypeHints() {
         return ['!text/html', '!application/xhtml+xml', 'application/x-ns-proxy-autoconfig', 'application/x-javascript-config'];
       },
-      update: function(profile, data) {
+      update(profile, data) {
         if (profile.pacScript === data) {
           return false;
         }
@@ -550,36 +533,30 @@ module.exports = exports = {
     'SwitchProfile': {
       includable: true,
       inclusive: true,
-      create: function(profile) {
+      create(profile) {
         if (profile.defaultProfileName == null) {
           profile.defaultProfileName = 'direct';
         }
         return profile.rules != null ? profile.rules : profile.rules = [];
       },
-      directReferenceSet: function(profile) {
-        var i, len, ref2, refs, rule;
-        refs = {};
-        refs[exports.nameAsKey(profile.defaultProfileName)] = profile.defaultProfileName;
-        ref2 = profile.rules;
-        for (i = 0, len = ref2.length; i < len; i++) {
-          rule = ref2[i];
-          refs[exports.nameAsKey(rule.profileName)] = rule.profileName;
+      directReferenceSet(profile) {
+        const refs = {};
+        refs[ProfilesApi.nameAsKey(profile.defaultProfileName)] = profile.defaultProfileName;
+        for (const rule of profile.rules) {
+          refs[ProfilesApi.nameAsKey(rule.profileName)] = rule.profileName;
         }
         return refs;
       },
-      analyze: function(profile) {
+      analyze(profile) {
         return profile.rules;
       },
-      replaceRef: function(profile, fromName, toName) {
-        var changed, i, len, ref2, rule;
-        changed = false;
+      replaceRef(profile, fromName, toName) {
+        let changed = false;
         if (profile.defaultProfileName === fromName) {
           profile.defaultProfileName = toName;
           changed = true;
         }
-        ref2 = profile.rules;
-        for (i = 0, len = ref2.length; i < len; i++) {
-          rule = ref2[i];
+        for (const rule of profile.rules) {
           if (rule.profileName === fromName) {
             rule.profileName = toName;
             changed = true;
@@ -587,30 +564,25 @@ module.exports = exports = {
         }
         return changed;
       },
-      match: function(profile, request, cache) {
-        var i, len, ref2, rule;
-        ref2 = cache.analyzed;
-        for (i = 0, len = ref2.length; i < len; i++) {
-          rule = ref2[i];
+      match(profile, request, cache) {
+        for (const rule of cache.analyzed) {
           if (Conditions.match(rule.condition, request)) {
             return rule;
           }
         }
-        return [exports.nameAsKey(profile.defaultProfileName), null];
+        return [ProfilesApi.nameAsKey(profile.defaultProfileName), null];
       },
-      compile: function(profile, cache) {
-        var body, i, len, rule, rules;
-        rules = cache.analyzed;
+      compile(profile, cache) {
+        const rules = cache.analyzed;
         if (rules.length === 0) {
           return this.profileResult(profile.defaultProfileName);
         }
-        body = [
+        const body = [
           new U2.AST_Directive({
             value: 'use strict'
           })
         ];
-        for (i = 0, len = rules.length; i < len; i++) {
-          rule = rules[i];
+        for (const rule of rules) {
           body.push(new U2.AST_If({
             condition: Conditions.compile(rule.condition),
             body: new U2.AST_Return({
@@ -639,13 +611,12 @@ module.exports = exports = {
     'RuleListProfile': {
       includable: true,
       inclusive: true,
-      create: function(profile) {
-        var ref2;
+      create(profile) {
         if (profile.profileType == null) {
           profile.profileType = 'RuleListProfile';
         }
         if (profile.format == null) {
-          profile.format = (ref2 = exports.formatByType[profile.profileType]) != null ? ref2 : 'Switchy';
+          profile.format = ProfilesApi.formatByType[profile.profileType] != null ? ProfilesApi.formatByType[profile.profileType] : 'Switchy';
         }
         if (profile.defaultProfileName == null) {
           profile.defaultProfileName = 'direct';
@@ -655,25 +626,23 @@ module.exports = exports = {
         }
         return profile.ruleList != null ? profile.ruleList : profile.ruleList = '';
       },
-      directReferenceSet: function(profile) {
-        var i, len, name, ref2, ref3, refs;
+      directReferenceSet(profile) {
+        let refs;
         if (profile.ruleList != null) {
-          refs = (ref2 = RuleList[profile.format]) != null ? typeof ref2.directReferenceSet === "function" ? ref2.directReferenceSet(profile) : void 0 : void 0;
+          const formatHandler = RuleList[profile.format];
+          refs = formatHandler != null && typeof formatHandler.directReferenceSet === "function" ? formatHandler.directReferenceSet(profile) : void 0;
           if (refs) {
             return refs;
           }
         }
         refs = {};
-        ref3 = [profile.matchProfileName, profile.defaultProfileName];
-        for (i = 0, len = ref3.length; i < len; i++) {
-          name = ref3[i];
-          refs[exports.nameAsKey(name)] = name;
+        for (const name of [profile.matchProfileName, profile.defaultProfileName]) {
+          refs[ProfilesApi.nameAsKey(name)] = name;
         }
         return refs;
       },
-      replaceRef: function(profile, fromName, toName) {
-        var changed;
-        changed = false;
+      replaceRef(profile, fromName, toName) {
+        let changed = false;
         if (profile.defaultProfileName === fromName) {
           profile.defaultProfileName = toName;
           changed = true;
@@ -684,44 +653,43 @@ module.exports = exports = {
         }
         return changed;
       },
-      analyze: function(profile) {
-        var format, formatHandler, ref2, ref3, ruleList;
-        format = (ref2 = profile.format) != null ? ref2 : exports.formatByType[profile.profileType];
-        formatHandler = RuleList[format];
+      analyze(profile) {
+        const format = profile.format != null ? profile.format : ProfilesApi.formatByType[profile.profileType];
+        const formatHandler = RuleList[format];
         if (!formatHandler) {
           throw new Error("Unsupported rule list format " + format + "!");
         }
-        ruleList = ((ref3 = profile.ruleList) != null ? ref3.trim() : void 0) || '';
+        let ruleList = (profile.ruleList != null ? profile.ruleList.trim() : void 0) || '';
         if (formatHandler.preprocess != null) {
           ruleList = formatHandler.preprocess(ruleList);
         }
         return formatHandler.parse(ruleList, profile.matchProfileName, profile.defaultProfileName);
       },
-      match: function(profile, request) {
-        var result;
-        return result = exports.match(profile, request, 'SwitchProfile');
+      match(profile, request) {
+        return ProfilesApi.match(profile, request, 'SwitchProfile');
       },
-      compile: function(profile) {
-        return exports.compile(profile, 'SwitchProfile');
+      compile(profile) {
+        return ProfilesApi.compile(profile, 'SwitchProfile');
       },
-      updateUrl: function(profile) {
+      updateUrl(profile) {
         return profile.sourceUrl;
       },
-      updateContentTypeHints: function() {
+      updateContentTypeHints() {
         return ['!text/html', '!application/xhtml+xml', 'text/plain', '*'];
       },
-      update: function(profile, data) {
-        var base, base1, format, formatHandler, formatName, original, ref2, result;
+      update(profile, data) {
         data = data.trim();
-        original = (ref2 = profile.format) != null ? ref2 : exports.formatByType[profile.profileType];
+        const original = profile.format != null ? profile.format : ProfilesApi.formatByType[profile.profileType];
         profile.profileType = 'RuleListProfile';
-        format = original;
-        if ((typeof (base = RuleList[format]).detect === "function" ? base.detect(data) : void 0) === false) {
+        let format = original;
+        let formatHandler = RuleList[format];
+        if ((typeof formatHandler.detect === "function" ? formatHandler.detect(data) : void 0) === false) {
           format = null;
         }
-        for (formatName in RuleList) {
+        for (const formatName in RuleList) {
           if (!hasProp.call(RuleList, formatName)) continue;
-          result = typeof (base1 = RuleList[formatName]).detect === "function" ? base1.detect(data) : void 0;
+          const candidate = RuleList[formatName];
+          const result = typeof candidate.detect === "function" ? candidate.detect(data) : void 0;
           if (result === true || (result !== false && (format == null))) {
             profile.format = format = formatName;
           }
@@ -745,4 +713,4 @@ module.exports = exports = {
   }
 };
 
-export {};
+export = ProfilesApi;

@@ -8,10 +8,11 @@
     "tldjs": "^1.5.2"
   },
   "scripts": {
-    "build": "npm run build:ts && browserify index.source.js --standalone OmegaPac --exclude ip-address -o index.js && browserify index.source.js --standalone OmegaPac | esbuild --loader=js --minify > omega_pac.min.js",
+    "build": "npm run build:ts && browserify build-ts/index.js --standalone OmegaPac --exclude ip-address -o index.js && browserify build-ts/index.js --standalone OmegaPac | esbuild --loader=js --minify > omega_pac.min.js",
     "build:ts": "tsc -p tsconfig.build.json",
+    "build:test": "tsc -p tsconfig.test.json",
     "dev": "npm link",
-    "test": "npm run build:ts && TZ=Europe/London _mocha --reporter spec test/*.js",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "test": "npm run build:ts && npm run build:test && TZ=Europe/London _mocha --reporter spec build-test/*.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit"
   }
 }

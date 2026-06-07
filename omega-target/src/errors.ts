@@ -1,9 +1,9 @@
-type ErrorCause = {
+export type ErrorCause = {
   statusCode?: number | string;
   [key: string]: unknown;
 };
 
-class NetworkError extends Error {
+export class NetworkError extends Error {
   cause?: ErrorCause;
 
   constructor(err?: ErrorCause) {
@@ -13,7 +13,7 @@ class NetworkError extends Error {
   }
 }
 
-class HttpError extends NetworkError {
+export class HttpError extends NetworkError {
   statusCode?: number | string;
 
   constructor(err?: ErrorCause) {
@@ -23,33 +23,23 @@ class HttpError extends NetworkError {
   }
 }
 
-class HttpNotFoundError extends HttpError {
+export class HttpNotFoundError extends HttpError {
   constructor(err?: ErrorCause) {
     super(err);
     this.name = 'HttpNotFoundError';
   }
 }
 
-class HttpServerError extends HttpError {
+export class HttpServerError extends HttpError {
   constructor(err?: ErrorCause) {
     super(err);
     this.name = 'HttpServerError';
   }
 }
 
-class ContentTypeRejectedError extends Error {
+export class ContentTypeRejectedError extends Error {
   constructor() {
     super();
     this.name = 'ContentTypeRejectedError';
   }
 }
-
-module.exports = {
-  NetworkError,
-  HttpError,
-  HttpNotFoundError,
-  HttpServerError,
-  ContentTypeRejectedError
-};
-
-export {};

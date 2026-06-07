@@ -4,8 +4,12 @@ const less = require('less');
 const esbuild = require('esbuild');
 const postcss = require('postcss');
 const autoprefixer = require('autoprefixer-core');
-const root = __dirname;
+const root = path.resolve(__dirname, '..');
 const workspaceRoot = path.join(root, '..');
+
+type LessRenderOutput = string | {
+  css: string;
+};
 
 async function ensureDir(filePath) {
   await fs.mkdir(path.dirname(filePath), {recursive: true});
@@ -91,7 +95,7 @@ async function bundleReact(entry, dest) {
 
 async function renderLess(src, tmpDest, buildDest) {
   const input = await fs.readFile(path.join(root, src), 'utf8');
-  const rendered = await new Promise((resolve, reject) => {
+  const rendered = await new Promise<LessRenderOutput>((resolve, reject) => {
     less.render(input, {filename: path.join(root, src)}, (error, output) => {
       if (error) {
         reject(error);
@@ -145,6 +149,7 @@ async function main() {
       await copyFile(src, dest);
     }
   }
+  await copyFile('build-ts/js/draw_omega.js', 'build/img/icons/draw_omega.js');
 
   await writeRootReactHtml('build/options.html', 'SwitchyAgain Options', 'react/options_app.js', [
     'js/omega_debug.js',

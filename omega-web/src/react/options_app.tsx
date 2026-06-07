@@ -236,7 +236,7 @@ function isProfileNameReserved(name: string) {
 function getParentName(name: string) {
   const prefix = '__ruleListOf_';
   if (name.indexOf(prefix) === 0) {
-    return name.substr(prefix.length);
+    return name.slice(prefix.length);
   }
   return undefined;
 }

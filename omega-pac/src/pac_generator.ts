@@ -1,67 +1,71 @@
-var Profiles, U2;
+import type {OptionsMap, PacGeneratorOptions, Profile, ReferenceSet} from './types';
 
-U2 = require('../uglifyjs-shim');
+const U2 = require('./uglifyjs_shim');
 
-Profiles = require('./profiles');
+const Profiles = require('./profiles') as {
+  allReferenceSet(profile: string | Profile, options: OptionsMap, args?: PacGeneratorOptions): ReferenceSet;
+  byName(profileName: string, options: OptionsMap): Profile | undefined;
+  compile(profile: Profile): unknown;
+  profileNotFound(name: string, action?: unknown): Profile | null;
+  profileResult(profileName: string | Profile): unknown;
+};
 
-module.exports = {
-  ascii: function(str) {
-    return str.replace(/[\u0080-\uffff]/g, function(char) {
-      var _, hex, i, ref, result;
-      hex = char.charCodeAt(0).toString(16);
-      result = '\\u';
-      for (_ = i = ref = hex.length; ref <= 4 ? i < 4 : i > 4; _ = ref <= 4 ? ++i : --i) {
-        result += '0';
-      }
-      result += hex;
-      return result;
-    });
-  },
-  compress: function(ast) {
-    var compressed_ast, compressor;
-    ast.figure_out_scope();
-    compressor = U2.Compressor({
-      warnings: false,
-      keep_fargs: true
-    }, {
-      if_return: false
-    });
-    compressed_ast = ast.transform(compressor);
-    compressed_ast.figure_out_scope();
-    compressed_ast.compute_char_frequency();
-    compressed_ast.mangle_names();
-    return compressed_ast;
-  },
-  script: function(options, profile, args) {
-    var factory, key, name, p, profiles, refs;
-    if (typeof profile === 'string') {
-      profile = Profiles.byName(profile, options);
+export function ascii(str: string): string {
+  return str.replace(/[\u0080-\uffff]/g, (char) => {
+    const hex = char.charCodeAt(0).toString(16);
+    let result = '\\u';
+    for (let i = hex.length; i < 4; i++) {
+      result += '0';
     }
-    refs = Profiles.allReferenceSet(profile, options, {
-      profileNotFound: args != null ? args.profileNotFound : void 0
-    });
-    profiles = new U2.AST_Object({
-      properties: (function() {
-        var results;
-        results = [];
-        for (key in refs) {
-          name = refs[key];
-          if (!(key !== '+direct')) {
-            continue;
-          }
-          p = typeof profile === 'object' && profile.name === name ? profile : Profiles.byName(name, options);
-          if (p == null) {
-            p = Profiles.profileNotFound(name, args != null ? args.profileNotFound : void 0);
-          }
-          results.push(new U2.AST_ObjectKeyVal({
-            key: key,
-            value: Profiles.compile(p)
-          }));
-        }
-        return results;
-      })()
-    });
-    factory = new U2.AST_Function({
+    result += hex;
+    return result;
+  });
+}
+
+export function compress(ast) {
+  ast.figure_out_scope();
+  const compressor = U2.Compressor({
+    warnings: false,
+    keep_fargs: true
+  }, {
+    if_return: false
+  });
+  const compressed_ast = ast.transform(compressor);
+  compressed_ast.figure_out_scope();
+  compressed_ast.compute_char_frequency();
+  compressed_ast.mangle_names();
+  return compressed_ast;
+}
+
+export function script(options: OptionsMap, profile: string | Profile, args?: PacGeneratorOptions) {
+  let targetProfile;
+  if (typeof profile === 'string') {
+    targetProfile = Profiles.byName(profile, options);
+  } else {
+    targetProfile = profile;
+  }
+  const refs = Profiles.allReferenceSet(targetProfile, options, {
+    profileNotFound: args != null ? args.profileNotFound : void 0
+  });
+  const properties = [];
+  for (const key in refs) {
+    const name = refs[key];
+    if (!(key !== '+direct')) {
+      continue;
+    }
+    let p = typeof targetProfile === 'object' && targetProfile.name === name ? targetProfile : Profiles.byName(name, options);
+    if (p == null) {
+      p = Profiles.profileNotFound(name, args != null ? args.profileNotFound : void 0);
+    }
+    properties.push(new U2.AST_ObjectKeyVal({
+      key: key,
+      value: Profiles.compile(p)
+    }));
+  }
+  const profiles = new U2.AST_Object({
+    properties: properties
+  });
+  const factory = new U2.AST_Function({
       argnames: [
         new U2.AST_SymbolFunarg({
           name: 'init'
@@ -222,24 +226,21 @@ module.exports = {
         })
       ]
     });
-    return new U2.AST_Toplevel({
-      body: [
-        new U2.AST_Var({
-          definitions: [
-            new U2.AST_VarDef({
-              name: new U2.AST_SymbolVar({
-                name: 'FindProxyForURL'
-              }),
-              value: new U2.AST_Call({
-                expression: factory,
-                args: [Profiles.profileResult(profile.name), profiles]
-              })
+  return new U2.AST_Toplevel({
+    body: [
+      new U2.AST_Var({
+        definitions: [
+          new U2.AST_VarDef({
+            name: new U2.AST_SymbolVar({
+              name: 'FindProxyForURL'
+            }),
+            value: new U2.AST_Call({
+              expression: factory,
+              args: [Profiles.profileResult(targetProfile.name), profiles]
             })
-          ]
-        })
-      ]
-    });
-  }
-};
-
-export {};
+          })
+        ]
+      })
+    ]
+  });
+}

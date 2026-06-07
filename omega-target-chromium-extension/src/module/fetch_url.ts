@@ -1,7 +1,10 @@
-const OmegaTarget = require('omega-target');
+import OmegaTargetModule = require('omega-target');
+import Url = require('url');
+import xhrModule = require('xhr');
+
+const OmegaTarget = OmegaTargetModule;
 const OmegaPromise = OmegaTarget.Promise;
-const xhr = OmegaPromise.promisify(require('xhr'));
-const Url = require('url');
+const xhr = OmegaPromise.promisify(xhrModule);
 const ContentTypeRejectedError = OmegaTarget.ContentTypeRejectedError;
 
 type XhrResponse = {

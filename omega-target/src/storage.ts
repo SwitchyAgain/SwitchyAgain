@@ -154,9 +154,7 @@ class Storage {
    */
   watch(keys: StorageRemoveKeys, callback: StorageWatchCallback) {
     Log.method('Storage#watch', this, arguments);
-    return function() {
-      return null;
-    };
+    return () => null;
   }
 
   /**
@@ -181,6 +179,4 @@ class Storage {
   }
 }
 
-module.exports = Storage;
-
-export {};
+export = Storage;

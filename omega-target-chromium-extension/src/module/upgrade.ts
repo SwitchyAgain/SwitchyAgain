@@ -1,4 +1,7 @@
-const OmegaTarget = require('omega-target');
+import OmegaTargetModule = require('omega-target');
+import BufferModule = require('buffer');
+
+const OmegaTarget = OmegaTargetModule;
 const OmegaPac = OmegaTarget.OmegaPac;
 
 type LegacyOptions = Record<string, string | undefined>;
@@ -7,6 +10,15 @@ type Options = Record<string, unknown>;
 type I18nMessages = {
   upgrade_profile_auto: string;
 };
+
+type BufferModuleLike = {
+  Buffer: new (
+    value: string,
+    encoding: string
+  ) => {toString(encoding: string): string};
+};
+
+const BufferCtor = (BufferModule as unknown as BufferModuleLike).Buffer;
 
 type LegacyConfig = Record<string, unknown> & {
   preventProxyChanges?: boolean;
@@ -154,12 +166,8 @@ function upgradeSwitchyOptions(oldOptions: LegacyOptions, i18n: I18nMessages) {
           profileType: 'PacProfile'
         });
         const url = oldProfile.proxyConfigUrl || '';
-        if (url.substr(0, 5) === 'data:') {
-          const BufferCtor = require('buffer').Buffer as unknown as new (
-            value: string,
-            encoding: string
-          ) => {toString(encoding: string): string};
-          const text = url.substr(url.indexOf(',') + 1);
+        if (url.startsWith('data:')) {
+          const text = url.slice(url.indexOf(',') + 1);
           profile.pacScript = new BufferCtor(text, 'base64').toString('utf8');
         } else {
           profile.pacUrl = url;

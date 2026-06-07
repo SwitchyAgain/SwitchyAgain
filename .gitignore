@@ -5,10 +5,12 @@ node_modules
 /omega-pac/index.js
 /omega-pac/omega_pac.min.js
 /omega-pac/build-ts/
+/omega-pac/build-test/
 
 /omega-target/index.js
 /omega-target/omega_target.min.js
 /omega-target/build-ts/
+/omega-target/build-test/
 
 /omega-web/build/
 /omega-web/build-ts/

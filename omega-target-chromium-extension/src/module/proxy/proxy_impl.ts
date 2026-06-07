@@ -1,10 +1,13 @@
-const OmegaTarget = require('omega-target');
+import OmegaTargetModule = require('omega-target');
+import ProxyAuth = require('./proxy_auth');
+
+const OmegaTarget = OmegaTargetModule;
 const OmegaPac = OmegaTarget.OmegaPac;
 const OmegaPromise = OmegaTarget.Promise;
-const ProxyAuth = require('./proxy_auth');
 
 type Log = {
   error: (...args: unknown[]) => void;
+  log: (...args: unknown[]) => void;
 };
 
 type Profile = Record<string, unknown> & {

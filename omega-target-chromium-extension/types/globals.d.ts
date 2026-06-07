@@ -399,9 +399,11 @@ declare var FindProxyForURL: ProxyFindFunction;
 declare var module: {exports: unknown};
 declare var OmegaDebug: OmegaDebugApi;
 declare var OmegaPac: OmegaPacApi;
+declare var OmegaTarget: OmegaTargetModule;
 declare var OmegaTargetChromium: LegacyDynamic;
 declare var OmegaTargetPopup: OmegaTargetPopupApi;
 declare var saveAs: (blob: Blob, filename: string) => unknown;
+declare function importScripts(...urls: string[]): void;
 declare function drawOmega(
   context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   resultColor: string,

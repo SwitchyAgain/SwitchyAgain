@@ -1,50 +1,57 @@
-var Buffer, Conditions, strStartsWith,
-  hasProp = {}.hasOwnProperty;
+import type {
+  Condition,
+  Profile,
+  ReferenceSet,
+  RuleListComposeOptions,
+  RuleListParseOptions,
+  SwitchRule
+} from './types';
 
-Buffer = require('buffer').Buffer;
+const Buffer = require('buffer').Buffer;
+const hasProp = Object.prototype.hasOwnProperty;
 
-Conditions = require('./conditions');
-
-strStartsWith = function(str, prefix) {
-  return str.substr(0, prefix.length) === prefix;
+const strStartsWith = (str: string, prefix: string): boolean => {
+  return str.startsWith(prefix);
 };
 
-module.exports = exports = {
-  'AutoProxy': {
+const Conditions = require('./conditions') as {
+  fromStr(value: string): Condition | null;
+  str(condition: Condition): string;
+  urlWildcard2HostWildcard(pattern: string): string | undefined;
+};
+
+export const AutoProxy = {
     magicPrefix: 'W0F1dG9Qcm94',
-    detect: function(text) {
-      if (strStartsWith(text, exports['AutoProxy'].magicPrefix)) {
+    detect(text: string) {
+      if (strStartsWith(text, AutoProxy.magicPrefix)) {
         return true;
       } else if (strStartsWith(text, '[AutoProxy')) {
         return true;
       }
     },
-    preprocess: function(text) {
-      if (strStartsWith(text, exports['AutoProxy'].magicPrefix)) {
+    preprocess(text: string): string {
+      if (strStartsWith(text, AutoProxy.magicPrefix)) {
         text = new Buffer(text, 'base64').toString('utf8');
       }
       return text;
     },
-    parse: function(text, matchProfileName, defaultProfileName) {
-      var cond, exclusive_rules, i, len, line, list, normal_rules, profile, ref, source;
-      normal_rules = [];
-      exclusive_rules = [];
-      ref = text.split(/\n|\r/);
-      for (i = 0, len = ref.length; i < len; i++) {
-        line = ref[i];
+    parse(text: string, matchProfileName: string, defaultProfileName: string): SwitchRule[] {
+      const normal_rules: SwitchRule[] = [];
+      const exclusive_rules: SwitchRule[] = [];
+      for (let line of text.split(/\n|\r/)) {
         line = line.trim();
         if (line.length === 0 || line[0] === '!' || line[0] === '[') {
           continue;
         }
-        source = line;
-        profile = matchProfileName;
-        list = normal_rules;
+        const source = line;
+        let profile = matchProfileName;
+        let list = normal_rules;
         if (line[0] === '@' && line[1] === '@') {
           profile = defaultProfileName;
           list = exclusive_rules;
           line = line.substring(2);
         }
-        cond = line[0] === '/' ? {
+        const cond = line[0] === '/' ? {
           conditionType: 'UrlRegexCondition',
           pattern: line.substring(1, line.length - 1)
         } : line[0] === '|' ? line[1] === '|' ? {
@@ -68,56 +75,54 @@ module.exports = exports = {
       }
       return exclusive_rules.concat(normal_rules);
     }
-  },
-  'Switchy': {
+  };
+
+export const Switchy = {
     omegaPrefix: '[SwitchyOmega Conditions',
     specialLineStart: "[;#@!",
-    detect: function(text) {
-      if (strStartsWith(text, exports['Switchy'].omegaPrefix)) {
+    detect(text: string) {
+      if (strStartsWith(text, Switchy.omegaPrefix)) {
         return true;
       }
     },
-    parse: function(text, matchProfileName, defaultProfileName) {
-      var parser, switchy;
-      switchy = exports['Switchy'];
-      parser = switchy.getParser(text);
+    parse(text: string, matchProfileName: string, defaultProfileName: string): SwitchRule[] {
+      const switchy = Switchy;
+      const parser = switchy.getParser(text);
       return switchy[parser](text, matchProfileName, defaultProfileName);
     },
-    directReferenceSet: function(arg) {
-      var defaultProfileName, i, iSpace, len, line, matchProfileName, parser, profile, ref, refs, ruleList, switchy, text;
-      ruleList = arg.ruleList, matchProfileName = arg.matchProfileName, defaultProfileName = arg.defaultProfileName;
-      text = ruleList.trim();
-      switchy = exports['Switchy'];
-      parser = switchy.getParser(text);
+    directReferenceSet(arg: Profile): ReferenceSet | undefined {
+      const {ruleList, matchProfileName, defaultProfileName} = arg;
+      const text = ruleList.trim();
+      const switchy = Switchy;
+      const parser = switchy.getParser(text);
       if (parser !== 'parseOmega') {
         return;
       }
       if (!/(^|\n)@with\s+results?(\r|\n|$)/i.test(text)) {
         return;
       }
-      refs = {};
-      ref = text.split(/\n|\r/);
-      for (i = 0, len = ref.length; i < len; i++) {
-        line = ref[i];
+      const refs: ReferenceSet = {};
+      for (let line of text.split(/\n|\r/)) {
         line = line.trim();
         if (switchy.specialLineStart.indexOf(line[0]) < 0) {
-          iSpace = line.lastIndexOf(' +');
+          const iSpace = line.lastIndexOf(' +');
+          let profile;
           if (iSpace < 0) {
             profile = defaultProfileName || 'direct';
           } else {
-            profile = line.substr(iSpace + 2).trim();
+            profile = line.slice(iSpace + 2).trim();
           }
           refs['+' + profile] = profile;
         }
       }
       return refs;
     },
-    compose: function(arg, arg1) {
-      var defaultProfileName, eol, i, len, line, ref, rule, ruleList, rules, specialLineStart, useExclusive, withResult;
-      rules = arg.rules, defaultProfileName = arg.defaultProfileName;
-      ref = arg1 != null ? arg1 : {}, withResult = ref.withResult, useExclusive = ref.useExclusive;
-      eol = '\r\n';
-      ruleList = '[SwitchyOmega Conditions]' + eol;
+    compose(arg: {rules: SwitchRule[]; defaultProfileName?: string}, arg1?: RuleListComposeOptions): string {
+      const {rules, defaultProfileName} = arg;
+      const {withResult, useExclusive: optUseExclusive} = arg1 != null ? arg1 : {};
+      const eol = '\r\n';
+      let useExclusive = optUseExclusive;
+      let ruleList = '[SwitchyOmega Conditions]' + eol;
       if (useExclusive == null) {
         useExclusive = !withResult;
       }
@@ -126,13 +131,12 @@ module.exports = exports = {
       } else {
         ruleList += eol;
       }
-      specialLineStart = exports['Switchy'].specialLineStart + '+';
-      for (i = 0, len = rules.length; i < len; i++) {
-        rule = rules[i];
+      const specialLineStart = Switchy.specialLineStart + '+';
+      for (const rule of rules) {
         if (rule.note) {
           ruleList += '@note ' + rule.note + eol;
         }
-        line = Conditions.str(rule.condition);
+        let line = Conditions.str(rule.condition);
         if (useExclusive && rule.profileName === defaultProfileName) {
           line = '!' + line;
         } else {
@@ -150,10 +154,9 @@ module.exports = exports = {
       }
       return ruleList;
     },
-    getParser: function(text) {
-      var parser, switchy;
-      switchy = exports['Switchy'];
-      parser = 'parseOmega';
+    getParser(text: string): 'parseOmega' | 'parseLegacy' {
+      const switchy = Switchy;
+      let parser = 'parseOmega' as 'parseOmega' | 'parseLegacy';
       if (!strStartsWith(text, switchy.omegaPrefix)) {
         if (text[0] === '#' || text.indexOf('\n#') >= 0) {
           parser = 'parseLegacy';
@@ -161,8 +164,7 @@ module.exports = exports = {
       }
       return parser;
     },
-    conditionFromLegacyWildcard: function(pattern) {
-      var host;
+    conditionFromLegacyWildcard(pattern: string): Condition {
       if (pattern[0] === '@') {
         pattern = pattern.substring(1);
       } else {
@@ -173,7 +175,7 @@ module.exports = exports = {
           pattern += '*';
         }
       }
-      host = Conditions.urlWildcard2HostWildcard(pattern);
+      const host = Conditions.urlWildcard2HostWildcard(pattern);
       if (host) {
         return {
           conditionType: 'HostWildcardCondition',
@@ -186,15 +188,12 @@ module.exports = exports = {
         };
       }
     },
-    parseLegacy: function(text, matchProfileName, defaultProfileName) {
-      var begin, cond, exclusive_rules, i, len, line, list, normal_rules, profile, ref, section, source;
-      normal_rules = [];
-      exclusive_rules = [];
-      begin = false;
-      section = 'WILDCARD';
-      ref = text.split(/\n|\r/);
-      for (i = 0, len = ref.length; i < len; i++) {
-        line = ref[i];
+    parseLegacy(text: string, matchProfileName: string, defaultProfileName: string): SwitchRule[] {
+      const normal_rules: SwitchRule[] = [];
+      const exclusive_rules: SwitchRule[] = [];
+      let begin = false;
+      let section = 'WILDCARD';
+      for (let line of text.split(/\n|\r/)) {
         line = line.trim();
         if (line.length === 0 || line[0] === ';') {
           continue;
@@ -212,27 +211,26 @@ module.exports = exports = {
           section = line.substring(1, line.length - 1).toUpperCase();
           continue;
         }
-        source = line;
-        profile = matchProfileName;
-        list = normal_rules;
+        const source = line;
+        let profile = matchProfileName;
+        let list = normal_rules;
         if (line[0] === '!') {
           profile = defaultProfileName;
           list = exclusive_rules;
           line = line.substring(1);
         }
-        cond = (function() {
-          switch (section) {
-            case 'WILDCARD':
-              return exports['Switchy'].conditionFromLegacyWildcard(line);
-            case 'REGEXP':
-              return {
-                conditionType: 'UrlRegexCondition',
-                pattern: line
-              };
-            default:
-              return null;
-          }
-        })();
+        let cond = null;
+        switch (section) {
+          case 'WILDCARD':
+            cond = Switchy.conditionFromLegacyWildcard(line);
+            break;
+          case 'REGEXP':
+            cond = {
+              conditionType: 'UrlRegexCondition',
+              pattern: line
+            };
+            break;
+        }
         if (cond != null) {
           list.push({
             condition: cond,
@@ -243,34 +241,31 @@ module.exports = exports = {
       }
       return exclusive_rules.concat(normal_rules);
     },
-    parseOmega: function(text, matchProfileName, defaultProfileName, args) {
-      var cond, directive, error, exclusiveProfile, feature, i, iSpace, includeSource, j, len, len1, line, lno, noteForNextRule, profile, ref, ref1, rule, rules, rulesWithDefaultProfile, source, strict, withResult;
+    parseOmega(text: string, matchProfileName: string | null, defaultProfileName: string | null, args?: RuleListParseOptions): SwitchRule[] {
       if (args == null) {
         args = {};
       }
-      strict = args.strict;
+      const strict = args.strict;
+      let error;
       if (strict) {
-        error = function(fields) {
-          var err, key, value;
-          err = new Error(fields.message);
-          for (key in fields) {
+        error = (fields) => {
+          const err = new Error(fields.message);
+          for (const key in fields) {
             if (!hasProp.call(fields, key)) continue;
-            value = fields[key];
+            const value = fields[key];
             err[key] = value;
           }
           throw err;
         };
       }
-      includeSource = (ref = args.source) != null ? ref : true;
-      rules = [];
-      rulesWithDefaultProfile = [];
-      withResult = false;
-      exclusiveProfile = null;
-      noteForNextRule = null;
-      lno = 0;
-      ref1 = text.split(/\n|\r/);
-      for (i = 0, len = ref1.length; i < len; i++) {
-        line = ref1[i];
+      const includeSource = args.source != null ? args.source : true;
+      const rules: SwitchRule[] = [];
+      const rulesWithDefaultProfile: SwitchRule[] = [];
+      let withResult = false;
+      let exclusiveProfile = null;
+      let noteForNextRule = null;
+      let lno = 0;
+      for (let line of text.split(/\n|\r/)) {
         lno++;
         line = line.trim();
         if (line.length === 0) {
@@ -282,15 +277,15 @@ module.exports = exports = {
           case ';':
             continue;
           case '@':
-            iSpace = line.indexOf(' ');
+            let iSpace = line.indexOf(' ');
             if (iSpace < 0) {
               iSpace = line.length;
             }
-            directive = line.substr(1, iSpace - 1);
-            line = line.substr(iSpace + 1).trim();
+            const directive = line.slice(1, iSpace);
+            line = line.slice(iSpace + 1).trim();
             switch (directive.toUpperCase()) {
               case 'WITH':
-                feature = line.toUpperCase();
+                const feature = line.toUpperCase();
                 if (feature === 'RESULT' || feature === 'RESULTS') {
                   withResult = true;
                 }
@@ -300,16 +295,17 @@ module.exports = exports = {
             }
             continue;
         }
-        source = null;
+        let source = null;
         if (strict) {
           exclusiveProfile = null;
         }
+        let profile;
         if (line[0] === '!') {
           profile = withResult ? null : defaultProfileName;
           source = line;
-          line = line.substr(1);
+          line = line.slice(1);
         } else if (withResult) {
-          iSpace = line.lastIndexOf(' +');
+          const iSpace = line.lastIndexOf(' +');
           if (iSpace < 0) {
             if (typeof error === "function") {
               error({
@@ -321,15 +317,15 @@ module.exports = exports = {
             }
             continue;
           }
-          profile = line.substr(iSpace + 2).trim();
-          line = line.substr(0, iSpace).trim();
+          profile = line.slice(iSpace + 2).trim();
+          line = line.slice(0, iSpace).trim();
           if (line === '*') {
             exclusiveProfile = profile;
           }
         } else {
           profile = matchProfileName;
         }
-        cond = Conditions.fromStr(line);
+        const cond = Conditions.fromStr(line);
         if (!cond) {
           if (typeof error === "function") {
             error({
@@ -341,7 +337,7 @@ module.exports = exports = {
           }
           continue;
         }
-        rule = {
+        const rule: SwitchRule = {
           condition: cond,
           profileName: profile,
           source: includeSource ? source != null ? source : line : void 0
@@ -367,14 +363,10 @@ module.exports = exports = {
           }
           exclusiveProfile = defaultProfileName || 'direct';
         }
-        for (j = 0, len1 = rulesWithDefaultProfile.length; j < len1; j++) {
-          rule = rulesWithDefaultProfile[j];
+        for (const rule of rulesWithDefaultProfile) {
           rule.profileName = exclusiveProfile;
         }
       }
       return rules;
     }
-  }
 };
-
-export {};

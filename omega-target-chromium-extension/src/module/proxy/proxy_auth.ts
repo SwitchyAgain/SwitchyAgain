@@ -1,4 +1,6 @@
-const OmegaTarget = require('omega-target');
+import OmegaTargetModule = require('omega-target');
+
+const OmegaTarget = OmegaTargetModule;
 const OmegaPac = OmegaTarget.OmegaPac;
 
 type Log = {
