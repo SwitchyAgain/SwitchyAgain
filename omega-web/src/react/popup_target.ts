@@ -118,12 +118,30 @@ export function callbackPromise<T>(
   });
 }
 
+function popupMethodUnavailable(methodName: keyof PopupTarget) {
+  return new Error(`Popup target method unavailable: ${methodName}.`);
+}
+
 export function getPopupState(keys: string[]) {
-  return callbackPromise<PopupState>((callback) => popupTarget().getState?.(keys, callback));
+  return callbackPromise<PopupState>((callback) => {
+    const getState = popupTarget().getState;
+    if (!getState) {
+      callback(popupMethodUnavailable('getState'));
+      return;
+    }
+    getState(keys, callback);
+  });
 }
 
 export function getPopupPageInfo() {
-  return callbackPromise<PageInfo | undefined>((callback) => popupTarget().getActivePageInfo?.(callback));
+  return callbackPromise<PageInfo | undefined>((callback) => {
+    const getActivePageInfo = popupTarget().getActivePageInfo;
+    if (!getActivePageInfo) {
+      callback(popupMethodUnavailable('getActivePageInfo'));
+      return;
+    }
+    getActivePageInfo(callback);
+  });
 }
 
 export function popupMessage(key: string, fallback = key, substitutions?: string | string[]) {

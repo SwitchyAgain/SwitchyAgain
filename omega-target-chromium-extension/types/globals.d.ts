@@ -56,11 +56,11 @@ interface ChromeRuntimeApi {
   getManifest(): ChromeManifest;
   getURL(path: string): string;
   reload(): void;
-  sendMessage(message: unknown, responseCallback?: (response: LegacyDynamic) => void): void;
-  sendMessage(
+  sendMessage<T = unknown>(message: unknown, responseCallback?: (response: T) => void): void;
+  sendMessage<T = unknown>(
     extensionId: string,
     message: unknown,
-    responseCallback?: (response: LegacyDynamic) => void
+    responseCallback?: (response: T) => void
   ): void;
   [key: string]: unknown;
 }

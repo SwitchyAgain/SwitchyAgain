@@ -1,8 +1,44 @@
-type BackgroundRequest = {
+type BackgroundMethodArgs = {
+  addCondition: [condition: unknown, profileName: string, addToBottom: boolean];
+  addProfile: [profile: unknown];
+  addTempRule: [domain: string, profileName: string];
+  applyProfile: [name: string];
+  getAll: [];
+  getPageInfo: [args: PageInfoArgs];
+  getState: [name: string | string[]];
+  patch: [patch: Record<string, unknown>];
+  renameProfile: [fromName: string, toName: string];
+  replaceRef: [fromName: string, toName: string];
+  reset: [options?: OmegaOptionsData | string];
+  resetOptionsSync: [];
+  setDefaultProfile: [profileName: string, defaultProfileName: string];
+  setOptionsSync: [enabled: boolean, args?: unknown];
+  setState: [items: Record<string, unknown>] | [name: string, value: unknown];
+  updateProfile: [name?: string | string[] | null, bypassCache?: boolean | string];
+};
+
+type PageInfoArgs = {
+  tabId: number;
+  url?: string;
+};
+
+type BackgroundMethod = keyof BackgroundMethodArgs;
+type BackgroundStateMethod = 'getState' | 'setState';
+type BackgroundOptionMethod = Exclude<BackgroundMethod, BackgroundStateMethod>;
+type BackgroundOptionMethods = {
+  [K in BackgroundOptionMethod]: BackgroundCallable;
+};
+
+type RawBackgroundRequest = {
   args?: unknown[];
   method?: string;
   noReply?: boolean;
   refreshActivePage?: boolean;
+};
+
+type BackgroundRequest<M extends BackgroundMethod = BackgroundMethod> = RawBackgroundRequest & {
+  args?: BackgroundMethodArgs[M];
+  method: M;
 };
 
 type BackgroundRuntimeResponse<T = unknown> = {
@@ -18,17 +54,72 @@ type BackgroundSync = {
   [key: string]: unknown;
 };
 
-type BackgroundOptions = LegacyDynamic & {
-  currentProfileChanged: (reason?: string) => unknown;
-  externalApi: LegacyDynamic;
-  ready: OmegaPromise<unknown>;
-  _inspect: LegacyDynamic;
-  _options: OmegaOptionsData;
+type BackgroundLog = OmegaOptionsBase['log'] & {
+  method(name: string, self: unknown, args: IArguments | unknown[]): void;
+  str(obj: unknown): string;
 };
 
-type BackgroundState = LegacyDynamic & {
-  get(keys: unknown): unknown;
-  set(items: Record<string, unknown>): unknown;
+type BackgroundPromiseStatic = OmegaPromiseStatic & {
+  longStackTraces(): void;
+  onPossiblyUnhandledRejection(callback: (reason: unknown, promise: unknown) => unknown): void;
+  onUnhandledRejectionHandled(callback: (promise: unknown) => unknown): void;
+};
+
+type BackgroundExternalApi = {
+  disabled: boolean;
+  listen(): unknown;
+};
+
+type BackgroundInspect = {
+  disable?(): unknown;
+  enable?(): unknown;
+};
+
+type BackgroundState = {
+  get(keys: unknown): OmegaPromise<Record<string, unknown>>;
+  remove(keys: string | string[]): OmegaPromise<unknown>;
+  set(items: Record<string, unknown>): OmegaPromise<unknown>;
+};
+
+type BackgroundTabBadge = {
+  color: string;
+  text: string;
+};
+
+type BackgroundTabs = {
+  processTab(tab: ChromeTab): unknown;
+  resetAll(details: {
+    icon: BackgroundIcon | null;
+    shortTitle: string;
+    title: string;
+  }): unknown;
+  setTabBadge(tab: ChromeTab, badge: BackgroundTabBadge): unknown;
+  watch(): unknown;
+};
+
+type BackgroundProxyImpl = {
+  features: string[];
+  parseExternalProfile(details: ProxyChangeDetails, options?: OmegaOptionsData): BackgroundProfile | null | undefined;
+  watchProxyChange(callback: (details: ProxyChangeDetails | null | undefined) => unknown): void | null;
+};
+
+type BackgroundOptions = BackgroundOptionMethods & {
+  currentProfileChanged: (reason?: string) => unknown;
+  clearBadge(): unknown;
+  currentProfile(): BackgroundProfile | null | undefined;
+  externalApi: BackgroundExternalApi;
+  isCurrentProfileStatic(): boolean;
+  matchProfile(request: unknown): OmegaPromise<BackgroundMatchResult>;
+  printProfile(profile?: BackgroundProfile | null): unknown;
+  profile(name?: unknown): BackgroundProfile;
+  proxyNotControllable(): string | null;
+  queryTempRule(domain: string): unknown;
+  ready: OmegaPromise<unknown>;
+  setBadge(): unknown;
+  setExternalProfile(profile: BackgroundProfile, args?: {internal?: boolean; noRevert?: boolean}): Promise<unknown> | void;
+  setProxyNotControllable(reason: string | null): unknown;
+  _inspect: BackgroundInspect | null;
+  _options: OmegaOptionsData;
 };
 
 type BackgroundCallable = (...args: unknown[]) => unknown;
@@ -42,7 +133,7 @@ type BackgroundIcon = Record<number, ImageData>;
 
 type DrawingContext = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
-type BackgroundProfile = Record<string, LegacyDynamic> & {
+type BackgroundProfile = Record<string, unknown> & {
   color?: string;
   defaultProfileName?: string;
   name: string;
@@ -57,14 +148,65 @@ type BackgroundActionInfo = {
   title: string;
 };
 
+type BackgroundMatchCondition = Record<string, unknown> & {
+  condition?: unknown;
+  length?: number;
+  pattern?: unknown;
+};
+
+type BackgroundMatchConditionSource = BackgroundMatchCondition | string | unknown[];
+
+type BackgroundMatchTuple = [
+  result: unknown,
+  condition?: BackgroundMatchConditionSource | null,
+  ...rest: unknown[]
+];
+
+type BackgroundMatchRule = Record<string, unknown> & {
+  condition?: unknown;
+  isTempRule?: boolean;
+  profileName?: string | null;
+  source?: unknown;
+};
+
+type BackgroundMatchResult = {
+  profile: BackgroundProfile;
+  results: Array<BackgroundMatchTuple | BackgroundMatchRule>;
+};
+
 type ProxyChangeDetails = Record<string, unknown> & {
   levelOfControl?: string;
+};
+
+type BackgroundOmegaTarget = {
+  BrowserStorage: new (storage: Storage, prefix: string) => BackgroundState;
+  ChromeTabs: new (actionForUrl: (url: string) => Promise<BackgroundActionInfo | null>) => BackgroundTabs;
+  ExternalApi: new (options: BackgroundOptions) => BackgroundExternalApi;
+  Inspect: new (onInspect: (url: string, tab: ChromeTab) => unknown) => BackgroundInspect;
+  Log: BackgroundLog;
+  Options: (new (
+    options: null,
+    storage: unknown,
+    state: BackgroundState,
+    log: BackgroundLog,
+    sync: BackgroundSync | undefined,
+    proxyImpl: BackgroundProxyImpl
+  ) => BackgroundOptions) & {
+    transformValueForSync: unknown;
+  };
+  OptionsSync: new (storage: unknown) => BackgroundSync;
+  Promise: BackgroundPromiseStatic;
+  Storage: new (areaName: string) => unknown;
+  Url: UrlModule;
+  proxy: {
+    getProxyImpl(log: BackgroundLog): BackgroundProxyImpl;
+  };
 };
 
 (function() {
   const hasProp = {}.hasOwnProperty;
 
-  const OmegaTargetCurrent = Object.create(OmegaTargetChromium);
+  const OmegaTargetCurrent = Object.create(OmegaTargetChromium) as BackgroundOmegaTarget;
 
   const Promise = OmegaTargetCurrent.Promise;
 
@@ -199,18 +341,22 @@ type ProxyChangeDetails = Record<string, unknown> & {
     return value == null ? undefined : String(value);
   }
 
+  function isRecord(value: unknown): value is Record<string, unknown> {
+    return value !== null && typeof value === 'object';
+  }
+
   let options: BackgroundOptions;
   let state: BackgroundState;
-  let tabs: LegacyDynamic;
-  let proxyImpl: LegacyDynamic;
+  let tabs: BackgroundTabs;
+  let proxyImpl: BackgroundProxyImpl;
 
   function actionForUrl(url: string) {
     return options.ready.then(() => {
       const request = OmegaPac.Conditions.requestFromUrl(url);
       return options.matchProfile(request);
     }).then((arg) => {
-      const profile = arg.profile as BackgroundProfile;
-      const results = arg.results as unknown as LegacyDynamic[];
+      const profile = arg.profile;
+      const results = arg.results;
       let current = options.currentProfile() as BackgroundProfile;
       let currentName = dispName(current.name);
       let realCurrentName: string | undefined;
@@ -222,8 +368,10 @@ type ProxyChangeDetails = Record<string, unknown> & {
       let details = '';
       let direct = false;
       let attached = false;
-      const condition2Str = (condition: LegacyDynamic): string => {
-        return stringOrUndefined(condition.pattern) || OmegaPac.Conditions.str(condition);
+      const condition2Str = (condition: unknown): string => {
+        return isRecord(condition) && condition.pattern != null
+          ? String(condition.pattern)
+          : OmegaPac.Conditions.str(condition);
       };
       for (let i = 0, len = results.length; i < len; i++) {
         const result = results[i];
@@ -252,7 +400,8 @@ type ProxyChangeDetails = Record<string, unknown> & {
           } else if (typeof result[1] === 'string') {
             details += `${result[1]} => ${result[0]}\n`;
           } else {
-            condition = condition2Str(result[1].condition != null ? result[1].condition : result[1]);
+            const source = result[1];
+            condition = condition2Str(isRecord(source) && source.condition != null ? source.condition : source);
             details += `${condition} => `;
             if (result[0] === 'DIRECT') {
               details += chrome.i18n.getMessage('browserAction_directResult');
@@ -356,11 +505,11 @@ type ProxyChangeDetails = Record<string, unknown> & {
         return;
       }
       const parsedUrl = OmegaTargetCurrent.Url.parse(url);
-      let urlDisp;
+      let urlDisp: string | undefined;
       if (parsedUrl.hostname === OmegaTargetCurrent.Url.parse(tab.url).hostname) {
-        urlDisp = parsedUrl.path;
+        urlDisp = stringOrUndefined(parsedUrl.path);
       } else {
-        urlDisp = parsedUrl.hostname;
+        urlDisp = stringOrUndefined(parsedUrl.hostname);
       }
       let title = chrome.i18n.getMessage('browserAction_titleInspect', urlDisp) + '\n';
       title += action.title;
@@ -409,7 +558,7 @@ type ProxyChangeDetails = Record<string, unknown> & {
     if (timeout != null) {
       clearTimeout(timeout);
     }
-    let parsed: unknown | null = null;
+    let parsed: BackgroundProfile | null | undefined = null;
     timeout = setTimeout(() => {
       if (parsed) {
         const result = options.setExternalProfile(parsed, {
@@ -515,8 +664,32 @@ type ProxyChangeDetails = Record<string, unknown> & {
     });
   }
 
-  function resolveBackgroundDispatch(request: BackgroundRequest): BackgroundDispatch | null {
-    if (!request.method) {
+  function isBackgroundMethod(method: unknown): method is BackgroundMethod {
+    switch (method) {
+      case 'addCondition':
+      case 'addProfile':
+      case 'addTempRule':
+      case 'applyProfile':
+      case 'getAll':
+      case 'getPageInfo':
+      case 'getState':
+      case 'patch':
+      case 'renameProfile':
+      case 'replaceRef':
+      case 'reset':
+      case 'resetOptionsSync':
+      case 'setDefaultProfile':
+      case 'setOptionsSync':
+      case 'setState':
+      case 'updateProfile':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  function resolveBackgroundDispatch(request: RawBackgroundRequest): BackgroundDispatch | null {
+    if (!isBackgroundMethod(request.method)) {
       return null;
     }
     let method: unknown;
@@ -526,7 +699,14 @@ type ProxyChangeDetails = Record<string, unknown> & {
       method = state.get;
     } else if (request.method === 'setState') {
       target = state;
-      method = state.set;
+      method = (itemsOrName: Record<string, unknown> | string, value?: unknown) => {
+        if (typeof itemsOrName === 'string') {
+          return state.set({
+            [itemsOrName]: value
+          });
+        }
+        return state.set(itemsOrName);
+      };
     } else {
       target = options;
       method = options[request.method];
@@ -540,14 +720,15 @@ type ProxyChangeDetails = Record<string, unknown> & {
     };
   }
 
-  chrome.runtime.onMessage.addListener((request: BackgroundRequest, _sender: unknown, respond: BackgroundRespond) => {
-    if (!(request && request.method)) {
+  chrome.runtime.onMessage.addListener((request: unknown, _sender: unknown, respond: BackgroundRespond) => {
+    if (!isRecord(request) || typeof request.method !== 'string') {
       return;
     }
+    const backgroundRequest = request as RawBackgroundRequest;
     options.ready.then(() => {
-      const dispatch = resolveBackgroundDispatch(request);
+      const dispatch = resolveBackgroundDispatch(backgroundRequest);
       if (!dispatch) {
-        Log.error(`No such method ${request.method}!`);
+        Log.error(`No such method ${backgroundRequest.method}!`);
         respond({
           error: {
             reason: 'noSuchMethod'
@@ -556,39 +737,42 @@ type ProxyChangeDetails = Record<string, unknown> & {
         return;
       }
       const promise = Promise.resolve().then(() => {
-        return dispatch.method.apply(dispatch.target, request.args || []);
+        return dispatch.method.apply(dispatch.target, backgroundRequest.args || []);
       });
-      if (request.noReply) {
+      if (backgroundRequest.noReply) {
         return promise.then(() => {
-          if (request.refreshActivePage) {
+          if (backgroundRequest.refreshActivePage) {
             return refreshActivePageIfEnabled();
           }
         }, (error: unknown) => {
-          return Log.error(request.method + ' ==>', error);
+          return Log.error(backgroundRequest.method + ' ==>', error);
         });
       }
-      return promise.then((result: Record<string, unknown>) => {
-        if (request.refreshActivePage) {
+      return promise.then((result: unknown) => {
+        if (backgroundRequest.refreshActivePage) {
           refreshActivePageIfEnabled();
         }
-        if (request.method === 'updateProfile') {
+        let responseResult: unknown = result;
+        if (backgroundRequest.method === 'updateProfile' && isRecord(result)) {
+          const encodedResult: Record<string, unknown> = {};
           for (const key in result) {
             if (!hasProp.call(result, key)) continue;
             const value = result[key];
-            result[key] = encodeError(value);
+            encodedResult[key] = encodeError(value);
           }
+          responseResult = encodedResult;
         }
         return respond({
-          result: result
+          result: responseResult
         });
       }, (error: unknown) => {
-        Log.error(request.method + ' ==>', error);
+        Log.error(backgroundRequest.method + ' ==>', error);
         return respond({
           error: encodeError(error)
         });
       });
     });
-    if (!request.noReply) {
+    if (!backgroundRequest.noReply) {
       return true;
     }
   });

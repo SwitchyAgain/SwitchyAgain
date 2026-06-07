@@ -19,7 +19,7 @@ export type BackgroundResponse<T> = {
 
 export type ProfileUpdateResults = Record<string, BackgroundError | unknown>;
 
-type BackgroundMethodArgs = {
+export type BackgroundMethodArgs = {
   getAll: [];
   getState: [name: string | string[]];
   patch: [patch: OptionsPatch];
@@ -32,7 +32,7 @@ type BackgroundMethodArgs = {
   updateProfile: [name?: string | string[] | null, bypassCache?: boolean | string];
 };
 
-type BackgroundMethodResult = {
+export type BackgroundMethodResult = {
   getAll: Options;
   getState: Record<string, unknown>;
   patch: Options;
@@ -45,9 +45,9 @@ type BackgroundMethodResult = {
   updateProfile: Record<string, unknown>;
 };
 
-type BackgroundMethod = keyof BackgroundMethodArgs;
+export type BackgroundMethod = keyof BackgroundMethodArgs;
 
-type BackgroundMessage<M extends BackgroundMethod = BackgroundMethod> = {
+export type BackgroundMessage<M extends BackgroundMethod = BackgroundMethod> = {
   args: BackgroundMethodArgs[M];
   method: M;
   noReply?: boolean;
@@ -63,9 +63,9 @@ declare const chrome: {
     getURL?: (path: string) => string;
     id?: string;
     lastError?: {message?: string};
-    sendMessage?: (
-      message: BackgroundMessage,
-      callback: (response?: BackgroundResponse<unknown>) => void
+    sendMessage?: <M extends BackgroundMethod>(
+      message: BackgroundMessage<M>,
+      callback: (response?: BackgroundResponse<BackgroundMethodResult[M]>) => void
     ) => void;
   };
   tabs?: {

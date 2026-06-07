@@ -47,27 +47,26 @@ type BackgroundMessage<M extends PopupBackgroundMethod = PopupBackgroundMethod> 
   refreshActivePage?: boolean;
 };
 
-function handleBackgroundResponse<T>(response: LegacyDynamic, cb?: PopupCallback<T>) {
+function handleBackgroundResponse<T>(response?: BackgroundResponse<T>, cb?: PopupCallback<T>) {
   if (!cb) {
     return;
   }
-  const backgroundResponse = response as unknown as BackgroundResponse<T> | undefined;
   if (chrome.runtime.lastError != null) {
     cb(chrome.runtime.lastError);
     return;
   }
-  if (backgroundResponse != null && backgroundResponse.error) {
-    cb(backgroundResponse.error);
+  if (response != null && response.error) {
+    cb(response.error);
     return;
   }
-  cb(null, backgroundResponse != null ? backgroundResponse.result : undefined);
+  cb(null, response != null ? response.result : undefined);
 }
 
 function sendBackgroundMessage<M extends PopupBackgroundMethod>(
   message: BackgroundMessage<M>,
   cb?: PopupCallback<PopupBackgroundMethodResult[M]>
 ) {
-  chrome.runtime.sendMessage(message, (response: LegacyDynamic) => {
+  chrome.runtime.sendMessage(message, (response?: BackgroundResponse<PopupBackgroundMethodResult[M]>) => {
     handleBackgroundResponse(response, cb);
   });
 }
