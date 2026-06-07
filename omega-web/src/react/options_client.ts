@@ -1,4 +1,7 @@
-export type Options = Record<string, unknown>;
+import type {OptionsData} from './profile_types';
+
+export type Options = OptionsData;
+export type OptionsPatch = Record<string, unknown>;
 
 export type BackgroundError = Error & {
   original?: {
@@ -19,7 +22,7 @@ export type ProfileUpdateResults = Record<string, BackgroundError | unknown>;
 type BackgroundMethodArgs = {
   getAll: [];
   getState: [name: string | string[]];
-  patch: [patch: Options];
+  patch: [patch: OptionsPatch];
   renameProfile: [fromName: string, toName: string];
   replaceRef: [fromName: string, toName: string];
   reset: [options?: Options | string];
@@ -153,7 +156,7 @@ export function loadOptions() {
   return callBackground('getAll');
 }
 
-export function patchOptions(patch: Options) {
+export function patchOptions(patch: OptionsPatch) {
   return callBackground('patch', patch);
 }
 
@@ -290,7 +293,7 @@ export function openOptions(hash?: string) {
 }
 
 export function optionPatch(before: Options, after: Options, keys: string[]) {
-  const patch: Options = {};
+  const patch: OptionsPatch = {};
   for (const key of keys) {
     if (before[key] !== after[key]) {
       patch[key] = [before[key], after[key]];

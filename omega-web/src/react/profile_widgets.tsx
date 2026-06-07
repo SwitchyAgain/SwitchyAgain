@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Options, message} from './options_client';
-import type {Profile as ProfileModel} from './profile_types';
+import type {Profile as ProfileModel, ProfileKey} from './profile_types';
 
 export type Profile = ProfileModel;
 
@@ -70,14 +70,24 @@ export function ProfileInline({profile, dispName}: {profile?: Profile | null; di
   );
 }
 
+function isProfileKey(key: string): key is ProfileKey {
+  return key.charAt(0) === '+';
+}
+
+function isVisibleProfile(value: unknown): value is Profile {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  const profile = value as Profile;
+  const name = profile.name || '';
+  return !(name.charAt(0) === '_' && name.charAt(1) === '_');
+}
+
 export function profilesFromOptions(options?: Options | null) {
   if (!options) {
     return [];
   }
-  return Object.keys(options).filter((key) => key.charAt(0) === '+').map((key) => options[key] as Profile | undefined).filter((profile) => {
-    const name = profile?.name || '';
-    return !(name.charAt(0) === '_' && name.charAt(1) === '_');
-  }) as Profile[];
+  return Object.keys(options).filter(isProfileKey).map((key) => options[key]).filter(isVisibleProfile);
 }
 
 export function profileOrder(a: Profile, b: Profile) {

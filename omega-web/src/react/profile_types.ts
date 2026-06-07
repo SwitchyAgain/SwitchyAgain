@@ -21,6 +21,24 @@ export type Profile = {
   [key: string]: unknown;
 };
 
+export type ProfileKey = `+${string}`;
+
+export type OptionsData = {
+  [key: string]: unknown;
+  '-addConditionsToBottom'?: boolean;
+  '-confirmDeletion'?: boolean;
+  '-downloadInterval'?: number | string;
+  '-enableQuickSwitch'?: boolean;
+  '-exportLegacyRuleList'?: boolean;
+  '-monitorWebRequests'?: boolean;
+  '-quickSwitchProfiles'?: string[];
+  '-refreshOnProfileChange'?: boolean;
+  '-showConditionTypes'?: number;
+  '-showExternalProfile'?: boolean;
+  '-showInspectMenu'?: boolean;
+  '-startupProfileName'?: string;
+};
+
 export type VirtualProfileModel = Profile & {
   defaultProfileName?: string;
 };

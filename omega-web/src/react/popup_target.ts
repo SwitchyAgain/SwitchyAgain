@@ -1,12 +1,10 @@
 import {message} from './options_client';
+import type {Profile as ProfileModel} from './profile_types';
 
-export type Profile = {
-  builtin?: boolean;
-  color?: string;
+export type Profile = ProfileModel & {
   defaultProfileName?: string;
   desc?: string;
   name: string;
-  profileType?: string;
   validResultProfiles?: string[];
 };
 
