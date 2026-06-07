@@ -24,7 +24,6 @@
     "autoprefixer-core": "^5.2.1",
     "buffer": "^3.6.2",
     "esbuild": "^0.28.0",
-    "less": "^4.6.4",
     "mocha": "^11.7.6",
     "po2json": "^0.3.2",
     "postcss": "~4.1.12",

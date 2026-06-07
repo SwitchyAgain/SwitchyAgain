@@ -1,17 +1,12 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import less from 'less';
 import * as esbuild from 'esbuild';
 import postcss from 'postcss';
 import autoprefixer from 'autoprefixer-core';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const workspaceRoot = path.join(root, '..');
-
-type LessRenderOutput = string | {
-  css: string;
-};
 
 type StaticCopy = [src: string, dest: string];
 
@@ -97,18 +92,8 @@ async function bundleReact(entry: string, dest: string) {
   });
 }
 
-async function renderLess(src: string, tmpDest: string, buildDest: string) {
-  const input = await fs.readFile(path.join(root, src), 'utf8');
-  const rendered = await new Promise<LessRenderOutput>((resolve, reject) => {
-    less.render(input, {filename: path.join(root, src)}, (error: unknown, output: LessRenderOutput) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(output);
-      }
-    });
-  });
-  const css = typeof rendered === 'string' ? rendered : rendered.css;
+async function processCss(src: string, tmpDest: string, buildDest: string) {
+  const css = await fs.readFile(path.join(root, src), 'utf8');
   const prefixed = postcss([autoprefixer({cascade: true})]).process(css, {
     map: false,
     from: path.join(root, tmpDest),
@@ -170,7 +155,7 @@ async function main() {
   await writeReactHtml('build/react/import_export.html', 'SwitchyAgain Import / Export', 'import_export.js');
   await bundleReact('src/react/import_export.tsx', 'build/react/import_export.js');
 
-  await renderLess('src/less/options.less', 'tmp/css/options.css', 'build/css/options.css');
+  await processCss('src/css/options.css', 'tmp/css/options.css', 'build/css/options.css');
 }
 
 main().catch((error) => {

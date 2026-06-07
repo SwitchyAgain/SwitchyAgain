@@ -21,11 +21,6 @@ declare module 'autoprefixer-core' {
   export default value;
 }
 
-declare module 'less' {
-  const value: any;
-  export default value;
-}
-
 declare module 'postcss' {
   const value: any;
   export default value;
