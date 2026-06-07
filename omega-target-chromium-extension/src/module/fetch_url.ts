@@ -4,8 +4,17 @@ import xhrModule = require('xhr');
 
 const OmegaTarget = OmegaTargetModule;
 const OmegaPromise = OmegaTarget.Promise;
-const xhr = OmegaPromise.promisify(xhrModule);
 const ContentTypeRejectedError = OmegaTarget.ContentTypeRejectedError;
+
+type XhrOptions = string | {
+  url: string;
+  [key: string]: unknown;
+};
+
+type XhrOperationalError = Error & {
+  isOperational?: boolean;
+  statusCode?: number;
+};
 
 type XhrResponse = {
   headers: Record<string, string | undefined>;
@@ -18,11 +27,13 @@ type HintContext = {
 
 type HintHandler = (response: XhrResponse, body: string, context: HintContext) => string | undefined | void;
 
-function xhrWrapper(...args: unknown[]) {
-  return xhr.apply(null, args).catch((err: {
-    isOperational?: boolean;
-    statusCode?: number;
-  }) => {
+type XhrResult = [response: XhrResponse, body: string];
+type XhrFunction = (options: XhrOptions) => OmegaPromise<XhrResult>;
+
+const xhr = OmegaPromise.promisify(xhrModule) as unknown as XhrFunction;
+
+function xhrWrapper(options: XhrOptions): Promise<XhrResult> {
+  return xhr(options).catch((err: XhrOperationalError) => {
     if (!err.isOperational) {
       throw err;
     }
@@ -79,7 +90,7 @@ const hintHandlers: Record<string, HintHandler> = {
 };
 
 function fetchUrl(destUrl: string, optBypassCache?: boolean, optTypeHints?: string[]) {
-  const getResBody = ([response, body]: [XhrResponse, string]) => {
+  const getResBody = ([response, body]: XhrResult) => {
     if (!optTypeHints) {
       return body;
     }

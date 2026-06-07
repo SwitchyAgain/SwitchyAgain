@@ -11,12 +11,6 @@ type TabBadge = {
   text: string;
 };
 
-type ChromeTab = {
-  active?: boolean;
-  id?: number;
-  url?: string;
-};
-
 type TabChangeInfo = {
   status?: string;
   url?: string;
@@ -29,9 +23,9 @@ function actionApi(): ChromeActionApi {
 
 class ChromeTabs {
   actionForUrl: (url: string) => Promise<TabAction | null | undefined>;
-  private _badgeTab: Record<string, boolean> | null;
+  private _badgeTab: Record<number, boolean> | null;
   private _defaultAction: TabAction | null;
-  private _dirtyTabs: Record<string, number | undefined>;
+  private _dirtyTabs: Record<number, number>;
 
   constructor(actionForUrl: (url: string) => Promise<TabAction | null | undefined>) {
     this.actionForUrl = actionForUrl;
@@ -51,7 +45,7 @@ class ChromeTabs {
         if (chrome.runtime.lastError) {
           return;
         }
-        if (Object.prototype.hasOwnProperty.call(this._dirtyTabs, info.tabId)) {
+        if (tab.id != null && Object.prototype.hasOwnProperty.call(this._dirtyTabs, info.tabId)) {
           return this.onUpdated(tab.id, {}, tab);
         }
       });
@@ -63,7 +57,10 @@ class ChromeTabs {
     chrome.tabs.query({}, (tabs: ChromeTab[]) => {
       this._dirtyTabs = {};
       tabs.forEach((tab) => {
-        this._dirtyTabs[String(tab.id)] = tab.id;
+        if (tab.id == null) {
+          return;
+        }
+        this._dirtyTabs[tab.id] = tab.id;
         if (tab.active) {
           return this.onUpdated(tab.id, {}, tab);
         }
@@ -82,8 +79,8 @@ class ChromeTabs {
   }
 
   onUpdated(_tabId: number | undefined, changeInfo: TabChangeInfo, tab: ChromeTab) {
-    if (Object.prototype.hasOwnProperty.call(this._dirtyTabs, tab.id)) {
-      delete this._dirtyTabs[String(tab.id)];
+    if (tab.id != null && Object.prototype.hasOwnProperty.call(this._dirtyTabs, tab.id)) {
+      delete this._dirtyTabs[tab.id];
     } else if (changeInfo.url == null && changeInfo.status != null && changeInfo.status !== 'loading') {
       return;
     }
@@ -98,7 +95,7 @@ class ChromeTabs {
           if (typeof api.setBadgeText === 'function') {
             api.setBadgeText({
               text: '',
-              tabId: id
+              tabId: Number(id)
             });
           }
         } catch (error) {
@@ -136,10 +133,13 @@ class ChromeTabs {
   }
 
   setTabBadge(tab: ChromeTab, badge: TabBadge) {
+    if (tab.id == null) {
+      return;
+    }
     if (this._badgeTab == null) {
       this._badgeTab = {};
     }
-    this._badgeTab[String(tab.id)] = true;
+    this._badgeTab[tab.id] = true;
     const api = actionApi();
     if (typeof api.setBadgeText === 'function') {
       api.setBadgeText({

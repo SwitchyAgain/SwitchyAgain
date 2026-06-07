@@ -5,6 +5,7 @@ import ChromePort = require('./chrome_port');
 import fetchUrl = require('./fetch_url');
 import Url = require('url');
 import upgradeSwitchyOptions = require('./upgrade');
+import type {ProxyImplInstance, ProxyProfile} from './proxy/proxy_types';
 
 const OmegaTarget = OmegaTargetModule;
 const OmegaPac = OmegaTarget.OmegaPac;
@@ -16,11 +17,7 @@ type BadgeOptions = {
   title?: string;
 };
 
-type Profile = Record<string, unknown> & {
-  name?: string;
-  pacUrl?: string;
-  profileType?: string;
-};
+type Profile = ProxyProfile;
 
 type ExternalApiLike = {
   disabled: boolean;
@@ -52,21 +49,7 @@ type RequestMonitorLike = {
   ) => unknown): unknown;
 };
 
-type RequestMonitorConstructor = new (
-  getSummaryId?: (req: {url: string}) => string | number | null | undefined
-) => RequestMonitorLike;
-
-type ChromePortLike = {
-  onDisconnect: {
-    addListener(callback: () => unknown): unknown;
-  };
-  onMessage: {
-    addListener(callback: (message: {tabId: number}) => unknown): unknown;
-  };
-  postMessage(message: unknown): unknown;
-};
-
-type ChromePortConstructor = new (port: ChromeRuntimePort) => ChromePortLike;
+type ChromePortLike = InstanceType<typeof ChromePort>;
 
 type SwitchySharpLike = {
   getOptions(): {
@@ -84,9 +67,6 @@ type PageInfoArgs = {
   url?: string;
 };
 
-const TypedWebRequestMonitor = WebRequestMonitor as unknown as RequestMonitorConstructor;
-const TypedChromePort = ChromePort as unknown as ChromePortConstructor;
-
 function actionApi(): ChromeActionApi {
   const legacyKey = 'browser' + 'Action';
   return (chrome.action || chrome[legacyKey]) as ChromeActionApi;
@@ -97,7 +77,7 @@ interface ChromeOptions extends OmegaOptionsBase {}
 class ChromeOptions extends OmegaTarget.Options {
   externalApi: ExternalApiLike;
   fetchUrl: typeof fetchUrl;
-  proxyImpl: unknown;
+  proxyImpl: ProxyImplInstance;
   switchySharp: SwitchySharpLike | null;
   private _alarms: Record<string, () => void> | null;
   private _badgeTitle: string | null;
@@ -108,7 +88,7 @@ class ChromeOptions extends OmegaTarget.Options {
   private _quickSwitchHandlerReady: boolean;
   private _quickSwitchInit: boolean;
   private _requestMonitor: RequestMonitorLike | null;
-  private _tabRequestInfoPorts: Record<string, ChromePortLike> | null;
+  private _tabRequestInfoPorts: Record<number, ChromePortLike> | null;
 
   constructor(...args: unknown[]) {
     super(...args);
@@ -296,7 +276,7 @@ class ChromeOptions extends OmegaTarget.Options {
       const wildcardForReq = (req: {url: string}) => {
         return OmegaPac.wildcardForUrl(req.url);
       };
-      this._requestMonitor = new TypedWebRequestMonitor(wildcardForReq);
+      this._requestMonitor = new WebRequestMonitor(wildcardForReq);
       this._requestMonitor.watchTabs((tabId: number, info: TabRequestInfo) => {
         if (!this._monitorWebRequests) {
           return;
@@ -335,7 +315,7 @@ class ChromeOptions extends OmegaTarget.Options {
           return;
         }
         let tabId: number | null = null;
-        const port = new TypedChromePort(rawPort);
+        const port = new ChromePort(rawPort);
         port.onMessage.addListener((msg: {tabId: number}) => {
           tabId = msg.tabId;
           if (this._tabRequestInfoPorts) {

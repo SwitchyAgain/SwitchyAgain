@@ -1,34 +1,23 @@
 import OmegaTargetModule = require('omega-target');
 import ProxyImplModule = require('./proxy_impl');
+import type {
+  ProxyCredentials,
+  ProxyChangeWatcher,
+  ProxyLog,
+  ProxyProfile,
+  ProxyServer
+} from './proxy_types';
 
 const OmegaTarget = OmegaTargetModule;
 const OmegaPac = OmegaTarget.OmegaPac;
 const NativePromise = typeof Promise !== 'undefined' && Promise !== null ? Promise : null;
 
-type ProxyImplBase = {
-  log: {
-    error(...args: unknown[]): void;
-  };
-  setProxyAuth(profile: Record<string, unknown>, options: unknown): OmegaPromise<unknown>;
-};
+const ProxyImpl = ProxyImplModule;
 
-type ProxyImplConstructor = new (...args: unknown[]) => ProxyImplBase;
-
-const ProxyImpl = ProxyImplModule as unknown as ProxyImplConstructor;
-
-type Profile = Record<string, unknown> & {
-  profileType?: string;
-};
-
-type ProxyConfig = {
+type MatchedProxyServer = ProxyServer & {
   host: string;
   port: number;
   scheme: string;
-};
-
-type ProxyAuth = {
-  password?: string;
-  username?: string;
 };
 
 type RequestDetails = {
@@ -45,14 +34,13 @@ type ProxyInfo = {
 };
 
 class ListenerProxyImpl extends ProxyImpl {
-  features: string[];
   private _options?: unknown;
   private _optionsReady: Promise<void>;
   private _optionsReadyCallback: (() => void) | null;
-  private _profile?: Profile;
+  private _profile?: ProxyProfile;
 
-  constructor(...args: unknown[]) {
-    super(...args);
+  constructor(log: ProxyLog) {
+    super(log);
     this.features = ['fullUrl', 'socks5Auth'];
     this._optionsReadyCallback = null;
     this._optionsReady = new (NativePromise as PromiseConstructor)((resolve) => {
@@ -75,11 +63,11 @@ class ListenerProxyImpl extends ProxyImpl {
     return browser.proxy.onError.addListener(this.onError.bind(this));
   }
 
-  watchProxyChange(_callback: (details: unknown) => void): null {
+  watchProxyChange(_callback: ProxyChangeWatcher): null {
     return null;
   }
 
-  applyProfile(profile: Profile, _state: unknown, options: unknown) {
+  applyProfile(profile: ProxyProfile, _state?: unknown, options?: unknown) {
     this._options = options;
     this._profile = profile;
     if (typeof this._optionsReadyCallback === 'function') {
@@ -109,8 +97,8 @@ class ListenerProxyImpl extends ProxyImpl {
           }
         }
         if (Array.isArray(result)) {
-          const proxy = result[2] as ProxyConfig | undefined;
-          const auth = result[3] as ProxyAuth | undefined;
+          const proxy = result[2] as MatchedProxyServer | undefined;
+          const auth = result[3] as ProxyCredentials | undefined;
           if (proxy) {
             return this.proxyInfo(proxy, auth);
           }
@@ -130,7 +118,7 @@ class ListenerProxyImpl extends ProxyImpl {
     return this.log.error(error);
   }
 
-  proxyInfo(proxy: ProxyConfig, auth?: ProxyAuth) {
+  proxyInfo(proxy: MatchedProxyServer, auth?: ProxyCredentials) {
     const proxyInfo: ProxyInfo = {
       type: proxy.scheme,
       host: proxy.host,

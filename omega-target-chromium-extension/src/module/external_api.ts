@@ -16,17 +16,28 @@ type ExternalOptions = {
   setProxyNotControllable: (reason: string | null, badge?: {color: string; text: string}) => void;
 };
 
+type ExternalAction = 'disable' | 'enable' | 'getOptions';
+
 type ExternalMessage = {
-  action?: string;
+  action?: ExternalAction | string;
 };
 
-type ExternalPort = {
-  onDisconnect: {
-    addListener: (callback: () => void) => void;
+type ExternalResponse =
+  | {
+    action: 'error';
+    action_name?: string;
+    error: 'noSuchAction' | 'permission';
+  }
+  | {
+    action: 'options';
+    options: unknown;
+  }
+  | {
+    action: 'state';
+    state: 'disabled' | 'enabled';
   };
-  onMessage: {
-    addListener: (callback: (message: ExternalMessage) => void) => void;
-  };
+
+type ExternalPort = ChromePort & {
   postMessage: (message: Record<string, unknown>) => void;
   sender: {
     id: string;
@@ -57,8 +68,8 @@ class ExternalApi {
     if (!chrome.runtime.onConnectExternal) {
       return;
     }
-    return chrome.runtime.onConnectExternal.addListener((rawPort: unknown) => {
-      const port = new ChromePort(rawPort as ChromeRuntimePort) as unknown as ExternalPort;
+    return chrome.runtime.onConnectExternal.addListener((rawPort: ChromeRuntimePort) => {
+      const port = new ChromePort(rawPort) as ExternalPort;
       port.onMessage.addListener((msg) => {
         return this.onMessage(msg, port);
       });
@@ -86,7 +97,7 @@ class ExternalApi {
   checkPerm(port: ExternalPort, level: number) {
     const perm = this.knownExts[port.sender.id] || 0;
     if (perm < level) {
-      port.postMessage({
+      this.post(port, {
         action: 'error',
         error: 'permission'
       });
@@ -95,7 +106,8 @@ class ExternalApi {
     return true;
   }
 
-  onMessage(msg: ExternalMessage, port: ExternalPort) {
+  onMessage(message: unknown, port: ExternalPort) {
+    const msg = this.parseMessage(message);
     this.options.log.log(`${port.sender.id} -> ${msg.action}`, msg);
     switch (msg.action) {
       case 'disable': {
@@ -123,14 +135,14 @@ class ExternalApi {
             popup: 'popup/index.html'
           });
         }
-        return port.postMessage({
+        return this.post(port, {
           action: 'state',
           state: 'disabled'
         });
       }
       case 'enable':
         this.reenable();
-        return port.postMessage({
+        return this.post(port, {
           action: 'state',
           state: 'enabled'
         });
@@ -138,17 +150,28 @@ class ExternalApi {
         if (!this.checkPerm(port, 8)) {
           return;
         }
-        return port.postMessage({
+        return this.post(port, {
           action: 'options',
           options: this.options.getAll()
         });
       default:
-        return port.postMessage({
+        return this.post(port, {
           action: 'error',
           error: 'noSuchAction',
           action_name: msg.action
         });
     }
+  }
+
+  private parseMessage(message: unknown): ExternalMessage {
+    if (!message || typeof message !== 'object') {
+      return {};
+    }
+    return message as ExternalMessage;
+  }
+
+  private post(port: ExternalPort, message: ExternalResponse) {
+    return port.postMessage(message);
   }
 }
 

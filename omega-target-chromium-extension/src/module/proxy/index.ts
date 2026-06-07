@@ -1,17 +1,17 @@
-type ProxyImplConstructor = {
-  isSupported: () => boolean;
-  new(log: unknown): unknown;
-};
-
 import ListenerProxyImplModule = require('./proxy_impl_listener');
 import SettingsProxyImplModule = require('./proxy_impl_settings');
+import type {
+  ProxyImplConstructor,
+  ProxyImplInstance,
+  ProxyLog
+} from './proxy_types';
 
-const ListenerProxyImpl = ListenerProxyImplModule as unknown as ProxyImplConstructor;
-const SettingsProxyImpl = SettingsProxyImplModule as unknown as ProxyImplConstructor;
+const ListenerProxyImpl = ListenerProxyImplModule;
+const SettingsProxyImpl = SettingsProxyImplModule;
 
-export const proxyImpls = [ListenerProxyImpl, SettingsProxyImpl];
+export const proxyImpls: ProxyImplConstructor[] = [ListenerProxyImpl, SettingsProxyImpl];
 
-export function getProxyImpl(log: unknown) {
+export function getProxyImpl(log: ProxyLog): ProxyImplInstance {
   for (const Impl of proxyImpls) {
     if (Impl.isSupported()) {
       return new Impl(log);

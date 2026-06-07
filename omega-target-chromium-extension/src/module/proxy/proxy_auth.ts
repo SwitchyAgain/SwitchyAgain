@@ -1,31 +1,17 @@
 import OmegaTargetModule = require('omega-target');
+import type {
+  ProxyAuthEndpoint,
+  ProxyCredentials,
+  ProxyLog,
+  ProxyProfile
+} from './proxy_types';
 
 const OmegaTarget = OmegaTargetModule;
 const OmegaPac = OmegaTarget.OmegaPac;
 
-type Log = {
-  error: (...args: unknown[]) => void;
-  log: (...args: unknown[]) => void;
-};
-
-type ProxyConfig = {
-  host: string;
-  port: number | string;
-};
-
-type ProxyCredentials = {
-  password?: string;
-  username?: string;
-};
-
-type Profile = Record<string, unknown> & {
-  auth?: Record<string, ProxyCredentials | undefined>;
-  name?: string;
-};
-
 type ProxyAuthEntry = {
   auth: ProxyCredentials;
-  config?: ProxyConfig;
+  config?: ProxyAuthEndpoint;
   name: string;
 };
 
@@ -34,19 +20,23 @@ type AuthRequest = {
 };
 
 type AuthDetails = {
-  challenger: ProxyConfig;
+  challenger: ProxyAuthEndpoint;
   isProxy?: boolean;
   requestId: string;
 };
 
+type AuthResponse = {
+  authCredentials?: ProxyCredentials;
+};
+
 class ProxyAuth {
   listening: boolean;
-  log: Log;
+  log: ProxyLog;
   private _fallbacks: ProxyAuthEntry[];
   private _proxies: Record<string, ProxyAuthEntry[]>;
   private _requests: Record<string, AuthRequest>;
 
-  constructor(log: Log) {
+  constructor(log: ProxyLog) {
     this._requests = {};
     this._proxies = {};
     this._fallbacks = [];
@@ -78,11 +68,11 @@ class ProxyAuth {
     this.listening = true;
   }
 
-  private _keyForProxy(proxy: ProxyConfig) {
+  private _keyForProxy(proxy: ProxyAuthEndpoint) {
     return `${proxy.host.toLowerCase()}:${proxy.port}`;
   }
 
-  setProxies(profiles: Profile[]) {
+  setProxies(profiles: ProxyProfile[]) {
     this._proxies = {};
     this._fallbacks = [];
     const results = [];
@@ -99,7 +89,7 @@ class ProxyAuth {
         if (!auth) {
           continue;
         }
-        const proxy = profile[prop] as ProxyConfig;
+        const proxy = profile[prop] as ProxyAuthEndpoint;
         const key = this._keyForProxy(proxy);
         let list = this._proxies[key];
         if (list == null) {
@@ -124,8 +114,8 @@ class ProxyAuth {
     return results;
   }
 
-  authHandler(details: AuthDetails, callback?: (result: Record<string, unknown>) => void) {
-    const respond = (result: Record<string, unknown>) => {
+  authHandler(details: AuthDetails, callback?: (result: AuthResponse) => void) {
+    const respond = (result: AuthResponse) => {
       if (callback != null) {
         return callback(result);
       }

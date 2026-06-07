@@ -1,22 +1,21 @@
+type InspectMenuId = 'inspectElement' | 'inspectFrame' | 'inspectLink' | 'inspectPage';
+
 type InspectInfo = {
   frameUrl?: string;
   linkUrl?: string;
-  menuItemId?: string;
+  menuItemId?: InspectMenuId | string;
   pageUrl?: string;
   srcUrl?: string;
   [key: string]: unknown;
 };
 
-type InspectTab = {
-  url?: string;
-  [key: string]: unknown;
-};
+type InspectTab = Pick<ChromeTab, 'id' | 'url'> & Record<string, unknown>;
 
 const WEB_RESOURCE_PATTERNS = ['http://*/*', 'https://*/*', 'ftp://*/*'];
 
 class Inspect {
   onInspect: (url: string, tab: InspectTab) => unknown;
-  propForMenuItem: Record<string, keyof InspectInfo>;
+  propForMenuItem: Record<InspectMenuId, keyof InspectInfo>;
   private _enabled: boolean;
 
   constructor(onInspect: (url: string, tab: InspectTab) => unknown) {
@@ -77,14 +76,14 @@ class Inspect {
   }
 
   private _onContextMenuClicked(info: InspectInfo, tab: InspectTab) {
-    if (!info.menuItemId || !this.propForMenuItem[info.menuItemId]) {
+    if (!this.isInspectMenuId(info.menuItemId)) {
       return;
     }
     return this.inspect(info, tab);
   }
 
   inspect(info: InspectInfo, tab: InspectTab) {
-    if (!info.menuItemId) {
+    if (!this.isInspectMenuId(info.menuItemId)) {
       return;
     }
     const prop = this.propForMenuItem[info.menuItemId];
@@ -96,6 +95,10 @@ class Inspect {
       return;
     }
     return this.onInspect(url, tab);
+  }
+
+  private isInspectMenuId(menuItemId: string | undefined): menuItemId is InspectMenuId {
+    return Boolean(menuItemId && Object.prototype.hasOwnProperty.call(this.propForMenuItem, menuItemId));
   }
 }
 

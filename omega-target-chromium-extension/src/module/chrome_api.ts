@@ -1,4 +1,6 @@
-type ChromeApiTarget = Record<string, unknown>;
+type ChromeApiCallback<T> = (...callbackArgs: T[]) => void;
+type ChromeApiMethod<T = unknown> = (...args: Array<unknown | ChromeApiCallback<T>>) => void;
+type ChromeApiTarget = Record<string, ChromeApiMethod | unknown>;
 
 type OmegaPromiseConstructor = new <T>(
   executor: (
@@ -11,14 +13,18 @@ import OmegaTargetModule = require('omega-target');
 
 const OmegaPromise = OmegaTargetModule.Promise as OmegaPromiseConstructor;
 
-export function chromeApiPromisify(target: ChromeApiTarget, method: string) {
+function chromeRuntimeError() {
+  const error = new Error(chrome.runtime.lastError?.message || 'Unknown Chrome API error.');
+  (error as Error & {original?: ChromeLastError}).original = chrome.runtime.lastError;
+  return error;
+}
+
+export function chromeApiPromisify<T = unknown>(target: ChromeApiTarget, method: string) {
   return (...args: unknown[]) => {
-    return new OmegaPromise<unknown>((resolve, reject) => {
-      const callback = (...callbackArgs: unknown[]) => {
+    return new OmegaPromise<T | T[]>((resolve, reject) => {
+      const callback = (...callbackArgs: T[]) => {
         if (chrome.runtime.lastError != null) {
-          const error = new Error(chrome.runtime.lastError.message);
-          (error as Error & {original?: unknown}).original = chrome.runtime.lastError;
-          reject(error);
+          reject(chromeRuntimeError());
           return;
         }
         if (callbackArgs.length <= 1) {
@@ -27,7 +33,12 @@ export function chromeApiPromisify(target: ChromeApiTarget, method: string) {
           resolve(callbackArgs);
         }
       };
-      (target[method] as (...args: unknown[]) => void).apply(target, args.concat(callback));
+      const apiMethod = target[method];
+      if (typeof apiMethod !== 'function') {
+        reject(new Error(`Chrome API method not found: ${method}`));
+        return;
+      }
+      apiMethod.apply(target, args.concat(callback));
     });
   };
 }

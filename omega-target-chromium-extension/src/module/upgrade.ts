@@ -1,5 +1,9 @@
 import OmegaTargetModule = require('omega-target');
 import BufferModule = require('buffer');
+import type {
+  ProxyCondition,
+  ProxyServer
+} from './proxy/proxy_types';
 
 const OmegaTarget = OmegaTargetModule;
 const OmegaPac = OmegaTarget.OmegaPac;
@@ -54,20 +58,25 @@ type LegacyRule = {
   urlPattern?: string;
 };
 
+type BypassCondition = ProxyCondition & {
+  conditionType: 'BypassCondition';
+  pattern: string;
+};
+
 type Profile = Record<string, unknown> & {
-  bypassList?: Array<{conditionType: string; pattern: string}>;
+  bypassList?: BypassCondition[];
   color?: string;
   defaultProfileName?: string;
-  fallbackProxy?: unknown;
+  fallbackProxy?: ProxyServer;
   format?: string;
   matchProfileName?: string;
   name?: string;
   pacScript?: string;
   pacUrl?: string;
   profileType?: string;
-  proxyForFtp?: unknown;
-  proxyForHttp?: unknown;
-  proxyForHttps?: unknown;
+  proxyForFtp?: ProxyServer;
+  proxyForHttp?: ProxyServer;
+  proxyForHttps?: ProxyServer;
   rules?: Array<{
     condition: unknown;
     note?: string;
@@ -99,6 +108,10 @@ function conditionFromRule(rule: LegacyRule) {
         pattern: rule.urlPattern
       };
   }
+}
+
+function parseProxy(value: string | undefined, scheme: string): ProxyServer {
+  return OmegaPac.Profiles.parseHostPort(value, scheme) as ProxyServer;
 }
 
 function upgradeSwitchyOptions(oldOptions: LegacyOptions, i18n: I18nMessages) {
@@ -180,14 +193,14 @@ function upgradeSwitchyOptions(oldOptions: LegacyOptions, i18n: I18nMessages) {
           profileType: 'FixedProfile'
         });
         if (oldProfile.useSameProxy) {
-          profile.fallbackProxy = OmegaPac.Profiles.parseHostPort(oldProfile.proxyHttp, 'http');
+          profile.fallbackProxy = parseProxy(oldProfile.proxyHttp, 'http');
         } else if (oldProfile.proxySocks) {
           const protocol = oldProfile.socksVersion === 5 ? 'socks5' : 'socks4';
-          profile.fallbackProxy = OmegaPac.Profiles.parseHostPort(oldProfile.proxySocks, protocol);
+          profile.fallbackProxy = parseProxy(oldProfile.proxySocks, protocol);
         } else {
-          profile.proxyForHttp = OmegaPac.Profiles.parseHostPort(oldProfile.proxyHttp, 'http');
-          profile.proxyForHttps = OmegaPac.Profiles.parseHostPort(oldProfile.proxyHttps, 'http');
-          profile.proxyForFtp = OmegaPac.Profiles.parseHostPort(oldProfile.proxyFtp, 'http');
+          profile.proxyForHttp = parseProxy(oldProfile.proxyHttp, 'http');
+          profile.proxyForHttps = parseProxy(oldProfile.proxyHttps, 'http');
+          profile.proxyForFtp = parseProxy(oldProfile.proxyFtp, 'http');
         }
         if (oldProfile.proxyExceptions != null) {
           let hasLocalPattern = false;

@@ -1,27 +1,24 @@
 import OmegaTargetModule = require('omega-target');
 import ProxyAuth = require('./proxy_auth');
+import type {
+  ExternalProxyDetails,
+  ProxyChangeDetails,
+  ProxyChangeWatcher,
+  ProxyLog,
+  ProxyProfile
+} from './proxy_types';
 
 const OmegaTarget = OmegaTargetModule;
 const OmegaPac = OmegaTarget.OmegaPac;
 const OmegaPromise = OmegaTarget.Promise;
 
-type Log = {
-  error: (...args: unknown[]) => void;
-  log: (...args: unknown[]) => void;
-};
-
-type Profile = Record<string, unknown> & {
-  defaultProfileName?: string;
-  name?: string;
-  profileType?: string;
-  revision?: string;
-};
-
 class ProxyImpl {
-  log: Log;
+  features: string[];
+  log: ProxyLog;
   private _proxyAuth?: InstanceType<typeof ProxyAuth>;
 
-  constructor(log: Log) {
+  constructor(log: ProxyLog) {
+    this.features = [];
     this.log = log;
   }
 
@@ -29,15 +26,18 @@ class ProxyImpl {
     return false;
   }
 
-  applyProfile(_profile: Profile, _meta?: Profile) {
+  applyProfile(_profile: ProxyProfile, _meta?: ProxyProfile, _options?: unknown): Promise<unknown> {
     return OmegaPromise.reject();
   }
 
-  watchProxyChange(_callback: (details: unknown) => void): null {
+  watchProxyChange(_callback: ProxyChangeWatcher): void | null {
     return null;
   }
 
-  parseExternalProfile(_details: unknown, _options: unknown): null {
+  parseExternalProfile(
+    _details: ExternalProxyDetails | ProxyProfile | ProxyChangeDetails,
+    _options?: unknown
+  ): unknown {
     return null;
   }
 
@@ -50,13 +50,13 @@ class ProxyImpl {
     });
   }
 
-  setProxyAuth(profile: Profile, options: unknown) {
+  setProxyAuth(profile: ProxyProfile, options: unknown) {
     return OmegaPromise.try(() => {
       if (this._proxyAuth == null) {
         this._proxyAuth = new ProxyAuth(this.log);
       }
       this._proxyAuth.listen();
-      const referencedProfiles: Profile[] = [];
+      const referencedProfiles: ProxyProfile[] = [];
       const refSet = OmegaPac.Profiles.allReferenceSet(profile, options, {
         profileNotFound: this._profileNotFound.bind(this)
       });
@@ -71,7 +71,7 @@ class ProxyImpl {
     });
   }
 
-  getProfilePacScript(profile: Profile, meta: Profile = profile, options: unknown) {
+  getProfilePacScript(profile: ProxyProfile, meta: ProxyProfile = profile, options: unknown) {
     let ast = OmegaPac.PacGenerator.script(options, profile, {
       profileNotFound: this._profileNotFound.bind(this)
     });

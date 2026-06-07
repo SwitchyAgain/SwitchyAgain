@@ -6,16 +6,25 @@ type StorageKeys = string | string[] | StorageItems | null;
 type WatchKeys = string | string[] | null;
 type WatchKeyMap = Record<string, boolean> | null;
 type WatchCallback = (changes: StorageItems) => unknown;
+type StorageAreaName = 'local' | 'sync';
+type WatchUnsubscribe = () => void;
 
 type ChromeStorageChange = {
   newValue?: unknown;
 };
 
 type StorageArea = {
-  clear: () => Promise<unknown>;
-  get: (keys: StorageKeys) => Promise<unknown>;
-  remove: (keys: WatchKeys) => Promise<unknown>;
-  set: (items: StorageItems) => Promise<unknown>;
+  clear: () => PromiseLike<unknown>;
+  get: (keys: StorageKeys) => PromiseLike<unknown>;
+  remove: (keys: WatchKeys) => PromiseLike<unknown>;
+  set: (items: StorageItems) => PromiseLike<unknown>;
+};
+
+type ChromeCallbackStorageArea = {
+  clear(callback?: () => void): void;
+  get(keys: StorageKeys, callback?: (items: StorageItems) => void): void;
+  remove(keys: WatchKeys, callback?: () => void): void;
+  set(items: StorageItems, callback?: () => void): void;
 };
 
 type Watcher = {
@@ -53,7 +62,7 @@ class ChromeStorage extends OmegaTarget.Storage {
   static onChangedListenerInstalled = false;
   static watchers: Record<string, Record<string, Watcher>> = {};
 
-  areaName: string;
+  areaName: StorageAreaName;
   storage: StorageArea;
 
   static parseStorageErrors(err: StorageError) {
@@ -87,17 +96,17 @@ class ChromeStorage extends OmegaTarget.Storage {
     return OmegaPromise.reject(err);
   }
 
-  constructor(areaName: string) {
+  constructor(areaName: StorageAreaName) {
     super();
     this.areaName = areaName;
     if (typeof browser !== 'undefined' && browser?.storage?.[this.areaName]) {
       this.storage = browser.storage[this.areaName] as StorageArea;
     } else {
-      const storageArea = chrome.storage[this.areaName] as Record<string, unknown>;
+      const storageArea = chrome.storage[this.areaName] as ChromeCallbackStorageArea;
       this.storage = {
-        get: chromeApiPromisify(storageArea, 'get'),
-        set: chromeApiPromisify(storageArea, 'set'),
-        remove: chromeApiPromisify(storageArea, 'remove'),
+        get: chromeApiPromisify<StorageItems>(storageArea, 'get'),
+        set: chromeApiPromisify<void>(storageArea, 'set'),
+        remove: chromeApiPromisify<void>(storageArea, 'remove'),
         clear: chromeApiPromisify(storageArea, 'clear')
       } as StorageArea;
     }
@@ -124,7 +133,7 @@ class ChromeStorage extends OmegaTarget.Storage {
     return OmegaPromise.resolve(this.storage.remove(keys)).catch(ChromeStorage.parseStorageErrors);
   }
 
-  watch(keys: WatchKeys, callback: WatchCallback) {
+  watch(keys: WatchKeys, callback: WatchCallback): WatchUnsubscribe {
     if (ChromeStorage.watchers[this.areaName] == null) {
       ChromeStorage.watchers[this.areaName] = {};
     }

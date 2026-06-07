@@ -1,43 +1,41 @@
 type Listener = (...args: unknown[]) => void;
 
-type ChromeEvent = {
-  addListener: (callback: Listener) => void;
-  removeListener: (callback: Listener) => void;
-  hasListeners?: () => boolean;
-  [method: string]: unknown;
-};
+type TrackableChromeEvent<T extends Listener = Listener> = Pick<
+  ChromeEvent<T>,
+  'addListener' | 'removeListener' | 'hasListeners'
+> & Partial<Pick<ChromeEvent<T>, 'addRules' | 'getRules' | 'hasListener' | 'removeRules'>>;
 
-type Port = {
-  disconnect: () => void;
-  name: string;
-  onDisconnect: ChromeEvent;
-  onMessage: ChromeEvent;
-  postMessage: (...args: unknown[]) => void;
-  sender?: unknown;
-};
+const TRACKED_EVENT_PROXY_METHODS = ['hasListener', 'hasListeners', 'addRules', 'getRules', 'removeRules'] as const;
+type TrackedEventProxyMethod = typeof TRACKED_EVENT_PROXY_METHODS[number];
 
-class TrackedEvent {
-  callbacks: Listener[] | null;
-  event: ChromeEvent | null;
+class TrackedEvent<T extends Listener = Listener> {
+  callbacks: T[] | null;
+  event: TrackableChromeEvent<T> | null;
 
-  constructor(event: ChromeEvent) {
+  addRules?: ChromeEvent<T>['addRules'];
+  getRules?: ChromeEvent<T>['getRules'];
+  hasListener?: ChromeEvent<T>['hasListener'];
+  hasListeners?: ChromeEvent<T>['hasListeners'];
+  removeRules?: ChromeEvent<T>['removeRules'];
+
+  constructor(event: TrackableChromeEvent<T>) {
     this.event = event;
     this.callbacks = [];
-    for (const methodName of ['hasListener', 'hasListeners', 'addRules', 'getRules', 'removeRules']) {
+    for (const methodName of TRACKED_EVENT_PROXY_METHODS) {
       const method = this.event[methodName];
       if (typeof method === 'function') {
-        (this as Record<string, unknown>)[methodName] = method.bind(this.event);
+        (this as Record<TrackedEventProxyMethod, unknown>)[methodName] = method.bind(this.event);
       }
     }
   }
 
-  addListener(callback: Listener) {
+  addListener(callback: T) {
     this.event?.addListener(callback);
     this.callbacks?.push(callback);
     return this;
   }
 
-  removeListener(callback: Listener) {
+  removeListener(callback: T) {
     this.event?.removeListener(callback);
     const index = this.callbacks?.indexOf(callback) ?? -1;
     if (index >= 0) {
@@ -82,11 +80,11 @@ class ChromePort {
   name: string;
   onDisconnect: TrackedEvent;
   onMessage: TrackedEvent;
-  port: Port;
+  port: ChromeRuntimePort;
   postMessage: (...args: unknown[]) => void;
-  sender?: unknown;
+  sender?: ChromeRuntimePort['sender'];
 
-  constructor(port: Port) {
+  constructor(port: ChromeRuntimePort) {
     this.port = port;
     this.name = this.port.name;
     this.sender = this.port.sender;

@@ -12,6 +12,7 @@ const Heap = HeapModule as unknown as HeapConstructor;
 
 type RequestStatus = 'start' | 'ongoing' | 'timeout' | 'error' | 'timeoutAbort' | 'done';
 type EventCategory = 'done' | 'error' | 'ongoing';
+type EventCountKey = `${EventCategory}Count`;
 
 type RequestInfo = {
   _startTime?: number;
@@ -26,10 +27,7 @@ type RequestInfo = {
   [key: string]: unknown;
 };
 
-type Tab = {
-  id?: number;
-  [key: string]: unknown;
-};
+type RequestTab = Pick<ChromeTab, 'id'>;
 
 type SummaryItem = {
   errorCount: number;
@@ -43,7 +41,6 @@ type TabInfo = {
   requests: Record<string, RequestInfo>;
   requestStatus: Record<string, RequestStatus>;
   summary: Record<string, SummaryItem>;
-  [key: string]: unknown;
 };
 
 type RequestCallback = (status: RequestStatus, req: RequestInfo) => unknown;
@@ -57,7 +54,7 @@ type TabCallback = (
 class WebRequestMonitor {
   eventCategory: Record<RequestStatus, EventCategory>;
   getSummaryId?: (req: RequestInfo) => string | number | null | undefined;
-  tabInfo: Record<string, TabInfo>;
+  tabInfo: Record<number, TabInfo>;
   tabsWatching: boolean;
   timer: ReturnType<typeof setInterval> | null;
   watching: boolean;
@@ -230,14 +227,14 @@ class WebRequestMonitor {
     }
     this.watch(this.setTabRequestInfo.bind(this));
     this.tabsWatching = true;
-    chrome.tabs.onCreated.addListener((tab: Tab) => {
+    chrome.tabs.onCreated.addListener((tab: RequestTab) => {
       if (!tab.id) {
         return;
       }
       this.tabInfo[tab.id] = this._newTabInfo();
     });
-    chrome.tabs.onRemoved.addListener((tab: Tab) => {
-      return delete this.tabInfo[tab.id as number];
+    chrome.tabs.onRemoved.addListener((tabId: number) => {
+      return delete this.tabInfo[tabId];
     });
     chrome.tabs.onReplaced?.addListener((added: number, removed: number) => {
       if (this.tabInfo[added] == null) {
@@ -245,22 +242,25 @@ class WebRequestMonitor {
       }
       return delete this.tabInfo[removed];
     });
-    chrome.tabs.onUpdated.addListener((_tabId: number, _changeInfo: unknown, tab: Tab) => {
-      const info = this.tabInfo[tab.id as number] != null
-        ? this.tabInfo[tab.id as number]
-        : this.tabInfo[tab.id as number] = this._newTabInfo();
-      if (!info) {
+    chrome.tabs.onUpdated.addListener((_tabId: number, _changeInfo: Record<string, unknown>, tab: RequestTab) => {
+      if (tab.id == null) {
         return;
       }
+      const info = this.tabInfo[tab.id] != null
+        ? this.tabInfo[tab.id]
+        : this.tabInfo[tab.id] = this._newTabInfo();
       return this._tabCallbacks.map((tabCallback) => {
-        return tabCallback(tab.id as number, info, null, 'updated');
+        return tabCallback(tab.id, info, null, 'updated');
       });
     });
-    return chrome.tabs.query({}, (tabs: Tab[]) => {
+    return chrome.tabs.query({}, (tabs: RequestTab[]) => {
       return tabs.map((tab) => {
-        return this.tabInfo[tab.id as number] != null
-          ? this.tabInfo[tab.id as number]
-          : this.tabInfo[tab.id as number] = this._newTabInfo();
+        if (tab.id == null) {
+          return undefined;
+        }
+        return this.tabInfo[tab.id] != null
+          ? this.tabInfo[tab.id]
+          : this.tabInfo[tab.id] = this._newTabInfo();
       });
     });
   }
@@ -285,9 +285,7 @@ class WebRequestMonitor {
     if (status === 'start' && req.type === 'main_frame') {
       if (req.url.indexOf('chrome://errorpage/') !== 0) {
         const freshInfo = this._newTabInfo();
-        for (const key of Object.keys(freshInfo)) {
-          info[key] = freshInfo[key];
-        }
+        this.resetTabInfo(info, freshInfo);
       }
     }
     if (info.requestCount > 1000) {
@@ -296,7 +294,7 @@ class WebRequestMonitor {
     info.requests[req.requestId] = req;
     const oldStatus = info.requestStatus[req.requestId];
     if (oldStatus) {
-      info[`${this.eventCategory[oldStatus]}Count`] = (info[`${this.eventCategory[oldStatus]}Count`] as number) - 1;
+      this.incrementCategoryCount(info, oldStatus, -1);
     } else {
       if (status === 'timeoutAbort') {
         return;
@@ -304,7 +302,7 @@ class WebRequestMonitor {
       info.requestCount++;
     }
     info.requestStatus[req.requestId] = status;
-    info[`${this.eventCategory[status]}Count`] = (info[`${this.eventCategory[status]}Count`] as number) + 1;
+    this.incrementCategoryCount(info, status, 1);
     const id = typeof this.getSummaryId === 'function' ? this.getSummaryId(req) : undefined;
     if (id != null) {
       const summaryKey = id as string;
@@ -328,6 +326,25 @@ class WebRequestMonitor {
     return this._tabCallbacks.map((callback) => {
       return callback(req.tabId, info, req, status);
     });
+  }
+
+  private countKey(status: RequestStatus): EventCountKey {
+    return `${this.eventCategory[status]}Count`;
+  }
+
+  private incrementCategoryCount(info: TabInfo, status: RequestStatus, delta: number) {
+    const key = this.countKey(status);
+    info[key] += delta;
+  }
+
+  private resetTabInfo(info: TabInfo, freshInfo: TabInfo) {
+    info.requests = freshInfo.requests;
+    info.requestCount = freshInfo.requestCount;
+    info.requestStatus = freshInfo.requestStatus;
+    info.ongoingCount = freshInfo.ongoingCount;
+    info.errorCount = freshInfo.errorCount;
+    info.doneCount = freshInfo.doneCount;
+    info.summary = freshInfo.summary;
   }
 }
 

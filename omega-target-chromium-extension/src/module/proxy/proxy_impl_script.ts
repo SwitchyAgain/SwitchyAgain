@@ -1,40 +1,25 @@
 import OmegaTargetModule = require('omega-target');
 import ProxyImplModule = require('./proxy_impl');
+import type {ProxyChangeWatcher, ProxyLog, ProxyProfile} from './proxy_types';
 
 const OmegaPromise = OmegaTargetModule.Promise;
 
-type ProxyImplBase = {
-  log: {
-    error(...args: unknown[]): void;
-    log(...args: unknown[]): void;
-  };
-  setProxyAuth(profile: Record<string, unknown>, options: unknown): OmegaPromise<unknown>;
-};
-
-type ProxyImplConstructor = new (...args: unknown[]) => ProxyImplBase;
-
-const ProxyImpl = ProxyImplModule as unknown as ProxyImplConstructor;
-
-type Profile = Record<string, unknown> & {
-  name?: string;
-  profileType?: string;
-};
+const ProxyImpl = ProxyImplModule;
 
 type ProxyScriptState = Record<string, unknown> & {
   currentProfileName?: string;
-  tempProfile?: Profile;
+  tempProfile?: ProxyProfile;
 };
 
 class ScriptProxyImpl extends ProxyImpl {
-  features: string[];
   private _options?: unknown;
   private _proxyScriptDisabled: boolean;
   private _proxyScriptInitialized: boolean;
   private _proxyScriptState: ProxyScriptState;
   private _proxyScriptUrl: string;
 
-  constructor(...args: unknown[]) {
-    super(...args);
+  constructor(log: ProxyLog) {
+    super(log);
     this.features = ['socks5Auth'];
     this._proxyScriptUrl = 'js/omega_webext_proxy_script.min.js';
     this._proxyScriptDisabled = false;
@@ -47,11 +32,11 @@ class ScriptProxyImpl extends ProxyImpl {
       (browser?.proxy?.register != null || browser?.proxy?.registerProxyScript != null);
   }
 
-  watchProxyChange(_callback: (details: unknown) => void): null {
+  watchProxyChange(_callback: ProxyChangeWatcher): null {
     return null;
   }
 
-  applyProfile(profile: Profile, state: ProxyScriptState = {}, options: unknown) {
+  applyProfile(profile: ProxyProfile, state: ProxyScriptState = {}, options?: unknown) {
     this.log.error(
       'Your browser is outdated! Full-URL based matching, etc. unsupported! Please update your browser ASAP!'
     );
