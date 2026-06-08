@@ -7,14 +7,8 @@ declare module 'buffer' {
 }
 
 declare module 'tldjs' {
-  const value: any;
-  export default value;
-}
-
-declare module 'url' {
   const value: {
-    format(url: any): string;
-    parse(url: string, parseQueryString?: boolean): any;
+    getDomain(domain: string): string | null;
   };
   export default value;
 }

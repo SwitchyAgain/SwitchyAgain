@@ -7,8 +7,7 @@
     "heap": "^0.2.6",
     "omega-target": "0.0.1",
     "omega-web": "0.0.1",
-    "omega-pac": "0.0.1",
-    "xhr": "^1.16.0"
+    "omega-pac": "0.0.1"
   },
   "browser": {
     "omega-target": "./build-ts/module/omega_target_shim.js"

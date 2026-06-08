@@ -1,6 +1,4 @@
 import OmegaTarget from 'omega-target';
-import querystring from 'querystring';
-import Url from 'url';
 import ChromePort from './chrome_port';
 import fetchUrl from './fetch_url';
 import upgradeSwitchyOptions from './upgrade';
@@ -475,7 +473,7 @@ class ChromeOptions extends OmegaTarget.Options {
       if (url.slice(0, 6) === 'chrome') {
         const errorPagePrefix = 'chrome://errorpage/';
         if (url.startsWith(errorPagePrefix)) {
-          url = querystring.parse(url.slice(url.indexOf('?') + 1)).lasturl as string | undefined;
+          url = new URL(url).searchParams.get('lasturl') || undefined;
           if (!url) {
             return result;
           }
@@ -489,7 +487,7 @@ class ChromeOptions extends OmegaTarget.Options {
       if (url.slice(0, 4) === 'moz-') {
         return result;
       }
-      const domain = OmegaPac.getBaseDomain(Url.parse(url).hostname);
+      const domain = OmegaPac.getBaseDomain(new URL(url).hostname.replace(/^\[(.*)\]$/, '$1'));
       return {
         url,
         domain,

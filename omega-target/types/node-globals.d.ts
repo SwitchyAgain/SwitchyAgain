@@ -5,17 +5,14 @@ declare module 'bluebird' {
   export default value;
 }
 
-declare module 'buffer' {
-  export const Buffer: {
-    from(value: string, encoding?: string): {
-      toString(encoding?: string): string;
-    };
-  };
-}
-
 declare module 'limiter' {
-  const value: unknown;
-  export default value;
+  export class TokenBucket {
+    clear?: () => unknown;
+    content: number;
+    constructor(bucketSize: number, tokensPerInterval: number, interval: string, parentBucket: unknown);
+    removeTokens(count: number, callback: () => unknown): unknown;
+    tryRemoveTokens(count: number): boolean;
+  }
 }
 
 declare module 'omega-pac' {

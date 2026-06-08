@@ -270,16 +270,13 @@ interface OmegaPacApi extends LegacyDynamic {
   wildcardForUrl(url: string): string;
 }
 
-interface QueryStringModule {
-  parse(value: string): Record<string, string | string[] | undefined>;
-}
-
 interface UrlModule {
-  format(urlObject: unknown): string;
-  parse(url: string, parseQueryString?: boolean): {
+  parse(url: string): {
     hostname?: string | null;
+    path?: string | null;
     query: Record<string, unknown>;
     search?: string | null;
+    protocol?: string | null;
     [key: string]: unknown;
   };
 }
@@ -474,27 +471,12 @@ declare module 'omega-target' {
   export default value;
 }
 
-declare module 'querystring' {
-  const value: QueryStringModule;
-  export default value;
-}
-
-declare module 'url' {
-  const value: UrlModule;
-  export default value;
-}
-
 declare module 'buffer' {
   export const Buffer: {
     from(value: string, encoding?: string): {
       toString(encoding?: string): string;
     };
   };
-}
-
-declare module 'xhr' {
-  const value: LegacyDynamic;
-  export default value;
 }
 
 declare module 'heap' {

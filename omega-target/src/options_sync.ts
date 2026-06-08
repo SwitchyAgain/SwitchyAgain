@@ -2,7 +2,7 @@
 
 import PromiseImpl from 'bluebird';
 import {create as createJsonDiffPatch} from 'jsondiffpatch';
-import limiterModule from 'limiter';
+import {TokenBucket} from 'limiter';
 import OmegaPac from 'omega-pac';
 import Log from './log';
 import StorageClass from './storage';
@@ -41,15 +41,6 @@ type JsonDiffPatch = {
   diff: (oldValue: StorageValue, newValue: StorageValue) => unknown;
 };
 
-type LimiterModule = {
-  TokenBucket: new (
-    bucketSize: number,
-    tokensPerInterval: number,
-    interval: string,
-    parentBucket: unknown
-  ) => TokenBucketLike;
-};
-
 type OmegaPacModule = {
   Revision: {
     compare: (left: unknown, right: unknown) => number;
@@ -61,7 +52,6 @@ type TimerHandle = ReturnType<typeof setTimeout>;
 const Promise = PromiseImpl as BluebirdStatic;
 const Storage = StorageClass as unknown as StorageModule;
 const Revision = (OmegaPac as OmegaPacModule).Revision;
-const TokenBucket = (limiterModule as LimiterModule).TokenBucket;
 
 class OptionsSync {
   static TokenBucket = TokenBucket;

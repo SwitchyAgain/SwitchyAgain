@@ -1,5 +1,5 @@
-import Url from 'url';
 import tldModule from 'tldjs';
+import {parseUrlCompat} from './url_utils';
 
 const tld = tldModule as {
   getDomain: (domain: string) => string | null;
@@ -91,6 +91,5 @@ export function wildcardForDomain(domain: string): string {
 }
 
 export function wildcardForUrl(url: string): string {
-  const domain = Url.parse(url).hostname;
-  return wildcardForDomain(domain as string);
+  return wildcardForDomain(parseUrlCompat(url).hostname);
 }

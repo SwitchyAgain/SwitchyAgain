@@ -1,21 +1,8 @@
 import OmegaTarget from 'omega-target';
-import Url from 'url';
-import xhrModule from 'xhr';
 
-const OmegaPromise = OmegaTarget.Promise;
 const ContentTypeRejectedError = OmegaTarget.ContentTypeRejectedError;
 
-type XhrOptions = string | {
-  url: string;
-  [key: string]: unknown;
-};
-
-type XhrOperationalError = Error & {
-  isOperational?: boolean;
-  statusCode?: number;
-};
-
-type XhrResponse = {
+type FetchResponse = {
   headers: Record<string, string | undefined>;
 };
 
@@ -24,32 +11,48 @@ type HintContext = {
   hint: string;
 };
 
-type HintHandler = (response: XhrResponse, body: string, context: HintContext) => string | undefined | void;
+type HintHandler = (response: FetchResponse, body: string, context: HintContext) => string | undefined | void;
 
-type XhrResult = [response: XhrResponse, body: string];
-type XhrFunction = (options: XhrOptions) => OmegaPromise<XhrResult>;
+type FetchResult = [response: FetchResponse, body: string];
 
-const xhr = OmegaPromise.promisify(xhrModule) as unknown as XhrFunction;
+function errorForStatus(statusCode: number) {
+  const err = {statusCode};
+  if (statusCode === 404) {
+    return new OmegaTarget.HttpNotFoundError(err);
+  }
+  if (statusCode >= 500 && statusCode < 600) {
+    return new OmegaTarget.HttpServerError(err);
+  }
+  return new OmegaTarget.HttpError(err);
+}
 
-function xhrWrapper(options: XhrOptions): Promise<XhrResult> {
-  return xhr(options).catch((err: XhrOperationalError) => {
-    if (!err.isOperational) {
+function responseHeaders(headers: Headers): Record<string, string | undefined> {
+  const result: Record<string, string | undefined> = {};
+  headers.forEach((value, key) => {
+    result[key.toLowerCase()] = value;
+  });
+  return result;
+}
+
+function fetchWrapper(url: string): Promise<FetchResult> {
+  return fetch(url).then((response) => {
+    if (!response.ok) {
+      throw errorForStatus(response.status);
+    }
+    return response.text().then((body): FetchResult => {
+      return [{
+        headers: responseHeaders(response.headers)
+      }, body];
+    });
+  }).catch((err: Error) => {
+    if (err instanceof OmegaTarget.HttpError) {
       throw err;
     }
-    if (!err.statusCode) {
-      throw new OmegaTarget.NetworkError(err);
-    }
-    if (err.statusCode === 404) {
-      throw new OmegaTarget.HttpNotFoundError(err);
-    }
-    if (err.statusCode >= 500 && err.statusCode < 600) {
-      throw new OmegaTarget.HttpServerError(err);
-    }
-    throw new OmegaTarget.HttpError(err);
+    throw new OmegaTarget.NetworkError(err);
   });
 }
 
-function defaultHintHandler(_response: XhrResponse, body: string, {contentType, hint}: HintContext) {
+function defaultHintHandler(_response: FetchResponse, body: string, {contentType, hint}: HintContext) {
   if (`!${contentType}` === hint) {
     throw new ContentTypeRejectedError(`Response Content-Type blacklisted: ${contentType}`);
   }
@@ -89,7 +92,7 @@ const hintHandlers: Record<string, HintHandler> = {
 };
 
 function fetchUrl(destUrl: string, optBypassCache?: boolean, optTypeHints?: string[]) {
-  const getResBody = ([response, body]: XhrResult) => {
+  const getResBody = ([response, body]: FetchResult) => {
     if (!optTypeHints) {
       return body;
     }
@@ -108,15 +111,14 @@ function fetchUrl(destUrl: string, optBypassCache?: boolean, optTypeHints?: stri
   };
 
   if (optBypassCache && destUrl.indexOf('?') < 0) {
-    const parsed = Url.parse(destUrl, true);
-    parsed.search = undefined;
-    parsed.query['_'] = Date.now();
-    const destUrlNoCache = Url.format(parsed);
-    return xhrWrapper(destUrlNoCache).then(getResBody).catch(() => {
-      return xhrWrapper(destUrl).then(getResBody);
+    const parsed = new URL(destUrl);
+    parsed.searchParams.set('_', Date.now().toString());
+    const destUrlNoCache = parsed.href;
+    return fetchWrapper(destUrlNoCache).then(getResBody).catch(() => {
+      return fetchWrapper(destUrl).then(getResBody);
     });
   }
-  return xhrWrapper(destUrl).then(getResBody);
+  return fetchWrapper(destUrl).then(getResBody);
 }
 
 export default fetchUrl;

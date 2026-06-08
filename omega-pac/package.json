@@ -5,7 +5,7 @@
   "main": "./index.js",
   "dependencies": {
     "ip-address": "^10.2.0",
-    "tldjs": "^1.5.2"
+    "tldjs": "^2.3.2"
   },
   "scripts": {
     "build": "npm run build:ts && node ../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=index.js --format=cjs --platform=node --target=es2015 --external=ip-address,tldjs && node ../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=omega_pac.min.js --global-name=OmegaPac --target=es2015 --minify",

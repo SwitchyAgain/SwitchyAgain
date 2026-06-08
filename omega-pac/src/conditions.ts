@@ -2,8 +2,8 @@ import type {Condition, PacRequest} from './types';
 import type {AttachedCache as AttachedCacheType} from './utils';
 import U2 from './uglifyjs_shim';
 import {Address4, Address6} from 'ip-address';
-import Url from 'url';
 import {escapeSlash, shExp2RegExp} from './shexp_utils';
+import {parseUrlCompat} from './url_utils';
 import {AttachedCache} from './utils';
 
 const hasProp = Object.prototype.hasOwnProperty;
@@ -17,6 +17,7 @@ type ConditionCache = {
 type ParsedUrl = {
   hostname: string;
   protocol: string;
+  href?: string;
   [key: string]: unknown;
 };
 
@@ -64,9 +65,9 @@ type ConditionsApiType = {
 
 const ConditionsApi: ConditionsApiType = {
   requestFromUrl(url: string | ParsedUrl): PacRequest {
-    const parsedUrl = typeof url === 'string' ? Url.parse(url) as ParsedUrl : url;
+    const parsedUrl = typeof url === 'string' ? parseUrlCompat(url) : url;
     return {
-      url: Url.format(parsedUrl),
+      url: parsedUrl.href || String(url),
       host: parsedUrl.hostname,
       scheme: parsedUrl.protocol.replace(':', '')
     };
