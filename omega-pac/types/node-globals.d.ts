@@ -6,11 +6,6 @@ declare module 'buffer' {
   };
 }
 
-declare module 'ip-address' {
-  const value: any;
-  export default value;
-}
-
 declare module 'tldjs' {
   const value: any;
   export default value;

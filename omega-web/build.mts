@@ -3,10 +3,11 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import * as esbuild from 'esbuild';
 import postcss from 'postcss';
-import autoprefixer from 'autoprefixer-core';
+import autoprefixer from 'autoprefixer';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const workspaceRoot = path.join(root, '..');
+const autoprefixerTargets = ['chrome >= 121', 'firefox >= 140'];
 
 type StaticCopy = [src: string, dest: string];
 
@@ -94,7 +95,10 @@ async function bundleReact(entry: string, dest: string) {
 
 async function processCss(src: string, tmpDest: string, buildDest: string) {
   const css = await fs.readFile(path.join(root, src), 'utf8');
-  const prefixed = postcss([autoprefixer({cascade: true})]).process(css, {
+  const prefixed = await postcss([autoprefixer({
+    cascade: true,
+    overrideBrowserslist: autoprefixerTargets
+  })]).process(css, {
     map: false,
     from: path.join(root, tmpDest),
     to: path.join(root, buildDest)
@@ -117,9 +121,8 @@ async function main() {
     ['../omega-pac/omega_pac.min.js', 'build/js/omega_pac.min.js'],
     ['build-ts/js/log_error.js', 'build/js/log_error.js'],
     ['build-ts/js/omega_pac_preload.js', 'build/js/omega_pac_preload.js'],
-    ['node_modules/bootstrap/dist/css/bootstrap.min.css', 'build/lib/bootstrap/css/bootstrap.min.css'],
-    ['node_modules/bootstrap/fonts/glyphicons-halflings-regular.woff', 'build/lib/bootstrap/fonts/glyphicons-halflings-regular.woff'],
-    ['node_modules/bootstrap/fonts/glyphicons-halflings-regular.woff2', 'build/lib/bootstrap/fonts/glyphicons-halflings-regular.woff2'],
+    ['vendor/bootstrap/3.3.7/css/bootstrap.min.css', 'build/lib/bootstrap/css/bootstrap.min.css'],
+    ['vendor/bootstrap/3.3.7/fonts/glyphicons-halflings-regular.woff2', 'build/lib/bootstrap/fonts/glyphicons-halflings-regular.woff2'],
     ['node_modules/file-saver/dist/FileSaver.min.js', 'build/lib/FileSaver/FileSaver.min.js'],
     ['img', 'build/img'],
     ['src/popup', 'build/popup'],

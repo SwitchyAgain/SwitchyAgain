@@ -15,13 +15,3 @@ declare module 'node:path' {
 declare module 'node:url' {
   export function fileURLToPath(url: string | URL): string;
 }
-
-declare module 'autoprefixer-core' {
-  const value: any;
-  export default value;
-}
-
-declare module 'postcss' {
-  const value: any;
-  export default value;
-}

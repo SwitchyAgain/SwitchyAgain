@@ -13,11 +13,6 @@ declare module 'buffer' {
   };
 }
 
-declare module 'jsondiffpatch' {
-  const value: unknown;
-  export default value;
-}
-
 declare module 'limiter' {
   const value: unknown;
   export default value;

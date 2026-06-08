@@ -1,7 +1,7 @@
 /* @module omega-target/options_sync */
 
 import PromiseImpl from 'bluebird';
-import jsondiffpatchModule from 'jsondiffpatch';
+import {create as createJsonDiffPatch} from 'jsondiffpatch';
 import limiterModule from 'limiter';
 import OmegaPac from 'omega-pac';
 import Log from './log';
@@ -41,15 +41,6 @@ type JsonDiffPatch = {
   diff: (oldValue: StorageValue, newValue: StorageValue) => unknown;
 };
 
-type JsonDiffPatchModule = {
-  create: (options: {
-    objectHash: (obj: StorageValue) => string;
-    textDiff: {
-      minLength: number;
-    };
-  }) => JsonDiffPatch;
-};
-
 type LimiterModule = {
   TokenBucket: new (
     bucketSize: number,
@@ -70,7 +61,6 @@ type TimerHandle = ReturnType<typeof setTimeout>;
 const Promise = PromiseImpl as BluebirdStatic;
 const Storage = StorageClass as unknown as StorageModule;
 const Revision = (OmegaPac as OmegaPacModule).Revision;
-const jsondiffpatch = jsondiffpatchModule as JsonDiffPatchModule;
 const TokenBucket = (limiterModule as LimiterModule).TokenBucket;
 
 class OptionsSync {
@@ -134,12 +124,9 @@ class OptionsSync {
   /**
    * Merge newVal and oldVal of a given key.
    */
-  _mergeDiff: JsonDiffPatch = jsondiffpatch.create({
-    objectHash(obj: StorageValue) {
+  _mergeDiff: JsonDiffPatch = createJsonDiffPatch({
+    objectHash(obj: object) {
       return JSON.stringify(obj);
-    },
-    textDiff: {
-      minLength: 1 / 0
     }
   }) as JsonDiffPatch;
 

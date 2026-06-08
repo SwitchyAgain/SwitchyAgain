@@ -2,9 +2,8 @@ import * as fs from 'node:fs';
 import * as fsp from 'node:fs/promises';
 import * as path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import archiver from 'archiver';
+import {ZipArchive} from 'archiver';
 import * as esbuild from 'esbuild';
-import po2json from 'po2json/index.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const isRelease = process.argv.includes('release');
@@ -16,8 +15,6 @@ type BundleOptions = {
   globalName: string;
   minify?: boolean;
 };
-
-type LocaleJson = Record<string, [unknown, string]>;
 
 type LocaleMessage = {
   message: string;
@@ -31,6 +28,11 @@ type ReleaseManifest = Record<string, unknown> & {
   key?: string;
   minimum_chrome_version?: string;
   permissions: string[];
+};
+
+type PoEntry = {
+  msgid: string;
+  msgstr: string;
 };
 
 async function ensureDir(filePath: string) {
@@ -75,14 +77,77 @@ async function writeBundle(dest: string, options: BundleOptions) {
   });
 }
 
-function convertPo(src: string) {
-  const json = po2json.parseFileSync(src) as LocaleJson;
-  const result: Record<string, LocaleMessage> = {};
-  for (const key of Object.keys(json)) {
-    if (!key) {
+function parsePoString(value: string) {
+  try {
+    return JSON.parse(value) as string;
+  } catch (error) {
+    throw new Error(`Invalid PO string ${value}: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+function parsePo(content: string): Record<string, string> {
+  const entries: PoEntry[] = [];
+  let current: PoEntry | null = null;
+  let activeField: 'msgid' | 'msgstr' | null = null;
+
+  function flush() {
+    if (current) {
+      entries.push(current);
+      current = null;
+      activeField = null;
+    }
+  }
+
+  const lines = content.split(/\r?\n/);
+  for (const line of lines) {
+    if (!line || line.startsWith('#')) {
       continue;
     }
-    let message = json[key][1];
+
+    const msgid = line.match(/^msgid\s+("(?:[^"\\]|\\.)*")$/);
+    if (msgid) {
+      flush();
+      current = {msgid: parsePoString(msgid[1]), msgstr: ''};
+      activeField = 'msgid';
+      continue;
+    }
+
+    const msgstr = line.match(/^msgstr\s+("(?:[^"\\]|\\.)*")$/);
+    if (msgstr) {
+      if (!current) {
+        throw new Error('Found msgstr before msgid.');
+      }
+      current.msgstr = parsePoString(msgstr[1]);
+      activeField = 'msgstr';
+      continue;
+    }
+
+    const continued = line.match(/^("(?:[^"\\]|\\.)*")$/);
+    if (continued && current && activeField) {
+      current[activeField] += parsePoString(continued[1]);
+      continue;
+    }
+
+    if (/^(msgctxt|msgid_plural|msgstr\[)/.test(line)) {
+      throw new Error(`Unsupported PO syntax: ${line}`);
+    }
+  }
+  flush();
+
+  const result: Record<string, string> = {};
+  for (const entry of entries) {
+    if (entry.msgid) {
+      result[entry.msgid] = entry.msgstr;
+    }
+  }
+  return result;
+}
+
+async function convertPo(src: string) {
+  const json = parsePo(await fsp.readFile(src, 'utf8'));
+  const result: Record<string, LocaleMessage> = {};
+  for (const key of Object.keys(json)) {
+    let message = json[key];
     const refs: string[] = [];
     let matchCount = 0;
     message = message.replace(/\$(\d+:)?(\w+)\$/g, (_match: string, order: string | undefined, ref: string) => {
@@ -108,7 +173,7 @@ function convertPo(src: string) {
 
 async function writeLocale(dest: string, src: string) {
   await ensureDir(dest);
-  await fsp.writeFile(dest, JSON.stringify(convertPo(src)));
+  await fsp.writeFile(dest, JSON.stringify(await convertPo(src)));
 }
 
 async function writeReleaseManifest(dest: string, target: 'chrome' | 'firefox') {
@@ -151,7 +216,7 @@ async function zipRelease(archivePath: string, manifestPath: string) {
   await ensureDir(archivePath);
   await fsp.rm(archivePath, {force: true});
   const output = fs.createWriteStream(archivePath);
-  const archive = archiver.create('zip');
+  const archive = new ZipArchive();
   const finished = new Promise((resolve, reject) => {
     output.on('close', resolve);
     output.on('error', reject);

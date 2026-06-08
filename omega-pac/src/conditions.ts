@@ -1,7 +1,7 @@
 import type {Condition, PacRequest} from './types';
 import type {AttachedCache as AttachedCacheType} from './utils';
 import U2 from './uglifyjs_shim';
-import IP from 'ip-address';
+import {Address4, Address6} from 'ip-address';
 import Url from 'url';
 import {escapeSlash, shExp2RegExp} from './shexp_utils';
 import {AttachedCache} from './utils';
@@ -22,7 +22,7 @@ type ParsedUrl = {
 
 type UglifyNode = any;
 
-type IpAddress = any;
+type IpAddress = Address4 | Address6;
 
 type ConditionHandler = {
   abbrs: string[];
@@ -316,19 +316,18 @@ const ConditionsApi: ConditionsApiType = {
     if (ip.charCodeAt(0) === '['.charCodeAt(0)) {
       ip = ip.slice(1, -1);
     }
-    let addr = new IP.v4.Address(ip);
-    if (!addr.isValid()) {
-      addr = new IP.v6.Address(ip);
-      if (!addr.isValid()) {
-        return null;
-      }
+    if (Address4.isValid(ip)) {
+      return new Address4(ip);
     }
-    return addr;
+    if (Address6.isValid(ip)) {
+      return new Address6(ip);
+    }
+    return null;
   },
   normalizeIp(addr: IpAddress): string {
-    return (addr.correctForm != null ? addr.correctForm : addr.canonicalForm).call(addr);
+    return addr.correctForm();
   },
-  ipv6Max: new IP.v6.Address('::/0').endAddress().canonicalForm(),
+  ipv6Max: new Address6('::/0').endAddress().correctForm(),
   localHosts: ["127.0.0.1", "[::1]", "localhost"],
   getWeekdayList(condition: Condition): boolean[] {
     if (condition.days) {
@@ -728,8 +727,7 @@ const ConditionsApi: ConditionsApiType = {
           throw new Error("Invalid IP address " + addr);
         }
         cache.normalized = this.normalizeIp(cache.addr);
-        const mask = cache.addr.v4 ? new IP.v4.Address('255.255.255.255/' + cache.addr.subnetMask) : new IP.v6.Address(this.ipv6Max + '/' + cache.addr.subnetMask);
-        cache.mask = this.normalizeIp(mask.startAddress());
+        cache.mask = this.normalizeIp(cache.addr.subnetMaskAddress());
         return cache;
       },
       match(condition, request, cache) {

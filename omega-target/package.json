@@ -5,9 +5,9 @@
   "main": "./index.js",
   "dependencies": {
     "bluebird": "^2.3.2",
-    "jsondiffpatch": "^0.1.8",
+    "jsondiffpatch": "^0.7.6",
     "limiter": "^1.0.5",
-    "omega-pac": "../omega-pac"
+    "omega-pac": "0.0.1"
   },
   "browser": {
     "omega-pac": "./build-ts/omega_pac_shim.js"

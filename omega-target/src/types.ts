@@ -152,10 +152,6 @@ export type OmegaPacModule = {
   };
 };
 
-export type JsonDiffPatchModule = {
-  patch<T>(target: T, patch: unknown): T;
-};
-
 export type OptionsSyncLike = {
   copyTo(storage: StorageLike): BluebirdPromise<unknown>;
   enabled: boolean;

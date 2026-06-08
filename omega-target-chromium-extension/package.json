@@ -5,9 +5,9 @@
   "main": "./index",
   "dependencies": {
     "heap": "^0.2.6",
-    "omega-target": "../omega-target",
-    "omega-web": "../omega-web",
-    "omega-pac": "../omega-pac",
+    "omega-target": "0.0.1",
+    "omega-web": "0.0.1",
+    "omega-pac": "0.0.1",
     "xhr": "^1.16.0"
   },
   "browser": {

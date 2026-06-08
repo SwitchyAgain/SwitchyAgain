@@ -4,7 +4,7 @@
   "private": true,
   "main": "./index.js",
   "dependencies": {
-    "ip-address": "^4.0.0",
+    "ip-address": "^10.2.0",
     "tldjs": "^1.5.2"
   },
   "scripts": {

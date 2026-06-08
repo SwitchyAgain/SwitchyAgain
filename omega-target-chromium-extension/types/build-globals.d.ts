@@ -34,17 +34,17 @@ declare module 'node:url' {
 }
 
 declare module 'archiver' {
-  const value: any;
-  export default value;
+  export class ZipArchive {
+    constructor(options?: any);
+    file(file: string, options: any): void;
+    finalize(): void;
+    on(event: string, listener: (...args: any[]) => void): void;
+    pipe(output: any): void;
+  }
 }
 
 declare module 'esbuild' {
   const value: any;
   export default value;
   export function build(options: any): Promise<void>;
-}
-
-declare module 'po2json/index.js' {
-  const value: any;
-  export default value;
 }

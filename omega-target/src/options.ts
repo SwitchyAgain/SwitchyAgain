@@ -3,7 +3,7 @@ declare const options: Record<string, unknown> | null | undefined;
 
 import PromiseImpl from 'bluebird';
 import {Buffer} from 'buffer';
-import jsondiffpatchModule from 'jsondiffpatch';
+import {patch as patchJson} from 'jsondiffpatch';
 import OmegaPacImpl from 'omega-pac';
 import defaultOptions from './default_options';
 import Log from './log';
@@ -11,7 +11,6 @@ import Storage from './storage';
 import type {
   BluebirdPromise,
   BluebirdStatic,
-  JsonDiffPatchModule,
   LogLike,
   OmegaPacModule,
   OptionsData,
@@ -46,7 +45,6 @@ class NoOptionsError extends Error {
 
 const Promise = PromiseImpl as BluebirdStatic;
 const OmegaPac = OmegaPacImpl as OmegaPacModule;
-const jsondiffpatch = jsondiffpatchModule as JsonDiffPatchModule;
 
 const hasProp = Object.prototype.hasOwnProperty;
 const optionNumber = (value: unknown) => Number(value);
@@ -567,7 +565,7 @@ class Options {
       return;
     }
     this.log.method('Options#patch', this, arguments);
-    this._options = jsondiffpatch.patch(this._options, patch);
+    this._options = patchJson(this._options, patch) as OptionsData;
     const changes: StorageChanges = {};
     for (const key in patch) {
       if (!hasProp.call(patch, key)) continue;
