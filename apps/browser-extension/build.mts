@@ -272,12 +272,12 @@ async function main() {
   await copyFile(path.join(workspaceRoot, 'AUTHORS'), path.join(root, 'build/AUTHORS'));
 
   const localeRoot = path.join(workspaceRoot, 'resources/locales');
-  await writeLocale(path.join(root, 'build/_locales/en/messages.json'), path.join(localeRoot, 'en_US/LC_MESSAGES/omega-web.po'));
-  await writeLocale(path.join(root, 'build/_locales/zh/messages.json'), path.join(localeRoot, 'zh_CN/LC_MESSAGES/omega-web.po'));
-  await writeLocale(path.join(root, 'build/_locales/cs/messages.json'), path.join(localeRoot, 'cs/LC_MESSAGES/omega-web.po'));
-  await writeLocale(path.join(root, 'build/_locales/fa/messages.json'), path.join(localeRoot, 'fa/LC_MESSAGES/omega-web.po'));
-  await writeLocale(path.join(root, 'build/_locales/zh_CN/messages.json'), path.join(localeRoot, 'zh_CN/LC_MESSAGES/omega-web.po'));
-  await writeLocale(path.join(root, 'build/_locales/zh_TW/messages.json'), path.join(localeRoot, 'zh_TW/LC_MESSAGES/omega-web.po'));
+  await writeLocale(path.join(root, 'build/_locales/en/messages.json'), path.join(localeRoot, 'en_US/LC_MESSAGES/web-ui-messages.po'));
+  await writeLocale(path.join(root, 'build/_locales/zh/messages.json'), path.join(localeRoot, 'zh_CN/LC_MESSAGES/web-ui-messages.po'));
+  await writeLocale(path.join(root, 'build/_locales/cs/messages.json'), path.join(localeRoot, 'cs/LC_MESSAGES/web-ui-messages.po'));
+  await writeLocale(path.join(root, 'build/_locales/fa/messages.json'), path.join(localeRoot, 'fa/LC_MESSAGES/web-ui-messages.po'));
+  await writeLocale(path.join(root, 'build/_locales/zh_CN/messages.json'), path.join(localeRoot, 'zh_CN/LC_MESSAGES/web-ui-messages.po'));
+  await writeLocale(path.join(root, 'build/_locales/zh_TW/messages.json'), path.join(localeRoot, 'zh_TW/LC_MESSAGES/web-ui-messages.po'));
 
   if (isRelease) {
     const releaseDir = path.join(root, 'release');
