@@ -123,6 +123,7 @@ async function main() {
     ['build-ts/js/omega_pac_preload.js', 'build/js/omega_pac_preload.js'],
     ['vendor/bootstrap/3.3.7/css/bootstrap.min.css', 'build/lib/bootstrap/css/bootstrap.min.css'],
     ['vendor/bootstrap/3.3.7/fonts/glyphicons-halflings-regular.woff2', 'build/lib/bootstrap/fonts/glyphicons-halflings-regular.woff2'],
+    ['vendor/bootstrap/3.3.7/LICENSE', 'build/lib/bootstrap/LICENSE'],
     ['node_modules/file-saver/dist/FileSaver.min.js', 'build/lib/FileSaver/FileSaver.min.js'],
     ['img', 'build/img'],
     ['src/popup', 'build/popup'],

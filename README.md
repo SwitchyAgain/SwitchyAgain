@@ -43,3 +43,6 @@ Common commands:
 License
 -------
 SwitchyAgain is licensed under the [GNU General Public License v3.0 or later](COPYING).
+
+Bundled Bootstrap 3.3.7 assets are licensed under the MIT License; see the
+[LICENSE](packages/web-ui/vendor/bootstrap/3.3.7/LICENSE).
