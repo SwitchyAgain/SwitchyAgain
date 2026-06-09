@@ -490,5 +490,4 @@ interface Window {
   OmegaContextMenuQuickSwitchHandler: (info: {checked: boolean}) => unknown;
   OmegaDebug: OmegaDebugApi;
   OmegaTargetPopup: OmegaTargetPopupApi;
-  UglifyJS_NoUnsafeEval: boolean;
 }

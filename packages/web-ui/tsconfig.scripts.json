@@ -16,7 +16,6 @@
   "include": [
     "src/js/draw_omega.ts",
     "src/js/log_error.ts",
-    "src/js/omega_pac_preload.ts",
     "types/**/*.d.ts"
   ]
 }

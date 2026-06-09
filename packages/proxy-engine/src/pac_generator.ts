@@ -2,13 +2,7 @@ import type {OptionsMap, PacGeneratorOptions, Profile, ReferenceSet} from './typ
 import * as Ast from './pac_ast';
 import Profiles from './profiles';
 
-type PacAst = Ast.Node & {
-  compute_char_frequency(): void;
-  figure_out_scope(): void;
-  mangle_names(): void;
-  transform(compressor: unknown): PacAst;
-  [key: string]: unknown;
-};
+type PacAst = Ast.Node;
 
 const ProfilesApi = Profiles as {
   allReferenceSet(profile: string | Profile, options: OptionsMap, args?: PacGeneratorOptions): ReferenceSet;
@@ -31,18 +25,7 @@ export function ascii(str: string): string {
 }
 
 export function compress(ast: PacAst): PacAst {
-  ast.figure_out_scope();
-  const compressor = Ast.compressor({
-    warnings: false,
-    keep_fargs: true
-  }, {
-    if_return: false
-  });
-  const compressed_ast = ast.transform(compressor);
-  compressed_ast.figure_out_scope();
-  compressed_ast.compute_char_frequency();
-  compressed_ast.mangle_names();
-  return compressed_ast;
+  return Ast.compact(ast) as PacAst;
 }
 
 export function script(options: OptionsMap, profile: string | Profile, args?: PacGeneratorOptions) {

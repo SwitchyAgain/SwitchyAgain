@@ -22,7 +22,7 @@ type ParsedUrl = {
   [key: string]: unknown;
 };
 
-type UglifyNode = any;
+type PacAstNode = Ast.Node;
 
 type IpAddress = Address4 | Address6;
 
@@ -51,7 +51,7 @@ type NormalizedDomainPattern = {
 type ConditionHandler = {
   abbrs: string[];
   analyze(this: ConditionsApiType, condition: Condition): any;
-  compile?(this: ConditionsApiType, condition: Condition, cache: ConditionCache): UglifyNode;
+  compile?(this: ConditionsApiType, condition: Condition, cache: ConditionCache): PacAstNode;
   fromStr?(this: ConditionsApiType, str: string, condition: Condition): Condition;
   match?(this: ConditionsApiType, condition: Condition, request: PacRequest, cache: ConditionCache): boolean;
   str?(this: ConditionsApiType, condition: Condition): string;
@@ -63,7 +63,7 @@ type ConditionsApiType = {
   _condCache: AttachedCacheType;
   _conditionTypes: Record<string, ConditionHandler>;
   _handler(conditionType: string | Condition): ConditionHandler;
-  _hostIsLocalAst(): UglifyNode;
+  _hostIsLocalAst(): PacAstNode;
   _hostPortMatches(pattern: ParsedBypassPattern, request: PacRequest): boolean;
   _hostRegex(pattern: string): RegExp;
   _normalizeDomainHost(host: string): string | null;
@@ -72,13 +72,13 @@ type ConditionsApiType = {
   _parseBypassHostPort(server: string): ParsedBypassHostPort;
   _parseBypassPattern(pattern: string): ParsedBypassPattern;
   _portIsValid(port: string | null): boolean;
-  _portEqualsAst(port: string): UglifyNode;
+  _portEqualsAst(port: string): PacAstNode;
   _setProp(obj: Record<string, any>, prop: string, value: unknown): unknown;
   analyze(condition: Condition): ConditionCache;
-  between(val: UglifyNode, min: any, max: any, comment?: string): UglifyNode;
+  between(val: PacAstNode, min: any, max: any, comment?: string): PacAstNode;
   colonCharCode: number;
-  comment(comment: string | null | undefined, node: UglifyNode): UglifyNode;
-  compile(condition: Condition): UglifyNode;
+  comment(comment: string | null | undefined, node: PacAstNode): PacAstNode;
+  compile(condition: Condition): PacAstNode;
   fromStr(str: string): Condition | null;
   getWeekdayList(condition: Condition): boolean[];
   ipv6Max: string;
@@ -88,7 +88,7 @@ type ConditionsApiType = {
   normalizeIp(addr: IpAddress): string;
   parseIp(ip: string): IpAddress | null;
   parseIpHost(host: string): IpAddress | null;
-  regTest(expr: string | UglifyNode, regexp: string | RegExp): UglifyNode;
+  regTest(expr: string | PacAstNode, regexp: string | RegExp): PacAstNode;
   requestFromUrl(url: string | ParsedUrl): PacRequest;
   safeRegex(expr: string): RegExp;
   str(condition: Condition, arg?: {abbr?: number}): string;
@@ -130,7 +130,7 @@ const ConditionsApi: ConditionsApiType = {
     const match = ConditionsApi._handler(condition.conditionType).match;
     return match != null ? match.call(ConditionsApi, condition, request, cache) : false;
   },
-  compile(condition: Condition): UglifyNode {
+  compile(condition: Condition): PacAstNode {
     const cache = ConditionsApi.analyze(condition) as ConditionCache;
     if (cache.compiled) {
       return cache.compiled;
@@ -206,29 +206,11 @@ const ConditionsApi: ConditionsApiType = {
     }
     return ConditionsApi._abbrs[abbr.toUpperCase()];
   },
-  comment(comment: string | null | undefined, node: UglifyNode): UglifyNode {
+  comment(comment: string | null | undefined, node: PacAstNode): PacAstNode {
     if (!comment) {
       return node;
     }
-    if (node.start == null) {
-      node.start = {};
-    }
-    Object.defineProperty(node.start, '_comments_dumped', {
-      get() {
-        return false;
-      },
-      set() {
-        return false;
-      }
-    });
-    if (node.start.comments_before == null) {
-      node.start.comments_before = [];
-    }
-    node.start.comments_before.push({
-      type: 'comment2',
-      value: comment
-    });
-    return node;
+    return Ast.addComment(node, comment);
   },
   safeRegex(expr: string): RegExp {
     try {
@@ -237,7 +219,7 @@ const ConditionsApi: ConditionsApiType = {
       return /(?!)/;
     }
   },
-  regTest(expr: string | UglifyNode, regexp: string | RegExp): UglifyNode {
+  regTest(expr: string | PacAstNode, regexp: string | RegExp): PacAstNode {
     if (typeof regexp === 'string') {
       regexp = ConditionsApi.safeRegex(escapeSlash(regexp));
     }
@@ -249,7 +231,7 @@ const ConditionsApi: ConditionsApiType = {
   isInt(num: unknown): num is number {
     return typeof num === 'number' && !isNaN(num) && parseFloat(String(num)) === parseInt(String(num), 10);
   },
-  between(val: UglifyNode, min: any, max: any, comment?: string): UglifyNode {
+  between(val: PacAstNode, min: any, max: any, comment?: string): PacAstNode {
     if (min === max) {
       if (typeof min === 'number') {
         min = Ast.num(min);
@@ -530,10 +512,10 @@ const ConditionsApi: ConditionsApiType = {
     const value = Number(port);
     return value > 0 && value <= 65535;
   },
-  _portEqualsAst(port: string): UglifyNode {
+  _portEqualsAst(port: string): PacAstNode {
     return Ast.binary(Ast.symbol('port'), '===', Ast.str(port));
   },
-  _hostIsLocalAst(): UglifyNode {
+  _hostIsLocalAst(): PacAstNode {
     return Ast.binary(
       Ast.binary(Ast.call(Ast.dot(Ast.symbol('host'), 'indexOf'), [Ast.str('.')]), '<', Ast.num(0)),
       '&&',

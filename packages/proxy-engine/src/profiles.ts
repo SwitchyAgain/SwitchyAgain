@@ -18,7 +18,7 @@ import {AttachedCache, Revision} from './utils';
 
 const hasProp = Object.prototype.hasOwnProperty;
 
-type UglifyNode = any;
+type PacAstNode = Ast.Node;
 
 type ProfileRecord = Profile & Record<string, any>;
 
@@ -45,7 +45,7 @@ type ProfileCache = {
 
 type ProfileHandlerObject = {
   analyze?(this: ProfilesApiType, profile: ProfileRecord): any;
-  compile?(this: ProfilesApiType, profile: ProfileRecord, cache: ProfileCache): UglifyNode;
+  compile?(this: ProfilesApiType, profile: ProfileRecord, cache: ProfileCache): PacAstNode;
   create?(this: ProfilesApiType, profile: ProfileRecord): unknown;
   directReferenceSet?(this: ProfilesApiType, profile: ProfileRecord): ReferenceSet;
   includable?: boolean | ((this: ProfilesApiType, profile: ProfileRecord) => boolean);
@@ -73,7 +73,7 @@ type ProfilesApiType = {
   builtinProfiles: Record<string, ProfileRecord>;
   byKey(key: string | ProfileRecord, options?: OptionsMap): Profile | undefined;
   byName(profileName: string | ProfileRecord, options?: OptionsMap): Profile | undefined;
-  compile(profile: ProfileRecord, opt_profileType?: string): UglifyNode;
+  compile(profile: ProfileRecord, opt_profileType?: string): PacAstNode;
   create(profile: string | ProfileRecord, opt_profileType?: string): Profile;
   directReferenceSet(profile: ProfileRecord): ReferenceSet;
   dropCache(profile: ProfileRecord): void;
@@ -88,7 +88,7 @@ type ProfilesApiType = {
   pacResult(proxy?: ProxyServer | null): string;
   parseHostPort(str: string, scheme: string): ProxyServer | undefined;
   profileNotFound(name: string | ProfileRecord, action?: any): Profile | null;
-  profileResult(profileName: string | ProfileRecord): UglifyNode;
+  profileResult(profileName: string | ProfileRecord): PacAstNode;
   referencedBySet(profile: string | ProfileRecord, options: OptionsMap, opt_args?: ReferenceSetOptions): ReferenceSet;
   replaceRef(profile: ProfileRecord, fromName: string, toName: string): boolean;
   ruleListFormats: string[];

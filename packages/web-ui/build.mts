@@ -120,7 +120,6 @@ async function main() {
   const staticCopies: StaticCopy[] = [
     ['../proxy-engine/omega_pac.min.js', 'build/js/omega_pac.min.js'],
     ['build-ts/js/log_error.js', 'build/js/log_error.js'],
-    ['build-ts/js/omega_pac_preload.js', 'build/js/omega_pac_preload.js'],
     ['vendor/bootstrap/3.3.7/css/bootstrap.min.css', 'build/lib/bootstrap/css/bootstrap.min.css'],
     ['vendor/bootstrap/3.3.7/fonts/glyphicons-halflings-regular.woff2', 'build/lib/bootstrap/fonts/glyphicons-halflings-regular.woff2'],
     ['vendor/bootstrap/3.3.7/LICENSE', 'build/lib/bootstrap/LICENSE'],
@@ -144,7 +143,6 @@ async function main() {
   await writeRootReactHtml('build/options.html', 'SwitchyAgain Options', 'react/options_app.js', [
     'js/omega_debug.js',
     'js/log_error.js',
-    'js/omega_pac_preload.js',
     'js/omega_pac.min.js'
   ]);
   await bundleReact('src/react/options_entry.tsx', 'build/react/options_app.js');

@@ -9,8 +9,6 @@ type ContextMenuOptions = Record<string, unknown> & {
 type ContextMenuClickHandler = (info: unknown, tab: ChromeTab) => unknown;
 
 (function() {
-  window.UglifyJS_NoUnsafeEval = true;
-
   localStorage['log'] = '';
 
   localStorage['logLastError'] = '';
