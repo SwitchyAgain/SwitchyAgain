@@ -1,21 +1,21 @@
 {
-  "name": "switchyagain-workspace",
+  "name": "@switchyagain/workspace",
   "private": true,
   "workspaces": [
-    "omega-pac",
-    "omega-target",
-    "omega-web",
-    "omega-target-chromium-extension"
+    "packages/proxy-engine",
+    "packages/extension-runtime",
+    "packages/web-ui",
+    "apps/browser-extension"
   ],
   "scripts": {
-    "build": "npm run build --workspace omega-target-chromium-extension",
-    "build:pac": "npm run build --workspace omega-pac",
-    "build:target": "npm run build --workspace omega-target",
-    "build:web": "npm run build --workspace omega-web",
+    "build": "npm run build --workspace @switchyagain/browser-extension",
+    "build:pac": "npm run build --workspace @switchyagain/proxy-engine",
+    "build:target": "npm run build --workspace @switchyagain/extension-runtime",
+    "build:web": "npm run build --workspace @switchyagain/web-ui",
     "package:dist": "node scripts/package-dist.mjs",
-    "release": "npm run release --workspace omega-target-chromium-extension",
-    "test": "npm run test --workspace omega-pac && npm run test --workspace omega-target",
-    "typecheck": "npm run typecheck --workspace omega-pac && npm run typecheck --workspace omega-target && npm run typecheck --workspace omega-web && npm run typecheck --workspace omega-target-chromium-extension"
+    "release": "npm run release --workspace @switchyagain/browser-extension",
+    "test": "npm run test --workspace @switchyagain/proxy-engine && npm run test --workspace @switchyagain/extension-runtime",
+    "typecheck": "npm run typecheck --workspace @switchyagain/proxy-engine && npm run typecheck --workspace @switchyagain/extension-runtime && npm run typecheck --workspace @switchyagain/web-ui && npm run typecheck --workspace @switchyagain/browser-extension"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

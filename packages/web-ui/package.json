@@ -1,0 +1,21 @@
+{
+  "name": "@switchyagain/web-ui",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "file-saver": "2.0.5",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3"
+  },
+  "scripts": {
+    "build": "npm run build:ts && node build-ts/build.mjs",
+    "build:ts": "npm run clean:ts && tsc -p tsconfig.scripts.json && tsc -p tsconfig.react.json && tsc -p tsconfig.build-script.json",
+    "clean:ts": "node --input-type=module -e \"import {rmSync} from 'node:fs'; rmSync('build-ts', {recursive: true, force: true})\"",
+    "dev": "npm link @switchyagain/proxy-engine && npm link",
+    "typecheck": "tsc -p tsconfig.scripts.json --noEmit && tsc -p tsconfig.react.json && tsc -p tsconfig.build-script.json --noEmit"
+  }
+}

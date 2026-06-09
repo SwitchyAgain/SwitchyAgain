@@ -3,21 +3,21 @@ node_modules
 
 /dist/
 
-/omega-pac/index.js
-/omega-pac/omega_pac.min.js
-/omega-pac/build-ts/
+/packages/proxy-engine/index.js
+/packages/proxy-engine/omega_pac.min.js
+/packages/proxy-engine/build-ts/
 
-/omega-target/index.js
-/omega-target/omega_target.min.js
-/omega-target/build-ts/
+/packages/extension-runtime/index.js
+/packages/extension-runtime/omega_target.min.js
+/packages/extension-runtime/build-ts/
 
-/omega-web/build/
-/omega-web/build-ts/
-/omega-web/tmp/
+/packages/web-ui/build/
+/packages/web-ui/build-ts/
+/packages/web-ui/tmp/
 
-/omega-target-chromium-extension/index.js
-/omega-target-chromium-extension/omega_target_*.min.js
-/omega-target-chromium-extension/tmp/
-/omega-target-chromium-extension/build/
-/omega-target-chromium-extension/build-ts/
-/omega-target-chromium-extension/release/
+/apps/browser-extension/index.js
+/apps/browser-extension/omega_target_*.min.js
+/apps/browser-extension/tmp/
+/apps/browser-extension/build/
+/apps/browser-extension/build-ts/
+/apps/browser-extension/release/

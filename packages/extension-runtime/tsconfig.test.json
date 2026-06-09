@@ -1,0 +1,27 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": false,
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
+    "module": "es2020",
+    "moduleDetection": "force",
+    "noImplicitAny": true,
+    "noEmit": true,
+    "paths": {
+      "@switchyagain/proxy-engine": [
+        "../proxy-engine/src/index.ts"
+      ]
+    },
+    "target": "es2015",
+    "types": [
+      "node",
+      "mocha"
+    ]
+  },
+  "include": [
+    "test/**/*.ts",
+    "types/node-globals.d.ts",
+    "../proxy-engine/types/**/*.d.ts"
+  ]
+}

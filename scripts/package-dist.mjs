@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dryRun = process.argv.includes('--dry-run');
 
-const manifestPath = path.join(root, 'omega-target-chromium-extension', 'overlay', 'manifest.json');
-const releaseDir = path.join(root, 'omega-target-chromium-extension', 'release');
+const manifestPath = path.join(root, 'apps/browser-extension', 'overlay', 'manifest.json');
+const releaseDir = path.join(root, 'apps/browser-extension', 'release');
 const distDir = path.join(root, 'dist');
 
 const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));

@@ -1,0 +1,22 @@
+{
+  "name": "@switchyagain/browser-extension",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./index",
+  "dependencies": {
+    "heap": "^0.2.6",
+    "@switchyagain/extension-runtime": "0.0.1",
+    "@switchyagain/web-ui": "0.0.1",
+    "@switchyagain/proxy-engine": "0.0.1"
+  },
+  "browser": {
+    "@switchyagain/extension-runtime": "./build-ts/module/omega_target_shim.js"
+  },
+  "scripts": {
+    "build": "npm run build --workspace @switchyagain/proxy-engine && npm run build --workspace @switchyagain/extension-runtime && npm run build --workspace @switchyagain/web-ui && npm run build:ts && node build-ts/build.mjs",
+    "build:ts": "tsc -p tsconfig.build.json && tsc -p tsconfig.scripts.json && tsc -p tsconfig.build-script.json",
+    "dev": "npm link @switchyagain/extension-runtime && npm link @switchyagain/web-ui && npm link @switchyagain/proxy-engine",
+    "release": "npm run build --workspace @switchyagain/proxy-engine && npm run build --workspace @switchyagain/extension-runtime && npm run build --workspace @switchyagain/web-ui && npm run build:ts && node build-ts/build.mjs release",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.scripts.json --noEmit && tsc -p tsconfig.build-script.json --noEmit"
+  }
+}
