@@ -1,5 +1,24 @@
 # Changelog
 
+## v1.1.18
+
+Localization cleanup and extension startup fixes.
+
+- Added the Interface language setting with persisted import/export support and
+  bundled locale selection for the shipped languages.
+- Pruned incomplete locale catalogs and aligned the Chinese locale source names
+  with Hans/Hant language variants.
+- Reworked PAC generation to use the local AST printer instead of UglifyJS and
+  removed remaining Bluebird, heap, and FileSaver runtime dependencies.
+- Fixed clean-install startup when default UI locale detection runs in the
+  bundled browser-extension runtime.
+- Kept options/profile reads responsive when proxy application fails during
+  background initialization.
+- Added Firefox extension smoke coverage and opened Firefox shortcut settings
+  through the browser commands API when available.
+- Adjusted Interface settings controls to match the existing Switch Options
+  dropdown behavior.
+
 ## v1.1.17
 
 Dependency, workspace, and proxy matching cleanup.
