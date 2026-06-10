@@ -186,9 +186,9 @@ export function loadManifest() {
   return readJson(path.join(extensionBuildDir, 'manifest.json'));
 }
 
-export function loadPlaywright() {
+export function loadPackage(packageName, packagePath = packageName, helpText = '') {
   try {
-    return require('playwright');
+    return require(packagePath);
   } catch (error) {
     for (const entry of (process.env.PATH || '').split(path.delimiter)) {
       if (!entry.endsWith(`${path.sep}node_modules${path.sep}.bin`)) {
@@ -196,10 +196,19 @@ export function loadPlaywright() {
       }
       const nodeModules = path.dirname(entry);
       try {
-        return createRequire(path.join(nodeModules, 'playwright', 'package.json'))('playwright');
+        return createRequire(path.join(nodeModules, packageName, 'package.json'))(packagePath);
       } catch (_innerError) {
       }
     }
-    throw new Error('Playwright is unavailable. Run this smoke through `npm run smoke:ui` or `npm run smoke:extension:chromium`.');
+    const hint = helpText ? ` ${helpText}` : '';
+    throw new Error(`${packagePath} is unavailable.${hint}`);
   }
+}
+
+export function loadPlaywright() {
+  return loadPackage(
+    'playwright',
+    'playwright',
+    'Run this smoke through `npm run smoke:ui:chromium`, `npm run smoke:ui:firefox`, or `npm run smoke:extension`.'
+  );
 }

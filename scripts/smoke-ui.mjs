@@ -17,7 +17,14 @@ assertExtensionBuild();
 const messages = loadEnglishMessages();
 const manifest = loadManifest();
 const options = defaultOptions();
-const {chromium} = loadPlaywright();
+const browserName = process.argv[2] || 'chromium';
+if (!['chromium', 'firefox'].includes(browserName)) {
+  throw new Error(`Unsupported smoke UI browser ${JSON.stringify(browserName)}. Expected chromium or firefox.`);
+}
+const browserType = loadPlaywright()[browserName];
+if (!browserType) {
+  throw new Error(`Playwright browser type ${browserName} is unavailable.`);
+}
 
 function messageForKey(key, substitutions) {
   let text = messages[key]?.message || '';
@@ -263,7 +270,7 @@ const pages = [
   }
 ];
 
-const browser = await chromium.launch();
+const browser = await browserType.launch();
 try {
   for (const target of pages) {
     const page = await browser.newPage();
