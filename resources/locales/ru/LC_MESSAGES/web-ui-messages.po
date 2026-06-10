@@ -219,7 +219,7 @@ msgid "inputClear_restore"
 msgstr "Восстановить"
 
 msgid "options_title"
-msgstr "SwitchyAgain Options"
+msgstr "Параметры SwitchyAgain"
 
 msgid "options_experimental_badge"
 msgstr "α"

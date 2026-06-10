@@ -217,7 +217,7 @@ msgid "inputClear_restore"
 msgstr "بازگردانی"
 
 msgid "options_title"
-msgstr "SwitchyAgain Options"
+msgstr "گزینه‌های SwitchyAgain"
 
 msgid "options_experimental_badge"
 msgstr "α"

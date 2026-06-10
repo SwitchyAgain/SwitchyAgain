@@ -175,7 +175,7 @@ msgid "condition_group_host"
 msgstr "Servidor"
 
 msgid "condition_group_url"
-msgstr "Url"
+msgstr "URL"
 
 msgid "condition_group_special"
 msgstr "Especial"
@@ -223,7 +223,7 @@ msgid "inputClear_restore"
 msgstr "Deshacer"
 
 msgid "options_title"
-msgstr "SwitchyAgain Options"
+msgstr "Opciones de SwitchyAgain"
 
 msgid "options_experimental_badge"
 msgstr "α"
