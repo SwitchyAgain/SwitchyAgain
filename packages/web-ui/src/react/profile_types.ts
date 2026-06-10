@@ -78,6 +78,7 @@ export type OptionsData = {
   '-showExternalProfile'?: boolean;
   '-showInspectMenu'?: boolean;
   '-startupProfileName'?: string;
+  '-uiLocale'?: string;
 };
 
 export type VirtualProfileModel = Profile & {

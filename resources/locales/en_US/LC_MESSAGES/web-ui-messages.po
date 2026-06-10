@@ -218,6 +218,12 @@ msgstr "Restore"
 msgid "options_title"
 msgstr "SwitchyAgain Options"
 
+msgid "options_group_language"
+msgstr "Language"
+
+msgid "options_interfaceLanguage"
+msgstr "Interface language"
+
 msgid "options_experimental_badge"
 msgstr "α"
 

@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 import {createRoot} from 'react-dom/client';
 import {
@@ -9,7 +9,9 @@ import {
   openShortcutConfig as openDefaultShortcutConfig,
   patchOptions,
   runtimeAvailable,
-  shouldAutoMount
+  shouldAutoMount,
+  UI_LOCALES,
+  uiLocaleForOptions
 } from './options_client';
 import {
   Profile,
@@ -20,6 +22,7 @@ import {
 } from './profile_widgets';
 
 const UI_KEYS = [
+  '-uiLocale',
   '-startupProfileName',
   '-showConditionTypes',
   '-enableQuickSwitch',
@@ -63,6 +66,60 @@ function displayProfileName(profile: Profile) {
     return message(`profile_${profile.name}`, profile.name);
   }
   return profile.name;
+}
+
+function UiLocaleSelect({value, onChange}: {value: string; onChange: (value: string) => void}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const selectedLocale = UI_LOCALES.find((locale) => locale.value === value) || UI_LOCALES[0];
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    function closeOnOutsidePointer(event: MouseEvent | TouchEvent) {
+      if (rootRef.current?.contains(event.target as Node)) {
+        return;
+      }
+      setOpen(false);
+    }
+    document.addEventListener('mousedown', closeOnOutsidePointer);
+    document.addEventListener('touchstart', closeOnOutsidePointer);
+    return () => {
+      document.removeEventListener('mousedown', closeOnOutsidePointer);
+      document.removeEventListener('touchstart', closeOnOutsidePointer);
+    };
+  }, [open]);
+
+  return (
+    <div ref={rootRef} className={`btn-group omega-profile-select ui-locale-select ${open ? 'open' : ''}`}>
+      <button
+        id="react-ui-locale"
+        type="button"
+        className="btn btn-default dropdown-toggle"
+        aria-expanded={open ? 'true' : 'false'}
+        aria-haspopup="true"
+        role="listbox"
+        onClick={() => setOpen(!open)}
+      >
+        <span className="glyphicon glyphicon-globe" /> <span>{selectedLocale.label}</span> <span className="caret" />
+      </button>
+      {open && (
+        <ul className="dropdown-menu" role="listbox">
+          {UI_LOCALES.map((locale) => (
+            <li key={locale.value} role="option" className={value === locale.value ? 'active' : ''}>
+              <a onClick={() => {
+                onChange(locale.value);
+                setOpen(false);
+              }}>
+                <span>{locale.label}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 export function UiSettings({embedded = false, options, onOptionsChange, onOpenShortcutConfig}: UiSettingsProps) {
@@ -285,6 +342,17 @@ export function UiSettings({embedded = false, options, onOptionsChange, onOpenSh
           <span className="glyphicon glyphicon-ok" /> {message('options_saveSuccess', 'Options saved.')}
         </div>
       )}
+
+      <section className="settings-group">
+        <h3>{message('options_group_language', 'Language')}</h3>
+        <div className="form-group">
+          <label htmlFor="react-ui-locale">{message('options_interfaceLanguage', 'Interface language')}</label>{' '}
+          <UiLocaleSelect
+            value={String(draftOptions['-uiLocale'] || uiLocaleForOptions(draftOptions))}
+            onChange={(value) => updateOption('-uiLocale', value)}
+          />
+        </div>
+      </section>
 
       <section className="settings-group">
         <h3>{message('options_group_miscOptions', 'Misc Options')}</h3>

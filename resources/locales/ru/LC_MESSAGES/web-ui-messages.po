@@ -221,6 +221,12 @@ msgstr "Восстановить"
 msgid "options_title"
 msgstr "Параметры SwitchyAgain"
 
+msgid "options_group_language"
+msgstr "Язык"
+
+msgid "options_interfaceLanguage"
+msgstr "Язык интерфейса"
+
 msgid "options_experimental_badge"
 msgstr "α"
 

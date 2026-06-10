@@ -71,6 +71,29 @@ function actionApi(): ChromeActionApi {
 
 interface ChromeOptions extends OmegaOptionsBase {}
 
+function defaultUiLocaleFromBrowser(language = chrome.i18n?.getUILanguage?.() || '') {
+  const normalized = language.replace(/_/g, '-').toLowerCase();
+  if (normalized === 'zh' || normalized.startsWith('zh-hans') || normalized.startsWith('zh-cn') || normalized.startsWith('zh-sg')) {
+    return 'zh-Hans';
+  }
+  if (normalized.startsWith('zh-hant') || normalized.startsWith('zh-tw') || normalized.startsWith('zh-hk') || normalized.startsWith('zh-mo')) {
+    return 'zh-Hant';
+  }
+  if (normalized.startsWith('cs')) {
+    return 'cs';
+  }
+  if (normalized.startsWith('es')) {
+    return 'es';
+  }
+  if (normalized.startsWith('fa')) {
+    return 'fa';
+  }
+  if (normalized.startsWith('ru')) {
+    return 'ru';
+  }
+  return 'en';
+}
+
 class ChromeOptions extends OmegaTarget.Options {
   externalApi: ExternalApiLike;
   fetchUrl: typeof fetchUrl;
@@ -127,6 +150,10 @@ class ChromeOptions extends OmegaTarget.Options {
 
   proxyNotControllable() {
     return this._proxyNotControllable;
+  }
+
+  defaultUiLocale() {
+    return defaultUiLocaleFromBrowser();
   }
 
   setProxyNotControllable(reason: string | null, badge?: BadgeOptions) {

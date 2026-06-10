@@ -1,4 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
+import {setUiLocale} from './options_client';
 import {createRoot} from 'react-dom/client';
 import {
   PageInfo,
@@ -208,6 +209,7 @@ function PopupApp() {
         'proxyNotControllable',
         'refreshOnProfileChange',
         'showExternalProfile',
+        'uiLocale',
         'validResultProfiles'
       ]),
       getPopupPageInfo()
@@ -216,8 +218,10 @@ function PopupApp() {
         location.href = 'proxy_not_controllable.html';
         return;
       }
-      setState(nextState);
-      setPageInfo(nextPageInfo);
+      return setUiLocale(nextState.uiLocale).then(() => {
+        setState(nextState);
+        setPageInfo(nextPageInfo);
+      });
     }).catch((err) => {
       setError(err?.message || String(err));
     });

@@ -29,6 +29,7 @@ export type PopupState = {
   proxyNotControllable?: string;
   refreshOnProfileChange?: boolean;
   showExternalProfile?: boolean;
+  uiLocale?: string;
   validResultProfiles?: string[];
 };
 
@@ -169,5 +170,5 @@ export function getPopupPageInfo() {
 }
 
 export function popupMessage(key: string, fallback = key, substitutions?: string | string[]) {
-  return popupTarget().getMessage?.(key, substitutions) || message(key, fallback, substitutions);
+  return message(key, '', substitutions) || popupTarget().getMessage?.(key, substitutions) || fallback;
 }

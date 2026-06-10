@@ -98,6 +98,28 @@ describe('Options', function() {
         ]);
       });
     });
+
+    it('should add a default UI locale when upgrading existing options', function() {
+      const options = Object.create(Options.prototype);
+      return options.upgrade({
+        schemaVersion: 3
+      }).then(([upgraded, changes]: any[]) => {
+        assert.strictEqual(upgraded['-uiLocale'], 'en');
+        assert.strictEqual(changes['-uiLocale'], 'en');
+      });
+    });
+
+    it('should normalize unsupported UI locales during upgrade', function() {
+      const options = Object.create(Options.prototype);
+      options.defaultUiLocale = () => 'es';
+      return options.upgrade({
+        schemaVersion: 3,
+        '-uiLocale': 'de'
+      }).then(([upgraded, changes]: any[]) => {
+        assert.strictEqual(upgraded['-uiLocale'], 'es');
+        assert.strictEqual(changes['-uiLocale'], 'es');
+      });
+    });
   });
 
   describe('#setExternalProfile', function() {

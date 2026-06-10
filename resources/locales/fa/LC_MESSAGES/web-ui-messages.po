@@ -219,6 +219,12 @@ msgstr "بازگردانی"
 msgid "options_title"
 msgstr "گزینه‌های SwitchyAgain"
 
+msgid "options_group_language"
+msgstr "زبان"
+
+msgid "options_interfaceLanguage"
+msgstr "زبان رابط کاربری"
+
 msgid "options_experimental_badge"
 msgstr "α"
 

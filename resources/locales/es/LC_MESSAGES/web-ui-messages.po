@@ -225,6 +225,12 @@ msgstr "Deshacer"
 msgid "options_title"
 msgstr "Opciones de SwitchyAgain"
 
+msgid "options_group_language"
+msgstr "Idioma"
+
+msgid "options_interfaceLanguage"
+msgstr "Idioma de la interfaz"
+
 msgid "options_experimental_badge"
 msgstr "α"
 

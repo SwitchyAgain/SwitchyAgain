@@ -46,6 +46,7 @@ const OmegaPac = OmegaPacImpl as OmegaPacModule;
 
 const hasProp = Object.prototype.hasOwnProperty;
 const optionNumber = (value: unknown) => Number(value);
+const supportedUiLocales = new Set(['en', 'zh-Hans', 'zh-Hant', 'es', 'ru', 'cs', 'fa']);
 
 type LoadOptionsArgs = {
   retry?: number;
@@ -489,6 +490,11 @@ class Options {
       version = changes['schemaVersion'] = options['schemaVersion'] = 3;
     }
     if (version === 3) {
+      const uiLocale = this.normalizeUiLocale(options['-uiLocale']);
+      if (options['-uiLocale'] !== uiLocale) {
+        changes['-uiLocale'] = uiLocale;
+        options['-uiLocale'] = uiLocale;
+      }
       return Promise.resolve([options, changes]);
     } else {
       return Promise.reject(new Error("Invalid schemaVerion " + version + "!"));
@@ -573,7 +579,31 @@ class Options {
    */
 
   getDefaultOptions(): OptionsData {
-    return defaultOptions();
+    return {
+      ...defaultOptions(),
+      '-uiLocale': this.defaultUiLocale()
+    };
+  }
+
+  defaultUiLocale(): string {
+    return 'en';
+  }
+
+  normalizeUiLocale(value: unknown): string {
+    if (typeof value === 'string') {
+      const normalized = value.replace(/_/g, '-');
+      if (supportedUiLocales.has(normalized)) {
+        return normalized;
+      }
+      const lower = normalized.toLowerCase();
+      if (lower === 'zh' || lower === 'zh-cn' || lower === 'zh-sg' || lower === 'zh-hans') {
+        return 'zh-Hans';
+      }
+      if (lower === 'zh-tw' || lower === 'zh-hk' || lower === 'zh-mo' || lower === 'zh-hant') {
+        return 'zh-Hant';
+      }
+    }
+    return this.defaultUiLocale();
   }
 
 
@@ -697,6 +727,11 @@ class Options {
         if (refresh != null) {
           this._state.set({
             'refreshOnProfileChange': refresh
+          });
+        }
+        if ((changes['-uiLocale'] != null) || changes === this._options) {
+          this._state.set({
+            'uiLocale': this._options['-uiLocale']
           });
         }
         if (Object.prototype.hasOwnProperty.call(changes, '-showExternalProfile')) {

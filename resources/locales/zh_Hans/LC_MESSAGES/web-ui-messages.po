@@ -200,6 +200,12 @@ msgstr "还原"
 msgid "options_title"
 msgstr "SwitchyAgain 选项"
 
+msgid "options_group_language"
+msgstr "语言"
+
+msgid "options_interfaceLanguage"
+msgstr "界面语言"
+
 msgid "options_experimental_badge"
 msgstr "测试版"
 

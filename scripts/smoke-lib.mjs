@@ -35,6 +35,7 @@ export function defaultOptions() {
     schemaVersion: 3,
     '-enableQuickSwitch': false,
     '-refreshOnProfileChange': false,
+    '-uiLocale': 'en',
     '-startupProfileName': '',
     '-quickSwitchProfiles': [],
     '-revertProxyChanges': true,
