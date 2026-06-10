@@ -4,11 +4,74 @@ type HeapQueue<T> = {
   push(item: T): void;
 };
 
-type HeapConstructor = new <T>(compare: (a: T, b: T) => number) => HeapQueue<T>;
+class MinHeap<T> implements HeapQueue<T> {
+  private readonly compare: (a: T, b: T) => number;
+  private readonly nodes: T[];
 
-import HeapModule from 'heap';
+  constructor(compare: (a: T, b: T) => number) {
+    this.compare = compare;
+    this.nodes = [];
+  }
 
-const Heap = HeapModule as unknown as HeapConstructor;
+  peek() {
+    return this.nodes[0];
+  }
+
+  pop() {
+    if (this.nodes.length === 0) {
+      return undefined;
+    }
+    const root = this.nodes[0];
+    const last = this.nodes.pop();
+    if (this.nodes.length > 0) {
+      this.nodes[0] = last as T;
+      this.siftDown(0);
+    }
+    return root;
+  }
+
+  push(item: T) {
+    this.nodes.push(item);
+    this.siftUp(this.nodes.length - 1);
+  }
+
+  private siftDown(index: number) {
+    while (true) {
+      const left = index * 2 + 1;
+      const right = left + 1;
+      let smallest = index;
+
+      if (left < this.nodes.length && this.compare(this.nodes[left], this.nodes[smallest]) < 0) {
+        smallest = left;
+      }
+      if (right < this.nodes.length && this.compare(this.nodes[right], this.nodes[smallest]) < 0) {
+        smallest = right;
+      }
+      if (smallest === index) {
+        return;
+      }
+      this.swap(index, smallest);
+      index = smallest;
+    }
+  }
+
+  private siftUp(index: number) {
+    while (index > 0) {
+      const parent = Math.floor((index - 1) / 2);
+      if (this.compare(this.nodes[index], this.nodes[parent]) >= 0) {
+        return;
+      }
+      this.swap(index, parent);
+      index = parent;
+    }
+  }
+
+  private swap(a: number, b: number) {
+    const item = this.nodes[a];
+    this.nodes[a] = this.nodes[b];
+    this.nodes[b] = item;
+  }
+}
 
 type RequestStatus = 'start' | 'ongoing' | 'timeout' | 'error' | 'timeoutAbort' | 'done';
 type EventCategory = 'done' | 'error' | 'ongoing';
@@ -66,7 +129,7 @@ class WebRequestMonitor {
   constructor(getSummaryId?: (req: RequestInfo) => string | number | null | undefined) {
     this.getSummaryId = getSummaryId;
     this._requests = {};
-    this._recentRequests = new Heap((a: RequestInfo, b: RequestInfo) => {
+    this._recentRequests = new MinHeap((a: RequestInfo, b: RequestInfo) => {
       return (a._startTime || 0) - (b._startTime || 0);
     });
     this._callbacks = [];

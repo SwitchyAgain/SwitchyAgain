@@ -1,7 +1,6 @@
 type Mv3CompatGlobal = typeof globalThis & {
   chrome?: ChromeGlobal;
   localStorage?: unknown;
-  saveAs?: (blob: Blob, filename: string) => unknown;
   window?: unknown;
 };
 
@@ -123,15 +122,5 @@ type LocalStorageShimConstructor = {
         return true;
       }
     });
-  }
-
-  if (typeof global.saveAs === 'undefined') {
-    global.saveAs = (blob: Blob, filename: string) => {
-      if (!chromeApi || !chromeApi.downloads || typeof URL === 'undefined') {
-        return;
-      }
-      const url = URL.createObjectURL(blob);
-      chromeApi.downloads.download({url: url, filename: filename, saveAs: true});
-    };
   }
 })(this as unknown as Mv3CompatGlobal);

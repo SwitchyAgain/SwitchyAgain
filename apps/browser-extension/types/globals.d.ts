@@ -458,7 +458,6 @@ declare var OmegaPac: OmegaPacApi;
 declare var OmegaTarget: OmegaTargetModule;
 declare var OmegaTargetChromium: LegacyDynamic;
 declare var OmegaTargetPopup: OmegaTargetPopupApi;
-declare var saveAs: (blob: Blob, filename: string) => unknown;
 declare function importScripts(...urls: string[]): void;
 declare function drawOmega(
   context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
@@ -477,11 +476,6 @@ declare module 'buffer' {
       toString(encoding?: string): string;
     };
   };
-}
-
-declare module 'heap' {
-  const value: LegacyDynamic;
-  export default value;
 }
 
 interface Window {

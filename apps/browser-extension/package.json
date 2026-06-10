@@ -4,7 +4,6 @@
   "private": true,
   "main": "./index",
   "dependencies": {
-    "heap": "^0.2.6",
     "@switchyagain/extension-runtime": "0.0.1",
     "@switchyagain/web-ui": "0.0.1",
     "@switchyagain/proxy-engine": "0.0.1"

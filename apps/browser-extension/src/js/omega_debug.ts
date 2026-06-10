@@ -1,4 +1,49 @@
 (function() {
+  function scheduleObjectUrlRevoke(url: string) {
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function downloadBlob(blob: Blob, filename: string) {
+    if (typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    if (typeof document !== 'undefined' && document.createElement) {
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = filename;
+      anchor.rel = 'noopener';
+      anchor.style.display = 'none';
+      (document.body || document.documentElement).appendChild(anchor);
+      anchor.click();
+      if (anchor.parentNode) {
+        anchor.parentNode.removeChild(anchor);
+      }
+      scheduleObjectUrlRevoke(url);
+      return;
+    }
+    if (typeof browser !== 'undefined' && browser !== null && browser.downloads?.download != null) {
+      const result = browser.downloads.download({
+        url: url,
+        filename: filename
+      });
+      return result.then((value) => {
+        scheduleObjectUrlRevoke(url);
+        return value;
+      }, (error) => {
+        scheduleObjectUrlRevoke(url);
+        throw error;
+      });
+    }
+    if (typeof chrome !== 'undefined' && chrome !== null && chrome.downloads?.download != null) {
+      return chrome.downloads.download({
+        url: url,
+        filename: filename
+      }, () => scheduleObjectUrlRevoke(url));
+    }
+    scheduleObjectUrlRevoke(url);
+  }
+
   window.OmegaDebug = {
     getProjectVersion() {
       return chrome.runtime.getManifest().version;
@@ -11,15 +56,7 @@
         type: "text/plain;charset=utf-8"
       });
       const filename = `OmegaLog_${Date.now()}.txt`;
-      if (typeof browser !== "undefined" && browser !== null && browser.downloads?.download != null) {
-        const url = URL.createObjectURL(blob);
-        return browser.downloads.download({
-          url: url,
-          filename: filename
-        });
-      } else {
-        return saveAs(blob, filename);
-      }
+      return downloadBlob(blob, filename);
     },
     resetOptions() {
       localStorage.clear();
