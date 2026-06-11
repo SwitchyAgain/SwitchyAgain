@@ -1007,7 +1007,7 @@ msgstr ""
 "mellomtjeneren eller nettsiden."
 
 msgid "popup_requestErrorWarningHelp"
-msgstr "SwitchyOmega rapporterer bare disse feilene, det er ikke opphavet."
+msgstr "SwitchyAgain rapporterer bare disse feilene, det er ikke opphavet."
 
 msgid "popup_requestErrorAddCondition"
 msgstr ""
@@ -1146,3 +1146,135 @@ msgstr "SwitchyOmega is made possible by the <a href='https://github.com/FelisCa
 
 msgid "about_license"
 msgstr "SwitchyOmega is <a href='https://www.gnu.org/philosophy/free-sw.en.html'>free software</a> licensed under <a href='https://www.gnu.org/licenses/gpl.html'>GNU General Public License</a> Version 3 or later."
+
+msgid "options_tab_routeTrace"
+msgstr "Rutesporing"
+
+msgid "options_profileDownloadStatusDownloading"
+msgstr "Laster..."
+
+msgid "routeTrace_systemProxy"
+msgstr "Systemmellomtjener"
+
+msgid "routeTrace_pacScript"
+msgstr "PAC-skript"
+
+msgid "routeTrace_unknownResult"
+msgstr "Ukjent"
+
+msgid "routeTrace_stop"
+msgstr "Stopp"
+
+msgid "routeTrace_step_attachedRuleList"
+msgstr "Regellisteregler"
+
+msgid "routeTrace_step_bypass"
+msgstr "Omgå"
+
+msgid "routeTrace_step_default"
+msgstr "Standard"
+
+msgid "routeTrace_step_direct"
+msgstr "Direkte"
+
+msgid "routeTrace_step_profile"
+msgstr "Profil"
+
+msgid "routeTrace_step_proxy"
+msgstr "Mellomtjener"
+
+msgid "routeTrace_step_rule"
+msgstr "Regel"
+
+msgid "routeTrace_step_temporaryRule"
+msgstr "Midlertidig regel"
+
+msgid "routeTrace_result"
+msgstr "Resultat"
+
+msgid "routeTrace_tempRulesActive"
+msgstr "Midlertidige regler er aktive; forespørsler kontrolleres mot midlertidige regler før gjeldende profil."
+
+msgid "routeTrace_pacLimited"
+msgstr "PAC-skript håndteres av nettleseren og kan ikke utvides fullstendig her."
+
+msgid "routeTrace_request"
+msgstr "Forespørsel"
+
+msgid "routeTrace_currentProfile"
+msgstr "Gjeldende profil"
+
+msgid "routeTrace_startProfile"
+msgstr "Startprofil"
+
+msgid "routeTrace_finalResult"
+msgstr "Endelig resultat"
+
+msgid "routeTrace_trace"
+msgstr "Sporing"
+
+msgid "routeTrace_step"
+msgstr "Trinn"
+
+msgid "routeTrace_condition"
+msgstr "Betingelse"
+
+msgid "routeTrace_target"
+msgstr "Mål"
+
+msgid "routeTrace_profile"
+msgstr "Profil"
+
+msgid "routeTrace_currentAppliedProfile"
+msgstr "Gjeldende brukt profil"
+
+msgid "routeTrace_explain"
+msgstr "Spor"
+
+msgid "routeTrace_loading"
+msgstr "Laster..."
+
+msgid "popup_routeInfoSystem"
+msgstr "Systemmellomtjener"
+
+msgid "popup_routeInfoPac"
+msgstr "PAC-skript"
+
+msgid "popup_routeInfoUnknown"
+msgstr "Ukjent"
+
+msgid "popup_routeInfoUnknownHost"
+msgstr "Ukjent vert"
+
+msgid "popup_routeInfoRequest"
+msgstr "forespørsel"
+
+msgid "popup_routeInfoRequests"
+msgstr "forespørsler"
+
+msgid "popup_routeInfoMixed"
+msgstr "Blandet"
+
+msgid "popup_routeInfoResults"
+msgstr "resultater"
+
+msgid "popup_routeInfoNoRequests"
+msgstr "Ingen fangede sideforespørsler er tilgjengelige."
+
+msgid "popup_routeInfoErrors"
+msgstr "feil"
+
+msgid "popup_routeInfoPacLimited"
+msgstr "PAC-skript håndteres av nettleseren og kan ikke utvides fullstendig her."
+
+msgid "popup_routeInfoMenu"
+msgstr "Ruteinfo"
+
+msgid "popup_routeInfoHeading"
+msgstr "Ruteinfo"
+
+msgid "popup_routeInfoTempRulesActive"
+msgstr "Midlertidige regler er aktive; forespørsler kontrolleres mot midlertidige regler før gjeldende profil."
+
+msgid "popup_routeInfoLimitExceeded"
+msgstr "Bare de første fangede forespørslene vises."

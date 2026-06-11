@@ -1147,3 +1147,135 @@ msgstr ""
 "SwitchyOmega <a href='https://www.gnu.org/philosophy/free-sw.en.html'>özgür "
 "yazılımdır</a> ve <a href='https://www.gnu.org/licenses/gpl.html'>GNU "
 "General Public License</a> Sürüm 3 ve sonrası ile lisanslanmıştır."
+
+msgid "options_tab_routeTrace"
+msgstr "Rota İzleme"
+
+msgid "options_profileDownloadStatusDownloading"
+msgstr "Yükleniyor..."
+
+msgid "routeTrace_systemProxy"
+msgstr "Sistem vekil sunucusu"
+
+msgid "routeTrace_pacScript"
+msgstr "PAC betiği"
+
+msgid "routeTrace_unknownResult"
+msgstr "Bilinmeyen"
+
+msgid "routeTrace_stop"
+msgstr "Durdur"
+
+msgid "routeTrace_step_attachedRuleList"
+msgstr "Kural listesi kuralları"
+
+msgid "routeTrace_step_bypass"
+msgstr "Atla"
+
+msgid "routeTrace_step_default"
+msgstr "Varsayılan"
+
+msgid "routeTrace_step_direct"
+msgstr "Doğrudan"
+
+msgid "routeTrace_step_profile"
+msgstr "Profil"
+
+msgid "routeTrace_step_proxy"
+msgstr "Vekil sunucu"
+
+msgid "routeTrace_step_rule"
+msgstr "Kural"
+
+msgid "routeTrace_step_temporaryRule"
+msgstr "Geçici kural"
+
+msgid "routeTrace_result"
+msgstr "Sonuç"
+
+msgid "routeTrace_tempRulesActive"
+msgstr "Geçici kurallar etkin; istekler geçerli profilden önce geçici kurallara göre denetlenir."
+
+msgid "routeTrace_pacLimited"
+msgstr "PAC betikleri tarayıcıya devredilir ve burada tamamen açılamaz."
+
+msgid "routeTrace_request"
+msgstr "İstek"
+
+msgid "routeTrace_currentProfile"
+msgstr "Geçerli profil"
+
+msgid "routeTrace_startProfile"
+msgstr "Başlangıç profili"
+
+msgid "routeTrace_finalResult"
+msgstr "Son sonuç"
+
+msgid "routeTrace_trace"
+msgstr "İzleme"
+
+msgid "routeTrace_step"
+msgstr "Adım"
+
+msgid "routeTrace_condition"
+msgstr "Koşul"
+
+msgid "routeTrace_target"
+msgstr "Hedef"
+
+msgid "routeTrace_profile"
+msgstr "Profil"
+
+msgid "routeTrace_currentAppliedProfile"
+msgstr "Geçerli uygulanan profil"
+
+msgid "routeTrace_explain"
+msgstr "İzle"
+
+msgid "routeTrace_loading"
+msgstr "Yükleniyor..."
+
+msgid "popup_routeInfoSystem"
+msgstr "Sistem vekil sunucusu"
+
+msgid "popup_routeInfoPac"
+msgstr "PAC betiği"
+
+msgid "popup_routeInfoUnknown"
+msgstr "Bilinmeyen"
+
+msgid "popup_routeInfoUnknownHost"
+msgstr "Bilinmeyen ana makine"
+
+msgid "popup_routeInfoRequest"
+msgstr "istek"
+
+msgid "popup_routeInfoRequests"
+msgstr "istek"
+
+msgid "popup_routeInfoMixed"
+msgstr "Karışık"
+
+msgid "popup_routeInfoResults"
+msgstr "sonuç"
+
+msgid "popup_routeInfoNoRequests"
+msgstr "Yakalanan sayfa isteği yok."
+
+msgid "popup_routeInfoErrors"
+msgstr "hata"
+
+msgid "popup_routeInfoPacLimited"
+msgstr "PAC betikleri tarayıcıya devredilir ve burada tamamen açılamaz."
+
+msgid "popup_routeInfoMenu"
+msgstr "Rota Bilgisi"
+
+msgid "popup_routeInfoHeading"
+msgstr "Rota Bilgisi"
+
+msgid "popup_routeInfoTempRulesActive"
+msgstr "Geçici kurallar etkin; istekler geçerli profilden önce geçici kurallara göre denetlenir."
+
+msgid "popup_routeInfoLimitExceeded"
+msgstr "Yalnızca yakalanan ilk istekler gösterilir."

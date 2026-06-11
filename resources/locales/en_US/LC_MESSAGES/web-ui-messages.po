@@ -1157,7 +1157,7 @@ msgid "popup_requestErrorWarning"
 msgstr "A few resources failed to load due to issues with your network, proxy server or the webpage."
 
 msgid "popup_requestErrorWarningHelp"
-msgstr "SwitchyOmega is just the reporter of these issues, not the cause of them."
+msgstr "SwitchyAgain is just the reporter of these issues, not the cause of them."
 
 msgid "popup_requestErrorAddCondition"
 msgstr "You can review the following domains and use proxy for them when appropriate."
@@ -1291,3 +1291,135 @@ msgstr "SwitchyOmega is made possible by the <a href='https://github.com/FelisCa
 
 msgid "about_license"
 msgstr "SwitchyOmega is <a href='https://www.gnu.org/philosophy/free-sw.en.html'>free software</a> licensed under <a href='https://www.gnu.org/licenses/gpl.html'>GNU General Public License</a> Version 3 or later."
+
+msgid "options_tab_routeTrace"
+msgstr "Route Trace"
+
+msgid "options_profileDownloadStatusDownloading"
+msgstr "Loading..."
+
+msgid "routeTrace_systemProxy"
+msgstr "System proxy"
+
+msgid "routeTrace_pacScript"
+msgstr "PAC script"
+
+msgid "routeTrace_unknownResult"
+msgstr "Unknown"
+
+msgid "routeTrace_stop"
+msgstr "Stop"
+
+msgid "routeTrace_step_attachedRuleList"
+msgstr "Rule list rules"
+
+msgid "routeTrace_step_bypass"
+msgstr "Bypass"
+
+msgid "routeTrace_step_default"
+msgstr "Default"
+
+msgid "routeTrace_step_direct"
+msgstr "Direct"
+
+msgid "routeTrace_step_profile"
+msgstr "Profile"
+
+msgid "routeTrace_step_proxy"
+msgstr "Proxy"
+
+msgid "routeTrace_step_rule"
+msgstr "Rule"
+
+msgid "routeTrace_step_temporaryRule"
+msgstr "Temporary rule"
+
+msgid "routeTrace_result"
+msgstr "Result"
+
+msgid "routeTrace_tempRulesActive"
+msgstr "Temporary rules are active; requests are checked against temporary rules before the current profile."
+
+msgid "routeTrace_pacLimited"
+msgstr "PAC scripts are delegated to the browser and cannot be fully expanded here."
+
+msgid "routeTrace_request"
+msgstr "Request"
+
+msgid "routeTrace_currentProfile"
+msgstr "Current profile"
+
+msgid "routeTrace_startProfile"
+msgstr "Start profile"
+
+msgid "routeTrace_finalResult"
+msgstr "Final result"
+
+msgid "routeTrace_trace"
+msgstr "Trace"
+
+msgid "routeTrace_step"
+msgstr "Step"
+
+msgid "routeTrace_condition"
+msgstr "Condition"
+
+msgid "routeTrace_target"
+msgstr "Target"
+
+msgid "routeTrace_profile"
+msgstr "Profile"
+
+msgid "routeTrace_currentAppliedProfile"
+msgstr "Current applied profile"
+
+msgid "routeTrace_explain"
+msgstr "Trace"
+
+msgid "routeTrace_loading"
+msgstr "Loading..."
+
+msgid "popup_routeInfoSystem"
+msgstr "System proxy"
+
+msgid "popup_routeInfoPac"
+msgstr "PAC script"
+
+msgid "popup_routeInfoUnknown"
+msgstr "Unknown"
+
+msgid "popup_routeInfoUnknownHost"
+msgstr "Unknown host"
+
+msgid "popup_routeInfoRequest"
+msgstr "request"
+
+msgid "popup_routeInfoRequests"
+msgstr "requests"
+
+msgid "popup_routeInfoMixed"
+msgstr "Mixed"
+
+msgid "popup_routeInfoResults"
+msgstr "results"
+
+msgid "popup_routeInfoNoRequests"
+msgstr "No captured page requests are available."
+
+msgid "popup_routeInfoErrors"
+msgstr "errors"
+
+msgid "popup_routeInfoPacLimited"
+msgstr "PAC scripts are delegated to the browser and cannot be fully expanded here."
+
+msgid "popup_routeInfoMenu"
+msgstr "Route Info"
+
+msgid "popup_routeInfoHeading"
+msgstr "Route Info"
+
+msgid "popup_routeInfoTempRulesActive"
+msgstr "Temporary rules are active; requests are checked against temporary rules before the current profile."
+
+msgid "popup_routeInfoLimitExceeded"
+msgstr "Only the first captured requests are shown."

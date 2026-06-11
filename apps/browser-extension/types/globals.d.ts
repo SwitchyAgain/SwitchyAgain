@@ -292,6 +292,7 @@ interface OmegaPromiseStatic {
       reject: (reason?: unknown) => void
     ) => void
   ): OmegaPromise<T>;
+  all<T>(values: Array<T | PromiseLike<T>>): OmegaPromise<T[]>;
   promisify(fn: unknown): DynamicGlobalValue;
   reject<T = never>(reason?: unknown): OmegaPromise<T>;
   resolve<T = unknown>(value?: T | PromiseLike<T>): OmegaPromise<T>;
@@ -327,6 +328,7 @@ interface OmegaOptionsBase {
   };
   applyProfile(profileName: string): OmegaPromise<unknown>;
   currentProfileChanged(reason: string): unknown;
+  explainRequest(args: unknown): OmegaPromise<PopupApiRequestExplanation>;
   queryTempRule(domain: string): unknown;
   updateProfile(...args: unknown[]): Promise<Record<string, unknown>>;
   upgrade(options?: unknown, ...args: unknown[]): Promise<unknown>;
@@ -389,13 +391,46 @@ type PopupApiProfile = {
 
 type PopupApiProfileMap = Record<PopupApiProfileKey, PopupApiProfile | undefined>;
 
+type PopupApiRequestExplanation = {
+  currentProfile?: Partial<PopupApiProfile>;
+  errors?: string[];
+  final: {
+    auth?: boolean;
+    delegated?: boolean;
+    kind: string;
+    limited?: boolean;
+    pacResult?: string;
+    profile?: Partial<PopupApiProfile>;
+    proxy?: unknown;
+  };
+  finalProfile?: Partial<PopupApiProfile>;
+  request: Record<string, unknown>;
+  startProfile?: Partial<PopupApiProfile>;
+  steps: Array<Record<string, unknown>>;
+  tempRulesActive: boolean;
+  warnings: string[];
+};
+
 type PopupApiPageInfo = {
   domain?: string;
   errorCount?: number;
+  requestExplanations?: PopupApiRequestExplanation[];
+  requestLimitExceeded?: boolean;
+  requests?: Array<{
+    error?: string;
+    id: string;
+    status?: string;
+    type?: string;
+    url: string;
+  }>;
   summary?: Record<string, {errorCount?: number}>;
   tempRuleProfileName?: string;
   url?: string;
   [key: string]: unknown;
+};
+
+type PopupApiPageInfoOptions = {
+  includeExplanations?: boolean;
 };
 
 type PopupApiState = {
@@ -434,6 +469,7 @@ interface OmegaTargetPopupApi {
   addTempRule(domain: string, profileName: string, cb?: PopupApiCallback): void;
   applyProfile(name: string, cb?: PopupApiCallback): void;
   getActivePageInfo(cb: PopupApiCallback<PopupApiPageInfo>): void;
+  getActivePageInfo(options: PopupApiPageInfoOptions, cb: PopupApiCallback<PopupApiPageInfo>): void;
   getMessage(messageName: string, substitutions?: string | string[]): string;
   getState(keys: PopupApiStateKey[], cb?: PopupApiCallback<PopupApiState>): void;
   openManage(cb?: PopupApiCallback): void;

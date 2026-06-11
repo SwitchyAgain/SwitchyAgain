@@ -1,5 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {setUiLocale} from './options_client';
+import type {RequestExplanation, RequestExplainProfile} from './options_client';
 import {createRoot} from 'react-dom/client';
 import {
   PageInfo,
@@ -85,6 +86,9 @@ function displayProfileName(profile?: Profile, override?: string) {
   if (!profile) {
     return '';
   }
+  if (profile.role === 'attachedRuleList') {
+    return popupMessage('options_switchAttachedProfileInCondition', 'Rule list rules');
+  }
   return popupMessage(`profile_${profile.name}`, profile.name);
 }
 
@@ -129,6 +133,223 @@ function requestDomains(info?: PageInfo) {
       errorCount: info?.summary?.[domain]?.errorCount || 0
     }))
     .sort((a, b) => b.errorCount - a.errorCount);
+}
+
+function popupProfileFromExplanation(state: PopupState, profile?: RequestExplainProfile): Profile | undefined {
+  const profileName = typeof profile?.name === 'string' ? profile.name : '';
+  if (!profileName) {
+    return undefined;
+  }
+  return profileFromMap(state.availableProfiles, profileName) || {
+    attachedToProfileName: profile?.attachedToProfileName,
+    builtin: !!profile?.builtin,
+    color: typeof profile?.color === 'string' ? profile.color : undefined,
+    name: profileName,
+    profileType: typeof profile?.profileType === 'string' ? profile.profileType : 'VirtualProfile',
+    role: profile?.role
+  };
+}
+
+function requestHostname(url: unknown) {
+  const rawUrl = String(url || '');
+  try {
+    const parsed = new URL(rawUrl);
+    return parsed.hostname || parsed.host || rawUrl;
+  } catch (_error) {
+    return rawUrl;
+  }
+}
+
+function finalLabel(explanation: RequestExplanation, state: PopupState, {showPacResult = true}: {showPacResult?: boolean} = {}) {
+  const final = explanation.final || {kind: 'profile'};
+  const profile = popupProfileFromExplanation(state, final.profile || explanation.finalProfile);
+  if (final.kind === 'system') {
+    return (
+      <>
+        {profile && <ProfileInline profile={profile} availableProfiles={state.availableProfiles} />}
+        <span className="om-decision-muted">{popupMessage('popup_routeInfoSystem', 'System proxy')}</span>
+      </>
+    );
+  }
+  if (final.kind === 'pac') {
+    return (
+      <>
+        {profile && <ProfileInline profile={profile} availableProfiles={state.availableProfiles} />}
+        <span className="om-decision-muted">{popupMessage('popup_routeInfoPac', 'PAC script')}</span>
+      </>
+    );
+  }
+  if (profile) {
+    return (
+      <>
+        <ProfileInline profile={profile} availableProfiles={state.availableProfiles} />
+        {showPacResult && final.pacResult && <span className="om-decision-pac">{final.pacResult}</span>}
+      </>
+    );
+  }
+  if (final.pacResult) {
+    return <span>{final.pacResult}</span>;
+  }
+  return <span>{popupMessage('popup_routeInfoUnknown', 'Unknown')}</span>;
+}
+
+type RouteInfoGroup = {
+  errorCount: number;
+  errors: string[];
+  hostname: string;
+  pacLimited: boolean;
+  requestCount: number;
+  results: Record<string, RequestExplanation>;
+};
+
+type PageRequest = NonNullable<PageInfo['requests']>[number];
+
+function routeInfoGroup(groups: Record<string, RouteInfoGroup>, hostname: string) {
+  let group = groups[hostname];
+  if (!group) {
+    group = groups[hostname] = {
+      errorCount: 0,
+      errors: [],
+      hostname,
+      pacLimited: false,
+      requestCount: 0,
+      results: {}
+    };
+  }
+  return group;
+}
+
+function requestHasError(request?: PageRequest) {
+  return !!request?.error || request?.status === 'error' || request?.status === 'timeout' || request?.status === 'timeoutAbort';
+}
+
+function finalDecisionKey(explanation: RequestExplanation) {
+  const final = explanation.final || {kind: 'profile'};
+  const profile = final.profile || explanation.finalProfile;
+  const profileName = typeof profile?.name === 'string' ? profile.name : '';
+  return [final.kind || '', profileName].join('\n');
+}
+
+function aggregateRouteInfo(explanations: RequestExplanation[], requests: NonNullable<PageInfo['requests']> = []) {
+  const groups: Record<string, RouteInfoGroup> = {};
+  requests.forEach((request) => {
+    const hostname = requestHostname(request?.url) || popupMessage('popup_routeInfoUnknownHost', 'Unknown host');
+    const group = routeInfoGroup(groups, hostname);
+    group.requestCount++;
+    if (requestHasError(request)) {
+      group.errorCount++;
+    }
+  });
+  explanations.forEach((explanation, index) => {
+    const request = requests[index];
+    const hostname = requestHostname(explanation.request?.url || request?.url) || popupMessage('popup_routeInfoUnknownHost', 'Unknown host');
+    const group = routeInfoGroup(groups, hostname);
+    if (!request) {
+      group.requestCount++;
+    }
+    for (const item of explanation.errors || []) {
+      if (group.errors.indexOf(item) < 0) {
+        group.errors.push(item);
+      }
+    }
+    if (explanation.warnings?.includes('pacProfileLimited')) {
+      group.pacLimited = true;
+    }
+    const resultKey = finalDecisionKey(explanation);
+    if (!group.results[resultKey]) {
+      group.results[resultKey] = explanation;
+    }
+  });
+  return Object.keys(groups)
+    .map((hostname) => groups[hostname])
+    .sort((a, b) => {
+      const errorDiff = b.errorCount - a.errorCount;
+      if (errorDiff !== 0) {
+        return errorDiff;
+      }
+      const countDiff = b.requestCount - a.requestCount;
+      if (countDiff !== 0) {
+        return countDiff;
+      }
+      return a.hostname.localeCompare(b.hostname);
+    });
+}
+
+function requestCountText(count: number) {
+  return count === 1
+    ? popupMessage('popup_routeInfoRequest', 'request')
+    : popupMessage('popup_routeInfoRequests', 'requests');
+}
+
+function RouteInfoGroupResult({group, loading, state}: {group: RouteInfoGroup; loading: boolean; state: PopupState}) {
+  const resultKeys = Object.keys(group.results);
+  if (resultKeys.length === 0) {
+    return (
+      <span className="om-route-info-pending">
+        {loading ? popupMessage('options_profileDownloadStatusDownloading', 'Loading...') : popupMessage('popup_routeInfoUnknown', 'Unknown')}
+      </span>
+    );
+  }
+  if (resultKeys.length === 1) {
+    return <>{finalLabel(group.results[resultKeys[0]], state, {showPacResult: false})}</>;
+  }
+  return (
+    <>
+      <span className="label label-default om-route-info-mixed">{popupMessage('popup_routeInfoMixed', 'Mixed')}</span>
+      <span className="om-decision-muted">
+        {resultKeys.length} {popupMessage('popup_routeInfoResults', 'results')}
+      </span>
+    </>
+  );
+}
+
+function RouteInfoList({
+  loading = false,
+  pageInfo,
+  state
+}: {
+  loading?: boolean;
+  pageInfo?: PageInfo;
+  state: PopupState;
+}) {
+  const explanations = pageInfo?.requestExplanations || [];
+  const requests = pageInfo?.requests || [];
+  if (explanations.length === 0 && requests.length === 0) {
+    return (
+      <p className="help-block">
+        {loading
+          ? popupMessage('options_profileDownloadStatusDownloading', 'Loading...')
+          : popupMessage('popup_routeInfoNoRequests', 'No captured page requests are available.')}
+      </p>
+    );
+  }
+  const groups = aggregateRouteInfo(explanations, requests);
+  return (
+    <div className="om-route-info-list">
+      {groups.map((group) => {
+        return (
+          <div className="om-route-info" key={group.hostname}>
+            <div className="om-route-info-line">
+              <span className="label label-info om-route-info-request-count" title={`${group.requestCount} ${requestCountText(group.requestCount)}`}>{group.requestCount}</span>
+              {group.errorCount > 0 && <span className="label label-warning om-route-info-error-count" title={`${group.errorCount} ${popupMessage('popup_routeInfoErrors', 'errors')}`}>{group.errorCount}</span>}
+              <span className="om-route-info-host" title={group.hostname}>
+                <strong>{group.hostname}</strong>
+              </span>
+              <span className="om-route-info-result">
+                <RouteInfoGroupResult group={group} loading={loading} state={state} />
+              </span>
+            </div>
+            {group.errors.map((item) => <div className="om-route-info-error" key={item}>{item}</div>)}
+            {group.pacLimited && (
+              <div className="om-route-info-warning">
+                {popupMessage('popup_routeInfoPacLimited', 'PAC scripts are delegated to the browser and cannot be fully expanded here.')}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 function suggestCondition(domain = ''): Record<PopupConditionType, string> {
@@ -237,8 +458,8 @@ function PopupApp() {
   const resultProfiles = useMemo(() => visibleResultProfiles(state), [state]);
   const hasResultProfiles = resultProfiles.length > 0;
   const hasPageDomain = !!pageInfo?.domain;
-  const showRequestInfo = !!(pageInfo && (pageInfo.errorCount || 0) > 0);
-  const showExternal = !!(state?.showExternalProfile && state.externalProfile && !showRequestInfo);
+  const showRequestInfo = !!(pageInfo && ((pageInfo.errorCount || 0) > 0 || (pageInfo.requestExplanations?.length || pageInfo.requests?.length || 0) > 0));
+  const showExternal = !!(state?.showExternalProfile && state.externalProfile);
   const showAddCondition = !!(state?.currentProfileCanAddRule && hasPageDomain && hasResultProfiles);
   const showTempRule = !!(hasPageDomain && hasResultProfiles);
 
@@ -470,18 +691,6 @@ function PopupApp() {
           onClick={() => showMode('external')}
         />
       )}
-      {showRequestInfo && (
-        <li className="om-nav-item om-reqinfo">
-          <a href="#!requestInfo" id="js-reqinfo" role="button" onClick={(event) => {
-            event.preventDefault();
-            showMode('requestInfo');
-          }}>
-            <span className="glyphicon glyphicon-warning-sign" />
-            {keyboardHelp && <span className="om-keyboard-help">R</span>}
-            <span className="om-reqinfo-text">{popupMessage('popup_requestErrorCount', 'Request failures', [`${pageInfo?.errorCount || 0}`])}</span>
-          </a>
-        </li>
-      )}
       <li className="om-divider" />
       {customProfiles.map((profile, index) => (
         <MenuProfileItem
@@ -539,6 +748,19 @@ function PopupApp() {
               ))}
             </ul>
           )}
+        </li>
+      )}
+      {showRequestInfo && (
+        <li className="om-nav-item">
+          <a href="#!requestInfo" id="js-reqinfo" role="button" onClick={(event) => {
+            event.preventDefault();
+            showMode('requestInfo');
+          }}>
+            <span className="glyphicon glyphicon-road" />{' '}
+            {keyboardHelp && <span className="om-keyboard-help">R</span>}
+            <span className="om-route-info-text">{popupMessage('popup_routeInfoMenu', 'Route Info')}</span>
+            {(pageInfo?.errorCount || 0) > 0 && <span className="label label-warning om-route-info-count">{pageInfo?.errorCount}</span>}
+          </a>
         </li>
       )}
       <li className="om-divider" />
@@ -724,12 +946,36 @@ function RequestInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state
   const profiles = useMemo(() => visibleResultProfiles(state), [state]);
   const selectedProfile = lastResultProfile(state, pageInfo);
   const [profile, setProfile] = useState(selectedProfile);
-  const domains = useMemo(() => requestDomains(pageInfo), [pageInfo]);
+  const [detailPageInfo, setDetailPageInfo] = useState<PageInfo | undefined>(pageInfo);
+  const [loadingExplanations, setLoadingExplanations] = useState(false);
+  const [explanationsRequested, setExplanationsRequested] = useState(false);
+  const domains = useMemo(() => requestDomains(detailPageInfo), [detailPageInfo]);
+  const hasRequestFailures = (detailPageInfo?.errorCount || 0) > 0 && domains.length > 0;
+  const needsExplanations = !!((detailPageInfo?.requests?.length || 0) > 0 && !detailPageInfo?.requestExplanations);
+  const tempRulesActive = !!detailPageInfo?.requestExplanations?.some((explanation) => explanation.tempRulesActive);
   const [checkedDomains, setCheckedDomains] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => setProfile(selectedProfile), [selectedProfile]);
+  useEffect(() => {
+    setDetailPageInfo(pageInfo);
+    setExplanationsRequested(false);
+  }, [pageInfo]);
+  useEffect(() => {
+    if (!needsExplanations || loadingExplanations || explanationsRequested) {
+      return;
+    }
+    setExplanationsRequested(true);
+    setLoadingExplanations(true);
+    getPopupPageInfo({includeExplanations: true}).then((nextPageInfo) => {
+      setDetailPageInfo(nextPageInfo || pageInfo);
+      setLoadingExplanations(false);
+    }).catch((err: unknown) => {
+      setError(popupErrorMessage(err));
+      setLoadingExplanations(false);
+    });
+  }, [explanationsRequested, loadingExplanations, needsExplanations, pageInfo]);
   useEffect(() => {
     setCheckedDomains((prev) => {
       const next = {...prev};
@@ -767,44 +1013,58 @@ function RequestInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state
   }
 
   return (
-    <form className="request-info-details om-popup-form" onSubmit={submitRequestInfo}>
+    <form className="route-info-details om-popup-form" onSubmit={submitRequestInfo}>
       <fieldset>
-        {state.currentProfileCanAddRule
-          ? <legend>{popupMessage('popup_addConditionTo', 'Add condition to')}<span className="profile-inline"><ProfileInline profile={profileFromMap(state.availableProfiles, state.currentProfileName)} availableProfiles={state.availableProfiles} /></span></legend>
-          : <legend>{popupMessage('popup_requestErrorHeading', 'Request failures')}</legend>}
+        <legend>{popupMessage('popup_routeInfoHeading', 'Route Info')}</legend>
         {error && <p className="om-alert">{error}</p>}
-        <div className="text-warning">{popupMessage('popup_requestErrorWarning', 'Some requests have failed.')}</div>
-        <p className="help-block">{popupMessage('popup_requestErrorWarningHelp', 'You can add conditions for failed domains.')}</p>
-        {state.currentProfileCanAddRule
-          ? <p className="help-block">{popupMessage('popup_requestErrorAddCondition', 'Add conditions for selected domains.')}</p>
-          : <p className="help-block">{popupMessage('popup_requestErrorCannotAddCondition', 'The current profile cannot accept new conditions.')}</p>}
-        <div className="om-domain-list">
-          {domains.map((domain, index) => (
-            <div className="checkbox" key={domain.domain}>
-              <label>
-                <input
-                  autoFocus={index === 0}
-                  type="checkbox"
-                  checked={!!checkedDomains[domain.domain]}
-                  onChange={(event) => setCheckedDomains((prev) => ({...prev, [domain.domain]: event.currentTarget.checked}))}
-                />
-                <span className="label label-warning">{domain.errorCount}</span>
-                {' '}{domain.domain}
-              </label>
+        {tempRulesActive && (
+          <p className="help-block text-warning">
+            {popupMessage('popup_routeInfoTempRulesActive', 'Temporary rules are active; requests are checked against temporary rules before the current profile.')}
+          </p>
+        )}
+        {detailPageInfo?.requestLimitExceeded && (
+          <p className="help-block">
+            {popupMessage('popup_routeInfoLimitExceeded', 'Only the first captured requests are shown.')}
+          </p>
+        )}
+        <RouteInfoList loading={loadingExplanations || needsExplanations} pageInfo={detailPageInfo} state={state} />
+
+        {hasRequestFailures && (
+          <div className="om-route-info-add-condition">
+            <div className="text-warning">{popupMessage('popup_requestErrorWarning', 'Some requests have failed.')}</div>
+            <p className="help-block">{popupMessage('popup_requestErrorWarningHelp', 'You can add conditions for failed domains.')}</p>
+            {state.currentProfileCanAddRule
+              ? <p className="help-block">{popupMessage('popup_requestErrorAddCondition', 'Add conditions for selected domains.')}</p>
+              : <p className="help-block">{popupMessage('popup_requestErrorCannotAddCondition', 'The current profile cannot accept new conditions.')}</p>}
+            <div className="om-domain-list">
+              {domains.map((domain, index) => (
+                <div className="checkbox" key={domain.domain}>
+                  <label>
+                    <input
+                      autoFocus={index === 0}
+                      type="checkbox"
+                      checked={!!checkedDomains[domain.domain]}
+                      onChange={(event) => setCheckedDomains((prev) => ({...prev, [domain.domain]: event.currentTarget.checked}))}
+                    />
+                    <span className="label label-warning">{domain.errorCount}</span>
+                    {' '}{domain.domain}
+                  </label>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        {state.currentProfileCanAddRule && (
-          <div className="form-group">
-            <label>{popupMessage('options_resultProfileForSelectedDomains', 'Result Profile for Selected Domains')}</label>
-            <ProfileSelect profiles={profiles} state={state} value={profile} onChange={setProfile} />
+            {state.currentProfileCanAddRule && (
+              <div className="form-group">
+                <label>{popupMessage('options_resultProfileForSelectedDomains', 'Result Profile for Selected Domains')}</label>
+                <ProfileSelect profiles={profiles} state={state} value={profile} onChange={setProfile} />
+              </div>
+            )}
           </div>
         )}
         <div className="condition-controls">
           <button className="btn btn-default" type="button" onClick={onClose}>{popupMessage('dialog_cancel', 'Cancel')}</button>
-          {state.currentProfileCanAddRule
+          {hasRequestFailures && (state.currentProfileCanAddRule
             ? <button className="btn btn-primary" type="submit" disabled={saving || !profiles.length}>{popupMessage('popup_addCondition', 'Add Condition')}</button>
-            : <button className="btn btn-default pull-right" type="button" onClick={() => popupTarget().openOptions?.('#!/general', closePopup)}>{popupMessage('popup_configureMonitorWebRequests', 'Configure monitor web requests')}</button>}
+            : <button className="btn btn-default pull-right" type="button" onClick={() => popupTarget().openOptions?.('#!/general', closePopup)}>{popupMessage('popup_configureMonitorWebRequests', 'Configure monitor web requests')}</button>)}
         </div>
       </fieldset>
     </form>

@@ -6,8 +6,13 @@ type BackgroundResponse<T = unknown> = {
 };
 
 type PageInfoRequest = {
+  includeExplanations?: boolean;
   tabId?: number;
   url: string;
+};
+
+type PageInfoOptions = {
+  includeExplanations?: boolean;
 };
 
 type PopupBackgroundMethodArgs = {
@@ -171,13 +176,19 @@ function cacheActivePageInfo(info?: PopupApiPageInfo | null) {
       if (cb) return cb();
     });
   },
-  getActivePageInfo(cb: PopupCallback<PopupApiPageInfo>) {
+  getActivePageInfo(optionsOrCallback?: PageInfoOptions | PopupCallback<PopupApiPageInfo>, cb?: PopupCallback<PopupApiPageInfo>) {
+    const options = typeof optionsOrCallback === 'function' ? {} : optionsOrCallback || {};
+    const callback = typeof optionsOrCallback === 'function' ? optionsOrCallback : cb;
     chrome.tabs.query({active: true, lastFocusedWindow: true}, (tabs) => {
-      if (tabs.length === 0 || !tabs[0].url) return cb();
-      const args = {tabId: tabs[0].id, url: tabs[0].url};
+      if (tabs.length === 0 || !tabs[0].url) return callback?.();
+      const args = {
+        includeExplanations: options.includeExplanations,
+        tabId: tabs[0].id,
+        url: tabs[0].url
+      };
       callBackground('getPageInfo', [args], (err?: unknown, info?: PopupApiPageInfo) => {
         if (!err) cacheActivePageInfo(info);
-        cb(err, info);
+        callback?.(err, info);
       });
     });
   },

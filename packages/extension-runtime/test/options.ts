@@ -148,4 +148,122 @@ describe('Options', function() {
       return result;
     });
   });
+
+  describe('#explainRequest', function() {
+    it('should explain switch profile rules down to the final fixed proxy result', function() {
+      const options = Object.create(Options.prototype);
+      options._options = {
+        '+auto': {
+          name: 'auto',
+          profileType: 'SwitchProfile',
+          defaultProfileName: 'direct',
+          rules: [
+            {
+              condition: {
+                conditionType: 'HostWildcardCondition',
+                pattern: '*.example.com'
+              },
+              profileName: 'proxy'
+            }
+          ]
+        },
+        '+proxy': {
+          name: 'proxy',
+          profileType: 'FixedProfile',
+          fallbackProxy: {
+            scheme: 'http',
+            host: 'proxy.example',
+            port: 8080
+          }
+        }
+      };
+      options._currentProfileName = 'auto';
+      options._externalProfile = null;
+      options._tempProfileActive = false;
+      options._tempProfile = null;
+
+      return options.explainRequest('https://www.example.com/path').then((explanation: any) => {
+        assert.strictEqual(explanation.currentProfile.name, 'auto');
+        assert.strictEqual(explanation.final.profile.name, 'proxy');
+        assert.strictEqual(explanation.final.kind, 'proxy');
+        assert.strictEqual(explanation.final.pacResult, 'PROXY proxy.example:8080');
+        assert.deepStrictEqual(explanation.steps.map((step: any) => step.kind), ['rule', 'proxy']);
+        assert.strictEqual(explanation.steps[0].targetProfile.name, 'proxy');
+      });
+    });
+
+    it('should mark attached rule list profiles without exposing them as normal profiles', function() {
+      const options = Object.create(Options.prototype);
+      options._options = {
+        '+auto switch': {
+          name: 'auto switch',
+          profileType: 'SwitchProfile',
+          defaultProfileName: '__ruleListOf_auto switch',
+          rules: []
+        },
+        '+__ruleListOf_auto switch': {
+          name: '__ruleListOf_auto switch',
+          profileType: 'RuleListProfile',
+          color: '#99ccff',
+          defaultProfileName: 'direct',
+          matchProfileName: 'direct',
+          ruleList: ''
+        }
+      };
+      options._currentProfileName = 'auto switch';
+      options._externalProfile = null;
+      options._tempProfileActive = false;
+      options._tempProfile = null;
+
+      return options.explainRequest('https://www.example.com/').then((explanation: any) => {
+        assert.strictEqual(explanation.steps[0].kind, 'default');
+        assert.strictEqual(explanation.steps[0].targetProfile.name, '__ruleListOf_auto switch');
+        assert.strictEqual(explanation.steps[0].targetProfile.profileType, 'RuleListProfile');
+        assert.strictEqual(explanation.steps[0].targetProfile.role, 'attachedRuleList');
+        assert.strictEqual(explanation.steps[0].targetProfile.attachedToProfileName, 'auto switch');
+      });
+    });
+
+    it('should explain temporary rules before the current direct profile', function() {
+      const options = Object.create(Options.prototype);
+      options._options = {
+        '+proxy': {
+          name: 'proxy',
+          profileType: 'FixedProfile',
+          fallbackProxy: {
+            scheme: 'http',
+            host: 'proxy.example',
+            port: 8080
+          }
+        }
+      };
+      options._currentProfileName = 'direct';
+      options._externalProfile = null;
+      options._tempProfileActive = true;
+      options._tempProfile = {
+        name: '',
+        profileType: 'SwitchProfile',
+        defaultProfileName: 'direct',
+        rules: [
+          {
+            condition: {
+              conditionType: 'HostWildcardCondition',
+              pattern: '*.example.com'
+            },
+            isTempRule: true,
+            profileName: 'proxy'
+          }
+        ]
+      };
+
+      return options.explainRequest('https://www.example.com/').then((explanation: any) => {
+        assert.strictEqual(explanation.tempRulesActive, true);
+        assert.strictEqual(explanation.currentProfile.name, 'direct');
+        assert.strictEqual(explanation.startProfile.name, '__temporary');
+        assert.strictEqual(explanation.steps[0].kind, 'temporaryRule');
+        assert.strictEqual(explanation.final.profile.name, 'proxy');
+        assert.strictEqual(explanation.final.pacResult, 'PROXY proxy.example:8080');
+      });
+    });
+  });
 });

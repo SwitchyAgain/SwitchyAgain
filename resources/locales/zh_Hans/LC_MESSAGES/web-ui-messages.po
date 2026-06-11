@@ -1030,7 +1030,7 @@ msgid "popup_requestErrorWarning"
 msgstr "由于网络原因，此页面部分资源加载失败。这些问题可能是由您的网络、代理服务器或网站本身引起的。"
 
 msgid "popup_requestErrorWarningHelp"
-msgstr "这些问题并非由 SwitchyOmega 自身导致，它只不过检测并报告了错误而已。"
+msgstr "这些问题并非由 SwitchyAgain 自身导致，它只不过检测并报告了错误而已。"
 
 msgid "popup_requestErrorAddCondition"
 msgstr "您可以查看以下域名，并根据实际情况确定是否对其使用代理。"
@@ -1165,3 +1165,135 @@ msgstr "SwitchyOmega 的诞生离不开 <a href='https://github.com/FelisCatus/S
 
 msgid "about_license"
 msgstr "SwitchyOmega 是<a href='https://www.gnu.org/philosophy/free-sw.zh-cn.html'>自由软件</a>，使用<a href='https://www.gnu.org/licenses/gpl.html'>GNU General Public License</a> 版本 3 及以上授权。"
+
+msgid "options_tab_routeTrace"
+msgstr "路由追踪"
+
+msgid "options_profileDownloadStatusDownloading"
+msgstr "正在加载..."
+
+msgid "routeTrace_systemProxy"
+msgstr "系统代理"
+
+msgid "routeTrace_pacScript"
+msgstr "PAC 脚本"
+
+msgid "routeTrace_unknownResult"
+msgstr "未知"
+
+msgid "routeTrace_stop"
+msgstr "停止"
+
+msgid "routeTrace_step_attachedRuleList"
+msgstr "规则列表规则"
+
+msgid "routeTrace_step_bypass"
+msgstr "绕过"
+
+msgid "routeTrace_step_default"
+msgstr "默认"
+
+msgid "routeTrace_step_direct"
+msgstr "直连"
+
+msgid "routeTrace_step_profile"
+msgstr "情景模式"
+
+msgid "routeTrace_step_proxy"
+msgstr "代理"
+
+msgid "routeTrace_step_rule"
+msgstr "规则"
+
+msgid "routeTrace_step_temporaryRule"
+msgstr "临时规则"
+
+msgid "routeTrace_result"
+msgstr "结果"
+
+msgid "routeTrace_tempRulesActive"
+msgstr "临时规则已启用；请求会先匹配临时规则，然后再使用当前情景模式。"
+
+msgid "routeTrace_pacLimited"
+msgstr "PAC 脚本由浏览器处理，无法在此完整展开。"
+
+msgid "routeTrace_request"
+msgstr "请求"
+
+msgid "routeTrace_currentProfile"
+msgstr "当前情景模式"
+
+msgid "routeTrace_startProfile"
+msgstr "起始情景模式"
+
+msgid "routeTrace_finalResult"
+msgstr "最终结果"
+
+msgid "routeTrace_trace"
+msgstr "追踪"
+
+msgid "routeTrace_step"
+msgstr "步骤"
+
+msgid "routeTrace_condition"
+msgstr "条件"
+
+msgid "routeTrace_target"
+msgstr "目标"
+
+msgid "routeTrace_profile"
+msgstr "情景模式"
+
+msgid "routeTrace_currentAppliedProfile"
+msgstr "当前应用的情景模式"
+
+msgid "routeTrace_explain"
+msgstr "追踪"
+
+msgid "routeTrace_loading"
+msgstr "正在加载..."
+
+msgid "popup_routeInfoSystem"
+msgstr "系统代理"
+
+msgid "popup_routeInfoPac"
+msgstr "PAC 脚本"
+
+msgid "popup_routeInfoUnknown"
+msgstr "未知"
+
+msgid "popup_routeInfoUnknownHost"
+msgstr "未知主机"
+
+msgid "popup_routeInfoRequest"
+msgstr "请求"
+
+msgid "popup_routeInfoRequests"
+msgstr "请求"
+
+msgid "popup_routeInfoMixed"
+msgstr "混合"
+
+msgid "popup_routeInfoResults"
+msgstr "结果"
+
+msgid "popup_routeInfoNoRequests"
+msgstr "没有捕获到页面请求。"
+
+msgid "popup_routeInfoErrors"
+msgstr "错误"
+
+msgid "popup_routeInfoPacLimited"
+msgstr "PAC 脚本由浏览器处理，无法在此完整展开。"
+
+msgid "popup_routeInfoMenu"
+msgstr "路由信息"
+
+msgid "popup_routeInfoHeading"
+msgstr "路由信息"
+
+msgid "popup_routeInfoTempRulesActive"
+msgstr "临时规则已启用；请求会先匹配临时规则，然后再使用当前情景模式。"
+
+msgid "popup_routeInfoLimitExceeded"
+msgstr "仅显示已捕获的前几个请求。"

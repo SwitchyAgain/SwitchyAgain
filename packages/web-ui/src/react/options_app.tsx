@@ -33,6 +33,7 @@ import {
   UnsupportedProfile,
   VirtualProfile
 } from './profile_content';
+import {RouteTrace} from './route_trace';
 import {
   Profile,
   isBuiltinProfile,
@@ -96,7 +97,7 @@ import type {
   VirtualProfileModel
 } from './profile_types';
 
-type RouteName = 'about' | 'general' | 'io' | 'profile' | 'ui';
+type RouteName = 'about' | 'general' | 'io' | 'profile' | 'routeTrace' | 'ui';
 
 type Route = {
   name: RouteName;
@@ -500,6 +501,8 @@ function parseRoute(hash = window.location.hash): Route {
       return {name: 'ui', params};
     case 'general':
       return {name: 'general', params};
+    case 'routeTrace':
+      return {name: 'routeTrace', params};
     case 'io':
       return {name: 'io', params};
     case 'profile':
@@ -1266,6 +1269,13 @@ export function OptionsApp() {
         </div>
       );
     }
+    if (route.name === 'routeTrace') {
+      return (
+        <div className="react-settings-host-route-trace">
+          <RouteTrace embedded options={options} />
+        </div>
+      );
+    }
     if (route.name === 'profile') {
       const profile = route.profileName ? profileByName(options, route.profileName) : null;
       if (!profile) {
@@ -1401,6 +1411,7 @@ export function OptionsApp() {
             options={options}
             optionsDirty={dirty || status === 'saving'}
             profileHref={(profile) => routeHref('profile', {name: profile.name})}
+            routeTraceHref={routeHref('routeTrace')}
             isExperimental={isExperimental}
             uiHref={routeHref('ui')}
           />

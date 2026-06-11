@@ -1017,7 +1017,7 @@ msgid "popup_requestErrorWarning"
 msgstr "由於網路原因，此頁面部分資源載入失敗。這些問題可能是由您的網路、代理伺服器或網站本身引起的。"
 
 msgid "popup_requestErrorWarningHelp"
-msgstr "這些問題並非由 SwitchyOmega 自身導致，它只不過偵測並報告了錯誤而已。"
+msgstr "這些問題並非由 SwitchyAgain 自身導致，它只不過偵測並報告了錯誤而已。"
 
 msgid "popup_requestErrorAddCondition"
 msgstr "您可以檢視以下網域，並依據實際情況確定是否對其使用代理。"
@@ -1152,3 +1152,135 @@ msgstr "SwitchyOmega 的誕生離不開 <a href='https://github.com/FelisCatus/S
 
 msgid "about_license"
 msgstr "SwitchyOmega 是<a href='https://www.gnu.org/philosophy/free-sw.zh-tw.html'>自由軟體</a>，使用<a href='https://www.gnu.org/licenses/gpl.html'>GNU General Public License</a> 版本 3 及以上授權。"
+
+msgid "options_tab_routeTrace"
+msgstr "路由追蹤"
+
+msgid "options_profileDownloadStatusDownloading"
+msgstr "正在載入..."
+
+msgid "routeTrace_systemProxy"
+msgstr "系統代理"
+
+msgid "routeTrace_pacScript"
+msgstr "PAC 指令碼"
+
+msgid "routeTrace_unknownResult"
+msgstr "未知"
+
+msgid "routeTrace_stop"
+msgstr "停止"
+
+msgid "routeTrace_step_attachedRuleList"
+msgstr "規則清單規則"
+
+msgid "routeTrace_step_bypass"
+msgstr "略過"
+
+msgid "routeTrace_step_default"
+msgstr "預設"
+
+msgid "routeTrace_step_direct"
+msgstr "直接連線"
+
+msgid "routeTrace_step_profile"
+msgstr "情境模式"
+
+msgid "routeTrace_step_proxy"
+msgstr "代理"
+
+msgid "routeTrace_step_rule"
+msgstr "規則"
+
+msgid "routeTrace_step_temporaryRule"
+msgstr "臨時規則"
+
+msgid "routeTrace_result"
+msgstr "結果"
+
+msgid "routeTrace_tempRulesActive"
+msgstr "臨時規則已啟用；請求會先比對臨時規則，然後再使用目前情境模式。"
+
+msgid "routeTrace_pacLimited"
+msgstr "PAC 指令碼由瀏覽器處理，無法在此完整展開。"
+
+msgid "routeTrace_request"
+msgstr "請求"
+
+msgid "routeTrace_currentProfile"
+msgstr "目前情境模式"
+
+msgid "routeTrace_startProfile"
+msgstr "起始情境模式"
+
+msgid "routeTrace_finalResult"
+msgstr "最終結果"
+
+msgid "routeTrace_trace"
+msgstr "追蹤"
+
+msgid "routeTrace_step"
+msgstr "步驟"
+
+msgid "routeTrace_condition"
+msgstr "條件"
+
+msgid "routeTrace_target"
+msgstr "目標"
+
+msgid "routeTrace_profile"
+msgstr "情境模式"
+
+msgid "routeTrace_currentAppliedProfile"
+msgstr "目前套用的情境模式"
+
+msgid "routeTrace_explain"
+msgstr "追蹤"
+
+msgid "routeTrace_loading"
+msgstr "正在載入..."
+
+msgid "popup_routeInfoSystem"
+msgstr "系統代理"
+
+msgid "popup_routeInfoPac"
+msgstr "PAC 指令碼"
+
+msgid "popup_routeInfoUnknown"
+msgstr "未知"
+
+msgid "popup_routeInfoUnknownHost"
+msgstr "未知主機"
+
+msgid "popup_routeInfoRequest"
+msgstr "請求"
+
+msgid "popup_routeInfoRequests"
+msgstr "請求"
+
+msgid "popup_routeInfoMixed"
+msgstr "混合"
+
+msgid "popup_routeInfoResults"
+msgstr "結果"
+
+msgid "popup_routeInfoNoRequests"
+msgstr "沒有擷取到頁面請求。"
+
+msgid "popup_routeInfoErrors"
+msgstr "錯誤"
+
+msgid "popup_routeInfoPacLimited"
+msgstr "PAC 指令碼由瀏覽器處理，無法在此完整展開。"
+
+msgid "popup_routeInfoMenu"
+msgstr "路由資訊"
+
+msgid "popup_routeInfoHeading"
+msgstr "路由資訊"
+
+msgid "popup_routeInfoTempRulesActive"
+msgstr "臨時規則已啟用；請求會先比對臨時規則，然後再使用目前情境模式。"
+
+msgid "popup_routeInfoLimitExceeded"
+msgstr "僅顯示已擷取的前幾個請求。"

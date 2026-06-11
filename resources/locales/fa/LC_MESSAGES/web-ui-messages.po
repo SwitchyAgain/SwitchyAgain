@@ -1175,7 +1175,7 @@ msgstr ""
 
 msgid "popup_requestErrorWarningHelp"
 msgstr ""
-"SwitchyOmega تنها گزارش دهنده این خطاها میباشد ، نه ایجاد کننده ی آن ها ."
+"SwitchyAgain تنها گزارش دهنده این خطاها میباشد ، نه ایجاد کننده ی آن ها ."
 
 msgid "popup_requestErrorAddCondition"
 msgstr ""
@@ -1334,3 +1334,135 @@ msgstr ""
 "SwitchyOmega <a href='https://www.gnu.org/philosophy/free-sw.en.html'>یک نرم "
 "افزار آزاد </a>، تحت لیسانس<a href='https://www.gnu.org/licenses/gpl.html'>"
 "GNU </a> نسخه ی 3 به بعد میباشد."
+
+msgid "options_tab_routeTrace"
+msgstr "ردیابی مسیر"
+
+msgid "options_profileDownloadStatusDownloading"
+msgstr "در حال بارگیری..."
+
+msgid "routeTrace_systemProxy"
+msgstr "پیشکار سامانه"
+
+msgid "routeTrace_pacScript"
+msgstr "اسکریپت PAC"
+
+msgid "routeTrace_unknownResult"
+msgstr "نامشخص"
+
+msgid "routeTrace_stop"
+msgstr "توقف"
+
+msgid "routeTrace_step_attachedRuleList"
+msgstr "قوانین لیست قوانین"
+
+msgid "routeTrace_step_bypass"
+msgstr "دور زدن"
+
+msgid "routeTrace_step_default"
+msgstr "پیش‌فرض"
+
+msgid "routeTrace_step_direct"
+msgstr "مستقیم"
+
+msgid "routeTrace_step_profile"
+msgstr "نمایه"
+
+msgid "routeTrace_step_proxy"
+msgstr "پیشکار"
+
+msgid "routeTrace_step_rule"
+msgstr "قانون"
+
+msgid "routeTrace_step_temporaryRule"
+msgstr "قانون موقت"
+
+msgid "routeTrace_result"
+msgstr "نتیجه"
+
+msgid "routeTrace_tempRulesActive"
+msgstr "قوانین موقت فعال هستند؛ درخواست‌ها پیش از نمایه فعلی با قوانین موقت بررسی می‌شوند."
+
+msgid "routeTrace_pacLimited"
+msgstr "اسکریپت‌های PAC به مرورگر واگذار می‌شوند و اینجا نمی‌توان آن‌ها را کامل باز کرد."
+
+msgid "routeTrace_request"
+msgstr "درخواست"
+
+msgid "routeTrace_currentProfile"
+msgstr "نمایه فعلی"
+
+msgid "routeTrace_startProfile"
+msgstr "نمایه آغازین"
+
+msgid "routeTrace_finalResult"
+msgstr "نتیجه نهایی"
+
+msgid "routeTrace_trace"
+msgstr "ردیابی"
+
+msgid "routeTrace_step"
+msgstr "گام"
+
+msgid "routeTrace_condition"
+msgstr "شرط"
+
+msgid "routeTrace_target"
+msgstr "هدف"
+
+msgid "routeTrace_profile"
+msgstr "نمایه"
+
+msgid "routeTrace_currentAppliedProfile"
+msgstr "نمایه اعمال‌شده فعلی"
+
+msgid "routeTrace_explain"
+msgstr "ردیابی"
+
+msgid "routeTrace_loading"
+msgstr "در حال بارگیری..."
+
+msgid "popup_routeInfoSystem"
+msgstr "پیشکار سامانه"
+
+msgid "popup_routeInfoPac"
+msgstr "اسکریپت PAC"
+
+msgid "popup_routeInfoUnknown"
+msgstr "نامشخص"
+
+msgid "popup_routeInfoUnknownHost"
+msgstr "میزبان نامشخص"
+
+msgid "popup_routeInfoRequest"
+msgstr "درخواست"
+
+msgid "popup_routeInfoRequests"
+msgstr "درخواست‌ها"
+
+msgid "popup_routeInfoMixed"
+msgstr "مختلط"
+
+msgid "popup_routeInfoResults"
+msgstr "نتیجه"
+
+msgid "popup_routeInfoNoRequests"
+msgstr "هیچ درخواست صفحه‌ای ثبت نشده است."
+
+msgid "popup_routeInfoErrors"
+msgstr "خطا"
+
+msgid "popup_routeInfoPacLimited"
+msgstr "اسکریپت‌های PAC به مرورگر واگذار می‌شوند و اینجا نمی‌توان آن‌ها را کامل باز کرد."
+
+msgid "popup_routeInfoMenu"
+msgstr "اطلاعات مسیر"
+
+msgid "popup_routeInfoHeading"
+msgstr "اطلاعات مسیر"
+
+msgid "popup_routeInfoTempRulesActive"
+msgstr "قوانین موقت فعال هستند؛ درخواست‌ها پیش از نمایه فعلی با قوانین موقت بررسی می‌شوند."
+
+msgid "popup_routeInfoLimitExceeded"
+msgstr "فقط نخستین درخواست‌های ثبت‌شده نمایش داده می‌شوند."

@@ -42,8 +42,15 @@ function messageForKey(key, substitutions) {
 }
 
 async function installExtensionApi(page) {
-  await page.addInitScript(({mockManifest, mockOptions}) => {
+  await page.addInitScript(({mockManifest, mockOptions, mockPageInfo, mockPopupState}) => {
     const localState = new Map();
+    function pageInfoForRequest(args) {
+      const result = structuredClone(mockPageInfo);
+      if (!args?.includeExplanations) {
+        delete result.requestExplanations;
+      }
+      return result;
+    }
     const runtime = {
       id: 'switchyagain-smoke',
       getManifest: () => mockManifest,
@@ -58,7 +65,7 @@ async function installExtensionApi(page) {
           const keys = message.args?.[0] || [];
           result = {};
           for (const key of Array.isArray(keys) ? keys : [keys]) {
-            result[key] = localState.get(key);
+            result[key] = localState.has(key) ? localState.get(key) : mockPopupState[key];
           }
         } else if (method === 'setState') {
           const values = message.args?.[0] || {};
@@ -75,12 +82,7 @@ async function installExtensionApi(page) {
         } else if (method === 'renameProfile' || method === 'replaceRef') {
           result = structuredClone(mockOptions);
         } else if (method === 'getPageInfo') {
-          result = {
-            domain: 'www.example.com',
-            errorCount: 0,
-            summary: {},
-            url: 'https://www.example.com/'
-          };
+          result = pageInfoForRequest(message.args?.[0]);
         } else {
           result = {};
         }
@@ -112,7 +114,11 @@ async function installExtensionApi(page) {
         create(_props, callback) {
           callback?.();
         },
-        query(_queryInfo, callback) {
+        query(queryInfo, callback) {
+          if (queryInfo?.active) {
+            callback([{id: 1, url: mockPageInfo.url}]);
+            return;
+          }
           callback([]);
         },
         update(_tabId, _props, callback) {
@@ -126,7 +132,9 @@ async function installExtensionApi(page) {
     window.__switchyAgainSmokeMessages = {};
   }, {
     mockManifest: manifest,
-    mockOptions: options
+    mockOptions: options,
+    mockPageInfo: popupPageInfo(),
+    mockPopupState: popupStateForPath('')
   });
   await page.addInitScript((mockMessages) => {
     window.__switchyAgainSmokeMessages = mockMessages;
@@ -135,6 +143,13 @@ async function installExtensionApi(page) {
 
 async function installPopupTarget(page) {
   await page.addInitScript(({mockMessages, mockPageInfo, mockPopupState}) => {
+    function pageInfoForRequest(options) {
+      const result = structuredClone(mockPageInfo);
+      if (!options?.includeExplanations) {
+        delete result.requestExplanations;
+      }
+      return result;
+    }
     function getMessage(key, substitutions) {
       const values = Array.isArray(substitutions)
         ? substitutions
@@ -159,8 +174,10 @@ async function installPopupTarget(page) {
       applyProfile(_name, callback) {
         callback?.(null);
       },
-      getActivePageInfo(callback) {
-        callback?.(null, mockPageInfo);
+      getActivePageInfo(optionsOrCallback, callback) {
+        const options = typeof optionsOrCallback === 'function' ? {} : optionsOrCallback || {};
+        const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
+        cb?.(null, pageInfoForRequest(options));
       },
       getMessage,
       getState(_keys, callback) {
@@ -211,6 +228,15 @@ async function runPage(page, target) {
   if (target.text) {
     await expectText(page, target.text, target.label);
   }
+  if (target.click) {
+    await page.locator(target.click).first().click();
+  }
+  if (target.afterClickSelector) {
+    await expectSelector(page, target.afterClickSelector, target.label);
+  }
+  if (target.afterClickText) {
+    await expectText(page, target.afterClickText, target.label);
+  }
   guard.assertNoErrors();
   console.log(`ok ${target.label}`);
 }
@@ -230,6 +256,11 @@ const pages = [
     label: 'options general route',
     url: extensionFileUrl('options.html', '#/general'),
     text: messageForKey('options_tab_general') || 'General'
+  },
+  {
+    label: 'options route trace route',
+    url: extensionFileUrl('options.html', '#/routeTrace'),
+    text: messageForKey('options_tab_routeTrace') || 'Route Trace'
   },
   {
     label: 'options import/export route',
@@ -261,6 +292,14 @@ const pages = [
     popup: true,
     url: extensionFileUrl('popup/index.html'),
     selector: '#js-option'
+  },
+  {
+    label: 'popup route info page',
+    popup: true,
+    url: extensionFileUrl('popup/index.html'),
+    selector: '#js-reqinfo',
+    click: '#js-reqinfo',
+    afterClickSelector: '.om-route-info'
   },
   {
     label: 'popup proxy-not-controllable page',

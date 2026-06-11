@@ -29,9 +29,31 @@ type RequestSummaryItem = {
   errorCount: number;
 };
 
+type RequestStatus = 'start' | 'ongoing' | 'timeout' | 'error' | 'timeoutAbort' | 'done';
+
+type MonitoredRequestInfo = {
+  _startTime?: number;
+  error?: string;
+  requestId: string;
+  type?: string;
+  url: string;
+  [key: string]: unknown;
+};
+
+type PageRequestInfo = {
+  error?: string;
+  id: string;
+  status?: RequestStatus;
+  type?: string;
+  url: string;
+};
+
 type TabRequestInfo = {
   badgeSet?: boolean;
   errorCount: number;
+  requestCount?: number;
+  requests?: Record<string, MonitoredRequestInfo>;
+  requestStatus?: Record<string, RequestStatus>;
   summary: Record<string, RequestSummaryItem>;
   [key: string]: unknown;
 };
@@ -60,13 +82,64 @@ type UpgradeOptions = Record<string, unknown> & {
 };
 
 type PageInfoArgs = {
+  includeExplanations?: boolean;
   tabId: number;
   url?: string;
 };
 
+const MAX_PAGE_EXPLAIN_REQUESTS = 100;
+
 function actionApi(): ChromeActionApi {
   const legacyKey = 'browser' + 'Action';
   return (chrome.action || chrome[legacyKey]) as ChromeActionApi;
+}
+
+function explainableRequestUrl(url?: string) {
+  return !!url && /^(https?|ftp|ws|wss):/i.test(url);
+}
+
+function requestStartTime(request: MonitoredRequestInfo) {
+  return typeof request._startTime === 'number' ? request._startTime : 0;
+}
+
+function pageRequestsFromTabInfo(tabInfo?: TabRequestInfo, pageUrl?: string) {
+  const monitored: MonitoredRequestInfo[] = [];
+  const rawRequests = tabInfo?.requests || {};
+  for (const requestId in rawRequests) {
+    if (!Object.prototype.hasOwnProperty.call(rawRequests, requestId)) {
+      continue;
+    }
+    const request = rawRequests[requestId];
+    if (request && explainableRequestUrl(request.url)) {
+      monitored.push(request);
+    }
+  }
+  monitored.sort((a, b) => requestStartTime(a) - requestStartTime(b));
+  const requests: PageRequestInfo[] = [];
+  if (explainableRequestUrl(pageUrl) && !monitored.some((request) => request.url === pageUrl && request.type === 'main_frame')) {
+    requests.push({
+      id: 'page',
+      status: 'done',
+      type: 'main_frame',
+      url: pageUrl as string
+    });
+  }
+  for (const request of monitored) {
+    requests.push({
+      error: request.error,
+      id: request.requestId,
+      status: tabInfo?.requestStatus?.[request.requestId],
+      type: request.type,
+      url: request.url
+    });
+    if (requests.length >= MAX_PAGE_EXPLAIN_REQUESTS) {
+      break;
+    }
+  }
+  return {
+    requests,
+    requestLimitExceeded: monitored.length + (requests[0]?.id === 'page' ? 1 : 0) > MAX_PAGE_EXPLAIN_REQUESTS
+  };
 }
 
 interface ChromeOptions extends OmegaOptionsBase {}
@@ -471,7 +544,7 @@ class ChromeOptions extends OmegaTarget.Options {
     });
   }
 
-  getPageInfo({tabId, url}: PageInfoArgs) {
+  getPageInfo({includeExplanations = false, tabId, url}: PageInfoArgs) {
     const tabInfo = this._requestMonitor?.tabInfo[tabId];
     const errorCount = tabInfo?.errorCount;
     const summary = tabInfo?.summary;
@@ -521,13 +594,40 @@ class ChromeOptions extends OmegaTarget.Options {
         return result;
       }
       const domain = OmegaPac.getBaseDomain(new URL(url).hostname.replace(/^\[(.*)\]$/, '$1'));
-      return {
+      const pageRequests = pageRequestsFromTabInfo(tabInfo, url);
+      const basePageInfo = {
         url,
         domain,
         tempRuleProfileName: this.queryTempRule(domain),
         errorCount,
-        summary
+        summary,
+        requests: pageRequests.requests,
+        requestLimitExceeded: pageRequests.requestLimitExceeded
       };
+      if (!includeExplanations) {
+        return basePageInfo;
+      }
+      const explanations = pageRequests.requests.map((request) => {
+        return this.explainRequest({url: request.url}).catch((error: unknown) => ({
+          currentProfile: undefined as Partial<PopupApiProfile> | undefined,
+          errors: [error instanceof Error ? error.message : String(error)],
+          final: {
+            kind: 'error'
+          },
+          finalProfile: undefined as Partial<PopupApiProfile> | undefined,
+          request: {
+            url: request.url
+          },
+          startProfile: undefined as Partial<PopupApiProfile> | undefined,
+          steps: [] as Array<Record<string, unknown>>,
+          tempRulesActive: false,
+          warnings: [] as string[]
+        }));
+      });
+      return OmegaPromise.all(explanations).then((requestExplanations: PopupApiRequestExplanation[]) => ({
+        ...basePageInfo,
+        requestExplanations,
+      }));
     });
   }
 }

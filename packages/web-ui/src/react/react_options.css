@@ -48,3 +48,40 @@
   display: inline-block;
   padding: 1px 4px;
 }
+
+.route-trace-input .omega-profile-select {
+  margin-right: 8px;
+  min-width: 200px;
+}
+
+.route-trace-current {
+  display: inline-block;
+  margin-left: 8px;
+  min-width: 120px;
+  vertical-align: middle;
+}
+
+.route-trace-result {
+  margin-top: 20px;
+}
+
+.route-trace-summary th,
+.route-trace-steps th {
+  white-space: nowrap;
+  width: 140px;
+}
+
+.route-trace-summary code,
+.route-trace-step-condition {
+  overflow-wrap: anywhere;
+}
+
+.route-trace-final .profile-inline,
+.route-trace-final code {
+  margin-right: 8px;
+}
+
+.route-trace-step-kind {
+  color: #777;
+  white-space: nowrap;
+}

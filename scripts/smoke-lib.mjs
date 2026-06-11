@@ -131,6 +131,62 @@ export function popupPageInfo() {
   return {
     domain: 'www.example.com',
     errorCount: 0,
+    requestExplanations: [
+      {
+        currentProfile: {
+          color: '#99ccee',
+          name: 'proxy',
+          profileType: 'FixedProfile'
+        },
+        errors: [],
+        final: {
+          kind: 'proxy',
+          pacResult: 'PROXY proxy.example.com:8080',
+          profile: {
+            color: '#99ccee',
+            name: 'proxy',
+            profileType: 'FixedProfile'
+          }
+        },
+        finalProfile: {
+          color: '#99ccee',
+          name: 'proxy',
+          profileType: 'FixedProfile'
+        },
+        request: {
+          host: 'www.example.com',
+          scheme: 'https',
+          url: 'https://www.example.com/app.js'
+        },
+        startProfile: {
+          color: '#99ccee',
+          name: 'proxy',
+          profileType: 'FixedProfile'
+        },
+        steps: [
+          {
+            kind: 'proxy',
+            pacResult: 'PROXY proxy.example.com:8080',
+            profile: {
+              color: '#99ccee',
+              name: 'proxy',
+              profileType: 'FixedProfile'
+            },
+            scheme: ''
+          }
+        ],
+        tempRulesActive: false,
+        warnings: []
+      }
+    ],
+    requests: [
+      {
+        id: '1',
+        status: 'done',
+        type: 'script',
+        url: 'https://www.example.com/app.js'
+      }
+    ],
     summary: {},
     url: 'https://www.example.com/'
   };

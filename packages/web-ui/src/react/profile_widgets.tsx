@@ -15,7 +15,10 @@ import type {
   ProfileKey
 } from './profile_types';
 
-export type Profile = NamedProfile;
+export type Profile = NamedProfile & {
+  attachedToProfileName?: string;
+  role?: string;
+};
 
 const BUILTIN_PROFILES: Profile[] = [
   {
@@ -61,6 +64,9 @@ export function profileName(profile?: Profile | null, dispName?: (profile: Profi
 export function displayProfileName(profile?: Profile | null) {
   if (!profile) {
     return '';
+  }
+  if (profile.role === 'attachedRuleList') {
+    return message('options_switchAttachedProfileInCondition', 'Rule list rules');
   }
   if (profile.builtin) {
     return message(`profile_${profile.name}`, profile.name);

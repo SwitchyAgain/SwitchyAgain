@@ -3,6 +3,7 @@ type BackgroundMethodArgs = {
   addProfile: [profile: unknown];
   addTempRule: [domain: string, profileName: string];
   applyProfile: [name: string];
+  explainRequest: [args: unknown];
   getAll: [];
   getPageInfo: [args: PageInfoArgs];
   getState: [name: string | string[]];
@@ -18,6 +19,7 @@ type BackgroundMethodArgs = {
 };
 
 type PageInfoArgs = {
+  includeExplanations?: boolean;
   tabId: number;
   url?: string;
 };
@@ -108,6 +110,7 @@ type BackgroundOptions = BackgroundOptionMethods & {
   clearBadge(): unknown;
   currentProfile(): BackgroundProfile | null | undefined;
   externalApi: BackgroundExternalApi;
+  explainRequest(args: unknown): OmegaPromise<unknown>;
   isCurrentProfileStatic(): boolean;
   matchProfile(request: unknown): OmegaPromise<BackgroundMatchResult>;
   optionsLoaded: OmegaPromise<unknown> | null;
@@ -675,6 +678,7 @@ type BackgroundOmegaTarget = {
       case 'addProfile':
       case 'addTempRule':
       case 'applyProfile':
+      case 'explainRequest':
       case 'getAll':
       case 'getPageInfo':
       case 'getState':

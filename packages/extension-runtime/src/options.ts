@@ -44,9 +44,32 @@ class NoOptionsError extends Error {
 
 const OmegaPac = OmegaPacImpl as OmegaPacModule;
 
+const attachedRuleListPrefix = '__ruleListOf_';
 const hasProp = Object.prototype.hasOwnProperty;
 const optionNumber = (value: unknown) => Number(value);
 const supportedUiLocales = new Set(['en', 'zh-Hans', 'zh-Hant', 'es', 'ru', 'cs', 'fa']);
+
+function isRecordValue(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object';
+}
+
+function normalizeExplainUrl(url: string): string {
+  const trimmed = url.trim();
+  if (!trimmed) {
+    throw new Error('URL is required.');
+  }
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) {
+    return trimmed;
+  }
+  return `http://${trimmed}`;
+}
+
+function attachedRuleListOwnerName(name?: string): string | undefined {
+  if (!name || name.indexOf(attachedRuleListPrefix) !== 0) {
+    return undefined;
+  }
+  return name.slice(attachedRuleListPrefix.length) || undefined;
+}
 
 type LoadOptionsArgs = {
   retry?: number;
@@ -129,6 +152,57 @@ type TempRule = {
   isTempRule?: boolean;
   profileName?: string | null;
   [key: string]: unknown;
+};
+
+type ExplainRequestArgs = {
+  includeTempRules?: boolean;
+  profileName?: string;
+  request?: Record<string, unknown>;
+  url?: string;
+};
+
+type ExplainProfile = {
+  attachedToProfileName?: string;
+  builtin?: boolean;
+  color?: unknown;
+  name?: string;
+  profileType?: unknown;
+  role?: string;
+};
+
+type ExplainStep = {
+  auth?: boolean;
+  condition?: string;
+  isTempRule?: boolean;
+  kind: string;
+  pacResult?: string;
+  profile?: ExplainProfile;
+  proxy?: unknown;
+  scheme?: string;
+  source?: string;
+  targetProfile?: ExplainProfile;
+};
+
+type ExplainFinal = {
+  auth?: boolean;
+  delegated?: boolean;
+  kind: string;
+  limited?: boolean;
+  pacResult?: string;
+  profile?: ExplainProfile;
+  proxy?: unknown;
+};
+
+type RequestExplanation = {
+  currentProfile?: ExplainProfile;
+  errors: string[];
+  final: ExplainFinal;
+  finalProfile?: ExplainProfile;
+  request: Record<string, unknown>;
+  startProfile?: ExplainProfile;
+  steps: ExplainStep[];
+  tempRulesActive: boolean;
+  warnings: string[];
 };
 
 class Options {
@@ -1477,6 +1551,257 @@ class Options {
       changes[OmegaPac.Profiles.nameAsKey(profile)] = profile;
       return this._setOptions(changes);
     }
+  }
+
+  _profileForExplanation(profile?: ProfileLike | null, fallbackName?: string): ExplainProfile | undefined {
+    if (!profile) {
+      return undefined;
+    }
+    const name = typeof profile.name === 'string' && profile.name ? profile.name : fallbackName;
+    const profileInfo: ExplainProfile = {
+      builtin: profile.builtin,
+      color: profile.color,
+      name,
+      profileType: profile.profileType
+    };
+    const attachedToProfileName = attachedRuleListOwnerName(name);
+    if (attachedToProfileName && profile.profileType === 'RuleListProfile') {
+      profileInfo.attachedToProfileName = attachedToProfileName;
+      profileInfo.role = 'attachedRuleList';
+    }
+    return profileInfo;
+  }
+
+  _conditionForExplanation(source: unknown): string | undefined {
+    if (source == null) {
+      return undefined;
+    }
+    const condition = isRecordValue(source) && isRecordValue(source.condition)
+      ? source.condition
+      : source;
+    if (isRecordValue(condition)) {
+      try {
+        return OmegaPac.Conditions.str(condition);
+      } catch (_error) {
+        if (condition.pattern != null) {
+          return String(condition.pattern);
+        }
+      }
+    }
+    if (typeof condition === 'string') {
+      return condition;
+    }
+    return String(condition);
+  }
+
+  _requestForExplanation(input?: string | ExplainRequestArgs): Record<string, unknown> {
+    const requestInput = typeof input === 'string' ? {url: input} : input || {};
+    const request = requestInput.request ? {...requestInput.request} : {};
+    const url = request.url != null
+      ? normalizeExplainUrl(String(request.url))
+      : requestInput.url != null
+        ? normalizeExplainUrl(String(requestInput.url))
+        : '';
+    if (!url) {
+      throw new Error('URL is required.');
+    }
+    const normalizedRequest = OmegaPac.Conditions.requestFromUrl(url);
+    return {
+      ...normalizedRequest,
+      ...request,
+      url
+    };
+  }
+
+  _finalForProfile(profile?: ProfileLike | null): ExplainFinal {
+    const profileInfo = this._profileForExplanation(profile);
+    switch (profile?.profileType) {
+      case 'SystemProfile':
+        return {
+          kind: 'system',
+          profile: profileInfo,
+          delegated: true
+        };
+      case 'DirectProfile':
+        return {
+          kind: 'direct',
+          profile: profileInfo,
+          pacResult: OmegaPac.Profiles.pacResult()
+        };
+      case 'PacProfile':
+      case 'AutoDetectProfile':
+        return {
+          kind: 'pac',
+          profile: profileInfo,
+          delegated: true,
+          limited: true
+        };
+      default:
+        return {
+          kind: 'profile',
+          profile: profileInfo
+        };
+    }
+  }
+
+  _explainFromProfile(
+    startProfile: ProfileLike | null | undefined,
+    request: Record<string, unknown>,
+    tempRulesActive: boolean,
+    currentProfile?: ProfileLike | null
+  ): RequestExplanation {
+    const steps: ExplainStep[] = [];
+    const warnings: string[] = [];
+    let profile = startProfile;
+    let lastProfile = startProfile;
+    let final: ExplainFinal | null = null;
+    let guard = 0;
+
+    while (profile) {
+      if (guard++ > 30) {
+        warnings.push('tooManyProfileHops');
+        break;
+      }
+      lastProfile = profile;
+      const result = OmegaPac.Profiles.match(profile, request);
+      if (result == null) {
+        break;
+      }
+
+      if (Array.isArray(result)) {
+        const resultValue = result[0];
+        if (typeof resultValue === 'string' && resultValue.charAt(0) === '+') {
+          const targetProfile = OmegaPac.Profiles.byKey(resultValue, this._options);
+          steps.push({
+            kind: result[1] == null ? 'default' : 'profile',
+            profile: this._profileForExplanation(profile, tempRulesActive && profile === this._tempProfile ? '__temporary' : undefined),
+            targetProfile: this._profileForExplanation(targetProfile, resultValue.slice(1)),
+            condition: this._conditionForExplanation(result[1])
+          });
+          if (!targetProfile) {
+            warnings.push('targetProfileNotFound');
+            final = {
+              kind: 'missingProfile',
+              profile: {
+                name: resultValue.slice(1)
+              }
+            };
+            break;
+          }
+          profile = targetProfile;
+          continue;
+        }
+
+        const source = result[1];
+        const proxy = result[2];
+        const pacResult = String(resultValue);
+        const proxyScheme = isRecordValue(proxy) ? proxy.scheme : undefined;
+        const sourceIsCondition = isRecordValue(source);
+        const scheme = typeof source === 'string' ? source : undefined;
+        const kind = pacResult === 'DIRECT' || proxyScheme === 'direct'
+          ? sourceIsCondition ? 'bypass' : 'direct'
+          : 'proxy';
+        const step = {
+          kind,
+          profile: this._profileForExplanation(profile),
+          condition: sourceIsCondition ? this._conditionForExplanation(source) : undefined,
+          scheme,
+          pacResult,
+          proxy,
+          auth: !!result[3]
+        };
+        steps.push(step);
+        final = {
+          auth: step.auth,
+          kind: pacResult === 'DIRECT' ? 'direct' : 'proxy',
+          pacResult,
+          profile: step.profile,
+          proxy
+        };
+        break;
+      }
+
+      const rule = result as Record<string, unknown>;
+      const profileName = typeof rule.profileName === 'string' ? rule.profileName : '';
+      if (!profileName) {
+        break;
+      }
+      const targetProfile = OmegaPac.Profiles.byName(profileName, this._options);
+      steps.push({
+        kind: rule.isTempRule ? 'temporaryRule' : 'rule',
+        profile: this._profileForExplanation(profile, tempRulesActive && profile === this._tempProfile ? '__temporary' : undefined),
+        targetProfile: this._profileForExplanation(targetProfile, profileName),
+        condition: this._conditionForExplanation(rule.condition),
+        source: rule.source != null ? String(rule.source) : undefined,
+        isTempRule: !!rule.isTempRule
+      });
+      if (!targetProfile) {
+        warnings.push('targetProfileNotFound');
+        final = {
+          kind: 'missingProfile',
+          profile: {
+            name: profileName
+          }
+        };
+        break;
+      }
+      profile = targetProfile;
+    }
+
+    if (!final) {
+      final = this._finalForProfile(lastProfile);
+    }
+    if (final.kind === 'pac') {
+      warnings.push('pacProfileLimited');
+    }
+
+    return {
+      currentProfile: this._profileForExplanation(currentProfile),
+      errors: [],
+      final,
+      finalProfile: final.profile,
+      request,
+      startProfile: this._profileForExplanation(startProfile, tempRulesActive && startProfile === this._tempProfile ? '__temporary' : undefined),
+      steps,
+      tempRulesActive,
+      warnings
+    };
+  }
+
+  /**
+   * Explain how a request is resolved from the current or selected profile.
+   * This is a dry-run view over the same matching functions used by proxy
+   * application; it does not mutate profile state.
+  */
+
+  explainRequest(input?: string | ExplainRequestArgs): RuntimePromise<RequestExplanation> {
+    const args = typeof input === 'string' ? {url: input} : input || {};
+    const request = this._requestForExplanation(input);
+    const explicitProfileName = args.profileName;
+    const includeTempRules = args.includeTempRules !== false;
+    let currentProfile = this.currentProfile();
+    let startProfile: ProfileLike | null | undefined;
+    let tempRulesActive = false;
+
+    if (explicitProfileName) {
+      startProfile = OmegaPac.Profiles.byName(explicitProfileName, this._options);
+      if (!startProfile) {
+        return Promise.reject(new ProfileNotExistError(explicitProfileName));
+      }
+    } else if (includeTempRules && this._tempProfileActive && this._tempProfile) {
+      startProfile = this._tempProfile;
+      tempRulesActive = true;
+    } else if (this._currentProfileName) {
+      startProfile = OmegaPac.Profiles.byName(this._currentProfileName, this._options);
+    } else {
+      startProfile = this._externalProfile;
+    }
+
+    if (!currentProfile && this._currentProfileName) {
+      currentProfile = OmegaPac.Profiles.byName(this._currentProfileName, this._options);
+    }
+
+    return Promise.resolve(this._explainFromProfile(startProfile, request, tempRulesActive, currentProfile));
   }
 
 

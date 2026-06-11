@@ -1195,7 +1195,7 @@ msgstr ""
 "сервером или веб-страницей."
 
 msgid "popup_requestErrorWarningHelp"
-msgstr "SwitchyOmega просто сообщает о них, а не является причиной."
+msgstr "SwitchyAgain просто сообщает о них, а не является причиной."
 
 msgid "popup_requestErrorAddCondition"
 msgstr ""
@@ -1357,3 +1357,135 @@ msgstr ""
 "sw.en.html'>бесплатное программное обеспечение</a>, лицензируемое на "
 "условиях <a href='https://www.gnu.org/licenses/gpl.html'>GNU General Public "
 "License</a> Версии 3 или более поздней."
+
+msgid "options_tab_routeTrace"
+msgstr "Трассировка маршрута"
+
+msgid "options_profileDownloadStatusDownloading"
+msgstr "Загрузка..."
+
+msgid "routeTrace_systemProxy"
+msgstr "Системный прокси"
+
+msgid "routeTrace_pacScript"
+msgstr "PAC-скрипт"
+
+msgid "routeTrace_unknownResult"
+msgstr "Неизвестно"
+
+msgid "routeTrace_stop"
+msgstr "Остановить"
+
+msgid "routeTrace_step_attachedRuleList"
+msgstr "Правила списка правил"
+
+msgid "routeTrace_step_bypass"
+msgstr "Обход"
+
+msgid "routeTrace_step_default"
+msgstr "По умолчанию"
+
+msgid "routeTrace_step_direct"
+msgstr "Напрямую"
+
+msgid "routeTrace_step_profile"
+msgstr "Профиль"
+
+msgid "routeTrace_step_proxy"
+msgstr "Прокси"
+
+msgid "routeTrace_step_rule"
+msgstr "Правило"
+
+msgid "routeTrace_step_temporaryRule"
+msgstr "Временное правило"
+
+msgid "routeTrace_result"
+msgstr "Результат"
+
+msgid "routeTrace_tempRulesActive"
+msgstr "Временные правила активны; запросы проверяются по временным правилам перед текущим профилем."
+
+msgid "routeTrace_pacLimited"
+msgstr "PAC-скрипты передаются браузеру и не могут быть полностью раскрыты здесь."
+
+msgid "routeTrace_request"
+msgstr "Запрос"
+
+msgid "routeTrace_currentProfile"
+msgstr "Текущий профиль"
+
+msgid "routeTrace_startProfile"
+msgstr "Начальный профиль"
+
+msgid "routeTrace_finalResult"
+msgstr "Итоговый результат"
+
+msgid "routeTrace_trace"
+msgstr "Трассировка"
+
+msgid "routeTrace_step"
+msgstr "Шаг"
+
+msgid "routeTrace_condition"
+msgstr "Условие"
+
+msgid "routeTrace_target"
+msgstr "Цель"
+
+msgid "routeTrace_profile"
+msgstr "Профиль"
+
+msgid "routeTrace_currentAppliedProfile"
+msgstr "Текущий примененный профиль"
+
+msgid "routeTrace_explain"
+msgstr "Трассировать"
+
+msgid "routeTrace_loading"
+msgstr "Загрузка..."
+
+msgid "popup_routeInfoSystem"
+msgstr "Системный прокси"
+
+msgid "popup_routeInfoPac"
+msgstr "PAC-скрипт"
+
+msgid "popup_routeInfoUnknown"
+msgstr "Неизвестно"
+
+msgid "popup_routeInfoUnknownHost"
+msgstr "Неизвестный хост"
+
+msgid "popup_routeInfoRequest"
+msgstr "запрос"
+
+msgid "popup_routeInfoRequests"
+msgstr "запросы"
+
+msgid "popup_routeInfoMixed"
+msgstr "Смешано"
+
+msgid "popup_routeInfoResults"
+msgstr "результатов"
+
+msgid "popup_routeInfoNoRequests"
+msgstr "Нет захваченных запросов страницы."
+
+msgid "popup_routeInfoErrors"
+msgstr "ошибок"
+
+msgid "popup_routeInfoPacLimited"
+msgstr "PAC-скрипты передаются браузеру и не могут быть полностью раскрыты здесь."
+
+msgid "popup_routeInfoMenu"
+msgstr "Информация о маршруте"
+
+msgid "popup_routeInfoHeading"
+msgstr "Информация о маршруте"
+
+msgid "popup_routeInfoTempRulesActive"
+msgstr "Временные правила активны; запросы проверяются по временным правилам перед текущим профилем."
+
+msgid "popup_routeInfoLimitExceeded"
+msgstr "Показаны только первые захваченные запросы."

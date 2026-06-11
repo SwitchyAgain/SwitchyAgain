@@ -24,6 +24,24 @@ function messageForKey(key) {
   return messages[key]?.message || '';
 }
 
+async function callRuntime(page, method, args = []) {
+  return page.evaluate(({args, method}) => {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage({method, args}, (response) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message || 'Unknown runtime error.'));
+          return;
+        }
+        if (response?.error) {
+          reject(new Error(response.error.message || response.error.reason || JSON.stringify(response.error)));
+          return;
+        }
+        resolve(response?.result);
+      });
+    });
+  }, {args, method});
+}
+
 const context = await chromium.launchPersistentContext(userDataDir, {
   args: [
     `--disable-extensions-except=${extensionPath}`,
@@ -47,6 +65,33 @@ try {
   const optionsGuard = installBrowserErrorGuards(optionsPage, 'chromium extension options');
   await optionsPage.goto(`chrome-extension://${extensionId}/options.html#/about`, {waitUntil: 'domcontentloaded'});
   await expectText(optionsPage, messageForKey('about_title') || 'About', 'chromium extension options');
+  await callRuntime(optionsPage, 'applyProfile', ['auto switch']);
+  const [activeTab] = await optionsPage.evaluate(() => {
+    return new Promise((resolve, reject) => {
+      chrome.tabs.query({active: true, lastFocusedWindow: true}, (tabs) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message || 'Unknown runtime error.'));
+          return;
+        }
+        resolve(tabs);
+      });
+    });
+  });
+  const pageInfo = await callRuntime(optionsPage, 'getPageInfo', [{
+    tabId: activeTab.id,
+    url: 'https://www.example.com/'
+  }]);
+  if (pageInfo.requestExplanations) {
+    throw new Error('getPageInfo should not compute request explanations for the popup menu path.');
+  }
+  const explainedPageInfo = await callRuntime(optionsPage, 'getPageInfo', [{
+    includeExplanations: true,
+    tabId: activeTab.id,
+    url: 'https://www.example.com/'
+  }]);
+  if (!Array.isArray(explainedPageInfo.requestExplanations) || explainedPageInfo.requestExplanations.length === 0) {
+    throw new Error('getPageInfo did not return request explanations on demand.');
+  }
   optionsGuard.assertNoErrors();
   console.log(`ok chromium extension options (${manifest.version})`);
   await optionsPage.close();

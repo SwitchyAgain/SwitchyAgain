@@ -80,10 +80,6 @@ body {
     background-color: #E5E5E5;
   }
 
-  .om-reqinfo {
-    background-color: #fcf8e3;
-  }
-
   .glyphicon-warning-sign {
     color: #8a6d3b;
   }
@@ -229,6 +225,9 @@ body {
 .glyphicon-plus:before {
     content: "\2b"
 }
+.glyphicon-road:before {
+  content: "\e024";
+}
 .glyphicon-filter:before {
     content: "\e138"
 }
@@ -257,8 +256,11 @@ body {
   margin: 10px;
 }
 
-.condition-form,
-.request-info-details {
+.condition-form {
+  min-width: 360px;
+}
+
+.route-info-details {
   min-width: 360px;
 }
 
@@ -373,10 +375,120 @@ body {
   background-color: #f0ad4e;
 }
 
+.label-default {
+  background-color: #777;
+}
+
+.label-danger {
+  background-color: #d9534f;
+}
+
+.label-info {
+  background-color: #5bc0de;
+}
+
+.om-route-info-count {
+  float: right;
+  margin-top: 1px;
+}
+
 .om-domain-list {
   max-height: 220px;
   overflow: auto;
   margin-bottom: 10px;
+}
+
+.om-route-info-list {
+  border-top: 1px solid #eee;
+  margin-top: 8px;
+  max-height: 360px;
+  overflow: auto;
+}
+
+.om-route-info {
+  border-bottom: 1px solid #eee;
+  padding: 7px 0;
+}
+
+.om-route-info-line {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+}
+
+.om-route-info-request-count,
+.om-route-info-error-count {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  min-width: 1.8em;
+  padding-left: .35em;
+  padding-right: .35em;
+}
+
+.om-route-info-host {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.om-route-info-result {
+  align-items: center;
+  display: flex;
+  flex: 0 1 auto;
+  justify-content: flex-end;
+  margin-left: auto;
+  max-width: 160px;
+  min-width: 88px;
+  overflow: hidden;
+  text-align: right;
+}
+
+.om-route-info-result .profile-inline,
+.om-route-info-result .om-profile-name {
+  display: inline-block;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.om-decision-muted,
+.om-decision-pac {
+  color: #777;
+  margin-left: 6px;
+}
+
+.om-route-info-mixed {
+  flex: 0 0 auto;
+}
+
+.om-route-info-pending {
+  color: #777;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.om-route-info-error,
+.om-route-info-warning {
+  color: #a94442;
+  font-size: 12px;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+}
+
+.om-route-info-warning {
+  color: #8a6d3b;
+}
+
+.om-route-info-add-condition {
+  border-top: 1px solid #eee;
+  margin-top: 10px;
+  padding-top: 10px;
 }
 
 .btn {

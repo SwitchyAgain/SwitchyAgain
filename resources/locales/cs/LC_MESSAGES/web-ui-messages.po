@@ -1160,7 +1160,7 @@ msgid "popup_requestErrorWarning"
 msgstr "Několik zdrojů se nepodařilo načíst kvůli potížím se sítí."
 
 msgid "popup_requestErrorWarningHelp"
-msgstr "SwitchyOmega jen reportuje tyto chyby, ale není příčinou těchto chyb."
+msgstr "SwitchyAgain jen reportuje tyto chyby, ale není příčinou těchto chyb."
 
 msgid "popup_requestErrorAddCondition"
 msgstr ""
@@ -1303,3 +1303,135 @@ msgstr "SwitchyOmega is made possible by the <a href='https://github.com/FelisCa
 
 msgid "about_license"
 msgstr "SwitchyOmega is <a href='https://www.gnu.org/philosophy/free-sw.en.html'>free software</a> licensed under <a href='https://www.gnu.org/licenses/gpl.html'>GNU General Public License</a> Version 3 or later."
+
+msgid "options_tab_routeTrace"
+msgstr "Trasování trasy"
+
+msgid "options_profileDownloadStatusDownloading"
+msgstr "Načítání..."
+
+msgid "routeTrace_systemProxy"
+msgstr "Systémová proxy"
+
+msgid "routeTrace_pacScript"
+msgstr "Skript PAC"
+
+msgid "routeTrace_unknownResult"
+msgstr "Neznámé"
+
+msgid "routeTrace_stop"
+msgstr "Zastavit"
+
+msgid "routeTrace_step_attachedRuleList"
+msgstr "Pravidla seznamu pravidel"
+
+msgid "routeTrace_step_bypass"
+msgstr "Obejít"
+
+msgid "routeTrace_step_default"
+msgstr "Výchozí"
+
+msgid "routeTrace_step_direct"
+msgstr "Přímé"
+
+msgid "routeTrace_step_profile"
+msgstr "Profil"
+
+msgid "routeTrace_step_proxy"
+msgstr "Proxy"
+
+msgid "routeTrace_step_rule"
+msgstr "Pravidlo"
+
+msgid "routeTrace_step_temporaryRule"
+msgstr "Dočasné pravidlo"
+
+msgid "routeTrace_result"
+msgstr "Výsledek"
+
+msgid "routeTrace_tempRulesActive"
+msgstr "Dočasná pravidla jsou aktivní; požadavky se před aktuálním profilem kontrolují proti dočasným pravidlům."
+
+msgid "routeTrace_pacLimited"
+msgstr "Skripty PAC jsou delegovány prohlížeči a zde je nelze plně rozbalit."
+
+msgid "routeTrace_request"
+msgstr "Požadavek"
+
+msgid "routeTrace_currentProfile"
+msgstr "Aktuální profil"
+
+msgid "routeTrace_startProfile"
+msgstr "Počáteční profil"
+
+msgid "routeTrace_finalResult"
+msgstr "Konečný výsledek"
+
+msgid "routeTrace_trace"
+msgstr "Trasa"
+
+msgid "routeTrace_step"
+msgstr "Krok"
+
+msgid "routeTrace_condition"
+msgstr "Podmínka"
+
+msgid "routeTrace_target"
+msgstr "Cíl"
+
+msgid "routeTrace_profile"
+msgstr "Profil"
+
+msgid "routeTrace_currentAppliedProfile"
+msgstr "Aktuálně použitý profil"
+
+msgid "routeTrace_explain"
+msgstr "Trasovat"
+
+msgid "routeTrace_loading"
+msgstr "Načítání..."
+
+msgid "popup_routeInfoSystem"
+msgstr "Systémová proxy"
+
+msgid "popup_routeInfoPac"
+msgstr "Skript PAC"
+
+msgid "popup_routeInfoUnknown"
+msgstr "Neznámé"
+
+msgid "popup_routeInfoUnknownHost"
+msgstr "Neznámý hostitel"
+
+msgid "popup_routeInfoRequest"
+msgstr "požadavek"
+
+msgid "popup_routeInfoRequests"
+msgstr "požadavky"
+
+msgid "popup_routeInfoMixed"
+msgstr "Smíšené"
+
+msgid "popup_routeInfoResults"
+msgstr "výsledků"
+
+msgid "popup_routeInfoNoRequests"
+msgstr "Nejsou k dispozici žádné zachycené požadavky stránky."
+
+msgid "popup_routeInfoErrors"
+msgstr "chyb"
+
+msgid "popup_routeInfoPacLimited"
+msgstr "Skripty PAC jsou delegovány prohlížeči a zde je nelze plně rozbalit."
+
+msgid "popup_routeInfoMenu"
+msgstr "Informace o trase"
+
+msgid "popup_routeInfoHeading"
+msgstr "Informace o trase"
+
+msgid "popup_routeInfoTempRulesActive"
+msgstr "Dočasná pravidla jsou aktivní; požadavky se před aktuálním profilem kontrolují proti dočasným pravidlům."
+
+msgid "popup_routeInfoLimitExceeded"
+msgstr "Zobrazují se pouze první zachycené požadavky."

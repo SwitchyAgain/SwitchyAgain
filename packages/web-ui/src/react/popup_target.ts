@@ -1,11 +1,14 @@
 import {message} from './options_client';
+import type {RequestExplanation} from './options_client';
 import type {NamedProfile, ProfileKey} from './profile_types';
 
 export type {ProfileKey};
 
 export type Profile = NamedProfile & {
+  attachedToProfileName?: string;
   defaultProfileName?: string;
   desc?: string;
+  role?: string;
   validResultProfiles?: string[];
 };
 
@@ -14,9 +17,22 @@ export type ProfileMap = Record<ProfileKey, Profile | undefined>;
 export type PageInfo = {
   domain?: string;
   errorCount?: number;
+  requestExplanations?: RequestExplanation[];
+  requestLimitExceeded?: boolean;
+  requests?: Array<{
+    error?: string;
+    id: string;
+    status?: string;
+    type?: string;
+    url: string;
+  }>;
   summary?: Record<string, {errorCount?: number}>;
   tempRuleProfileName?: string;
   url?: string;
+};
+
+export type PageInfoOptions = {
+  includeExplanations?: boolean;
 };
 
 export type PopupState = {
@@ -64,7 +80,10 @@ export type PopupTarget = {
   addProfile?: (profile: Profile, callback?: PopupVoidCallback) => void;
   addTempRule?: (domain: string, profileName: string, callback?: PopupVoidCallback) => void;
   applyProfile?: (name: string, callback?: PopupVoidCallback) => void;
-  getActivePageInfo?: (callback: PopupCallback<PageInfo>) => void;
+  getActivePageInfo?: {
+    (callback: PopupCallback<PageInfo>): void;
+    (options: PageInfoOptions, callback: PopupCallback<PageInfo>): void;
+  };
   getMessage?: (key: string, substitutions?: string | string[]) => string;
   getState?: (keys: PopupStateKey[], callback: PopupCallback<PopupState>) => void;
   openManage?: {
@@ -158,14 +177,18 @@ export function getPopupState(keys: PopupStateKey[]) {
   });
 }
 
-export function getPopupPageInfo() {
+export function getPopupPageInfo(options?: PageInfoOptions) {
   return callbackPromise<PageInfo | undefined>((callback) => {
     const getActivePageInfo = popupTarget().getActivePageInfo;
     if (!getActivePageInfo) {
       callback(popupMethodUnavailable('getActivePageInfo'));
       return;
     }
-    getActivePageInfo(callback);
+    if (options) {
+      getActivePageInfo(options, callback);
+    } else {
+      getActivePageInfo(callback);
+    }
   });
 }
 

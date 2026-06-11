@@ -128,6 +128,7 @@ export type ProfileMatchResult = ProfileMatchTuple | (Record<string, unknown> & 
 export type OmegaPacModule = {
   Conditions: {
     localHosts: string[];
+    requestFromUrl(url: string): Record<string, unknown>;
     str(condition: Record<string, unknown>): string;
     tag(condition: Record<string, unknown>): string;
   };
@@ -148,6 +149,7 @@ export type OmegaPacModule = {
     isInclusive(profile: ProfileLike): boolean;
     match(profile: ProfileLike, request: Record<string, unknown>): ProfileMatchResult;
     nameAsKey(profileName: string | ProfileLike): string;
+    pacResult(proxy?: unknown): string;
     replaceRef(profile: ProfileLike, fromName: string, toName: string): boolean;
     update(profile: ProfileLike, data: unknown): boolean;
     updateContentTypeHints(profile: ProfileLike): string[] | undefined;

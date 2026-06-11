@@ -1211,7 +1211,7 @@ msgstr ""
 
 msgid "popup_requestErrorWarningHelp"
 msgstr ""
-"SwitchyOmega es solo el informador de estos problemas, no la causa de ellos."
+"SwitchyAgain es solo el informador de estos problemas, no la causa de ellos."
 
 msgid "popup_requestErrorAddCondition"
 msgstr ""
@@ -1373,3 +1373,135 @@ msgstr ""
 "SwitchyOmega es <a href='https://www.gnu.org/philosophy/free-sw.en.html'>"
 "software libre</a> licenciado bajo <a href='https://www.gnu.org/licenses/"
 "gpl.html'>GNU General Public License</a> Versión 3 o posterior."
+
+msgid "options_tab_routeTrace"
+msgstr "Traza de ruta"
+
+msgid "options_profileDownloadStatusDownloading"
+msgstr "Cargando..."
+
+msgid "routeTrace_systemProxy"
+msgstr "Proxy del sistema"
+
+msgid "routeTrace_pacScript"
+msgstr "Script PAC"
+
+msgid "routeTrace_unknownResult"
+msgstr "Desconocido"
+
+msgid "routeTrace_stop"
+msgstr "Detener"
+
+msgid "routeTrace_step_attachedRuleList"
+msgstr "Reglas de la lista de reglas"
+
+msgid "routeTrace_step_bypass"
+msgstr "Omitir"
+
+msgid "routeTrace_step_default"
+msgstr "Predeterminado"
+
+msgid "routeTrace_step_direct"
+msgstr "Directo"
+
+msgid "routeTrace_step_profile"
+msgstr "Perfil"
+
+msgid "routeTrace_step_proxy"
+msgstr "Proxy"
+
+msgid "routeTrace_step_rule"
+msgstr "Regla"
+
+msgid "routeTrace_step_temporaryRule"
+msgstr "Regla temporal"
+
+msgid "routeTrace_result"
+msgstr "Resultado"
+
+msgid "routeTrace_tempRulesActive"
+msgstr "Las reglas temporales están activas; las solicitudes se comprueban con ellas antes del perfil actual."
+
+msgid "routeTrace_pacLimited"
+msgstr "Los scripts PAC se delegan al navegador y no se pueden expandir por completo aquí."
+
+msgid "routeTrace_request"
+msgstr "Solicitud"
+
+msgid "routeTrace_currentProfile"
+msgstr "Perfil actual"
+
+msgid "routeTrace_startProfile"
+msgstr "Perfil inicial"
+
+msgid "routeTrace_finalResult"
+msgstr "Resultado final"
+
+msgid "routeTrace_trace"
+msgstr "Traza"
+
+msgid "routeTrace_step"
+msgstr "Paso"
+
+msgid "routeTrace_condition"
+msgstr "Condición"
+
+msgid "routeTrace_target"
+msgstr "Destino"
+
+msgid "routeTrace_profile"
+msgstr "Perfil"
+
+msgid "routeTrace_currentAppliedProfile"
+msgstr "Perfil aplicado actualmente"
+
+msgid "routeTrace_explain"
+msgstr "Trazar"
+
+msgid "routeTrace_loading"
+msgstr "Cargando..."
+
+msgid "popup_routeInfoSystem"
+msgstr "Proxy del sistema"
+
+msgid "popup_routeInfoPac"
+msgstr "Script PAC"
+
+msgid "popup_routeInfoUnknown"
+msgstr "Desconocido"
+
+msgid "popup_routeInfoUnknownHost"
+msgstr "Host desconocido"
+
+msgid "popup_routeInfoRequest"
+msgstr "solicitud"
+
+msgid "popup_routeInfoRequests"
+msgstr "solicitudes"
+
+msgid "popup_routeInfoMixed"
+msgstr "Mixto"
+
+msgid "popup_routeInfoResults"
+msgstr "resultados"
+
+msgid "popup_routeInfoNoRequests"
+msgstr "No hay solicitudes de página capturadas."
+
+msgid "popup_routeInfoErrors"
+msgstr "errores"
+
+msgid "popup_routeInfoPacLimited"
+msgstr "Los scripts PAC se delegan al navegador y no se pueden expandir por completo aquí."
+
+msgid "popup_routeInfoMenu"
+msgstr "Información de ruta"
+
+msgid "popup_routeInfoHeading"
+msgstr "Información de ruta"
+
+msgid "popup_routeInfoTempRulesActive"
+msgstr "Las reglas temporales están activas; las solicitudes se comprueban con ellas antes del perfil actual."
+
+msgid "popup_routeInfoLimitExceeded"
+msgstr "Solo se muestran las primeras solicitudes capturadas."
