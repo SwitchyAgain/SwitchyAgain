@@ -54,8 +54,8 @@ async function checkTsconfigTargets() {
   for (const file of tsconfigTargets) {
     const config = await readJson(file);
     const target = String(config.compilerOptions?.target || '').toLowerCase();
-    if (target !== 'es2020') {
-      fail(`${file}: compilerOptions.target must stay es2020, got ${JSON.stringify(config.compilerOptions?.target)}`);
+    if (target !== 'es2022') {
+      fail(`${file}: compilerOptions.target must stay es2022, got ${JSON.stringify(config.compilerOptions?.target)}`);
     }
   }
 }
@@ -100,8 +100,8 @@ async function checkLegacyTargets() {
 
 async function checkBundleTargetDefaults() {
   const script = await readText('scripts/bundle-esbuild.mjs');
-  if (!/const target = args\['--target'\] \|\| 'es2020';/.test(script)) {
-    fail('scripts/bundle-esbuild.mjs: default target must stay es2020');
+  if (!/const target = args\['--target'\] \|\| 'es2022';/.test(script)) {
+    fail('scripts/bundle-esbuild.mjs: default target must stay es2022');
   }
 }
 

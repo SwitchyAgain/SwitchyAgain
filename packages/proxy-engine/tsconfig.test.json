@@ -3,11 +3,11 @@
   "compilerOptions": {
     "allowJs": false,
     "ignoreDeprecations": "6.0",
-    "module": "es2020",
+    "module": "es2022",
     "moduleDetection": "force",
     "noImplicitAny": true,
     "noEmit": true,
-    "target": "es2020",
+    "target": "es2022",
     "types": [
       "node",
       "vitest/globals"

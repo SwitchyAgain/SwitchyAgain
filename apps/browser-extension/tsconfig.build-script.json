@@ -11,7 +11,7 @@
     "skipLibCheck": true,
     "sourceMap": false,
     "strict": false,
-    "target": "es2020"
+    "target": "es2022"
   },
   "include": [
     "build.mts",

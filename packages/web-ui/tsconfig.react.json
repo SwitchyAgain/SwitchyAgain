@@ -9,7 +9,7 @@
     "noImplicitAny": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "es2020"
+    "target": "es2022"
   },
   "include": [
     "src/react/**/*.ts",

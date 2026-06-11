@@ -2,13 +2,13 @@
   "compilerOptions": {
     "allowJs": false,
     "forceConsistentCasingInFileNames": true,
-    "module": "es2020",
+    "module": "es2022",
     "moduleResolution": "bundler",
     "noEmit": true,
     "noImplicitAny": true,
     "skipLibCheck": true,
     "strict": false,
-    "target": "es2020"
+    "target": "es2022"
   },
   "include": [
     "src/**/*.ts",

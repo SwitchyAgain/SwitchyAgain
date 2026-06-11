@@ -4,13 +4,13 @@
     "allowJs": false,
     "declaration": true,
     "ignoreDeprecations": "6.0",
-    "module": "es2020",
+    "module": "es2022",
     "moduleResolution": "bundler",
     "noEmit": false,
     "outDir": "build-ts",
     "rootDir": "src",
     "sourceMap": false,
-    "target": "es2020"
+    "target": "es2022"
   },
   "include": [
     "src/**/*.ts",

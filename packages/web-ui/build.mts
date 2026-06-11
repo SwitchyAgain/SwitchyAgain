@@ -89,7 +89,7 @@ async function bundleReact(entry: string, dest: string) {
     minify: true,
     outfile: path.join(root, dest),
     platform: 'browser',
-    target: 'es2020'
+    target: 'es2022'
   });
 }
 

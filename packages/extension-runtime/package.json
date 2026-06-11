@@ -20,7 +20,7 @@
     "@switchyagain/proxy-engine": "./build-ts/omega_pac_shim.js"
   },
   "scripts": {
-    "build": "npm run build:ts && node ../../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=index.js --format=cjs --platform=node --target=es2020 --external=buffer,jsondiffpatch,limiter,@switchyagain/proxy-engine && node ../../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=omega_target.min.js --global-name=OmegaTarget --target=es2020 --minify",
+    "build": "npm run build:ts && node ../../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=index.js --format=cjs --platform=node --target=es2022 --external=buffer,jsondiffpatch,limiter,@switchyagain/proxy-engine && node ../../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=omega_target.min.js --global-name=OmegaTarget --target=es2022 --minify",
     "build:ts": "tsc -p tsconfig.build.json",
     "typecheck:test": "tsc -p tsconfig.test.json --noEmit",
     "dev": "npm link @switchyagain/proxy-engine && npm link",

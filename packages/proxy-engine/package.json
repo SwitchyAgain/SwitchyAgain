@@ -16,7 +16,7 @@
     "tldjs": "^2.3.2"
   },
   "scripts": {
-    "build": "npm run build:ts && node ../../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=index.js --format=cjs --platform=node --target=es2020 --external=ip-address,tldjs && node ../../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=omega_pac.min.js --global-name=OmegaPac --target=es2020 --minify",
+    "build": "npm run build:ts && node ../../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=index.js --format=cjs --platform=node --target=es2022 --external=ip-address,tldjs && node ../../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=omega_pac.min.js --global-name=OmegaPac --target=es2022 --minify",
     "build:ts": "tsc -p tsconfig.build.json",
     "typecheck:test": "tsc -p tsconfig.test.json --noEmit",
     "dev": "npm link",

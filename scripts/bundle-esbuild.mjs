@@ -14,11 +14,11 @@ const outfile = args['--outfile'];
 const format = args['--format'] || 'iife';
 const globalName = args['--global-name'];
 const platform = args['--platform'] || 'browser';
-const target = args['--target'] || 'es2020';
+const target = args['--target'] || 'es2022';
 const external = args['--external'] ? args['--external'].split(',').filter(Boolean) : [];
 
 if (!entry || !outfile || (format === 'iife' && !globalName)) {
-  throw new Error('Usage: node scripts/bundle-esbuild.mjs --entry=<file> --outfile=<file> [--format=cjs|iife] [--global-name=<name>] [--platform=browser|node] [--target=es2020] [--external=a,b] [--minify]');
+  throw new Error('Usage: node scripts/bundle-esbuild.mjs --entry=<file> --outfile=<file> [--format=cjs|iife] [--global-name=<name>] [--platform=browser|node] [--target=es2022] [--external=a,b] [--minify]');
 }
 
 await esbuild.build({
