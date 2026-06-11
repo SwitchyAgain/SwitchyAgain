@@ -1,0 +1,169 @@
+import {readdir, readFile} from 'node:fs/promises';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+const tsconfigTargets = [
+  'packages/proxy-engine/tsconfig.build.json',
+  'packages/proxy-engine/tsconfig.json',
+  'packages/proxy-engine/tsconfig.test.json',
+  'packages/extension-runtime/tsconfig.build.json',
+  'packages/extension-runtime/tsconfig.json',
+  'packages/extension-runtime/tsconfig.test.json',
+  'packages/web-ui/tsconfig.react.json',
+  'packages/web-ui/tsconfig.scripts.json',
+  'packages/web-ui/tsconfig.build-script.json',
+  'apps/browser-extension/tsconfig.build.json',
+  'apps/browser-extension/tsconfig.json',
+  'apps/browser-extension/tsconfig.scripts.json',
+  'apps/browser-extension/tsconfig.build-script.json'
+];
+
+const backgroundServiceWorkerScripts = [
+  'js/mv3_compat.js',
+  'js/log_error.js',
+  'js/omega_debug.js',
+  'js/background_preload.js',
+  'js/omega_pac.min.js',
+  'js/omega_target.min.js',
+  'js/omega_target_chromium_extension.min.js',
+  'img/icons/draw_omega.js',
+  'js/background.js'
+];
+
+const backgroundDocumentScripts = backgroundServiceWorkerScripts.filter((script) => script !== 'js/mv3_compat.js');
+
+const popupScripts = {
+  'packages/web-ui/src/popup/index.html': [
+    '../js/omega_target_popup.js',
+    '../react/popup_app.js'
+  ],
+  'packages/web-ui/src/popup/proxy_not_controllable.html': [
+    '../js/omega_target_popup.js',
+    '../react/proxy_not_controllable.js'
+  ]
+};
+
+const failures = [];
+
+async function readText(relativePath) {
+  return readFile(path.join(root, relativePath), 'utf8');
+}
+
+async function readJson(relativePath) {
+  return JSON.parse(await readText(relativePath));
+}
+
+function fail(message) {
+  failures.push(message);
+}
+
+function assertEqual(actual, expected, label) {
+  const same = JSON.stringify(actual) === JSON.stringify(expected);
+  if (!same) {
+    fail(`${label}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+  }
+}
+
+async function checkTsconfigTargets() {
+  for (const file of tsconfigTargets) {
+    const config = await readJson(file);
+    const target = String(config.compilerOptions?.target || '').toLowerCase();
+    if (target !== 'es2020') {
+      fail(`${file}: compilerOptions.target must stay es2020, got ${JSON.stringify(config.compilerOptions?.target)}`);
+    }
+  }
+}
+
+async function walkFiles(dir, result = []) {
+  const entries = await readdir(path.join(root, dir), {withFileTypes: true});
+  for (const entry of entries) {
+    const relativePath = path.join(dir, entry.name).replace(/\\/g, '/');
+    if (entry.isDirectory()) {
+      if (['.git', 'node_modules', 'build', 'build-ts', 'dist', 'release', 'tmp'].includes(entry.name)) {
+        continue;
+      }
+      await walkFiles(relativePath, result);
+    } else if (/\.(json|mjs|mts|ts|tsx)$/.test(entry.name)) {
+      result.push(relativePath);
+    }
+  }
+  return result;
+}
+
+async function checkLegacyTargets() {
+  const patterns = [
+    /"target"\s*:\s*"es5"/,
+    /"target"\s*:\s*"es2015"/,
+    /--target=es5\b/,
+    /--target=es2015\b/,
+    /target\s*:\s*['"]es5['"]/,
+    /target\s*:\s*['"]es2015['"]/
+  ];
+  for (const file of await walkFiles('.')) {
+    if (file === 'scripts/check-build-assumptions.mjs') {
+      continue;
+    }
+    const content = await readText(file);
+    for (const pattern of patterns) {
+      if (pattern.test(content)) {
+        fail(`${file}: legacy JavaScript target matched ${pattern}`);
+      }
+    }
+  }
+}
+
+async function checkBundleTargetDefaults() {
+  const script = await readText('scripts/bundle-esbuild.mjs');
+  if (!/const target = args\['--target'\] \|\| 'es2020';/.test(script)) {
+    fail('scripts/bundle-esbuild.mjs: default target must stay es2020');
+  }
+}
+
+function parseImportScripts(source) {
+  const match = source.match(/importScripts\(([\s\S]*?)\);/);
+  if (!match) {
+    return [];
+  }
+  return Array.from(match[1].matchAll(/['"]([^'"]+)['"]/g), (entry) => entry[1]);
+}
+
+function parseHtmlScripts(source) {
+  return Array.from(source.matchAll(/<script\s+src="([^"]+)"\s*><\/script>/g), (entry) => entry[1]);
+}
+
+async function checkClassicScriptEntrypoints() {
+  const serviceWorker = await readText('apps/browser-extension/src/js/service_worker.ts');
+  assertEqual(
+    parseImportScripts(serviceWorker),
+    backgroundServiceWorkerScripts,
+    'apps/browser-extension/src/js/service_worker.ts importScripts order'
+  );
+
+  const backgroundHtml = await readText('apps/browser-extension/overlay/background.html');
+  assertEqual(
+    parseHtmlScripts(backgroundHtml),
+    backgroundDocumentScripts,
+    'apps/browser-extension/overlay/background.html script order'
+  );
+
+  for (const [file, expected] of Object.entries(popupScripts)) {
+    assertEqual(parseHtmlScripts(await readText(file)), expected, `${file} script order`);
+  }
+}
+
+await checkTsconfigTargets();
+await checkLegacyTargets();
+await checkBundleTargetDefaults();
+await checkClassicScriptEntrypoints();
+
+if (failures.length > 0) {
+  console.error('Build assumption checks failed:');
+  for (const failure of failures) {
+    console.error(`- ${failure}`);
+  }
+  process.exitCode = 1;
+} else {
+  console.log('ok build assumptions');
+}

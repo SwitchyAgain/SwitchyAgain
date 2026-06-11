@@ -3,6 +3,14 @@
   "version": "0.0.1",
   "private": true,
   "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "require": "./index.js",
+      "default": "./index.js"
+    }
+  },
   "dependencies": {
     "ip-address": "^10.2.0",
     "tldjs": "^2.3.2"
