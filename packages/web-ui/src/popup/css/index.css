@@ -429,8 +429,14 @@ body {
 .om-route-info-host {
   flex: 1 1 auto;
   min-width: 0;
+}
+
+.om-route-info-host-text {
+  display: inline-block;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
+  vertical-align: bottom;
   white-space: nowrap;
 }
 

@@ -176,7 +176,7 @@ function defaultUiLocaleFromBrowser(language?: string) {
 class ChromeOptions extends OmegaTarget.Options {
   externalApi: ExternalApiLike;
   fetchUrl: typeof fetchUrl;
-  proxyImpl: ProxyImplInstance;
+  declare proxyImpl: ProxyImplInstance;
   switchySharp: SwitchySharpLike | null;
   private _alarms: Record<string, () => void> | null;
   private _badgeTitle: string | null;

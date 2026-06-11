@@ -332,8 +332,8 @@ function RouteInfoList({
             <div className="om-route-info-line">
               <span className="label label-info om-route-info-request-count" title={`${group.requestCount} ${requestCountText(group.requestCount)}`}>{group.requestCount}</span>
               {group.errorCount > 0 && <span className="label label-warning om-route-info-error-count" title={`${group.errorCount} ${popupMessage('popup_routeInfoErrors', 'errors')}`}>{group.errorCount}</span>}
-              <span className="om-route-info-host" title={group.hostname}>
-                <strong>{group.hostname}</strong>
+              <span className="om-route-info-host">
+                <strong className="om-route-info-host-text" title={group.hostname}>{group.hostname}</strong>
               </span>
               <span className="om-route-info-result">
                 <RouteInfoGroupResult group={group} loading={loading} state={state} />
