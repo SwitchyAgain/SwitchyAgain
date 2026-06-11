@@ -5,13 +5,11 @@ import {
   downloadBlob,
   getLocalState,
   loadOptions,
-  manifestVersion,
   message,
   Options,
   patchOptions,
   resetOptions,
   resetOptionsSync,
-  runtimeAvailable,
   shouldAutoMount,
   setLocalState,
   setOptionsSync
@@ -396,9 +394,6 @@ export function ImportExport({
     <main className="container-fluid react-options">
       <div className="page-header">
         <h2>{message('options_tab_importExport', 'Import/Export')}</h2>
-        <p className="text-muted">
-          React preview · {message('manifest_app_name', 'SwitchyAgain')} {manifestVersion()} · runtime {runtimeAvailable() ? 'available' : 'unavailable'}
-        </p>
       </div>
 
       {profileSection}

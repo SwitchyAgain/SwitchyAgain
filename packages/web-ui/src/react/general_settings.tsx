@@ -4,11 +4,9 @@ import {createRoot} from 'react-dom/client';
 import {
   Options,
   loadOptions,
-  manifestVersion,
   message,
   optionPatch,
   patchOptions,
-  runtimeAvailable,
   shouldAutoMount
 } from './options_client';
 
@@ -281,13 +279,7 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
 
   return (
     <main className="container-fluid react-options">
-      <div className="page-header">
-        <h2>{message('options_tab_general', 'General')}</h2>
-        <p className="text-muted">
-          React preview · {message('manifest_app_name', 'SwitchyAgain')} {manifestVersion()} · runtime {runtimeAvailable() ? 'available' : 'unavailable'}
-        </p>
-      </div>
-
+      {pageHeader}
       {settings}
     </main>
   );

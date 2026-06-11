@@ -4,11 +4,9 @@ import {createRoot} from 'react-dom/client';
 import {
   Options,
   loadOptions,
-  manifestVersion,
   message,
   openShortcutConfig as openDefaultShortcutConfig,
   patchOptions,
-  runtimeAvailable,
   shouldAutoMount,
   UI_LOCALES,
   uiLocaleForOptions
@@ -484,13 +482,7 @@ export function UiSettings({embedded = false, options, onOptionsChange, onOpenSh
 
   return (
     <main className="container-fluid react-options">
-      <div className="page-header">
-        <h2>{message('options_tab_ui', 'Interface')}</h2>
-        <p className="text-muted">
-          React preview · {message('manifest_app_name', 'SwitchyAgain')} {manifestVersion()} · runtime {runtimeAvailable() ? 'available' : 'unavailable'}
-        </p>
-      </div>
-
+      {pageHeader}
       {settings}
     </main>
   );

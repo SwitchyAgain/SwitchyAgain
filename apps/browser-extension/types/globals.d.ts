@@ -1,9 +1,9 @@
-interface LegacyDynamic {
-  (...args: unknown[]): LegacyDynamic;
-  new (...args: unknown[]): LegacyDynamic;
-  [index: number]: LegacyDynamic;
-  [key: string]: LegacyDynamic;
-  [Symbol.iterator](): Iterator<LegacyDynamic>;
+interface DynamicGlobalValue {
+  (...args: unknown[]): DynamicGlobalValue;
+  new (...args: unknown[]): DynamicGlobalValue;
+  [index: number]: DynamicGlobalValue;
+  [key: string]: DynamicGlobalValue;
+  [Symbol.iterator](): Iterator<DynamicGlobalValue>;
 }
 
 type ChromeListener = (...args: unknown[]) => unknown;
@@ -244,26 +244,26 @@ type OmegaProfileScheme = {
   scheme?: string;
 };
 
-interface OmegaPacApi extends LegacyDynamic {
-  Conditions: LegacyDynamic & {
+interface OmegaPacApi extends DynamicGlobalValue {
+  Conditions: DynamicGlobalValue & {
     localHosts: string[];
     requestFromUrl(url: string): unknown;
     str(condition: unknown): string;
   };
-  PacGenerator: LegacyDynamic & {
+  PacGenerator: DynamicGlobalValue & {
     ascii(value: unknown): string;
   };
-  Profiles: LegacyDynamic & {
-    byKey(key: unknown, options?: unknown): LegacyDynamic;
-    byName(name: unknown, options?: unknown): LegacyDynamic;
-    create(profile: unknown): LegacyDynamic;
-    each(options: unknown, callback: (key: string, profile: LegacyDynamic) => unknown): unknown;
-    match(profile: unknown, request: unknown): LegacyDynamic;
+  Profiles: DynamicGlobalValue & {
+    byKey(key: unknown, options?: unknown): DynamicGlobalValue;
+    byName(name: unknown, options?: unknown): DynamicGlobalValue;
+    create(profile: unknown): DynamicGlobalValue;
+    each(options: unknown, callback: (key: string, profile: DynamicGlobalValue) => unknown): unknown;
+    match(profile: unknown, request: unknown): DynamicGlobalValue;
     nameAsKey(profileName: unknown): string;
     schemes: OmegaProfileScheme[];
     pacResult(value: unknown): string;
   };
-  Revision: LegacyDynamic & {
+  Revision: DynamicGlobalValue & {
     compare(left: unknown, right: unknown): number;
   };
   getBaseDomain(hostname: string | null | undefined): string;
@@ -292,7 +292,7 @@ interface OmegaPromiseStatic {
       reject: (reason?: unknown) => void
     ) => void
   ): OmegaPromise<T>;
-  promisify(fn: unknown): LegacyDynamic;
+  promisify(fn: unknown): DynamicGlobalValue;
   reject<T = never>(reason?: unknown): OmegaPromise<T>;
   resolve<T = unknown>(value?: T | PromiseLike<T>): OmegaPromise<T>;
   try<T = unknown>(fn: () => T | PromiseLike<T>): OmegaPromise<T>;
@@ -451,12 +451,11 @@ type ProxyFindFunction = (url: string, host: string, details?: unknown) => unkno
 
 declare var chrome: ChromeGlobal;
 declare var browser: BrowserGlobal;
-declare var angular: LegacyDynamic;
 declare var FindProxyForURL: ProxyFindFunction;
 declare var OmegaDebug: OmegaDebugApi;
 declare var OmegaPac: OmegaPacApi;
 declare var OmegaTarget: OmegaTargetModule;
-declare var OmegaTargetChromium: LegacyDynamic;
+declare var OmegaTargetChromium: DynamicGlobalValue;
 declare var OmegaTargetPopup: OmegaTargetPopupApi;
 declare function importScripts(...urls: string[]): void;
 declare function drawOmega(
