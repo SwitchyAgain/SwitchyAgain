@@ -1,0 +1,28 @@
+{
+  "background": {
+    "serviceWorkerScripts": [
+      "js/mv3_compat.js",
+      "js/log_error.js",
+      "js/omega_debug.js",
+      "js/background_preload.js",
+      "js/omega_pac.min.js",
+      "js/omega_target.min.js",
+      "js/omega_target_chromium_extension.min.js",
+      "img/icons/draw_omega.js",
+      "js/background.js"
+    ],
+    "documentScriptExclusions": [
+      "js/mv3_compat.js"
+    ]
+  },
+  "popupScripts": {
+    "packages/web-ui/src/popup/index.html": [
+      "../js/omega_target_popup.js",
+      "../react/popup_app.js"
+    ],
+    "packages/web-ui/src/popup/proxy_not_controllable.html": [
+      "../js/omega_target_popup.js",
+      "../react/proxy_not_controllable.js"
+    ]
+  }
+}

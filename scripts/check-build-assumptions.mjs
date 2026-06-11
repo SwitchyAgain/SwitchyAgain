@@ -20,31 +20,6 @@ const tsconfigTargets = [
   'apps/browser-extension/tsconfig.build-script.json'
 ];
 
-const backgroundServiceWorkerScripts = [
-  'js/mv3_compat.js',
-  'js/log_error.js',
-  'js/omega_debug.js',
-  'js/background_preload.js',
-  'js/omega_pac.min.js',
-  'js/omega_target.min.js',
-  'js/omega_target_chromium_extension.min.js',
-  'img/icons/draw_omega.js',
-  'js/background.js'
-];
-
-const backgroundDocumentScripts = backgroundServiceWorkerScripts.filter((script) => script !== 'js/mv3_compat.js');
-
-const popupScripts = {
-  'packages/web-ui/src/popup/index.html': [
-    '../js/omega_target_popup.js',
-    '../react/popup_app.js'
-  ],
-  'packages/web-ui/src/popup/proxy_not_controllable.html': [
-    '../js/omega_target_popup.js',
-    '../react/proxy_not_controllable.js'
-  ]
-};
-
 const failures = [];
 
 async function readText(relativePath) {
@@ -53,6 +28,15 @@ async function readText(relativePath) {
 
 async function readJson(relativePath) {
   return JSON.parse(await readText(relativePath));
+}
+
+async function readBrowserEntrypoints() {
+  return readJson('apps/browser-extension/browser-entrypoints.json');
+}
+
+function backgroundDocumentScripts(entrypoints) {
+  const exclusions = new Set(entrypoints.background.documentScriptExclusions || []);
+  return entrypoints.background.serviceWorkerScripts.filter((script) => !exclusions.has(script));
 }
 
 function fail(message) {
@@ -134,21 +118,22 @@ function parseHtmlScripts(source) {
 }
 
 async function checkClassicScriptEntrypoints() {
+  const entrypoints = await readBrowserEntrypoints();
   const serviceWorker = await readText('apps/browser-extension/src/js/service_worker.ts');
   assertEqual(
     parseImportScripts(serviceWorker),
-    backgroundServiceWorkerScripts,
+    entrypoints.background.serviceWorkerScripts,
     'apps/browser-extension/src/js/service_worker.ts importScripts order'
   );
 
   const backgroundHtml = await readText('apps/browser-extension/overlay/background.html');
   assertEqual(
     parseHtmlScripts(backgroundHtml),
-    backgroundDocumentScripts,
+    backgroundDocumentScripts(entrypoints),
     'apps/browser-extension/overlay/background.html script order'
   );
 
-  for (const [file, expected] of Object.entries(popupScripts)) {
+  for (const [file, expected] of Object.entries(entrypoints.popupScripts)) {
     assertEqual(parseHtmlScripts(await readText(file)), expected, `${file} script order`);
   }
 }

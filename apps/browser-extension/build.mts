@@ -17,6 +17,13 @@ type BundleOptions = {
   minify?: boolean;
 };
 
+type BrowserEntrypoints = {
+  background: {
+    documentScriptExclusions?: string[];
+    serviceWorkerScripts: string[];
+  };
+};
+
 type LocaleMessage = {
   message: string;
   placeholders?: Record<string, {
@@ -76,6 +83,44 @@ async function writeBundle(dest: string, options: BundleOptions) {
     platform: 'browser',
     target: 'es2020'
   });
+}
+
+async function readBrowserEntrypoints() {
+  const content = await fsp.readFile(path.join(root, 'browser-entrypoints.json'), 'utf8');
+  return JSON.parse(content) as BrowserEntrypoints;
+}
+
+function backgroundDocumentScripts(entrypoints: BrowserEntrypoints) {
+  const exclusions = new Set(entrypoints.background.documentScriptExclusions || []);
+  return entrypoints.background.serviceWorkerScripts.filter((script) => !exclusions.has(script));
+}
+
+async function writeServiceWorker(dest: string, scripts: string[]) {
+  await ensureDir(dest);
+  await fsp.writeFile(dest, [
+    'importScripts(',
+    ...scripts.map((script, index) => `  '${script}'${index === scripts.length - 1 ? '' : ','}`),
+    ');',
+    ''
+  ].join('\n'));
+}
+
+async function writeBackgroundHtml(dest: string, scripts: string[]) {
+  await ensureDir(dest);
+  await fsp.writeFile(dest, [
+    '<!DOCTYPE html>',
+    '<html lang="en">',
+    '<head>',
+    '  <meta charset="utf-8" />',
+    '  <title>SwitchyAgain Background</title>',
+    '</head>',
+    '<body>',
+    '  <canvas id="canvas-icon"></canvas>',
+    ...scripts.map((script) => `  <script src="${script}"></script>`),
+    '</body>',
+    '</html>',
+    ''
+  ].join('\n'));
 }
 
 function parsePoString(value: string) {
@@ -243,6 +288,8 @@ async function main() {
   await fsp.rm(path.join(root, 'build'), {recursive: true, force: true});
   await fsp.rm(path.join(root, 'tmp'), {recursive: true, force: true});
 
+  const browserEntrypoints = await readBrowserEntrypoints();
+
   const indexSource = path.join(root, 'src/module/index.ts');
   await writeBundle(path.join(root, 'index.js'), {
     entry: indexSource,
@@ -266,8 +313,9 @@ async function main() {
   for (const script of ['background.js', 'background_preload.js', 'omega_debug.js']) {
     await copyFile(path.join(root, 'build-ts/js', script), path.join(root, 'build/js', script));
   }
-  await copyFile(path.join(root, 'build-ts/js/service_worker.js'), path.join(root, 'build/service_worker.js'));
+  await writeServiceWorker(path.join(root, 'build/service_worker.js'), browserEntrypoints.background.serviceWorkerScripts);
   await copyTree(path.join(root, 'overlay'), path.join(root, 'build'));
+  await writeBackgroundHtml(path.join(root, 'build/background.html'), backgroundDocumentScripts(browserEntrypoints));
   await copyFile(path.join(workspaceRoot, 'COPYING'), path.join(root, 'build/COPYING'));
   await copyFile(path.join(workspaceRoot, 'AUTHORS'), path.join(root, 'build/AUTHORS'));
 
