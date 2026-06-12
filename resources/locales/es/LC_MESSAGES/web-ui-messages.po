@@ -231,6 +231,21 @@ msgstr "Idioma"
 msgid "options_interfaceLanguage"
 msgstr "Idioma de la interfaz"
 
+msgid "options_group_theme"
+msgstr "Tema"
+
+msgid "options_interfaceTheme"
+msgstr "Tema de la interfaz"
+
+msgid "options_interfaceThemeLight"
+msgstr "Claro"
+
+msgid "options_interfaceThemeDark"
+msgstr "Oscuro"
+
+msgid "options_interfaceThemeSystem"
+msgstr "Sistema"
+
 msgid "options_experimental_badge"
 msgstr "α"
 

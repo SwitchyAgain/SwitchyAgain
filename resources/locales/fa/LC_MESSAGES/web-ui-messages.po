@@ -225,6 +225,21 @@ msgstr "زبان"
 msgid "options_interfaceLanguage"
 msgstr "زبان رابط کاربری"
 
+msgid "options_group_theme"
+msgstr "تم"
+
+msgid "options_interfaceTheme"
+msgstr "تم رابط کاربری"
+
+msgid "options_interfaceThemeLight"
+msgstr "روشن"
+
+msgid "options_interfaceThemeDark"
+msgstr "تیره"
+
+msgid "options_interfaceThemeSystem"
+msgstr "سیستم"
+
 msgid "options_experimental_badge"
 msgstr "α"
 

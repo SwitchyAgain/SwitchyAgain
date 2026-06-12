@@ -2,6 +2,7 @@ import type {Options} from './options_client';
 
 export const UI_KEYS = [
   '-uiLocale',
+  '-uiTheme',
   '-startupProfileName',
   '-showConditionTypes',
   '-enableQuickSwitch',

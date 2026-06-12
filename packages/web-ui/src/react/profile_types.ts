@@ -67,6 +67,7 @@ export type OptionsData = {
   '-showInspectMenu'?: boolean;
   '-startupProfileName'?: string;
   '-uiLocale'?: string;
+  '-uiTheme'?: string;
 };
 
 export type VirtualProfileModel = Profile & {

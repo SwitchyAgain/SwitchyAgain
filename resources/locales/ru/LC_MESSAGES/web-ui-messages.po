@@ -227,6 +227,21 @@ msgstr "Язык"
 msgid "options_interfaceLanguage"
 msgstr "Язык интерфейса"
 
+msgid "options_group_theme"
+msgstr "Тема"
+
+msgid "options_interfaceTheme"
+msgstr "Тема интерфейса"
+
+msgid "options_interfaceThemeLight"
+msgstr "Светлая"
+
+msgid "options_interfaceThemeDark"
+msgstr "Тёмная"
+
+msgid "options_interfaceThemeSystem"
+msgstr "Система"
+
 msgid "options_experimental_badge"
 msgstr "α"
 

@@ -22,6 +22,7 @@ describe('ui settings logic', () => {
     const before: Options = {
       '-quickSwitchProfiles': ['direct'],
       '-uiLocale': 'en',
+      '-uiTheme': 'light',
       '+proxy': {
         name: 'proxy'
       }
@@ -29,6 +30,7 @@ describe('ui settings logic', () => {
     const after: Options = {
       '-quickSwitchProfiles': ['direct', 'proxy'],
       '-uiLocale': 'en',
+      '-uiTheme': 'dark',
       '+proxy': {
         color: '#ffffff',
         name: 'proxy'
@@ -37,7 +39,8 @@ describe('ui settings logic', () => {
 
     expect(uiOptionsDirty(before, after)).toBe(true);
     expect(uiOptionPatch(before, after)).toEqual({
-      '-quickSwitchProfiles': [['direct'], ['direct', 'proxy']]
+      '-quickSwitchProfiles': [['direct'], ['direct', 'proxy']],
+      '-uiTheme': ['light', 'dark']
     });
     expect(uiOptionsDirty(before, before)).toBe(false);
   });

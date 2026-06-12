@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {createRoot} from 'react-dom/client';
-import {manifestVersion, message, shouldAutoMount} from './options_client';
+import {loadOptions, manifestVersion, message, shouldAutoMount} from './options_client';
 
 export type AboutProps = {
   embedded?: boolean;
@@ -23,6 +23,13 @@ function messageWithNodes(key: string, fallback: string, nodes: Record<string, R
 }
 
 export function About({embedded = false, isExperimental = false, version, onDownloadLog, onResetOptions}: AboutProps) {
+  useEffect(() => {
+    if (embedded) {
+      return;
+    }
+    loadOptions().catch(() => {});
+  }, [embedded]);
+
   const shownVersion = version || manifestVersion();
   const iconPath = embedded ? 'img/icons/omega-action-32.png' : '../img/icons/omega-action-32.png';
   const content = (

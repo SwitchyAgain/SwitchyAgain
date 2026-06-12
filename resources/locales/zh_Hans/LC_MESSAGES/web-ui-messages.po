@@ -206,6 +206,21 @@ msgstr "语言"
 msgid "options_interfaceLanguage"
 msgstr "界面语言"
 
+msgid "options_group_theme"
+msgstr "主题"
+
+msgid "options_interfaceTheme"
+msgstr "界面主题"
+
+msgid "options_interfaceThemeLight"
+msgstr "浅色"
+
+msgid "options_interfaceThemeDark"
+msgstr "深色"
+
+msgid "options_interfaceThemeSystem"
+msgstr "系统"
+
 msgid "options_experimental_badge"
 msgstr "测试版"
 

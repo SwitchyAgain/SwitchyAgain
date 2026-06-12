@@ -8,7 +8,35 @@
 
 /* Dialog */
 
+:root {
+  --sa-dialog-bg: #fff;
+  --sa-dialog-text: #333;
+  --sa-dialog-muted: #737373;
+  --sa-dialog-danger: #a94442;
+  --sa-dialog-button-bg: #fff;
+  --sa-dialog-button-text: #333;
+  --sa-dialog-button-border: #ccc;
+  --sa-dialog-button-hover: #e6e6e6;
+  --sa-dialog-link: #337ab7;
+  --sa-dialog-link-hover: #23527c;
+}
+
+:root.theme-dark {
+  --sa-dialog-bg: #212529;
+  --sa-dialog-text: #dee2e6;
+  --sa-dialog-muted: #adb5bd;
+  --sa-dialog-danger: #ea868f;
+  --sa-dialog-button-bg: #2b3035;
+  --sa-dialog-button-text: #dee2e6;
+  --sa-dialog-button-border: #6c757d;
+  --sa-dialog-button-hover: #343a40;
+  --sa-dialog-link: #6ea8fe;
+  --sa-dialog-link-hover: #9ec5fe;
+}
+
 body, html {
+  background-color: var(--sa-dialog-bg);
+  color: var(--sa-dialog-text);
   margin: 0;
   padding: 0;
 }
@@ -24,14 +52,14 @@ p {
 }
 
   .om-text-danger {
-    color: #a94442;
+    color: var(--sa-dialog-danger);
   }
 
   .om-dialog-help {
     display: block;
     margin-top: 5px;
     margin-bottom: 10px;
-    color: #737373;
+    color: var(--sa-dialog-muted);
   }
 
   .om-dialog-controls {
@@ -74,19 +102,19 @@ p {
 }
 
 .om-btn-default {
-  color: #333;
-  background-color: #fff;
-  border-color: #ccc;
+  color: var(--sa-dialog-button-text);
+  background-color: var(--sa-dialog-button-bg);
+  border-color: var(--sa-dialog-button-border);
 }
 
 .om-btn-default:hover {
-  background-color: #e6e6e6;
-  border-color: #adadad;
+  background-color: var(--sa-dialog-button-hover);
+  border-color: var(--sa-dialog-button-border);
 }
 
 .om-btn-link {
   font-weight: 400;
-  color: #337ab7;
+  color: var(--sa-dialog-link);
   border-radius: 0;
   background-color: rgba(0, 0, 0, 0);
   -webkit-box-shadow: none;
@@ -95,7 +123,7 @@ p {
 }
 
 .om-btn-link:hover {
-  color: #23527c;
+  color: var(--sa-dialog-link-hover);
   text-decoration: underline;
   background-color: rgba(0, 0, 0, 0);
 }

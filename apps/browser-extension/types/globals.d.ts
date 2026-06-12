@@ -315,6 +315,7 @@ interface OmegaOptionsData extends Record<string, unknown> {
   '-enableQuickSwitch'?: boolean;
   '-quickSwitchProfiles'?: string[];
   '-refreshOnProfileChange'?: boolean;
+  '-uiTheme'?: string;
 }
 
 interface OmegaOptionsBase {
@@ -435,6 +436,8 @@ type PopupApiState = {
   proxyNotControllable?: string;
   refreshOnProfileChange?: boolean;
   showExternalProfile?: boolean;
+  uiLocale?: string;
+  uiTheme?: string;
   validResultProfiles?: string[];
 };
 

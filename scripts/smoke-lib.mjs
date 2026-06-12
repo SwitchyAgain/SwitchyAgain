@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
+import {createServer} from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import {createRequire} from 'node:module';
@@ -13,6 +14,82 @@ export function extensionFileUrl(relativePath, hash = '') {
   const url = pathToFileURL(path.join(extensionBuildDir, relativePath));
   url.hash = hash;
   return url.href;
+}
+
+function contentTypeForPath(filePath) {
+  switch (path.extname(filePath)) {
+    case '.css':
+      return 'text/css; charset=utf-8';
+    case '.html':
+      return 'text/html; charset=utf-8';
+    case '.js':
+    case '.mjs':
+      return 'text/javascript; charset=utf-8';
+    case '.json':
+      return 'application/json; charset=utf-8';
+    case '.png':
+      return 'image/png';
+    case '.woff2':
+      return 'font/woff2';
+    default:
+      return 'application/octet-stream';
+  }
+}
+
+function buildFilePath(urlPath) {
+  const relativePath = decodeURIComponent(urlPath).replace(/^\/+/, '') || 'options.html';
+  const filePath = path.resolve(extensionBuildDir, relativePath);
+  if (filePath !== extensionBuildDir && !filePath.startsWith(`${extensionBuildDir}${path.sep}`)) {
+    return null;
+  }
+  return filePath;
+}
+
+export async function serveExtensionBuild() {
+  const server = createServer((request, response) => {
+    const requestUrl = new URL(request.url || '/', 'http://127.0.0.1');
+    const filePath = buildFilePath(requestUrl.pathname);
+    if (!filePath) {
+      response.writeHead(403, {'content-type': 'text/plain; charset=utf-8'});
+      response.end('Forbidden');
+      return;
+    }
+    fs.readFile(filePath, (error, body) => {
+      if (error) {
+        response.writeHead(error.code === 'ENOENT' ? 404 : 500, {'content-type': 'text/plain; charset=utf-8'});
+        response.end(error.code === 'ENOENT' ? 'Not found' : 'Server error');
+        return;
+      }
+      response.writeHead(200, {'content-type': contentTypeForPath(filePath)});
+      response.end(body);
+    });
+  });
+
+  await new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', () => {
+      server.off('error', reject);
+      resolve();
+    });
+  });
+
+  const address = server.address();
+  if (!address || typeof address === 'string') {
+    throw new Error('Unable to start extension build server.');
+  }
+  const origin = `http://127.0.0.1:${address.port}`;
+  return {
+    close() {
+      return new Promise((resolve, reject) => {
+        server.close((error) => (error ? reject(error) : resolve()));
+      });
+    },
+    url(relativePath, hash = '') {
+      const url = new URL(relativePath.replace(/^\/+/, ''), `${origin}/`);
+      url.hash = hash;
+      return url.href;
+    }
+  };
 }
 
 export function assertExtensionBuild() {
@@ -36,6 +113,7 @@ export function defaultOptions() {
     '-enableQuickSwitch': false,
     '-refreshOnProfileChange': false,
     '-uiLocale': 'en',
+    '-uiTheme': 'light',
     '-startupProfileName': '',
     '-quickSwitchProfiles': [],
     '-revertProxyChanges': true,
@@ -123,6 +201,7 @@ export function popupStateForPath(pathname) {
     proxyNotControllable: pathname.includes('proxy_not_controllable') ? 'app' : '',
     refreshOnProfileChange: false,
     showExternalProfile: false,
+    uiTheme: 'light',
     validResultProfiles: ['direct', 'proxy']
   };
 }

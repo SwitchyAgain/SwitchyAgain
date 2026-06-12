@@ -13,6 +13,8 @@ import {
 } from './options_client';
 import {Profile, ProfileInline, ProfileSelect, allProfilesFromOptions, profileByName} from './profile_widgets';
 import {cloneOptions} from './options_logic';
+import {UI_THEME_ICON, UI_THEMES, uiThemeForOptions} from './ui_theme';
+import type {UiTheme} from './ui_theme';
 import {
   moveQuickSwitchProfileName,
   notCycledProfileNames,
@@ -83,6 +85,63 @@ function UiLocaleSelect({value, onChange}: {value: string; onChange: (value: str
                 }}
               >
                 <span>{locale.label}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function UiThemeSelect({value, onChange}: {value: UiTheme; onChange: (value: UiTheme) => void}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const selectedTheme = UI_THEMES.find((theme) => theme.value === value) || UI_THEMES[0];
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    function closeOnOutsidePointer(event: MouseEvent | TouchEvent) {
+      if (rootRef.current?.contains(event.target as Node)) {
+        return;
+      }
+      setOpen(false);
+    }
+    document.addEventListener('mousedown', closeOnOutsidePointer);
+    document.addEventListener('touchstart', closeOnOutsidePointer);
+    return () => {
+      document.removeEventListener('mousedown', closeOnOutsidePointer);
+      document.removeEventListener('touchstart', closeOnOutsidePointer);
+    };
+  }, [open]);
+
+  return (
+    <div ref={rootRef} className={`btn-group omega-profile-select ui-theme-select ${open ? 'open' : ''}`}>
+      <button
+        id="react-ui-theme"
+        type="button"
+        className="btn btn-default dropdown-toggle"
+        aria-expanded={open ? 'true' : 'false'}
+        aria-haspopup="true"
+        role="listbox"
+        onClick={() => setOpen(!open)}
+      >
+        <span className={`glyphicon ${UI_THEME_ICON}`} />{' '}
+        <span>{message(selectedTheme.messageKey, selectedTheme.fallback)}</span> <span className="caret" />
+      </button>
+      {open && (
+        <ul className="dropdown-menu" role="listbox">
+          {UI_THEMES.map((theme) => (
+            <li key={theme.value} role="option" className={value === theme.value ? 'active' : ''}>
+              <a
+                onClick={() => {
+                  onChange(theme.value);
+                  setOpen(false);
+                }}
+              >
+                <span>{message(theme.messageKey, theme.fallback)}</span>
               </a>
             </li>
           ))}
@@ -314,6 +373,14 @@ export function UiSettings({embedded = false, options, onOptionsChange, onOpenSh
             value={String(draftOptions['-uiLocale'] || uiLocaleForOptions(draftOptions))}
             onChange={(value) => updateOption('-uiLocale', value)}
           />
+        </div>
+      </section>
+
+      <section className="settings-group">
+        <h3>{message('options_group_theme', 'Theme')}</h3>
+        <div className="form-group">
+          <label>{message('options_interfaceTheme', 'Interface theme')}</label>{' '}
+          <UiThemeSelect value={uiThemeForOptions(draftOptions)} onChange={(value) => updateOption('-uiTheme', value)} />
         </div>
       </section>
 

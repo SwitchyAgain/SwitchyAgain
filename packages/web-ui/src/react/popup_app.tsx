@@ -39,6 +39,7 @@ import {
   visibleResultProfiles
 } from './popup_logic';
 import type {RouteInfoGroup} from './popup_logic';
+import {applyUiTheme} from './ui_theme';
 
 function displayProfileName(profile?: Profile, override?: string) {
   if (override) {
@@ -198,6 +199,7 @@ function PopupApp() {
             'refreshOnProfileChange',
             'showExternalProfile',
             'uiLocale',
+            'uiTheme',
             'validResultProfiles'
           ]),
           getPopupPageInfo()
@@ -209,6 +211,7 @@ function PopupApp() {
           return;
         }
         return setUiLocale(nextState.uiLocale).then(() => {
+          applyUiTheme(nextState.uiTheme);
           setState(nextState);
           setPageInfo(nextPageInfo);
         });

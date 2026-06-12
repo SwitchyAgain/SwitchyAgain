@@ -47,6 +47,7 @@ export type PopupState = {
   refreshOnProfileChange?: boolean;
   showExternalProfile?: boolean;
   uiLocale?: string;
+  uiTheme?: string;
   validResultProfiles?: string[];
 };
 

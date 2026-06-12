@@ -224,6 +224,21 @@ msgstr "Language"
 msgid "options_interfaceLanguage"
 msgstr "Interface language"
 
+msgid "options_group_theme"
+msgstr "Theme"
+
+msgid "options_interfaceTheme"
+msgstr "Interface theme"
+
+msgid "options_interfaceThemeLight"
+msgstr "Light"
+
+msgid "options_interfaceThemeDark"
+msgstr "Dark"
+
+msgid "options_interfaceThemeSystem"
+msgstr "System"
+
 msgid "options_experimental_badge"
 msgstr "α"
 

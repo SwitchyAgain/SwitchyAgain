@@ -1,13 +1,15 @@
 import React, {useEffect, useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import {closePopup, popupMessage, popupTarget} from './popup_target';
+import {applyUiTheme} from './ui_theme';
 
 function ProxyNotControllableDialog() {
   const [mainText, setMainText] = useState('');
   const [detailsText, setDetailsText] = useState('');
 
   useEffect(() => {
-    popupTarget().getState?.(['proxyNotControllable'], (_error, state) => {
+    popupTarget().getState?.(['proxyNotControllable', 'uiTheme'], (_error, state) => {
+      applyUiTheme(state?.uiTheme);
       const reason = state?.proxyNotControllable || '';
       setMainText(popupMessage(`popup_proxyNotControllable_${reason}`));
       setDetailsText(popupMessage(`popup_proxyNotControllableDetails_${reason}`) || popupMessage('popup_proxyNotControllableDetails'));

@@ -32,7 +32,8 @@ function optionsFixture(): Options {
     '-showConditionTypes': 0,
     '-showInspectMenu': true,
     '-startupProfileName': '',
-    '-uiLocale': 'en'
+    '-uiLocale': 'en',
+    '-uiTheme': 'light'
   };
 }
 
@@ -48,6 +49,9 @@ function createDataTransfer() {
 
 afterEach(() => {
   cleanup();
+  document.documentElement.classList.remove('theme-dark', 'theme-light');
+  delete document.documentElement.dataset.effectiveTheme;
+  delete document.documentElement.dataset.uiTheme;
 });
 
 beforeEach(() => {
@@ -81,7 +85,18 @@ describe('ui settings component', () => {
       })
     );
 
-    fireEvent.click(container.querySelector('.omega-profile-select:not(.ui-locale-select) button') as HTMLButtonElement);
+    fireEvent.click(container.querySelector('#react-ui-theme') as HTMLButtonElement);
+    expect(container.querySelector('#react-ui-theme .glyphicon-adjust')).toBeTruthy();
+    expect(container.querySelector('.ui-theme-select .dropdown-menu .glyphicon')).toBeNull();
+    fireEvent.click(screen.getByRole('option', {name: 'Dark'}).querySelector('a') as HTMLAnchorElement);
+    expect(onOptionsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        '-uiTheme': 'dark'
+      })
+    );
+    expect(document.documentElement.classList.contains('theme-dark')).toBe(false);
+
+    fireEvent.click(container.querySelector('.omega-profile-select:not(.ui-locale-select):not(.ui-theme-select) button') as HTMLButtonElement);
     fireEvent.click(screen.getByRole('option', {name: 'proxy'}).querySelector('a') as HTMLAnchorElement);
     expect(onOptionsChange).toHaveBeenLastCalledWith(
       expect.objectContaining({

@@ -1,4 +1,5 @@
 import type {OptionsData} from './profile_types';
+import {applyUiTheme, uiThemeForOptions} from './ui_theme';
 
 export type Options = OptionsData;
 export type OptionsPatch = Record<string, unknown>;
@@ -304,7 +305,8 @@ export async function setUiLocale(locale: unknown) {
   return nextLocale;
 }
 
-async function applyOptionsLocale(options: Options) {
+async function applyOptionsUi(options: Options) {
+  applyUiTheme(uiThemeForOptions(options));
   await setUiLocale(uiLocaleForOptions(options));
   return options;
 }
@@ -403,11 +405,11 @@ export function decodeBackgroundError(error: unknown): BackgroundError | unknown
 }
 
 export function loadOptions() {
-  return callBackground('getAll').then(applyOptionsLocale);
+  return callBackground('getAll').then(applyOptionsUi);
 }
 
 export function patchOptions(patch: OptionsPatch) {
-  return callBackground('patch', patch).then(applyOptionsLocale);
+  return callBackground('patch', patch).then(applyOptionsUi);
 }
 
 export function patchAndLoadOptions(patch: Options) {
@@ -415,7 +417,7 @@ export function patchAndLoadOptions(patch: Options) {
 }
 
 export function resetOptions(options?: Options | string) {
-  return callBackground('reset', options).then(applyOptionsLocale);
+  return callBackground('reset', options).then(applyOptionsUi);
 }
 
 export function setOptionsSync(enabled: boolean, args?: unknown) {

@@ -4,6 +4,7 @@ export default function defaultOptions() {
     '-enableQuickSwitch': false,
     '-refreshOnProfileChange': false,
     '-uiLocale': 'en',
+    '-uiTheme': 'light',
     '-startupProfileName': '',
     '-quickSwitchProfiles': [] as string[],
     '-revertProxyChanges': true,

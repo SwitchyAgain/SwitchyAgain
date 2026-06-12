@@ -181,6 +181,21 @@ msgstr "Gjenopprett"
 msgid "options_title"
 msgstr "SwitchyAgain Options"
 
+msgid "options_group_theme"
+msgstr "Tema"
+
+msgid "options_interfaceTheme"
+msgstr "Grensesnitt-tema"
+
+msgid "options_interfaceThemeLight"
+msgstr "Lyst"
+
+msgid "options_interfaceThemeDark"
+msgstr "Mørkt"
+
+msgid "options_interfaceThemeSystem"
+msgstr "System"
+
 msgid "options_experimental_badge"
 msgstr "α"
 

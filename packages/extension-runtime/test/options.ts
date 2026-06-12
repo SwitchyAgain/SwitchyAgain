@@ -106,18 +106,35 @@ describe('Options', function() {
       }).then(([upgraded, changes]: any[]) => {
         assert.strictEqual(upgraded['-uiLocale'], 'en');
         assert.strictEqual(changes['-uiLocale'], 'en');
+        assert.strictEqual(upgraded['-uiTheme'], 'light');
+        assert.strictEqual(changes['-uiTheme'], 'light');
       });
     });
 
-    it('should normalize unsupported UI locales during upgrade', function() {
+    it('should normalize unsupported UI locales and themes during upgrade', function() {
       const options = Object.create(Options.prototype);
       options.defaultUiLocale = () => 'es';
       return options.upgrade({
         schemaVersion: 3,
-        '-uiLocale': 'de'
+        '-uiLocale': 'de',
+        '-uiTheme': 'unknown'
       }).then(([upgraded, changes]: any[]) => {
         assert.strictEqual(upgraded['-uiLocale'], 'es');
         assert.strictEqual(changes['-uiLocale'], 'es');
+        assert.strictEqual(upgraded['-uiTheme'], 'light');
+        assert.strictEqual(changes['-uiTheme'], 'light');
+      });
+    });
+
+    it('should preserve supported UI themes during upgrade', function() {
+      const options = Object.create(Options.prototype);
+      return options.upgrade({
+        schemaVersion: 3,
+        '-uiLocale': 'en',
+        '-uiTheme': 'system'
+      }).then(([upgraded, changes]: any[]) => {
+        assert.strictEqual(upgraded['-uiTheme'], 'system');
+        assert.strictEqual(changes['-uiTheme'], undefined);
       });
     });
   });

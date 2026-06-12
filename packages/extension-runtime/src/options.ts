@@ -48,6 +48,7 @@ const attachedRuleListPrefix = '__ruleListOf_';
 const hasProp = Object.prototype.hasOwnProperty;
 const optionNumber = (value: unknown) => Number(value);
 const supportedUiLocales = new Set(['en', 'zh-Hans', 'zh-Hant', 'es', 'ru', 'cs', 'fa']);
+const supportedUiThemes = new Set(['light', 'dark', 'system']);
 
 function isRecordValue(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object';
@@ -570,6 +571,11 @@ class Options {
         changes['-uiLocale'] = uiLocale;
         options['-uiLocale'] = uiLocale;
       }
+      const uiTheme = this.normalizeUiTheme(options['-uiTheme']);
+      if (options['-uiTheme'] !== uiTheme) {
+        changes['-uiTheme'] = uiTheme;
+        options['-uiTheme'] = uiTheme;
+      }
       return Promise.resolve([options, changes]);
     } else {
       return Promise.reject(new Error("Invalid schemaVersion " + version + "!"));
@@ -679,6 +685,14 @@ class Options {
       }
     }
     return this.defaultUiLocale();
+  }
+
+  defaultUiTheme(): string {
+    return 'light';
+  }
+
+  normalizeUiTheme(value: unknown): string {
+    return typeof value === 'string' && supportedUiThemes.has(value) ? value : this.defaultUiTheme();
   }
 
 
@@ -807,6 +821,11 @@ class Options {
         if ((changes['-uiLocale'] != null) || changes === this._options) {
           this._state.set({
             'uiLocale': this._options['-uiLocale']
+          });
+        }
+        if ((changes['-uiTheme'] != null) || changes === this._options) {
+          this._state.set({
+            'uiTheme': this._options['-uiTheme']
           });
         }
         if (Object.prototype.hasOwnProperty.call(changes, '-showExternalProfile')) {

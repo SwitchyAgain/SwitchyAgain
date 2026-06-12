@@ -26,14 +26,16 @@
   margin-right: 8px;
 }
 
-.ui-locale-select {
+.ui-locale-select,
+.ui-theme-select {
   display: inline-block;
   min-width: 120px;
   vertical-align: middle;
   width: auto;
 }
 
-.ui-locale-select .dropdown-menu {
+.ui-locale-select .dropdown-menu,
+.ui-theme-select .dropdown-menu {
   min-width: 0;
 }
 

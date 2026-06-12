@@ -3,13 +3,13 @@ import {
   defaultOptions,
   expectSelector,
   expectText,
-  extensionFileUrl,
   installBrowserErrorGuards,
   loadEnglishMessages,
   loadPlaywright,
   loadManifest,
   popupPageInfo,
-  popupStateForPath
+  popupStateForPath,
+  serveExtensionBuild
 } from './smoke-lib.mjs';
 
 assertExtensionBuild();
@@ -25,6 +25,7 @@ const browserType = loadPlaywright()[browserName];
 if (!browserType) {
   throw new Error(`Playwright browser type ${browserName} is unavailable.`);
 }
+const extensionServer = await serveExtensionBuild();
 
 function messageForKey(key, substitutions) {
   let text = messages[key]?.message || '';
@@ -54,7 +55,7 @@ async function installExtensionApi(page) {
     const runtime = {
       id: 'switchyagain-smoke',
       getManifest: () => mockManifest,
-      getURL: (relativePath) => new URL(relativePath, window.location.href).href,
+      getURL: (relativePath) => new URL(String(relativePath || '').replace(/^\/+/, ''), `${window.location.origin}/`).href,
       lastError: null,
       sendMessage(message, callback) {
         const method = message?.method;
@@ -244,59 +245,59 @@ async function runPage(page, target) {
 const pages = [
   {
     label: 'options about route',
-    url: extensionFileUrl('options.html', '#/about'),
+    url: extensionServer.url('options.html', '#/about'),
     text: messageForKey('about_title') || 'About'
   },
   {
     label: 'options ui route',
-    url: extensionFileUrl('options.html', '#/ui'),
+    url: extensionServer.url('options.html', '#/ui'),
     text: messageForKey('options_tab_ui') || 'Interface'
   },
   {
     label: 'options general route',
-    url: extensionFileUrl('options.html', '#/general'),
+    url: extensionServer.url('options.html', '#/general'),
     text: messageForKey('options_tab_general') || 'General'
   },
   {
     label: 'options route trace route',
-    url: extensionFileUrl('options.html', '#/routeTrace'),
+    url: extensionServer.url('options.html', '#/routeTrace'),
     text: messageForKey('options_tab_routeTrace') || 'Route Trace'
   },
   {
     label: 'options import/export route',
-    url: extensionFileUrl('options.html', '#/io'),
+    url: extensionServer.url('options.html', '#/io'),
     text: messageForKey('options_tab_importExport') || 'Import/Export'
   },
   {
     label: 'standalone about page',
-    url: extensionFileUrl('react/about.html'),
+    url: extensionServer.url('react/about.html'),
     text: messageForKey('about_title') || 'About'
   },
   {
     label: 'standalone ui page',
-    url: extensionFileUrl('react/ui.html'),
+    url: extensionServer.url('react/ui.html'),
     text: messageForKey('options_tab_ui') || 'Interface'
   },
   {
     label: 'standalone general page',
-    url: extensionFileUrl('react/general.html'),
+    url: extensionServer.url('react/general.html'),
     text: messageForKey('options_tab_general') || 'General'
   },
   {
     label: 'standalone import/export page',
-    url: extensionFileUrl('react/import_export.html'),
+    url: extensionServer.url('react/import_export.html'),
     text: messageForKey('options_tab_importExport') || 'Import/Export'
   },
   {
     label: 'popup menu page',
     popup: true,
-    url: extensionFileUrl('popup/index.html'),
+    url: extensionServer.url('popup/index.html'),
     selector: '#js-option'
   },
   {
     label: 'popup route info page',
     popup: true,
-    url: extensionFileUrl('popup/index.html'),
+    url: extensionServer.url('popup/index.html'),
     selector: '#js-routeinfo',
     click: '#js-routeinfo',
     afterClickSelector: '.om-route-info'
@@ -304,13 +305,14 @@ const pages = [
   {
     label: 'popup proxy-not-controllable page',
     popup: true,
-    url: extensionFileUrl('popup/proxy_not_controllable.html'),
+    url: extensionServer.url('popup/proxy_not_controllable.html'),
     selector: '#js-manage-ext'
   }
 ];
 
-const browser = await browserType.launch();
+let browser;
 try {
+  browser = await browserType.launch();
   for (const target of pages) {
     const page = await browser.newPage();
     try {
@@ -320,5 +322,6 @@ try {
     }
   }
 } finally {
-  await browser.close();
+  await browser?.close();
+  await extensionServer.close();
 }

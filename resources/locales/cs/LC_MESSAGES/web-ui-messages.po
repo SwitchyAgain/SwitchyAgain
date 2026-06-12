@@ -225,6 +225,21 @@ msgstr "Jazyk"
 msgid "options_interfaceLanguage"
 msgstr "Jazyk rozhraní"
 
+msgid "options_group_theme"
+msgstr "Motiv"
+
+msgid "options_interfaceTheme"
+msgstr "Motiv rozhraní"
+
+msgid "options_interfaceThemeLight"
+msgstr "Světlý"
+
+msgid "options_interfaceThemeDark"
+msgstr "Tmavý"
+
+msgid "options_interfaceThemeSystem"
+msgstr "Systém"
+
 msgid "options_experimental_badge"
 msgstr "α"
 

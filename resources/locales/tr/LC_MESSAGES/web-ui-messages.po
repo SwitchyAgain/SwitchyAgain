@@ -189,6 +189,21 @@ msgstr "Eski Haline Getir"
 msgid "options_title"
 msgstr "SwitchyAgain Options"
 
+msgid "options_group_theme"
+msgstr "Tema"
+
+msgid "options_interfaceTheme"
+msgstr "Arayüz teması"
+
+msgid "options_interfaceThemeLight"
+msgstr "Açık"
+
+msgid "options_interfaceThemeDark"
+msgstr "Koyu"
+
+msgid "options_interfaceThemeSystem"
+msgstr "Sistem"
+
 msgid "options_experimental_badge"
 msgstr "α"
 
