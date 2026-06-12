@@ -1,6 +1,7 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {message} from './options_client';
 import {PROFILE_ICONS, Profile} from './profile_widgets';
+import {profileNameErrors, profileNameValid} from './profile_modals_logic';
 import type {ProfileType} from './profile_types';
 
 export type RenameProfileProps = {
@@ -34,19 +35,6 @@ export type ProxyAuthProps = {
   protocolDisp?: string;
 };
 
-function profileNameErrors(
-  name: string,
-  fromName: string,
-  isProfileNameReserved?: (name: string) => boolean,
-  profileByName?: (name: string) => Profile | null
-) {
-  return {
-    conflict: Boolean(name && name !== fromName && profileByName?.(name)),
-    required: !name,
-    reserved: Boolean(name && isProfileNameReserved?.(name))
-  };
-}
-
 function ProfileNameField({
   fromName = '',
   isProfileNameHidden,
@@ -70,7 +58,7 @@ function ProfileNameField({
     name,
     profileByName
   ]);
-  const valid = !errors.required && !errors.reserved && !errors.conflict;
+  const valid = profileNameValid(errors);
   const hidden = valid && Boolean(name && isProfileNameHidden?.(name));
 
   return (
@@ -127,7 +115,7 @@ export function RenameProfileModal({
     profileByName,
     trimmedName
   ]);
-  const valid = !errors.required && !errors.reserved && !errors.conflict;
+  const valid = profileNameValid(errors);
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -235,7 +223,7 @@ export function NewProfileModal({
     name,
     profileByName
   ]);
-  const valid = !errors.required && !errors.reserved && !errors.conflict;
+  const valid = profileNameValid(errors);
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
