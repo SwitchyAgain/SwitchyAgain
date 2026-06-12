@@ -1,9 +1,11 @@
 import {
   cloneOptions,
+  cloneAuth,
   deleteAttachedProfileOption,
   deleteProfileOption,
   exportRuleListOptions,
   getParentName,
+  hasProxyScriptApi,
   isErrorResult,
   isPatchEmpty,
   isProfileNameHidden,
@@ -13,6 +15,7 @@ import {
   profileDraft,
   profileOption,
   profileUpdating,
+  proxyAuthSupported,
   safeProfileFileName,
   setProfileOption,
   updateProfileError,
@@ -23,6 +26,7 @@ import type {Profile} from '../src/react/profile_types';
 
 beforeEach(() => {
   delete (globalThis as any).OmegaPac;
+  delete (globalThis as any).browser;
 });
 
 describe('options logic', () => {
@@ -115,6 +119,43 @@ describe('options logic', () => {
     expect(updateProfileError({
       '+other': fallback
     }, 'proxy')).toBe(fallback);
+  });
+
+  it('detects proxy authentication and proxy script API support', () => {
+    expect(proxyAuthSupported('http')).toBe(true);
+    expect(proxyAuthSupported('https')).toBe(true);
+    expect(proxyAuthSupported('socks4')).toBe(false);
+    expect(proxyAuthSupported('socks5')).toBe(false);
+    expect(hasProxyScriptApi()).toBe(false);
+
+    (globalThis as any).browser = {
+      proxy: {
+        register() {}
+      }
+    };
+    expect(proxyAuthSupported('socks5')).toBe(true);
+    expect(hasProxyScriptApi()).toBe(true);
+
+    (globalThis as any).browser = {
+      proxy: {
+        registerProxyScript() {}
+      }
+    };
+    expect(proxyAuthSupported('socks5')).toBe(false);
+    expect(hasProxyScriptApi()).toBe(true);
+  });
+
+  it('clones proxy auth records when present', () => {
+    const auth = {
+      password: 'pass',
+      username: 'user'
+    };
+
+    const cloned = cloneAuth(auth);
+
+    expect(cloned).toEqual(auth);
+    expect(cloned).not.toBe(auth);
+    expect(cloneAuth()).toBeUndefined();
   });
 
   it('handles profile names and file-safe names', () => {

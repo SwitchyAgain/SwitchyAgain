@@ -1,8 +1,17 @@
 import type {BackgroundError, Options, ProfileUpdateResults} from './options_client';
-import type {Profile as ProfileModel} from './profile_types';
+import type {Profile as ProfileModel, ProfileAuth} from './profile_types';
 import {createAttachedName, profileKey} from './switch_profile_runtime';
 
 const CHAR_CODE_UNDERSCORE = '_'.charCodeAt(0);
+
+type GlobalWithBrowserProxy = typeof globalThis & {
+  browser?: {
+    proxy?: {
+      register?: unknown;
+      registerProxyScript?: unknown;
+    };
+  };
+};
 
 export function cloneOptions<T>(options: T): T {
   return JSON.parse(JSON.stringify(options));
@@ -49,6 +58,25 @@ export function updateProfileError(results: ProfileUpdateResults | undefined, na
     return primaryResult;
   }
   return Object.values(results || {}).find(isErrorResult);
+}
+
+export function proxyAuthSupported(protocol?: string) {
+  if (protocol === 'http' || protocol === 'https') {
+    return true;
+  }
+  if (protocol === 'socks5') {
+    return Boolean((globalThis as GlobalWithBrowserProxy).browser?.proxy?.register);
+  }
+  return false;
+}
+
+export function cloneAuth(auth?: ProfileAuth) {
+  return auth ? cloneOptions(auth) : undefined;
+}
+
+export function hasProxyScriptApi() {
+  const proxy = (globalThis as GlobalWithBrowserProxy).browser?.proxy;
+  return Boolean(proxy?.register || proxy?.registerProxyScript);
 }
 
 export function isProfileNameHidden(name: string) {

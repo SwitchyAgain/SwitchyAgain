@@ -22,10 +22,12 @@ import {
 import {OptionsAlert, OptionsShell} from './options_shell';
 import {
   cloneOptions,
+  cloneAuth,
   deleteAttachedProfileOption,
   deleteProfileOption,
   exportRuleListOptions,
   getParentName,
+  hasProxyScriptApi,
   isPatchEmpty,
   isProfileNameHidden,
   isProfileNameReserved,
@@ -35,6 +37,7 @@ import {
   profileDraft,
   profileOption,
   profileUpdating,
+  proxyAuthSupported,
   safeProfileFileName,
   setProfileOption,
   sameValue,
@@ -124,15 +127,6 @@ type AlertState = {
   message?: string;
   type?: string;
 } | null;
-
-type WindowWithBrowserProxy = Window & {
-  browser?: {
-    proxy?: {
-      register?: unknown;
-      registerProxyScript?: unknown;
-    };
-  };
-};
 
 type ModalState =
   | {
@@ -234,25 +228,6 @@ function referencedProfiles(profileName: string, options: Options): Profile[] {
   return Object.keys(refSet)
     .map((key) => OmegaPac.Profiles.byKey?.(key, options) || profileByName(options, refSet[key]))
     .filter(isNamedProfile);
-}
-
-function proxyAuthSupported(protocol?: string) {
-  if (protocol === 'http' || protocol === 'https') {
-    return true;
-  }
-  if (protocol === 'socks5') {
-    return Boolean((window as WindowWithBrowserProxy).browser?.proxy?.register);
-  }
-  return false;
-}
-
-function cloneAuth(auth?: ProfileAuth) {
-  return auth ? cloneOptions(auth) : undefined;
-}
-
-function hasProxyScriptApi() {
-  const proxy = (window as WindowWithBrowserProxy).browser?.proxy;
-  return Boolean(proxy?.register || proxy?.registerProxyScript);
 }
 
 function firstFixedProfileName(options: Options) {
