@@ -101,14 +101,7 @@ describe('profile widgets model helpers', () => {
   it('sorts profiles by type and then name', () => {
     const sorted = profilesForFilter(optionsFixture(), 'sorted').map((profile) => profile.name);
 
-    expect(sorted).toEqual([
-      '_internal',
-      'fixed',
-      'pac',
-      'virtual',
-      'auto',
-      'rules'
-    ]);
+    expect(sorted).toEqual(['_internal', 'fixed', 'pac', 'virtual', 'auto', 'rules']);
   });
 
   it('finds profiles by name with optional type guards', () => {
@@ -147,9 +140,6 @@ describe('profile widgets model helpers', () => {
   });
 
   it('keeps profileOrder deterministic within a profile type', () => {
-    expect(profileOrder(
-      {name: 'beta', profileType: 'FixedProfile'},
-      {name: 'alpha', profileType: 'FixedProfile'}
-    )).toBeGreaterThan(0);
+    expect(profileOrder({name: 'beta', profileType: 'FixedProfile'}, {name: 'alpha', profileType: 'FixedProfile'})).toBeGreaterThan(0);
   });
 });

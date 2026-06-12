@@ -38,11 +38,13 @@ describe('profile widget components', () => {
   it('renders inline profile labels with localized builtin names', () => {
     const {container} = render(
       <>
-        <ProfileInline profile={{
-          builtin: true,
-          name: 'direct',
-          profileType: 'DirectProfile'
-        }} />
+        <ProfileInline
+          profile={{
+            builtin: true,
+            name: 'direct',
+            profileType: 'DirectProfile'
+          }}
+        />
         <ProfileInline profile={profiles[0]} />
       </>
     );
@@ -53,13 +55,7 @@ describe('profile widget components', () => {
 
   it('opens profile choices and emits selected profile names', () => {
     const onChange = vi.fn();
-    const {container} = render(
-      <ProfileSelect
-        name="proxy"
-        onChange={onChange}
-        profiles={profiles}
-      />
-    );
+    const {container} = render(<ProfileSelect name="proxy" onChange={onChange} profiles={profiles} />);
 
     fireEvent.click(screen.getByRole('listbox'));
     expect(container.querySelector('.omega-profile-select.open')).toBeTruthy();
@@ -72,14 +68,7 @@ describe('profile widget components', () => {
 
   it('supports default choices and closes on outside pointer input', () => {
     const onChange = vi.fn();
-    const {container} = render(
-      <ProfileSelect
-        defaultText="Current profile"
-        name=""
-        onChange={onChange}
-        profiles={profiles}
-      />
-    );
+    const {container} = render(<ProfileSelect defaultText="Current profile" name="" onChange={onChange} profiles={profiles} />);
 
     fireEvent.click(screen.getByRole('listbox'));
     fireEvent.mouseDown(document.body);

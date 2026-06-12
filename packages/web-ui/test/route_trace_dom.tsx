@@ -93,7 +93,9 @@ describe('route trace component', () => {
       url: 'https://example.com/path?x=1'
     });
     expect(await screen.findByText('Result')).toBeTruthy();
-    expect(screen.getByText('Temporary rules are active; requests are checked against temporary rules before the current profile.')).toBeTruthy();
+    expect(
+      screen.getByText('Temporary rules are active; requests are checked against temporary rules before the current profile.')
+    ).toBeTruthy();
     expect(screen.getByText('PAC scripts are delegated to the browser and cannot be fully expanded here.')).toBeTruthy();
     expect(screen.getByText('*.example.com')).toBeTruthy();
     expect(screen.getByRole('heading', {name: 'Trace'})).toBeTruthy();

@@ -11,11 +11,7 @@ import {
   updateConditionField,
   updateRuleWeekday
 } from '../src/react/switch_profile_runtime';
-import type {
-  AttachedOptions,
-  SwitchProfileModel,
-  SwitchRule
-} from '../src/react/switch_profile_runtime';
+import type {AttachedOptions, SwitchProfileModel, SwitchRule} from '../src/react/switch_profile_runtime';
 import type {RuleListProfileModel} from '../src/react/profile_types';
 
 function installOmegaPacMock() {

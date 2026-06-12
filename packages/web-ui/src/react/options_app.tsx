@@ -132,45 +132,45 @@ type AlertState = {
 
 type ModalState =
   | {
-    kind: 'applyOptions';
-  }
+      kind: 'applyOptions';
+    }
   | {
-    kind: 'cannotDeleteProfile';
-    profile: Profile;
-    refs: Profile[];
-  }
+      kind: 'cannotDeleteProfile';
+      profile: Profile;
+      refs: Profile[];
+    }
   | {
-    kind: 'deleteProfile';
-    profile: Profile;
-  }
+      kind: 'deleteProfile';
+      profile: Profile;
+    }
   | {
-    kind: 'newProfile';
-  }
+      kind: 'newProfile';
+    }
   | {
-    fromName: string;
-    kind: 'renameProfile';
-  }
+      fromName: string;
+      kind: 'renameProfile';
+    }
   | {
-    kind: 'resetOptions';
-  }
+      kind: 'resetOptions';
+    }
   | {
-    auth?: ProfileAuth;
-    authKey: ProfileAuthKey;
-    authSupported: boolean;
-    kind: 'proxyAuth';
-    profileName: string;
-    protocolDisp: string;
-  }
+      auth?: ProfileAuth;
+      authKey: ProfileAuthKey;
+      authSupported: boolean;
+      kind: 'proxyAuth';
+      profileName: string;
+      protocolDisp: string;
+    }
   | {
-    fromName: string;
-    kind: 'replaceProfile';
-    toName: string;
-  }
+      fromName: string;
+      kind: 'replaceProfile';
+      toName: string;
+    }
   | {
-    kind: 'welcome';
-    profileName: string;
-    upgrade: boolean;
-  }
+      kind: 'welcome';
+      profileName: string;
+      upgrade: boolean;
+    }
   | null;
 
 const PROFILE_COLORS = ['#9ce', '#9d9', '#fa8', '#fe9', '#d497ee', '#47b', '#5b5', '#d63', '#ca0'];
@@ -179,13 +179,7 @@ const FIXED_PROXY_AUTH_KEYS: Record<FixedProfileScheme, FixedProfileProxyField> 
   http: 'proxyForHttp',
   https: 'proxyForHttps'
 };
-function ModalFrame({
-  children,
-  onDismiss
-}: {
-  children: React.ReactNode;
-  onDismiss: () => void;
-}) {
+function ModalFrame({children, onDismiss}: {children: React.ReactNode; onDismiss: () => void}) {
   return (
     <>
       <div className="modal-backdrop fade in" />
@@ -308,66 +302,90 @@ function SwitchProfilePreview({
       loadRules
       onApplySource={applySource}
       onAddRule={() => mutateProfile((nextProfile) => addRule(nextProfile, attachedOptions.defaultProfileName))}
-      onAttachNew={() => updateOptionsDraft((nextOptions) => {
-        const nextProfile = profileOption<SwitchProfileModel>(nextOptions, profile.name);
-        if (!nextProfile) {
-          return;
-        }
-        attachNew(nextOptions, identity.attachedKey, nextProfile, identity.attachedName, attachedOptions);
-        updateProfileRevision(nextProfile);
-      })}
-      onAttachedChange={updateAttachedSourceField}
-      onAttachedEnabledChange={(enabled) => mutateProfile((nextProfile) => {
-        setAttachedEnabled(nextProfile, attached, identity.attachedName, attachedOptions, enabled, attachedOptions.enabled);
-      })}
-      onAttachedMatchProfileChange={(name) => mutateAttached((nextAttached) => {
-        nextAttached.matchProfileName = name;
-      })}
-      onCloneRule={(index) => mutateProfile((nextProfile) => cloneRule(nextProfile, index))}
-      onConditionFieldChange={(index, field, value) => mutateProfile((nextProfile) => {
-        updateConditionField(nextProfile.rules?.[index], field, value);
-      })}
-      onConditionTypeChange={(index, type) => mutateProfile((nextProfile) => {
-        updateConditionType(nextProfile.rules?.[index], type);
-      })}
-      onDefaultProfileChange={(name) => updateOptionsDraft((nextOptions) => {
-        const nextProfile = profileOption<SwitchProfileModel>(nextOptions, profile.name);
-        if (!nextProfile) {
-          return;
-        }
-        const nextAttached = attachedProfileOption(nextOptions, identity) || null;
-        setDefaultProfile(nextProfile, nextAttached, attachedOptions, name);
-        if (nextAttached) {
-          updateProfileRevision(nextAttached);
-        }
-        updateProfileRevision(nextProfile);
-      })}
-      onDownload={onDownload}
-      onIpConditionInputChange={(index, value) => mutateProfile((nextProfile) => {
-        updateIpCondition(nextProfile.rules?.[index], value);
-      })}
-      onMoveRule={(fromIndex, toIndex) => mutateProfile((nextProfile) => {
-        moveRule(nextProfile.rules || [], fromIndex, toIndex);
-      })}
-      onNoteChange={(index, note) => mutateProfile((nextProfile) => {
-        updateRuleNote(nextProfile.rules?.[index], note);
-      })}
-      onProfileChange={(index, name) => mutateProfile((nextProfile) => {
-        updateRuleProfile(nextProfile.rules?.[index], name);
-      })}
-      onRemoveAttached={() => updateOptionsDraft((nextOptions) => {
-        const nextProfile = profileOption<SwitchProfileModel>(nextOptions, profile.name);
-        const nextAttached = attachedProfileOption(nextOptions, identity);
-        if (nextProfile && nextAttached) {
-          removeAttached(nextOptions, identity.attachedKey, nextProfile, nextAttached);
+      onAttachNew={() =>
+        updateOptionsDraft((nextOptions) => {
+          const nextProfile = profileOption<SwitchProfileModel>(nextOptions, profile.name);
+          if (!nextProfile) {
+            return;
+          }
+          attachNew(nextOptions, identity.attachedKey, nextProfile, identity.attachedName, attachedOptions);
           updateProfileRevision(nextProfile);
-        }
-      })}
+        })
+      }
+      onAttachedChange={updateAttachedSourceField}
+      onAttachedEnabledChange={(enabled) =>
+        mutateProfile((nextProfile) => {
+          setAttachedEnabled(nextProfile, attached, identity.attachedName, attachedOptions, enabled, attachedOptions.enabled);
+        })
+      }
+      onAttachedMatchProfileChange={(name) =>
+        mutateAttached((nextAttached) => {
+          nextAttached.matchProfileName = name;
+        })
+      }
+      onCloneRule={(index) => mutateProfile((nextProfile) => cloneRule(nextProfile, index))}
+      onConditionFieldChange={(index, field, value) =>
+        mutateProfile((nextProfile) => {
+          updateConditionField(nextProfile.rules?.[index], field, value);
+        })
+      }
+      onConditionTypeChange={(index, type) =>
+        mutateProfile((nextProfile) => {
+          updateConditionType(nextProfile.rules?.[index], type);
+        })
+      }
+      onDefaultProfileChange={(name) =>
+        updateOptionsDraft((nextOptions) => {
+          const nextProfile = profileOption<SwitchProfileModel>(nextOptions, profile.name);
+          if (!nextProfile) {
+            return;
+          }
+          const nextAttached = attachedProfileOption(nextOptions, identity) || null;
+          setDefaultProfile(nextProfile, nextAttached, attachedOptions, name);
+          if (nextAttached) {
+            updateProfileRevision(nextAttached);
+          }
+          updateProfileRevision(nextProfile);
+        })
+      }
+      onDownload={onDownload}
+      onIpConditionInputChange={(index, value) =>
+        mutateProfile((nextProfile) => {
+          updateIpCondition(nextProfile.rules?.[index], value);
+        })
+      }
+      onMoveRule={(fromIndex, toIndex) =>
+        mutateProfile((nextProfile) => {
+          moveRule(nextProfile.rules || [], fromIndex, toIndex);
+        })
+      }
+      onNoteChange={(index, note) =>
+        mutateProfile((nextProfile) => {
+          updateRuleNote(nextProfile.rules?.[index], note);
+        })
+      }
+      onProfileChange={(index, name) =>
+        mutateProfile((nextProfile) => {
+          updateRuleProfile(nextProfile.rules?.[index], name);
+        })
+      }
+      onRemoveAttached={() =>
+        updateOptionsDraft((nextOptions) => {
+          const nextProfile = profileOption<SwitchProfileModel>(nextOptions, profile.name);
+          const nextAttached = attachedProfileOption(nextOptions, identity);
+          if (nextProfile && nextAttached) {
+            removeAttached(nextOptions, identity.attachedKey, nextProfile, nextAttached);
+            updateProfileRevision(nextProfile);
+          }
+        })
+      }
       onRemoveRule={(index) => mutateProfile((nextProfile) => removeRule(nextProfile, index))}
       onResetRules={() => mutateProfile((nextProfile) => resetRuleProfiles(nextProfile, attachedOptions.defaultProfileName))}
-      onWeekdayChange={(index, dayIndex, selected) => mutateProfile((nextProfile) => {
-        updateRuleWeekday(nextProfile.rules?.[index], dayIndex, selected);
-      })}
+      onWeekdayChange={(index, dayIndex, selected) =>
+        mutateProfile((nextProfile) => {
+          updateRuleWeekday(nextProfile.rules?.[index], dayIndex, selected);
+        })
+      }
       options={options}
       profile={profile}
       rules={profile.rules || []}
@@ -392,20 +410,22 @@ export function OptionsApp() {
   const pacProfilesUnsupported = isExperimental;
 
   useEffect(() => {
-    loadOptions().then((loadedOptions) => {
-      const cloned = cloneOptions(loadedOptions);
-      setSavedOptions(cloned);
-      setOptions(cloneOptions(cloned));
-      setStatus('ready');
-      showFirstRun(cloned);
-    }).catch((err) => {
-      setAlert({
-        type: 'error',
-        message: err?.message || String(err)
+    loadOptions()
+      .then((loadedOptions) => {
+        const cloned = cloneOptions(loadedOptions);
+        setSavedOptions(cloned);
+        setOptions(cloneOptions(cloned));
+        setStatus('ready');
+        showFirstRun(cloned);
+      })
+      .catch((err) => {
+        setAlert({
+          type: 'error',
+          message: err?.message || String(err)
+        });
+        setAlertShown(true);
+        setStatus('error');
       });
-      setAlertShown(true);
-      setStatus('error');
-    });
   }, []);
 
   const dirty = useMemo(() => {
@@ -427,21 +447,23 @@ export function OptionsApp() {
   }, [dirty]);
 
   function showFirstRun(loadedOptions: Options) {
-    getState<string>('firstRun').then((firstRun) => {
-      if (!firstRun) {
-        return;
-      }
-      setState('firstRun', '');
-      const profileName = firstFixedProfileName(loadedOptions);
-      if (!profileName) {
-        return;
-      }
-      setModal({
-        kind: 'welcome',
-        profileName,
-        upgrade: firstRun === 'upgrade'
-      });
-    }).catch(() => {});
+    getState<string>('firstRun')
+      .then((firstRun) => {
+        if (!firstRun) {
+          return;
+        }
+        setState('firstRun', '');
+        const profileName = firstFixedProfileName(loadedOptions);
+        if (!profileName) {
+          return;
+        }
+        setModal({
+          kind: 'welcome',
+          profileName,
+          upgrade: firstRun === 'upgrade'
+        });
+      })
+      .catch(() => {});
   }
 
   function showAlert(nextAlert: AlertState) {
@@ -565,21 +587,23 @@ export function OptionsApp() {
       return Promise.resolve(options);
     }
     setStatus('saving');
-    return patchOptions(patch).then((loadedOptions) => {
-      replaceOptions(loadedOptions);
-      setStatus('ready');
-      if (!opts?.silent) {
-        showAlert({type: 'success', i18n: 'options_saveSuccess'});
-      }
-      return loadedOptions;
-    }).catch((err) => {
-      setStatus('ready');
-      showAlert({
-        type: 'error',
-        message: err?.message || String(err)
+    return patchOptions(patch)
+      .then((loadedOptions) => {
+        replaceOptions(loadedOptions);
+        setStatus('ready');
+        if (!opts?.silent) {
+          showAlert({type: 'success', i18n: 'options_saveSuccess'});
+        }
+        return loadedOptions;
+      })
+      .catch((err) => {
+        setStatus('ready');
+        showAlert({
+          type: 'error',
+          message: err?.message || String(err)
+        });
+        return Promise.reject(err);
       });
-      return Promise.reject(err);
-    });
   }
 
   function discardOptions() {
@@ -670,10 +694,12 @@ export function OptionsApp() {
       return;
     }
     const fromName = profile.name;
-    return requireAppliedOptions(() => setModal({
-      fromName,
-      kind: 'renameProfile'
-    }));
+    return requireAppliedOptions(() =>
+      setModal({
+        fromName,
+        kind: 'renameProfile'
+      })
+    );
   }
 
   function renameProfile(fromName: string, toName: string) {
@@ -789,7 +815,10 @@ export function OptionsApp() {
       ? composeLegacyRuleList(profile.rules || [], defaultProfileName)
       : composeOmegaRuleList(profile.rules || [], defaultProfileName);
     const fileName = safeProfileFileName(profile.name);
-    downloadBlob(new Blob([text], {type: 'text/plain;charset=utf-8'}), legacy ? `SwitchyRules_${fileName}.ssrl` : `OmegaRules_${fileName}.sorl`);
+    downloadBlob(
+      new Blob([text], {type: 'text/plain;charset=utf-8'}),
+      legacy ? `SwitchyRules_${fileName}.ssrl` : `OmegaRules_${fileName}.sorl`
+    );
   }
 
   function exportScript(profileName: string) {
@@ -854,11 +883,13 @@ export function OptionsApp() {
     if (!fromName || !toName) {
       return;
     }
-    return requireAppliedOptions(() => setModal({
-      fromName,
-      kind: 'replaceProfile',
-      toName
-    }));
+    return requireAppliedOptions(() =>
+      setModal({
+        fromName,
+        kind: 'replaceProfile',
+        toName
+      })
+    );
   }
 
   function replaceProfileRefs(fromName: string, toName: string) {
@@ -882,19 +913,21 @@ export function OptionsApp() {
 
   function resetAllOptions() {
     setModal(null);
-    return resetOptions().then((loadedOptions) => {
-      replaceOptions(loadedOptions);
-      navigate('about');
-      showAlert({
-        type: 'success',
-        i18n: 'options_resetSuccess'
+    return resetOptions()
+      .then((loadedOptions) => {
+        replaceOptions(loadedOptions);
+        navigate('about');
+        showAlert({
+          type: 'success',
+          i18n: 'options_resetSuccess'
+        });
+      })
+      .catch((err) => {
+        showAlert({
+          type: 'error',
+          message: err?.message || String(err)
+        });
       });
-    }).catch((err) => {
-      showAlert({
-        type: 'error',
-        message: err?.message || String(err)
-      });
-    });
   }
 
   function downloadLog() {
@@ -930,12 +963,7 @@ export function OptionsApp() {
     if (route.name === 'ui') {
       return (
         <div className="react-settings-host-ui">
-          <UiSettings
-            embedded
-            options={options}
-            onOpenShortcutConfig={openShortcutConfig}
-            onOptionsChange={updateOptions}
-          />
+          <UiSettings embedded options={options} onOpenShortcutConfig={openShortcutConfig} onOptionsChange={updateOptions} />
         </div>
       );
     }
@@ -1051,9 +1079,7 @@ export function OptionsApp() {
       const showConditionTypes = switchProfile
         ? numberOption(options['-showConditionTypes'], detectAdvancedConditionTypes(switchProfile))
         : 0;
-      const ruleListOptions = switchProfile
-        ? exportRuleListOptions(options, showConditionTypes)
-        : {legacy: false, warning: false};
+      const ruleListOptions = switchProfile ? exportRuleListOptions(options, showConditionTypes) : {legacy: false, warning: false};
       return (
         <>
           <div className="react-profile-shell-host">
@@ -1063,11 +1089,15 @@ export function OptionsApp() {
               profile={profile}
               profileColor={profile.color}
               scriptable={!isBuiltinProfile(profile)}
-              onColorChange={(color) => updateProfile(profile.name, (nextProfile) => {
-                nextProfile.color = color;
-              })}
+              onColorChange={(color) =>
+                updateProfile(profile.name, (nextProfile) => {
+                  nextProfile.color = color;
+                })
+              }
               onDelete={() => requestDeleteProfile(profile)}
-              onExportRuleList={() => switchProfile && attachedOptions && exportRuleList(switchProfile, attachedOptions, ruleListOptions.legacy)}
+              onExportRuleList={() =>
+                switchProfile && attachedOptions && exportRuleList(switchProfile, attachedOptions, ruleListOptions.legacy)
+              }
               onExportScript={() => exportScript(profile.name)}
               onRename={() => requestRenameProfile(profile)}
             />
@@ -1077,12 +1107,7 @@ export function OptionsApp() {
       );
     }
     return (
-      <About
-        embedded
-        isExperimental={isExperimental}
-        onDownloadLog={downloadLog}
-        onResetOptions={() => setModal({kind: 'resetOptions'})}
-      />
+      <About embedded isExperimental={isExperimental} onDownloadLog={downloadLog} onResetOptions={() => setModal({kind: 'resetOptions'})} />
     );
   }
 
@@ -1107,16 +1132,16 @@ export function OptionsApp() {
             uiHref={routeHref('ui')}
           />
         </header>
-        <main className="col-lg-10 col-sm-9 col-lg-offset-2 col-sm-offset-3">
-          {renderContent()}
-        </main>
+        <main className="col-lg-10 col-sm-9 col-lg-offset-2 col-sm-offset-3">{renderContent()}</main>
       </div>
       <OptionsAlert alert={alert} shown={alertShown} onClose={() => setAlertShown(false)} />
       {modal?.kind === 'applyOptions' && options && (
-        <ModalFrame onDismiss={() => {
-          setPendingApplyAction(null);
-          setModal(null);
-        }}>
+        <ModalFrame
+          onDismiss={() => {
+            setPendingApplyAction(null);
+            setModal(null);
+          }}
+        >
           <ConfirmModal
             kind="apply"
             onClose={confirmApplyOptions}
@@ -1176,12 +1201,7 @@ export function OptionsApp() {
       )}
       {modal?.kind === 'resetOptions' && options && (
         <ModalFrame onDismiss={() => setModal(null)}>
-          <ConfirmModal
-            kind="reset"
-            onClose={resetAllOptions}
-            onDismiss={() => setModal(null)}
-            options={options}
-          />
+          <ConfirmModal kind="reset" onClose={resetAllOptions} onDismiss={() => setModal(null)} options={options} />
         </ModalFrame>
       )}
       {modal?.kind === 'proxyAuth' && (
@@ -1200,10 +1220,12 @@ export function OptionsApp() {
           <ConfirmModal
             fromName={modal.fromName}
             kind="replaceProfile"
-            onClose={(value) => replaceProfileRefs(
-              typeof value === 'object' ? value.fromName : modal.fromName,
-              typeof value === 'object' ? value.toName : modal.toName
-            )}
+            onClose={(value) =>
+              replaceProfileRefs(
+                typeof value === 'object' ? value.fromName : modal.fromName,
+                typeof value === 'object' ? value.toName : modal.toName
+              )
+            }
             onDismiss={() => setModal(null)}
             options={options}
             toName={modal.toName}

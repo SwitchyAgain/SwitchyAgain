@@ -3,15 +3,7 @@ import {ConfirmModal} from './confirm_modals';
 import {Options} from './options_client';
 import {message} from './options_client';
 import {richMessage} from './rich_message';
-import {
-  Profile,
-  ProfileInline,
-  ProfileSelect,
-  PROFILE_ICONS,
-  isVirtualProfile,
-  profileByName,
-  resultProfilesFor
-} from './profile_widgets';
+import {Profile, ProfileInline, ProfileSelect, PROFILE_ICONS, isVirtualProfile, profileByName, resultProfilesFor} from './profile_widgets';
 import {
   conditionHasWarning,
   composeSource,
@@ -209,17 +201,24 @@ export type SwitchRuleFooterProps = {
   showNotes?: boolean;
 };
 
-export type SwitchRulesSectionProps = SwitchConditionHelpProps & SwitchRulesHeaderProps & SwitchRuleTableHeaderProps & SwitchRuleRowsProps & SwitchRuleFooterProps & {
-  loadRules?: boolean;
-  onMoveRule?: (fromIndex: number, toIndex: number) => void;
-};
+export type SwitchRulesSectionProps = SwitchConditionHelpProps &
+  SwitchRulesHeaderProps &
+  SwitchRuleTableHeaderProps &
+  SwitchRuleRowsProps &
+  SwitchRuleFooterProps & {
+    loadRules?: boolean;
+    onMoveRule?: (fromIndex: number, toIndex: number) => void;
+  };
 
 export type SwitchProfileContentProps = SwitchRulesSectionProps & SwitchAttachedProfileProps;
 
-type SwitchSourceApplyResult = boolean | void | {
-  ok?: boolean;
-  source?: SwitchRuleSourceState | null;
-};
+type SwitchSourceApplyResult =
+  | boolean
+  | void
+  | {
+      ok?: boolean;
+      source?: SwitchRuleSourceState | null;
+    };
 
 export type SwitchProfileStatefulContentProps = Omit<
   SwitchProfileContentProps,
@@ -280,7 +279,10 @@ export function ProfileShell({
               <input type="color" value={color} onChange={(event) => onColorChange?.(event.currentTarget.value)} />
             )}
           </span>
-          <h2 className="profile-name">{message('options_profileTabPrefix', 'Profile :: ')}{profile.name}</h2>
+          <h2 className="profile-name">
+            {message('options_profileTabPrefix', 'Profile :: ')}
+            {profile.name}
+          </h2>
         </div>
         <div className="profile-actions">
           {exportRuleListAvailable && (
@@ -324,7 +326,8 @@ export function ProfileShell({
           )}
           {profile.syncError && (
             <p className="alert alert-danger width-limit">
-              <span className="glyphicon glyphicon-remove" /> {message(`options_profileSyncDisabled_${profile.syncError.reason}`, profile.syncError.reason || '')}
+              <span className="glyphicon glyphicon-remove" />{' '}
+              {message(`options_profileSyncDisabled_${profile.syncError.reason}`, profile.syncError.reason || '')}
             </p>
           )}
         </section>
@@ -344,32 +347,19 @@ type RuleDragState = {
   targetIndex: number;
 };
 
-function messageWithNodes(
-  key: string,
-  fallback: string,
-  substitutions: string[],
-  nodes: Record<string, React.ReactNode>
-) {
+function messageWithNodes(key: string, fallback: string, substitutions: string[], nodes: Record<string, React.ReactNode>) {
   const text = message(key, fallback, substitutions);
   const tokens = Object.keys(nodes);
   if (!tokens.length) {
     return text;
   }
   const pattern = new RegExp(`(${tokens.map((token) => token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g');
-  return text.split(pattern).map((part, index) => nodes[part] ? (
-    <React.Fragment key={`${part}-${index}`}>{nodes[part]}</React.Fragment>
-  ) : part);
+  return text
+    .split(pattern)
+    .map((part, index) => (nodes[part] ? <React.Fragment key={`${part}-${index}`}>{nodes[part]}</React.Fragment> : part));
 }
 
-function ClearableInput({
-  onChange,
-  type,
-  value
-}: {
-  onChange: (value: string) => void;
-  type: string;
-  value: string;
-}) {
+function ClearableInput({onChange, type, value}: {onChange: (value: string) => void; type: string; value: string}) {
   const [oldValue, setOldValue] = useState('');
 
   function toggleClear() {
@@ -386,12 +376,7 @@ function ClearableInput({
 
   return (
     <div className="input-group">
-      <input
-        className="form-control"
-        type={type}
-        value={value}
-        onChange={(event) => updateValue(event.currentTarget.value)}
-      />
+      <input className="form-control" type={type} value={value} onChange={(event) => updateValue(event.currentTarget.value)} />
       <span className="input-group-btn">
         <button
           type="button"
@@ -554,9 +539,8 @@ function SwitchRuleRow({
   const isUrlConditionType = getUrlConditionTypeMap();
   const hasUrlIcon = !!isUrlConditionType[conditionType];
   const hasWarning = conditionHasWarning(condition);
-  const cellStyle = (cellIndex: number): React.CSSProperties | undefined => (
-    cellWidths?.[cellIndex] != null ? {width: `${cellWidths[cellIndex]}px`} : undefined
-  );
+  const cellStyle = (cellIndex: number): React.CSSProperties | undefined =>
+    cellWidths?.[cellIndex] != null ? {width: `${cellWidths[cellIndex]}px`} : undefined;
 
   function formatIpCondition(condition: SwitchRuleCondition) {
     if (condition?.ip) {
@@ -688,11 +672,7 @@ function SwitchRuleRow({
         <span className="glyphicon glyphicon-sort" />
       </td>
       <td className={hasUrlIcon ? 'has-icon' : undefined} style={cellStyle(1)}>
-        <select
-          className="form-control"
-          value={conditionType}
-          onChange={(event) => changeConditionType(event.currentTarget.value)}
-        >
+        <select className="form-control" value={conditionType} onChange={(event) => changeConditionType(event.currentTarget.value)}>
           {conditionGroups.map(({group, types}) => (
             <optgroup key={group} label={message(group, group)}>
               {types.map((type) => (
@@ -709,7 +689,9 @@ function SwitchRuleRow({
           </a>
         )}
       </td>
-      <td className={hasWarning ? 'has-warning' : undefined} style={cellStyle(2)}>{renderConditionDetails()}</td>
+      <td className={hasWarning ? 'has-warning' : undefined} style={cellStyle(2)}>
+        {renderConditionDetails()}
+      </td>
       <td className="switch-rule-row-target" style={cellStyle(3)}>
         <div className={conditionType === 'NeverCondition' ? 'disabled' : undefined}>
           <ProfileSelect
@@ -721,24 +703,36 @@ function SwitchRuleRow({
         </div>
       </td>
       <td style={cellStyle(4)}>
-        <button type="button" className="btn btn-danger btn-sm" title={message('options_deleteRule', 'Delete rule')} onClick={() => onRemoveRule?.(index)}>
+        <button
+          type="button"
+          className="btn btn-danger btn-sm"
+          title={message('options_deleteRule', 'Delete rule')}
+          onClick={() => onRemoveRule?.(index)}
+        >
           <span className="glyphicon glyphicon-trash" />
         </button>{' '}
-        <button type="button" className="btn btn-default btn-sm" title={message('options_cloneRule', 'Clone rule')} onClick={() => onCloneRule?.(index)}>
+        <button
+          type="button"
+          className="btn btn-default btn-sm"
+          title={message('options_cloneRule', 'Clone rule')}
+          onClick={() => onCloneRule?.(index)}
+        >
           <span className="glyphicon glyphicon-duplicate" />
         </button>{' '}
         {!showNotes && (
-          <button type="button" className="btn btn-default btn-sm" title={message('options_ruleNote', 'Note')} onClick={() => onAddNote?.(index)}>
+          <button
+            type="button"
+            className="btn btn-default btn-sm"
+            title={message('options_ruleNote', 'Note')}
+            onClick={() => onAddNote?.(index)}
+          >
             <span className="glyphicon glyphicon-comment" />
           </button>
         )}
       </td>
       {showNotes && (
         <td style={cellStyle(5)}>
-          <DraftInput
-            value={rule.note || ''}
-            onChange={(value) => onNoteChange?.(index, value)}
-          />
+          <DraftInput value={rule.note || ''} onChange={(value) => onNoteChange?.(index, value)} />
         </td>
       )}
     </tr>
@@ -862,9 +856,7 @@ export function UnsupportedProfile({profile}: UnsupportedProfileProps) {
   const profileType = profile?.profileType || '';
   return (
     <>
-      <div className="lead">
-        {message('options_profileUnsupported', `Unsupported profile type ${profileType}!`, profileType)}
-      </div>
+      <div className="lead">{message('options_profileUnsupported', `Unsupported profile type ${profileType}!`, profileType)}</div>
       <p>{message('options_profileUnsupportedHelp', 'The options could be broken, or from a newer version of this program.')}</p>
     </>
   );
@@ -909,30 +901,29 @@ export function PacProfile({
     <div>
       {pacProfilesUnsupported && (
         <p className="alert alert-danger width-limit">
-          <span className="glyphicon glyphicon-remove" /> {message('options_pac_profile_unsupported_moz', 'PAC Profiles WILL NOT work in Mozilla Firefox due to technical limitations!')}
+          <span className="glyphicon glyphicon-remove" />{' '}
+          {message('options_pac_profile_unsupported_moz', 'PAC Profiles WILL NOT work in Mozilla Firefox due to technical limitations!')}
         </p>
       )}
       <section className="settings-group">
         <h3>{message('options_group_pacUrl', 'PAC URL')}</h3>
         <div className="width-limit">
-          <ClearableInput
-            type="text"
-            value={pacUrl}
-            onChange={(value) => changeField('pacUrl', value)}
-          />
+          <ClearableInput type="text" value={pacUrl} onChange={(value) => changeField('pacUrl', value)} />
         </div>
         <p className="help-block">{message('options_pacUrlHelp', 'The PAC script will be downloaded from this URL.')}</p>
         {pacUrlIsFile && !referenced && (
           <div className="has-warning">
             <p className="help-block">
-              <span className="glyphicon glyphicon-warning-sign" /> {message('options_pacUrlFile', 'Loading PAC scripts from file: URLs is not recommended.')}
+              <span className="glyphicon glyphicon-warning-sign" />{' '}
+              {message('options_pacUrlFile', 'Loading PAC scripts from file: URLs is not recommended.')}
             </p>
           </div>
         )}
         {pacUrlIsFile && referenced && (
           <div className="has-error">
             <p className="help-block">
-              <span className="glyphicon glyphicon-remove-sign" /> {message('options_pacUrlFile', 'Loading PAC scripts from file: URLs is not recommended.')}
+              <span className="glyphicon glyphicon-remove-sign" />{' '}
+              {message('options_pacUrlFile', 'Loading PAC scripts from file: URLs is not recommended.')}
             </p>
             <p className="help-block">{message('options_pacUrlFileDisabled', 'File URLs are disabled for referenced PAC profiles.')}</p>
           </div>
@@ -965,15 +956,31 @@ export function PacProfile({
         </h3>
         {authAll && (
           <div className="alert alert-warning width-limit">
-            <p>{message('options_proxy_authAllWarningPac', 'Proxy authentication will be applied to all proxies returned by this PAC profile.')}</p>
+            <p>
+              {message(
+                'options_proxy_authAllWarningPac',
+                'Proxy authentication will be applied to all proxies returned by this PAC profile.'
+              )}
+            </p>
             {pacUrl ? (
-              <p>{message('options_proxy_authAllWarningPacUrl', 'Make sure the downloaded PAC script only returns proxies that share these credentials.')}</p>
+              <p>
+                {message(
+                  'options_proxy_authAllWarningPacUrl',
+                  'Make sure the downloaded PAC script only returns proxies that share these credentials.'
+                )}
+              </p>
             ) : (
-              <p>{message('options_proxy_authAllWarningPacScript', 'Make sure the PAC script only returns proxies that share these credentials.')}</p>
+              <p>
+                {message(
+                  'options_proxy_authAllWarningPacScript',
+                  'Make sure the PAC script only returns proxies that share these credentials.'
+                )}
+              </p>
             )}
             {referenced && (
               <p>
-                <span className="glyphicon glyphicon-warning-sign" /> {message('options_proxy_authReferencedWarning', 'This profile is referenced by other profiles.')}
+                <span className="glyphicon glyphicon-warning-sign" />{' '}
+                {message('options_proxy_authReferencedWarning', 'This profile is referenced by other profiles.')}
               </p>
             )}
           </div>
@@ -986,7 +993,9 @@ export function PacProfile({
               </p>
             )}
             {pacUrl && !profile.lastUpdate && (
-              <p className="alert alert-danger width-limit">{message('options_pacScriptObsolete', 'PAC script is obsolete. Please download it now.')}</p>
+              <p className="alert alert-danger width-limit">
+                {message('options_pacScriptObsolete', 'PAC script is obsolete. Please download it now.')}
+              </p>
             )}
             <textarea
               className="monospace form-control width-limit"
@@ -1003,9 +1012,7 @@ export function PacProfile({
 }
 
 function fixedProfileOptionsForScheme(scheme: FixedProfileScheme) {
-  const defaultLabel = scheme
-    ? message('options_protocol_useDefault', 'Use default')
-    : message('options_protocol_direct', 'Direct');
+  const defaultLabel = scheme ? message('options_protocol_useDefault', 'Use default') : message('options_protocol_direct', 'Direct');
   return [
     {
       label: defaultLabel,
@@ -1018,19 +1025,8 @@ function fixedProfileOptionsForScheme(scheme: FixedProfileScheme) {
   ];
 }
 
-export function FixedProfileContent({
-  profile,
-  onBypassListChange,
-  onEditProxyAuth,
-  onProxyChange
-}: FixedProfileProps) {
-  const {
-    bypassList,
-    fallbackProxy,
-    name: profileName,
-    proxyForHttp,
-    proxyForHttps
-  } = profile;
+export function FixedProfileContent({profile, onBypassListChange, onEditProxyAuth, onProxyChange}: FixedProfileProps) {
+  const {bypassList, fallbackProxy, name: profileName, proxyForHttp, proxyForHttps} = profile;
   const initialEditors = fixedProfileEditors(profile);
   const [draftEditors, setDraftEditors] = useState<FixedProfileProxyEditors>(() => cloneProxyEditors(initialEditors));
   const [draftBypassList, setDraftBypassList] = useState(fixedProfileBypassText(profile));
@@ -1048,12 +1044,7 @@ export function FixedProfileContent({
     } else if (hasAdvancedProxy) {
       setShowAdvanced(true);
     }
-  }, [
-    profileName,
-    fallbackProxy,
-    proxyForHttp,
-    proxyForHttps
-  ]);
+  }, [profileName, fallbackProxy, proxyForHttp, proxyForHttps]);
 
   useEffect(() => {
     setDraftBypassList(fixedProfileBypassText({bypassList}));
@@ -1171,10 +1162,18 @@ export function FixedProfileContent({
                           min={1}
                           required
                           value={editor.port ?? ''}
-                          onChange={(event) => changeProxyEditor(scheme, 'port', event.currentTarget.value ? Number(event.currentTarget.value) : undefined)}
+                          onChange={(event) =>
+                            changeProxyEditor(scheme, 'port', event.currentTarget.value ? Number(event.currentTarget.value) : undefined)
+                          }
                         />
                       ) : (
-                        <input className="form-control" type="number" value="" placeholder={defaultEditor.port != null ? String(defaultEditor.port) : ''} disabled />
+                        <input
+                          className="form-control"
+                          type="number"
+                          value=""
+                          placeholder={defaultEditor.port != null ? String(defaultEditor.port) : ''}
+                          disabled
+                        />
                       )}
                     </td>
                     <td className="proxy-actions">
@@ -1260,7 +1259,9 @@ export function SwitchAttachedProfile({
     return (
       <section className="settings-group">
         <h3>{message('options_group_attachProfile', 'Attach Profile')}</h3>
-        <p className="help-block">{message('options_attachProfileHelp', 'Attach a rule list profile to import rules from a URL or text.')}</p>
+        <p className="help-block">
+          {message('options_attachProfileHelp', 'Attach a rule list profile to import rules from a URL or text.')}
+        </p>
         <button type="button" className="btn btn-default" onClick={() => onAttachNew?.()}>
           <span className="glyphicon glyphicon-plus" /> {message('options_attachProfile', 'Attach Profile')}
         </button>
@@ -1293,11 +1294,7 @@ export function SwitchAttachedProfile({
           <div className="form-group">
             <label>{message('options_group_ruleListUrl', 'Rule List URL')}</label>{' '}
             <div className="width-limit inline-form-control" style={{verticalAlign: 'middle'}}>
-              <ClearableInput
-                type="url"
-                value={draft.sourceUrl}
-                onChange={(value) => changeField('sourceUrl', value)}
-              />
+              <ClearableInput type="url" value={draft.sourceUrl} onChange={(value) => changeField('sourceUrl', value)} />
             </div>
           </div>
           <p className="help-block">{message('options_ruleListUrlHelp', 'The rule list will be downloaded from this URL.')}</p>
@@ -1316,12 +1313,12 @@ export function SwitchAttachedProfile({
       <section className="settings-group">
         <h3>{message('options_group_ruleListText', 'Rule List Text')}</h3>
         {draft.sourceUrl && attached.lastUpdate && (
-          <p className="alert alert-success width-limit">
-            {message('options_ruleListLastUpdate', 'Last update: $1', formattedLastUpdate)}
-          </p>
+          <p className="alert alert-success width-limit">{message('options_ruleListLastUpdate', 'Last update: $1', formattedLastUpdate)}</p>
         )}
         {draft.sourceUrl && !attached.lastUpdate && (
-          <p className="alert alert-danger width-limit">{message('options_ruleListObsolete', 'Rule list is obsolete. Please download it now.')}</p>
+          <p className="alert alert-danger width-limit">
+            {message('options_ruleListObsolete', 'Rule list is obsolete. Please download it now.')}
+          </p>
         )}
         {attachedRuleListError && (
           <p className="alert alert-danger width-limit">
@@ -1341,15 +1338,9 @@ export function SwitchAttachedProfile({
   );
 }
 
-export function SwitchConditionHelp({
-  onClose,
-  show = false,
-  showConditionTypes = 0
-}: SwitchConditionHelpProps) {
+export function SwitchConditionHelp({onClose, show = false, showConditionTypes = 0}: SwitchConditionHelpProps) {
   const [expandedId, setExpandedId] = useState(0);
-  const groups = showConditionTypes === 0
-    ? getBasicConditionGroups()
-    : getAdvancedConditionGroups();
+  const groups = showConditionTypes === 0 ? getBasicConditionGroups() : getAdvancedConditionGroups();
   const isUrlConditionType = getUrlConditionTypeMap();
 
   if (!show) {
@@ -1372,7 +1363,8 @@ export function SwitchConditionHelp({
             {!!groupTitle && (
               <h4>
                 <a role="button" onClick={() => setExpandedId(groupIndex)}>
-                  <span className={`glyphicon ${expandedId === groupIndex ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right'}`} /> {groupTitle}
+                  <span className={`glyphicon ${expandedId === groupIndex ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right'}`} />{' '}
+                  {groupTitle}
                 </a>
               </h4>
             )}
@@ -1385,8 +1377,7 @@ export function SwitchConditionHelp({
                       <div>{richMessage(`condition_help_${type}`, '')}</div>
                       {isUrlConditionType[type] && (
                         <div className="text-danger">
-                          <span className="glyphicon glyphicon-alert" />{' '}
-                          <span>{richMessage('condition_alert_fullUrlLimitation', '')}</span>
+                          <span className="glyphicon glyphicon-alert" /> <span>{richMessage('condition_alert_fullUrlLimitation', '')}</span>
                         </div>
                       )}
                     </dd>
@@ -1401,13 +1392,7 @@ export function SwitchConditionHelp({
   );
 }
 
-export function SwitchRulesHeader({
-  editSource = false,
-  onSourceChange,
-  onToggleSource,
-  rules = [],
-  source
-}: SwitchRulesHeaderProps) {
+export function SwitchRulesHeader({editSource = false, onSourceChange, onToggleSource, rules = [], source}: SwitchRulesHeaderProps) {
   const [sourceCode, setSourceCode] = useState(source?.code || '');
   const isUrlConditionType = getUrlConditionTypeMap();
   const hasUrlConditions = rules.some((rule) => {
@@ -1428,11 +1413,7 @@ export function SwitchRulesHeader({
     <>
       <h3>
         {message('options_group_switchRules', 'Switch Rules')}{' '}
-        <button
-          type="button"
-          className={`btn ${editSource ? 'btn-primary active' : 'btn-default'}`}
-          onClick={() => onToggleSource?.()}
-        >
+        <button type="button" className={`btn ${editSource ? 'btn-primary active' : 'btn-default'}`} onClick={() => onToggleSource?.()}>
           <span className="glyphicon glyphicon-edit" /> {message('options_profileEditSource', 'Edit Source')}
         </button>{' '}
         {editSource && (
@@ -1454,8 +1435,7 @@ export function SwitchRulesHeader({
       )}
       {hasUrlConditions && (
         <div className="alert alert-danger">
-          <span className="glyphicon glyphicon-alert" />{' '}
-          <span>{richMessage('condition_alert_fullUrlLimitation', '')}</span>
+          <span className="glyphicon glyphicon-alert" /> <span>{richMessage('condition_alert_fullUrlLimitation', '')}</span>
         </div>
       )}
       {editSource && (
@@ -1472,10 +1452,7 @@ export function SwitchRulesHeader({
   );
 }
 
-export function SwitchRuleTableHeader({
-  onToggleConditionHelp,
-  showNotes = false
-}: SwitchRuleTableHeaderProps) {
+export function SwitchRuleTableHeader({onToggleConditionHelp, showNotes = false}: SwitchRuleTableHeaderProps) {
   return (
     <tr>
       <th style={{whiteSpace: 'nowrap'}}>{message('options_sort', 'Sort')}</th>
@@ -1559,7 +1536,12 @@ export function SwitchRuleFooter({
             </div>
           </td>
           <td>
-            <button type="button" className="btn btn-danger btn-sm" title={message('options_deleteAttached', 'Delete attached profile')} onClick={() => onRemoveAttached?.()}>
+            <button
+              type="button"
+              className="btn btn-danger btn-sm"
+              title={message('options_deleteAttached', 'Delete attached profile')}
+              onClick={() => onRemoveAttached?.()}
+            >
               <span className="glyphicon glyphicon-trash" />
             </button>
           </td>
@@ -1578,7 +1560,12 @@ export function SwitchRuleFooter({
           />
         </td>
         <td>
-          <button type="button" className="btn btn-info btn-sm" title={message('options_resetRules_help', 'Reset rules')} onClick={() => onResetRules?.()}>
+          <button
+            type="button"
+            className="btn btn-info btn-sm"
+            title={message('options_resetRules_help', 'Reset rules')}
+            onClick={() => onResetRules?.()}
+          >
             <span className="glyphicon glyphicon-chevron-up" />
           </button>
         </td>
@@ -1862,7 +1849,7 @@ export function SwitchRulesSection({
       return;
     }
     const timeout = window.setTimeout(() => {
-      setCloneSelectTarget((current) => current?.key === cloneSelectTarget.key ? null : current);
+      setCloneSelectTarget((current) => (current?.key === cloneSelectTarget.key ? null : current));
     }, 1200);
     return () => window.clearTimeout(timeout);
   }, [cloneSelectTarget, rules.length]);
@@ -1872,21 +1859,18 @@ export function SwitchRulesSection({
   const reserveInitialRulesSpace = !editSource && rules.length > 0 && displayRuleCount < initialVisibleRuleCount;
   const rulesWrapperMinHeight = reserveInitialRulesSpace ? 96 + initialVisibleRuleCount * 42 : undefined;
   const ruleKeys = syncRuleKeys();
-  const activeCloneSelectTarget = cloneSelectTarget &&
+  const activeCloneSelectTarget =
+    cloneSelectTarget &&
     rules.length >= cloneSelectTarget.expectedLength &&
     cloneSelectTarget.index < displayRuleCount &&
     cloneSelectTarget.index < rules.length
-    ? cloneSelectTarget
-    : null;
+      ? cloneSelectTarget
+      : null;
   const visualRuleIndices = visibleRuleIndicesForDrag();
 
   return (
     <>
-      <SwitchConditionHelp
-        onClose={onClose}
-        show={show}
-        showConditionTypes={showConditionTypes}
-      />
+      <SwitchConditionHelp onClose={onClose} show={show} showConditionTypes={showConditionTypes} />
       <section className="settings-group">
         <div className="switch-rules-header-host">
           <SwitchRulesHeader
@@ -1905,10 +1889,7 @@ export function SwitchRulesSection({
             {loadRules && (
               <table className="switch-rules table table-bordered table-condensed width-limit-xl">
                 <thead>
-                  <SwitchRuleTableHeader
-                    onToggleConditionHelp={onToggleConditionHelp}
-                    showNotes={showNotes}
-                  />
+                  <SwitchRuleTableHeader onToggleConditionHelp={onToggleConditionHelp} showNotes={showNotes} />
                 </thead>
                 <tbody ref={rulesBodyRef}>
                   <SwitchRuleRows
@@ -1986,25 +1967,19 @@ export function SwitchProfileContent(props: SwitchProfileContentProps) {
 
 type SwitchProfileConfirmState =
   | {
-    index: number;
-    kind: 'ruleRemove';
-    rule: SwitchRule;
-  }
+      index: number;
+      kind: 'ruleRemove';
+      rule: SwitchRule;
+    }
   | {
-    kind: 'ruleReset';
-  }
+      kind: 'ruleReset';
+    }
   | {
-    kind: 'deleteAttached';
-  }
+      kind: 'deleteAttached';
+    }
   | null;
 
-function SwitchProfileModalFrame({
-  children,
-  onDismiss
-}: {
-  children: React.ReactNode;
-  onDismiss: () => void;
-}) {
+function SwitchProfileModalFrame({children, onDismiss}: {children: React.ReactNode; onDismiss: () => void}) {
   return (
     <>
       <div className="modal-backdrop fade in" />
@@ -2293,13 +2268,7 @@ export function SwitchProfileStatefulContent({
   );
 }
 
-export function RuleListProfile({
-  onDownload,
-  onProfileChange,
-  options,
-  profile,
-  updating = false
-}: RuleListProfileProps) {
+export function RuleListProfile({onDownload, onProfileChange, options, profile, updating = false}: RuleListProfileProps) {
   const resultProfiles = resultProfilesFor(options, profile);
   const ruleListFormats = getRuleListFormats();
   const [draft, setDraft] = useState<RuleListProfileDraft>({
@@ -2318,14 +2287,7 @@ export function RuleListProfile({
       ruleList: profile.ruleList || '',
       sourceUrl: profile.sourceUrl || ''
     });
-  }, [
-    profile.name,
-    profile.defaultProfileName,
-    profile.format,
-    profile.matchProfileName,
-    profile.ruleList,
-    profile.sourceUrl
-  ]);
+  }, [profile.name, profile.defaultProfileName, profile.format, profile.matchProfileName, profile.ruleList, profile.sourceUrl]);
 
   function changeField(field: RuleListProfileField, value: string) {
     setDraft((current) => ({...current, [field]: value}));
@@ -2375,11 +2337,7 @@ export function RuleListProfile({
       <section className="settings-group">
         <h3>{message('options_group_ruleListUrl', 'Rule List URL')}</h3>
         <div className="width-limit">
-          <ClearableInput
-            type="url"
-            value={draft.sourceUrl}
-            onChange={(value) => changeField('sourceUrl', value)}
-          />
+          <ClearableInput type="url" value={draft.sourceUrl} onChange={(value) => changeField('sourceUrl', value)} />
         </div>
         <p className="help-block">{message('options_ruleListUrlHelp', 'The rule list will be downloaded from this URL.')}</p>
       </section>
@@ -2425,16 +2383,14 @@ export function VirtualProfile({onReplaceProfile, onTargetChange, options, profi
       <section className="settings-group">
         <h3>{message('options_group_virtualProfile', 'Virtual Profile')}</h3>
         <p className="help-block">
-          {message('options_virtualProfileTargetHelp', 'When this profile is applied, it acts exactly the same as the profile selected below.')}
+          {message(
+            'options_virtualProfileTargetHelp',
+            'When this profile is applied, it acts exactly the same as the profile selected below.'
+          )}
         </p>
         <div className="form-group">
           <label>{message('options_virtualProfileTarget', 'Target')}</label>{' '}
-          <ProfileSelect
-            name={targetName}
-            onChange={changeTarget}
-            options={options}
-            profiles={targetProfiles}
-          />
+          <ProfileSelect name={targetName} onChange={changeTarget} options={options} profiles={targetProfiles} />
         </div>
       </section>
       <section className="settings-group">

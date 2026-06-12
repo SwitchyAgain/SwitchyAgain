@@ -22,14 +22,16 @@ describe('route trace logic', () => {
       name: 'proxy',
       profileType: 'FixedProfile'
     });
-    expect(profileFromExplanation(options, {
-      attachedToProfileName: 'auto',
-      builtin: true,
-      color: 1,
-      name: 'missing',
-      profileType: 'RuleListProfile',
-      role: 'attachedRuleList'
-    })).toEqual({
+    expect(
+      profileFromExplanation(options, {
+        attachedToProfileName: 'auto',
+        builtin: true,
+        color: 1,
+        name: 'missing',
+        profileType: 'RuleListProfile',
+        role: 'attachedRuleList'
+      })
+    ).toEqual({
       attachedToProfileName: 'auto',
       builtin: true,
       color: undefined,
@@ -119,23 +121,31 @@ describe('route trace logic', () => {
   });
 
   it('chooses the most specific condition text for a step', () => {
-    expect(routeTraceStepCondition({
-      condition: 'condition',
-      kind: 'rule',
-      scheme: 'https',
-      source: 'source'
-    })).toBe('source');
-    expect(routeTraceStepCondition({
-      condition: 'condition',
-      kind: 'rule',
-      scheme: 'https'
-    })).toBe('condition');
-    expect(routeTraceStepCondition({
-      kind: 'proxy',
-      scheme: 'https'
-    })).toBe('https');
-    expect(routeTraceStepCondition({
-      kind: 'direct'
-    })).toBe('');
+    expect(
+      routeTraceStepCondition({
+        condition: 'condition',
+        kind: 'rule',
+        scheme: 'https',
+        source: 'source'
+      })
+    ).toBe('source');
+    expect(
+      routeTraceStepCondition({
+        condition: 'condition',
+        kind: 'rule',
+        scheme: 'https'
+      })
+    ).toBe('condition');
+    expect(
+      routeTraceStepCondition({
+        kind: 'proxy',
+        scheme: 'https'
+      })
+    ).toBe('https');
+    expect(
+      routeTraceStepCondition({
+        kind: 'direct'
+      })
+    ).toBe('');
   });
 });

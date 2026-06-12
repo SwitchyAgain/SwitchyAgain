@@ -30,13 +30,15 @@ describe('import export logic', () => {
       transient: undefined
     };
 
-    expect(backupOptionsText(options)).toBe(JSON.stringify({
-      '+proxy': {
-        name: 'proxy',
-        profileType: 'FixedProfile'
-      },
-      '-exportLegacyRuleList': true
-    }));
+    expect(backupOptionsText(options)).toBe(
+      JSON.stringify({
+        '+proxy': {
+          name: 'proxy',
+          profileType: 'FixedProfile'
+        },
+        '-exportLegacyRuleList': true
+      })
+    );
   });
 
   it('detects busy import/export statuses', () => {

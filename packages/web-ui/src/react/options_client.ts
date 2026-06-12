@@ -132,11 +132,13 @@ declare const chrome: {
   };
 };
 
-declare const browser: {
-  commands?: {
-    openShortcutSettings?: () => Promise<void> | void;
-  };
-} | undefined;
+declare const browser:
+  | {
+      commands?: {
+        openShortcutSettings?: () => Promise<void> | void;
+      };
+    }
+  | undefined;
 
 export type UiLocale = 'en' | 'zh-Hans' | 'zh-Hant' | 'es' | 'ru' | 'cs' | 'fa';
 
@@ -149,9 +151,12 @@ export type UiLocaleOption = {
 
 type LocaleMessage = {
   message: string;
-  placeholders?: Record<string, {
-    content: string;
-  }>;
+  placeholders?: Record<
+    string,
+    {
+      content: string;
+    }
+  >;
 };
 
 type LocaleCatalog = Record<string, LocaleMessage>;
@@ -190,7 +195,12 @@ export function browserUiLocale(language = chrome?.i18n?.getUILanguage?.() || ''
   if (normalized === 'zh' || normalized.startsWith('zh-hans') || normalized.startsWith('zh-cn') || normalized.startsWith('zh-sg')) {
     return 'zh-Hans';
   }
-  if (normalized.startsWith('zh-hant') || normalized.startsWith('zh-tw') || normalized.startsWith('zh-hk') || normalized.startsWith('zh-mo')) {
+  if (
+    normalized.startsWith('zh-hant') ||
+    normalized.startsWith('zh-tw') ||
+    normalized.startsWith('zh-hk') ||
+    normalized.startsWith('zh-mo')
+  ) {
     return 'zh-Hant';
   }
   if (normalized.startsWith('cs')) {
@@ -270,7 +280,7 @@ async function fetchLocaleCatalog(locale: UiLocale) {
     if (!response.ok) {
       throw new Error(`${response.status} ${response.statusText}`);
     }
-    const catalog = await response.json() as LocaleCatalog;
+    const catalog = (await response.json()) as LocaleCatalog;
     localeCatalogs.set(locale, catalog);
     return catalog;
   } catch (_error) {
@@ -287,10 +297,7 @@ function applyDocumentLocale(locale: UiLocale) {
 
 export async function setUiLocale(locale: unknown) {
   const nextLocale = normalizeUiLocale(locale) || browserUiLocale();
-  const [nextCatalog, fallbackCatalog] = await Promise.all([
-    fetchLocaleCatalog(nextLocale),
-    fetchLocaleCatalog('en')
-  ]);
+  const [nextCatalog, fallbackCatalog] = await Promise.all([fetchLocaleCatalog(nextLocale), fetchLocaleCatalog('en')]);
   currentCatalog = nextCatalog;
   englishCatalog = fallbackCatalog;
   applyDocumentLocale(nextLocale);
@@ -323,10 +330,7 @@ export function shouldAutoMount(scriptName: string) {
   }
   return Array.from(document.scripts).some((candidate) => {
     const candidateSrc = candidate.src || candidate.getAttribute('src') || '';
-    return candidate.type === 'module' && (
-      candidateSrc.endsWith(`/${scriptName}`) ||
-      candidateSrc.endsWith(scriptName)
-    );
+    return candidate.type === 'module' && (candidateSrc.endsWith(`/${scriptName}`) || candidateSrc.endsWith(scriptName));
   });
 }
 
@@ -335,7 +339,10 @@ function isManifestV3() {
   return Boolean(manifest?.manifest_version && manifest.manifest_version >= 3);
 }
 
-export function callBackground<M extends BackgroundMethod>(method: M, ...args: BackgroundMethodArgs[M]): Promise<BackgroundMethodResult[M]> {
+export function callBackground<M extends BackgroundMethod>(
+  method: M,
+  ...args: BackgroundMethodArgs[M]
+): Promise<BackgroundMethodResult[M]> {
   return new Promise((resolve, reject) => {
     if (!chrome?.runtime?.sendMessage) {
       reject(new Error('Extension runtime is unavailable.'));
@@ -356,25 +363,31 @@ export function callBackground<M extends BackgroundMethod>(method: M, ...args: B
 }
 
 export function callBackgroundNoReply<M extends BackgroundMethod>(method: M, ...args: BackgroundMethodArgs[M]) {
-  chrome?.runtime?.sendMessage?.({
-    method,
-    args,
-    noReply: true
-  }, () => {
-    chrome?.runtime?.lastError;
-  });
+  chrome?.runtime?.sendMessage?.(
+    {
+      method,
+      args,
+      noReply: true
+    },
+    () => {
+      chrome?.runtime?.lastError;
+    }
+  );
 }
 
 export function decodeBackgroundError(error: unknown): BackgroundError | unknown {
-  const serialized = error as {
-    _error?: string;
-    message?: string;
-    name?: string;
-    original?: BackgroundError['original'];
-    reason?: string;
-    stack?: string;
-    statusCode?: number | string;
-  } | null | undefined;
+  const serialized = error as
+    | {
+        _error?: string;
+        message?: string;
+        name?: string;
+        original?: BackgroundError['original'];
+        reason?: string;
+        stack?: string;
+        statusCode?: number | string;
+      }
+    | null
+    | undefined;
   if (serialized?._error !== 'error') {
     return error;
   }
@@ -424,7 +437,7 @@ function stateKey(name: string) {
 export function getLocalState<T = unknown>(name: string) {
   try {
     const value = window.localStorage.getItem(stateKey(name));
-    return value == null ? undefined : JSON.parse(value) as T;
+    return value == null ? undefined : (JSON.parse(value) as T);
   } catch (_err) {
     return undefined;
   }
@@ -478,16 +491,20 @@ export function replaceRef(fromName: string, toName: string) {
 }
 
 export function updateProfile(name?: string, bypassCache = 'bypass_cache') {
-  return callBackground('updateProfile', name, bypassCache).then((results) => {
-    const decoded: ProfileUpdateResults = {};
-    for (const key of Object.keys(results || {})) {
-      decoded[key] = decodeBackgroundError(results[key]);
-    }
-    return decoded;
-  }).then((results) => loadOptions().then((options) => ({
-    options,
-    results
-  })));
+  return callBackground('updateProfile', name, bypassCache)
+    .then((results) => {
+      const decoded: ProfileUpdateResults = {};
+      for (const key of Object.keys(results || {})) {
+        decoded[key] = decodeBackgroundError(results[key]);
+      }
+      return decoded;
+    })
+    .then((results) =>
+      loadOptions().then((options) => ({
+        options,
+        results
+      }))
+    );
 }
 
 export function openShortcutConfig() {

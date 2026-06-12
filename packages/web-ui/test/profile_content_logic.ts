@@ -130,14 +130,16 @@ describe('profile content logic', () => {
     expect(formatMediumDate()).toBe('');
     expect(formatMediumDate(null)).toBe('');
     expect(formatMediumDate('not-a-date')).toBe('not-a-date');
-    expect(formatMediumDate(timestamp)).toBe(new Intl.DateTimeFormat(undefined, {
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      month: 'short',
-      second: '2-digit',
-      year: 'numeric'
-    }).format(new Date(timestamp)));
+    expect(formatMediumDate(timestamp)).toBe(
+      new Intl.DateTimeFormat(undefined, {
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        month: 'short',
+        second: '2-digit',
+        year: 'numeric'
+      }).format(new Date(timestamp))
+    );
   });
 
   it('reads available rule-list formats from OmegaPac', () => {
@@ -252,27 +254,36 @@ describe('profile content logic', () => {
   });
 
   it('detects advanced proxy and active proxy auth state', () => {
-    expect(fixedProfileHasAdvancedProxy({
-      '': {
-        scheme: 'http'
-      },
-      http: {},
-      https: {}
-    })).toBe(false);
-    expect(fixedProfileHasAdvancedProxy({
-      '': {},
-      http: {
-        scheme: 'https'
-      },
-      https: {}
-    })).toBe(true);
-    expect(fixedProfileAuthActive({
-      auth: {
-        proxyForHttps: {
-          username: 'user'
-        }
-      }
-    }, 'https')).toBe(true);
+    expect(
+      fixedProfileHasAdvancedProxy({
+        '': {
+          scheme: 'http'
+        },
+        http: {},
+        https: {}
+      })
+    ).toBe(false);
+    expect(
+      fixedProfileHasAdvancedProxy({
+        '': {},
+        http: {
+          scheme: 'https'
+        },
+        https: {}
+      })
+    ).toBe(true);
+    expect(
+      fixedProfileAuthActive(
+        {
+          auth: {
+            proxyForHttps: {
+              username: 'user'
+            }
+          }
+        },
+        'https'
+      )
+    ).toBe(true);
     expect(fixedProfileAuthActive({}, 'http')).toBe(false);
   });
 

@@ -76,13 +76,7 @@ describe('options shell components', () => {
   it('keeps discard disabled when there are no dirty options', () => {
     const onDiscard = vi.fn();
 
-    const {container} = render(
-      <OptionsShell
-        onDiscard={onDiscard}
-        options={optionsFixture()}
-        optionsDirty={false}
-      />
-    );
+    const {container} = render(<OptionsShell onDiscard={onDiscard} options={optionsFixture()} optionsDirty={false} />);
 
     const discardButton = screen.getByRole('button', {name: 'Discard changes'});
     fireEvent.click(discardButton);

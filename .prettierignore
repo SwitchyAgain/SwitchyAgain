@@ -1,0 +1,7 @@
+node_modules
+dist
+build
+build-ts
+coverage
+packages/*/build-ts
+apps/*/build-ts

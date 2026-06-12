@@ -47,13 +47,7 @@ describe('confirm modal components', () => {
     const onClose = vi.fn();
     const onDismiss = vi.fn();
 
-    render(
-      <ConfirmModal
-        kind="apply"
-        onClose={onClose}
-        onDismiss={onDismiss}
-      />
-    );
+    render(<ConfirmModal kind="apply" onClose={onClose} onDismiss={onDismiss} />);
 
     expect(screen.getByText('Apply Options')).toBeTruthy();
     expect(screen.getByText('Your changes to the options must be applied before you proceed.')).toBeTruthy();
@@ -73,10 +67,7 @@ describe('confirm modal components', () => {
         kind="cannotDeleteProfile"
         onDismiss={onDismiss}
         profile={profile('proxy')}
-        refs={[
-          profile('auto', 'SwitchProfile'),
-          profile('rules', 'RuleListProfile')
-        ]}
+        refs={[profile('auto', 'SwitchProfile'), profile('rules', 'RuleListProfile')]}
       />
     );
 
@@ -92,15 +83,7 @@ describe('confirm modal components', () => {
   it('returns selected profile names when replacing profiles', () => {
     const onClose = vi.fn();
 
-    render(
-      <ConfirmModal
-        fromName="old"
-        kind="replaceProfile"
-        onClose={onClose}
-        options={optionsFixture()}
-        toName="new"
-      />
-    );
+    render(<ConfirmModal fromName="old" kind="replaceProfile" onClose={onClose} options={optionsFixture()} toName="new" />);
 
     expect(screen.getByRole('heading', {name: 'Replace Profile'})).toBeTruthy();
     expect(screen.getByText(/Do you really want to replace/)).toBeTruthy();

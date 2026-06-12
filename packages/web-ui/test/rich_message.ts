@@ -34,13 +34,15 @@ describe('rich message rendering', () => {
   });
 
   it('keeps safe links and neutralizes unsafe links', () => {
-    const nodes = renderRichText([
-      '<a href="https://example.com/?a=1&amp;b=2">safe</a>',
-      ' ',
-      '<a href="javascript:alert(1)">unsafe</a>',
-      ' ',
-      '<a href="/options.html">relative</a>'
-    ].join(''));
+    const nodes = renderRichText(
+      [
+        '<a href="https://example.com/?a=1&amp;b=2">safe</a>',
+        ' ',
+        '<a href="javascript:alert(1)">unsafe</a>',
+        ' ',
+        '<a href="/options.html">relative</a>'
+      ].join('')
+    );
 
     const safe = elementAt(nodes, 0);
     expect(safe.type).toBe('a');
@@ -56,10 +58,6 @@ describe('rich message rendering', () => {
   });
 
   it('leaves unsupported tags as decoded text content', () => {
-    expect(renderRichText('Hello <em>world</em> &quot;ok&quot;')).toEqual([
-      'Hello ',
-      'world',
-      ' "ok"'
-    ]);
+    expect(renderRichText('Hello <em>world</em> &quot;ok&quot;')).toEqual(['Hello ', 'world', ' "ok"']);
   });
 });

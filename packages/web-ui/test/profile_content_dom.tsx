@@ -3,10 +3,7 @@
 import React from 'react';
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {FixedProfileContent, PacProfile} from '../src/react/profile_content';
-import type {
-  NamedFixedProfileModel,
-  NamedPacProfileModel
-} from '../src/react/profile_types';
+import type {NamedFixedProfileModel, NamedPacProfileModel} from '../src/react/profile_types';
 
 function installChromeMock() {
   (globalThis as any).chrome = {
@@ -42,12 +39,7 @@ describe('profile content components', () => {
     };
 
     const {container} = render(
-      <PacProfile
-        onDownload={onDownload}
-        onEditProxyAuth={onEditProxyAuth}
-        onProfileChange={onProfileChange}
-        profile={profile}
-      />
+      <PacProfile onDownload={onDownload} onEditProxyAuth={onEditProxyAuth} onProfileChange={onProfileChange} profile={profile} />
     );
 
     expect(screen.getByText('Proxy authentication will be applied to all proxies returned by this PAC profile.')).toBeTruthy();
@@ -109,13 +101,17 @@ describe('profile content components', () => {
         value: 'https'
       }
     });
-    expect(onProxyChange).toHaveBeenCalledWith('fallbackProxy', {
-      host: 'example.com',
-      port: 443,
-      scheme: 'https'
-    }, {
-      clearAuth: false
-    });
+    expect(onProxyChange).toHaveBeenCalledWith(
+      'fallbackProxy',
+      {
+        host: 'example.com',
+        port: 443,
+        scheme: 'https'
+      },
+      {
+        clearAuth: false
+      }
+    );
 
     fireEvent.click(screen.getByTitle('Proxy Authentication'));
     expect(onEditProxyAuth).toHaveBeenCalledWith('');

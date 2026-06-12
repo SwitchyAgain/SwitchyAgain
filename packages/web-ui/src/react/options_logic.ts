@@ -64,11 +64,16 @@ function profilesFromOptions(options?: Options | null) {
   if (!options) {
     return [];
   }
-  return Object.keys(options).filter(isProfileKey).map((key) => options[key]).filter(isVisibleProfile);
+  return Object.keys(options)
+    .filter(isProfileKey)
+    .map((key) => options[key])
+    .filter(isVisibleProfile);
 }
 
 function profileByName(options: Options | null | undefined, name: string) {
-  return profilesFromOptions(options).concat(BUILTIN_PROFILES).find((candidate) => candidate.name === name);
+  return profilesFromOptions(options)
+    .concat(BUILTIN_PROFILES)
+    .find((candidate) => candidate.name === name);
 }
 
 export function cloneOptions<T>(options: T): T {
@@ -147,12 +152,13 @@ export function composeOmegaRuleList(rules: SwitchRule[], defaultProfileName: st
     rules
   });
   const eol = '\r\n';
-  const info = [
-    '',
-    '; Require: SwitchyOmega >= 2.3.2',
-    `; Date: ${new Date().toLocaleDateString()}`,
-    `; Usage: ${message('ruleList_usageUrl', RULE_LIST_USAGE_URL)}`
-  ].join(eol) + eol;
+  const info =
+    [
+      '',
+      '; Require: SwitchyOmega >= 2.3.2',
+      `; Date: ${new Date().toLocaleDateString()}`,
+      `; Usage: ${message('ruleList_usageUrl', RULE_LIST_USAGE_URL)}`
+    ].join(eol) + eol;
   return text.replace('\n', info);
 }
 
@@ -260,8 +266,10 @@ export function attachedProfileDraft(options: Options, identity: AttachedProfile
 export function profileDownloadErrorMessage(err: unknown) {
   const error = err as Partial<BackgroundError> | null | undefined;
   const statusCode = error?.statusCode ?? error?.original?.statusCode ?? '';
-  return message(`options_profileDownloadError_${error?.name || ''}`, '', String(statusCode))
-    || message('options_profileDownloadError', 'Profile download failed.');
+  return (
+    message(`options_profileDownloadError_${error?.name || ''}`, '', String(statusCode)) ||
+    message('options_profileDownloadError', 'Profile download failed.')
+  );
 }
 
 export function proxyAuthSupported(protocol?: string) {
@@ -327,7 +335,7 @@ export function numberOption(value: unknown, fallback = 0) {
 }
 
 export function objectOption<T extends object>(value: unknown): Partial<T> {
-  return value && typeof value === 'object' ? value as Partial<T> : {};
+  return value && typeof value === 'object' ? (value as Partial<T>) : {};
 }
 
 export function profileOption<TProfile extends ProfileModel>(

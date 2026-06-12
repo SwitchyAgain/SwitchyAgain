@@ -1,7 +1,4 @@
-import {
-  profileNameErrors,
-  profileNameValid
-} from '../src/react/profile_modals_logic';
+import {profileNameErrors, profileNameValid} from '../src/react/profile_modals_logic';
 
 describe('profile modal logic', () => {
   it('requires a profile name', () => {
@@ -16,9 +13,14 @@ describe('profile modal logic', () => {
   });
 
   it('marks reserved names without checking conflicts first', () => {
-    const errors = profileNameErrors('__reserved', '', (name) => name.startsWith('__'), () => ({
-      name: '__reserved'
-    }));
+    const errors = profileNameErrors(
+      '__reserved',
+      '',
+      (name) => name.startsWith('__'),
+      () => ({
+        name: '__reserved'
+      })
+    );
 
     expect(errors).toEqual({
       conflict: true,
@@ -55,7 +57,12 @@ describe('profile modal logic', () => {
   });
 
   it('accepts unique non-reserved names', () => {
-    const errors = profileNameErrors('proxy', '', (name) => name.startsWith('__'), () => null);
+    const errors = profileNameErrors(
+      'proxy',
+      '',
+      (name) => name.startsWith('__'),
+      () => null
+    );
 
     expect(errors).toEqual({
       conflict: false,

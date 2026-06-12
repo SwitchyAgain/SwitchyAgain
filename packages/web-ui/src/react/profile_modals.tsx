@@ -52,12 +52,10 @@ function ProfileNameField({
   onChange: (name: string) => void;
   profileByName?: (name: string) => Profile | null;
 }) {
-  const errors = useMemo(() => profileNameErrors(name, fromName, isProfileNameReserved, profileByName), [
-    fromName,
-    isProfileNameReserved,
-    name,
-    profileByName
-  ]);
+  const errors = useMemo(
+    () => profileNameErrors(name, fromName, isProfileNameReserved, profileByName),
+    [fromName, isProfileNameReserved, name, profileByName]
+  );
   const valid = profileNameValid(errors);
   const hidden = valid && Boolean(name && isProfileNameHidden?.(name));
 
@@ -77,7 +75,9 @@ function ProfileNameField({
         <div className="help-block">{message('options_profileNameEmpty', 'The name of the profile must not be empty.')}</div>
       )}
       {errors.reserved && (
-        <div className="help-block">{message('options_profileNameReserved', 'Profile names beginning with double-underscore are reserved.')}</div>
+        <div className="help-block">
+          {message('options_profileNameReserved', 'Profile names beginning with double-underscore are reserved.')}
+        </div>
       )}
       {!errors.reserved && errors.conflict && (
         <div className="help-block">{message('options_profileNameConflict', 'A profile with this name already exists.')}</div>
@@ -86,7 +86,10 @@ function ProfileNameField({
         <div className="help-block">
           <div className="text-info">
             <span className="glyphicon glyphicon-info-sign" />{' '}
-            {message('options_profileNameHidden', 'Profiles with names starting with underscore will be hidden on the popup menu. However, they can still be used in places like switch profile results.')}
+            {message(
+              'options_profileNameHidden',
+              'Profiles with names starting with underscore will be hidden on the popup menu. However, they can still be used in places like switch profile results.'
+            )}
           </div>
         </div>
       )}
@@ -109,12 +112,10 @@ export function RenameProfileModal({
     setNewName(fromName);
   }, [fromName]);
 
-  const errors = useMemo(() => profileNameErrors(trimmedName, fromName, isProfileNameReserved, profileByName), [
-    fromName,
-    isProfileNameReserved,
-    profileByName,
-    trimmedName
-  ]);
+  const errors = useMemo(
+    () => profileNameErrors(trimmedName, fromName, isProfileNameReserved, profileByName),
+    [fromName, isProfileNameReserved, profileByName, trimmedName]
+  );
   const valid = profileNameValid(errors);
 
   function submit(event: React.FormEvent) {
@@ -182,17 +183,9 @@ function ProfileTypeOption({
   return (
     <div className="radio">
       <label>
-        <input
-          type="radio"
-          name={name}
-          value={value}
-          checked={checked}
-          disabled={disabled}
-          onChange={() => onChange(value)}
-        />
+        <input type="radio" name={name} value={value} checked={checked} disabled={disabled} onChange={() => onChange(value)} />
         <span className="profile-type">
-          <span className={`glyphicon ${icon} ${value === 'VirtualProfile' ? 'virtual-profile-icon' : ''}`} />{' '}
-          <span>{title}</span>
+          <span className={`glyphicon ${icon} ${value === 'VirtualProfile' ? 'virtual-profile-icon' : ''}`} /> <span>{title}</span>
         </span>
         <div className="help-block">{description}</div>
         {extraHelp && <div className="help-block">{extraHelp}</div>}
@@ -218,11 +211,10 @@ export function NewProfileModal({
 }: NewProfileProps) {
   const [name, setName] = useState('');
   const [profileType, setProfileType] = useState<ProfileType>('FixedProfile');
-  const errors = useMemo(() => profileNameErrors(name, '', isProfileNameReserved, profileByName), [
-    isProfileNameReserved,
-    name,
-    profileByName
-  ]);
+  const errors = useMemo(
+    () => profileNameErrors(name, '', isProfileNameReserved, profileByName),
+    [isProfileNameReserved, name, profileByName]
+  );
   const valid = profileNameValid(errors);
 
   function submit(event: React.FormEvent) {
@@ -262,7 +254,10 @@ export function NewProfileModal({
         />
         <ProfileTypeOption
           checked={profileType === 'SwitchProfile'}
-          description={message('options_profileDescSwitchProfile', 'Applying different profiles automatically on various conditions such as domains or patterns.\n You can also import rules published online for easier switching. (Replaces AutoSwitch mode + Rule List.)')}
+          description={message(
+            'options_profileDescSwitchProfile',
+            'Applying different profiles automatically on various conditions such as domains or patterns.\n You can also import rules published online for easier switching. (Replaces AutoSwitch mode + Rule List.)'
+          )}
           icon={PROFILE_ICONS.SwitchProfile}
           name="profile-new-type"
           onChange={setProfileType}
@@ -273,17 +268,34 @@ export function NewProfileModal({
           checked={profileType === 'PacProfile'}
           description={message('options_profileDescPacProfile', 'Choosing proxies using an online/local PAC script.')}
           disabled={pacProfilesUnsupported}
-          extraHelp={!pacProfilesUnsupported ? message('options_profileDescMorePacProfile', "You will only need this if you have a PAC script or a URL to it. Don't try to create one unless you have knowledge about PAC.") : undefined}
+          extraHelp={
+            !pacProfilesUnsupported
+              ? message(
+                  'options_profileDescMorePacProfile',
+                  "You will only need this if you have a PAC script or a URL to it. Don't try to create one unless you have knowledge about PAC."
+                )
+              : undefined
+          }
           icon={PROFILE_ICONS.PacProfile}
           name="profile-new-type"
           onChange={setProfileType}
           title={message('options_profileTypePacProfile', 'PAC Profile')}
           value="PacProfile"
-          warning={pacProfilesUnsupported ? message('options_pac_profile_unsupported_moz', 'PAC Profiles WILL NOT work in Mozilla Firefox due to technical limitations!') : undefined}
+          warning={
+            pacProfilesUnsupported
+              ? message(
+                  'options_pac_profile_unsupported_moz',
+                  'PAC Profiles WILL NOT work in Mozilla Firefox due to technical limitations!'
+                )
+              : undefined
+          }
         />
         <ProfileTypeOption
           checked={profileType === 'VirtualProfile'}
-          description={message('options_profileDescVirtualProfile', 'A virtual profile can act as any of the other profiles on demand. It works well with SwitchProfile, allowing you to change the result of multiple conditions by one click.')}
+          description={message(
+            'options_profileDescVirtualProfile',
+            'A virtual profile can act as any of the other profiles on demand. It works well with SwitchProfile, allowing you to change the result of multiple conditions by one click.'
+          )}
           icon={PROFILE_ICONS.VirtualProfile}
           name="profile-new-type"
           onChange={setProfileType}
@@ -349,13 +361,7 @@ function ClearableInput({
   );
 }
 
-export function ProxyAuthModal({
-  auth,
-  authSupported = true,
-  onClose,
-  onDismiss,
-  protocolDisp = ''
-}: ProxyAuthProps) {
+export function ProxyAuthModal({auth, authSupported = true, onClose, onDismiss, protocolDisp = ''}: ProxyAuthProps) {
   const [username, setUsername] = useState(auth?.username || '');
   const [password, setPassword] = useState(auth?.password || '');
   const [showPassword, setShowPassword] = useState(false);
@@ -426,7 +432,11 @@ export function ProxyAuthModal({
               <button
                 type="button"
                 className="btn btn-default"
-                title={showPassword ? message('options_proxyAuthHidePassword', 'Hide password') : message('options_proxyAuthShowPassword', 'Show password')}
+                title={
+                  showPassword
+                    ? message('options_proxyAuthHidePassword', 'Hide password')
+                    : message('options_proxyAuthShowPassword', 'Show password')
+                }
                 disabled={!username}
                 onClick={() => setShowPassword(!showPassword)}
               >

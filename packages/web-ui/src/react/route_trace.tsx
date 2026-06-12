@@ -1,19 +1,7 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {
-  Options,
-  RequestExplanation,
-  RequestExplainStep,
-  explainRequest,
-  getState,
-  message
-} from './options_client';
+import {Options, RequestExplanation, RequestExplainStep, explainRequest, getState, message} from './options_client';
 import {ProfileInline, ProfileSelect, allProfilesFromOptions, profileByName} from './profile_widgets';
-import {
-  formatRequestUrl,
-  profileFromExplanation,
-  routeTraceStepCondition,
-  routeTraceSteps
-} from './route_trace_logic';
+import {formatRequestUrl, profileFromExplanation, routeTraceStepCondition, routeTraceSteps} from './route_trace_logic';
 
 export type RouteTraceProps = {
   embedded?: boolean;
@@ -63,7 +51,9 @@ function StepRow({options, step}: {options?: Options | null; step: RequestExplai
     <tr>
       <td className="route-trace-step-kind">{labels[step.kind] || step.kind}</td>
       <td className="route-trace-step-condition">{condition}</td>
-      <td><StepTarget options={options} step={step} /></td>
+      <td>
+        <StepTarget options={options} step={step} />
+      </td>
     </tr>
   );
 }
@@ -78,7 +68,10 @@ function ExplanationResult({explanation, options}: {explanation: RequestExplanat
       {explanation.tempRulesActive && (
         <p className="help-text text-warning">
           <span className="glyphicon glyphicon-filter" />{' '}
-          {message('routeTrace_tempRulesActive', 'Temporary rules are active; requests are checked against temporary rules before the current profile.')}
+          {message(
+            'routeTrace_tempRulesActive',
+            'Temporary rules are active; requests are checked against temporary rules before the current profile.'
+          )}
         </p>
       )}
       {explanation.errors?.map((error) => (
@@ -96,7 +89,9 @@ function ExplanationResult({explanation, options}: {explanation: RequestExplanat
         <tbody>
           <tr>
             <th>{message('routeTrace_request', 'Request')}</th>
-            <td><code>{formatRequestUrl(explanation.request.url)}</code></td>
+            <td>
+              <code>{formatRequestUrl(explanation.request.url)}</code>
+            </td>
           </tr>
           <tr>
             <th>{message('routeTrace_currentProfile', 'Current profile')}</th>
@@ -108,7 +103,9 @@ function ExplanationResult({explanation, options}: {explanation: RequestExplanat
           </tr>
           <tr>
             <th>{message('routeTrace_finalResult', 'Final result')}</th>
-            <td><FinalResult explanation={explanation} options={options} /></td>
+            <td>
+              <FinalResult explanation={explanation} options={options} />
+            </td>
           </tr>
         </tbody>
       </table>
@@ -159,13 +156,15 @@ export function RouteTrace({embedded = false, options}: RouteTraceProps) {
     explainRequest({
       url,
       profileName: profileName || undefined
-    }).then((result) => {
-      setExplanation(result);
-      setStatus('ready');
-    }).catch((err) => {
-      setError(err?.message || String(err));
-      setStatus('error');
-    });
+    })
+      .then((result) => {
+        setExplanation(result);
+        setStatus('ready');
+      })
+      .catch((err) => {
+        setError(err?.message || String(err));
+        setStatus('error');
+      });
   }
 
   const content = (
@@ -215,9 +214,7 @@ export function RouteTrace({embedded = false, options}: RouteTraceProps) {
           <span className="glyphicon glyphicon-remove" /> {error}
         </div>
       )}
-      {status === 'loading' && (
-        <p className="text-muted">{message('routeTrace_loading', 'Loading...')}</p>
-      )}
+      {status === 'loading' && <p className="text-muted">{message('routeTrace_loading', 'Loading...')}</p>}
       {explanation && <ExplanationResult explanation={explanation} options={options} />}
     </>
   );
@@ -225,9 +222,5 @@ export function RouteTrace({embedded = false, options}: RouteTraceProps) {
   if (embedded) {
     return content;
   }
-  return (
-    <main className="container-fluid react-options">
-      {content}
-    </main>
-  );
+  return <main className="container-fluid react-options">{content}</main>;
 }

@@ -11,13 +11,7 @@ import {
   UI_LOCALES,
   uiLocaleForOptions
 } from './options_client';
-import {
-  Profile,
-  ProfileInline,
-  ProfileSelect,
-  allProfilesFromOptions,
-  profileByName
-} from './profile_widgets';
+import {Profile, ProfileInline, ProfileSelect, allProfilesFromOptions, profileByName} from './profile_widgets';
 import {cloneOptions} from './options_logic';
 import {
   moveQuickSwitchProfileName,
@@ -82,10 +76,12 @@ function UiLocaleSelect({value, onChange}: {value: string; onChange: (value: str
         <ul className="dropdown-menu" role="listbox">
           {UI_LOCALES.map((locale) => (
             <li key={locale.value} role="option" className={value === locale.value ? 'active' : ''}>
-              <a onClick={() => {
-                onChange(locale.value);
-                setOpen(false);
-              }}>
+              <a
+                onClick={() => {
+                  onChange(locale.value);
+                  setOpen(false);
+                }}
+              >
                 <span>{locale.label}</span>
               </a>
             </li>
@@ -97,9 +93,11 @@ function UiLocaleSelect({value, onChange}: {value: string; onChange: (value: str
 }
 
 export function UiSettings({embedded = false, options, onOptionsChange, onOpenShortcutConfig}: UiSettingsProps) {
-  const [savedOptions, setSavedOptions] = useState<Options | null>(() => embedded && options ? cloneOptions(options) : null);
-  const [draftOptions, setDraftOptions] = useState<Options | null>(() => embedded && options ? cloneOptions(options) : null);
-  const [status, setStatus] = useState<'loading' | 'ready' | 'saving' | 'saved' | 'error'>(() => embedded && options ? 'ready' : 'loading');
+  const [savedOptions, setSavedOptions] = useState<Options | null>(() => (embedded && options ? cloneOptions(options) : null));
+  const [draftOptions, setDraftOptions] = useState<Options | null>(() => (embedded && options ? cloneOptions(options) : null));
+  const [status, setStatus] = useState<'loading' | 'ready' | 'saving' | 'saved' | 'error'>(() =>
+    embedded && options ? 'ready' : 'loading'
+  );
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -111,15 +109,17 @@ export function UiSettings({embedded = false, options, onOptionsChange, onOpenSh
       return;
     }
 
-    loadOptions().then((loadedOptions) => {
-      const cloned = cloneOptions(loadedOptions);
-      setSavedOptions(cloned);
-      setDraftOptions(cloneOptions(cloned));
-      setStatus('ready');
-    }).catch((err) => {
-      setError(err?.message || String(err));
-      setStatus('error');
-    });
+    loadOptions()
+      .then((loadedOptions) => {
+        const cloned = cloneOptions(loadedOptions);
+        setSavedOptions(cloned);
+        setDraftOptions(cloneOptions(cloned));
+        setStatus('ready');
+      })
+      .catch((err) => {
+        setError(err?.message || String(err));
+        setStatus('error');
+      });
   }, [embedded, options]);
 
   const dirty = useMemo(() => {
@@ -203,15 +203,17 @@ export function UiSettings({embedded = false, options, onOptionsChange, onOpenSh
     }
     const patch = uiOptionPatch(savedOptions, draftOptions);
     setStatus('saving');
-    patchOptions(patch).then((loadedOptions) => {
-      const cloned = cloneOptions(loadedOptions);
-      setSavedOptions(cloned);
-      setDraftOptions(cloneOptions(cloned));
-      setStatus('saved');
-    }).catch((err) => {
-      setError(err?.message || String(err));
-      setStatus('error');
-    });
+    patchOptions(patch)
+      .then((loadedOptions) => {
+        const cloned = cloneOptions(loadedOptions);
+        setSavedOptions(cloned);
+        setDraftOptions(cloneOptions(cloned));
+        setStatus('saved');
+      })
+      .catch((err) => {
+        setError(err?.message || String(err));
+        setStatus('error');
+      });
   }
 
   function handleShortcutClick() {
@@ -368,7 +370,9 @@ export function UiSettings({embedded = false, options, onOptionsChange, onOpenSh
           </button>{' '}
           {message('options_menuShortcutHelp', 'Configure keyboard shortcuts in the extension settings.')}
         </p>
-        <p className="help-block">{message('options_menuShortcutMore', 'More shortcut settings are available in the browser extension settings.')}</p>
+        <p className="help-block">
+          {message('options_menuShortcutMore', 'More shortcut settings are available in the browser extension settings.')}
+        </p>
       </section>
 
       <section className="settings-group">
@@ -423,8 +427,14 @@ export function UiSettings({embedded = false, options, onOptionsChange, onOpenSh
 
       {!embedded && (
         <div className="react-actions">
-          <button type="button" className={`btn ${dirty ? 'btn-success' : 'btn-default'}`} disabled={!dirty || status === 'saving'} onClick={applyChanges}>
-            <span className="glyphicon glyphicon-ok-circle" /> {status === 'saving' ? 'Saving...' : message('options_apply', 'Apply changes')}
+          <button
+            type="button"
+            className={`btn ${dirty ? 'btn-success' : 'btn-default'}`}
+            disabled={!dirty || status === 'saving'}
+            onClick={applyChanges}
+          >
+            <span className="glyphicon glyphicon-ok-circle" />{' '}
+            {status === 'saving' ? 'Saving...' : message('options_apply', 'Apply changes')}
           </button>
           <button type="button" className="btn btn-link text-danger" disabled={!dirty || status === 'saving'} onClick={discardChanges}>
             <span className="glyphicon glyphicon-remove-circle" /> {message('options_discard', 'Discard changes')}

@@ -37,10 +37,7 @@ describe('ui settings logic', () => {
 
     expect(uiOptionsDirty(before, after)).toBe(true);
     expect(uiOptionPatch(before, after)).toEqual({
-      '-quickSwitchProfiles': [
-        ['direct'],
-        ['direct', 'proxy']
-      ]
+      '-quickSwitchProfiles': [['direct'], ['direct', 'proxy']]
     });
     expect(uiOptionsDirty(before, before)).toBe(false);
   });
@@ -53,18 +50,23 @@ describe('ui settings logic', () => {
   });
 
   it('derives profiles outside the quick switch cycle', () => {
-    expect(notCycledProfileNames([
-      {
-        name: 'direct'
-      },
-      {
-        name: 'proxy'
-      },
-      {
-        name: ''
-      },
-      {}
-    ], ['direct'])).toEqual(['proxy']);
+    expect(
+      notCycledProfileNames(
+        [
+          {
+            name: 'direct'
+          },
+          {
+            name: 'proxy'
+          },
+          {
+            name: ''
+          },
+          {}
+        ],
+        ['direct']
+      )
+    ).toEqual(['proxy']);
   });
 
   it('moves profiles in and out of the quick switch cycle', () => {

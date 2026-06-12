@@ -1,13 +1,5 @@
 import type {RequestExplanation, RequestExplainProfile} from './options_client';
-import type {
-  PageInfo,
-  PopupConditionType,
-  PopupMode,
-  PopupState,
-  Profile,
-  ProfileKey,
-  ProfileMap
-} from './popup_target';
+import type {PageInfo, PopupConditionType, PopupMode, PopupState, Profile, ProfileKey, ProfileMap} from './popup_target';
 
 export const defaultConditionType: PopupConditionType = 'HostWildcardCondition';
 
@@ -69,7 +61,7 @@ export function modeFromHash(hash = location.hash): PopupMode {
 }
 
 export function profileKey(profileName?: string): ProfileKey | undefined {
-  return profileName ? `+${profileName}` as ProfileKey : undefined;
+  return profileName ? (`+${profileName}` as ProfileKey) : undefined;
 }
 
 export function profileFromMap(availableProfiles?: ProfileMap, profileName?: string) {
@@ -116,14 +108,16 @@ export function popupProfileFromExplanation(state: PopupState, profile?: Request
   if (!profileName) {
     return undefined;
   }
-  return profileFromMap(state.availableProfiles, profileName) || {
-    attachedToProfileName: profile?.attachedToProfileName,
-    builtin: !!profile?.builtin,
-    color: typeof profile?.color === 'string' ? profile.color : undefined,
-    name: profileName,
-    profileType: typeof profile?.profileType === 'string' ? profile.profileType : 'VirtualProfile',
-    role: profile?.role
-  };
+  return (
+    profileFromMap(state.availableProfiles, profileName) || {
+      attachedToProfileName: profile?.attachedToProfileName,
+      builtin: !!profile?.builtin,
+      color: typeof profile?.color === 'string' ? profile.color : undefined,
+      name: profileName,
+      profileType: typeof profile?.profileType === 'string' ? profile.profileType : 'VirtualProfile',
+      role: profile?.role
+    }
+  );
 }
 
 export function requestHostname(url: unknown) {

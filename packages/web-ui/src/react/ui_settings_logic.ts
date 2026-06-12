@@ -34,17 +34,16 @@ export function uiOptionPatch(before: Options, after: Options) {
 }
 
 export function quickSwitchProfileNames(value: unknown) {
-  return Array.isArray(value) ? value as string[] : [];
+  return Array.isArray(value) ? (value as string[]) : [];
 }
 
-export function notCycledProfileNames(
-  profiles: Array<{name?: string}>,
-  quickSwitchProfiles: string[]
-) {
+export function notCycledProfileNames(profiles: Array<{name?: string}>, quickSwitchProfiles: string[]) {
   const quickSwitchProfileSet = new Set(quickSwitchProfiles);
-  return profiles.map((profile) => profile.name || '').filter((name) => {
-    return name && !quickSwitchProfileSet.has(name);
-  });
+  return profiles
+    .map((profile) => profile.name || '')
+    .filter((name) => {
+      return name && !quickSwitchProfileSet.has(name);
+    });
 }
 
 export function moveQuickSwitchProfileName(quickSwitchProfiles: string[], name: string, enabled: boolean) {
@@ -58,12 +57,7 @@ export function moveQuickSwitchProfileName(quickSwitchProfiles: string[], name: 
   return next.length === quickSwitchProfiles.length ? quickSwitchProfiles : next;
 }
 
-export function reorderQuickSwitchProfileName(
-  quickSwitchProfiles: string[],
-  name: string,
-  targetName: string,
-  enabled: boolean
-) {
+export function reorderQuickSwitchProfileName(quickSwitchProfiles: string[], name: string, targetName: string, enabled: boolean) {
   if (!enabled) {
     return quickSwitchProfiles;
   }

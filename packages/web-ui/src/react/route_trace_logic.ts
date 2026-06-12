@@ -1,8 +1,4 @@
-import type {
-  Options,
-  RequestExplainProfile,
-  RequestExplainStep
-} from './options_client';
+import type {Options, RequestExplainProfile, RequestExplainStep} from './options_client';
 import {profileByName} from './profile_widgets';
 import type {Profile} from './profile_widgets';
 
@@ -11,14 +7,16 @@ export function profileFromExplanation(options: Options | null | undefined, prof
   if (!profileName) {
     return null;
   }
-  return profileByName(options, profileName) || {
-    attachedToProfileName: profile?.attachedToProfileName,
-    builtin: !!profile?.builtin,
-    color: typeof profile?.color === 'string' ? profile.color : undefined,
-    name: profileName,
-    profileType: typeof profile?.profileType === 'string' ? profile.profileType : 'VirtualProfile',
-    role: profile?.role
-  };
+  return (
+    profileByName(options, profileName) || {
+      attachedToProfileName: profile?.attachedToProfileName,
+      builtin: !!profile?.builtin,
+      color: typeof profile?.color === 'string' ? profile.color : undefined,
+      name: profileName,
+      profileType: typeof profile?.profileType === 'string' ? profile.profileType : 'VirtualProfile',
+      role: profile?.role
+    }
+  );
 }
 
 export function formatRequestUrl(url: unknown) {

@@ -1,10 +1,5 @@
-import {
-  conditionTypesForMode as switchConditionTypesForMode
-} from './switch_profile_runtime';
-import type {
-  ConditionTypeOption,
-  SwitchRuleSourceState
-} from './switch_profile_runtime';
+import {conditionTypesForMode as switchConditionTypesForMode} from './switch_profile_runtime';
+import type {ConditionTypeOption, SwitchRuleSourceState} from './switch_profile_runtime';
 import type {
   FixedProfileBypassCondition,
   FixedProfileModel,
@@ -156,10 +151,13 @@ export function fixedProfileBypassText(profile: FixedProfileModel) {
 }
 
 export function fixedProfileBypassList(value: string): FixedProfileBypassCondition[] {
-  return value.split(/\r?\n/).filter(Boolean).map((pattern) => ({
-    conditionType: 'BypassCondition',
-    pattern
-  }));
+  return value
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .map((pattern) => ({
+      conditionType: 'BypassCondition',
+      pattern
+    }));
 }
 
 export function fixedProfileHasAdvancedProxy(editors: FixedProfileProxyEditors) {

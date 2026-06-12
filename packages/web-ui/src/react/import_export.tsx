@@ -53,13 +53,15 @@ export function ImportExport({
   onImportSuccess,
   onOptionsReplace,
   options: initialOptions,
-  optionsDirty = false,
+  optionsDirty = false
 }: ImportExportProps) {
-  const [options, setOptions] = useState<Options | null>(() => embedded && initialOptions ? initialOptions : null);
+  const [options, setOptions] = useState<Options | null>(() => (embedded && initialOptions ? initialOptions : null));
   const [restoreUrl, setRestoreUrl] = useState(storedRestoreUrl);
-  const [status, setStatus] = useState<ImportExportStatus>(() => embedded && initialOptions ? 'ready' : 'loading');
+  const [status, setStatus] = useState<ImportExportStatus>(() => (embedded && initialOptions ? 'ready' : 'loading'));
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('ready');
-  const [syncOptions, setSyncOptions] = useState<'pristine' | 'disabled' | 'sync' | 'conflict' | 'unsupported' | string | undefined>(() => getLocalState('syncOptions'));
+  const [syncOptions, setSyncOptions] = useState<'pristine' | 'disabled' | 'sync' | 'conflict' | 'unsupported' | string | undefined>(() =>
+    getLocalState('syncOptions')
+  );
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -74,13 +76,15 @@ export function ImportExport({
       return;
     }
 
-    loadOptions().then((loadedOptions) => {
-      setOptions(loadedOptions);
-      setStatus('ready');
-    }).catch((err) => {
-      setError(importExportErrorMessage(err));
-      setStatus('error');
-    });
+    loadOptions()
+      .then((loadedOptions) => {
+        setOptions(loadedOptions);
+        setStatus('ready');
+      })
+      .catch((err) => {
+        setError(importExportErrorMessage(err));
+        setStatus('error');
+      });
   }, [embedded, initialOptions]);
 
   function showSuccess() {
@@ -109,27 +113,32 @@ export function ImportExport({
       return;
     }
     setStatus('exporting');
-    confirmCurrentOptions().then(() => {
-      const blob = new Blob([backupOptionsText(options)], {
-        type: 'text/plain;charset=utf-8'
+    confirmCurrentOptions()
+      .then(() => {
+        const blob = new Blob([backupOptionsText(options)], {
+          type: 'text/plain;charset=utf-8'
+        });
+        downloadBlob(blob, 'OmegaOptions.bak');
+      })
+      .catch(() => {})
+      .finally(() => {
+        setStatus('ready');
       });
-      downloadBlob(blob, 'OmegaOptions.bak');
-    }).catch(() => {
-    }).finally(() => {
-      setStatus('ready');
-    });
   }
 
   function restoreFromContent(content: string, restoringStatus: 'restoringLocal' | 'restoringOnline') {
     setStatus(restoringStatus);
-    resetOptions(content).then((loadedOptions) => {
-      setOptions(loadedOptions);
-      return Promise.resolve(onOptionsReplace?.(loadedOptions, {dirty: false}));
-    }).then(() => {
-      showImportSuccess();
-    }).catch((err) => {
-      showError(err, 'options_importFormatError', 'Invalid backup file!');
-    });
+    resetOptions(content)
+      .then((loadedOptions) => {
+        setOptions(loadedOptions);
+        return Promise.resolve(onOptionsReplace?.(loadedOptions, {dirty: false}));
+      })
+      .then(() => {
+        showImportSuccess();
+      })
+      .catch((err) => {
+        showError(err, 'options_importFormatError', 'Invalid backup file!');
+      });
   }
 
   function restoreLocal(event: React.ChangeEvent<HTMLInputElement>) {
@@ -139,11 +148,13 @@ export function ImportExport({
       return;
     }
     setStatus('restoringLocal');
-    readTextFile(file).then((content) => {
-      restoreFromContent(content, 'restoringLocal');
-    }).catch((err) => {
-      showError(err, 'options_importFormatError', 'Invalid backup file!');
-    });
+    readTextFile(file)
+      .then((content) => {
+        restoreFromContent(content, 'restoringLocal');
+      })
+      .catch((err) => {
+        showError(err, 'options_importFormatError', 'Invalid backup file!');
+      });
   }
 
   function restoreOnline() {
@@ -158,18 +169,22 @@ export function ImportExport({
     fetch(url, {
       cache: 'no-store',
       signal: controller.signal
-    }).then((response) => {
-      if (!response.ok) {
-        throw new Error(`${response.status} ${response.statusText}`);
-      }
-      return response.text();
-    }).then((content) => {
-      restoreFromContent(content, 'restoringOnline');
-    }).catch((err) => {
-      showError(err, 'options_importDownloadError', 'Error downloading backup file!');
-    }).finally(() => {
-      window.clearTimeout(timeout);
-    });
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`${response.status} ${response.statusText}`);
+        }
+        return response.text();
+      })
+      .then((content) => {
+        restoreFromContent(content, 'restoringOnline');
+      })
+      .catch((err) => {
+        showError(err, 'options_importDownloadError', 'Error downloading backup file!');
+      })
+      .finally(() => {
+        window.clearTimeout(timeout);
+      });
   }
 
   const busy = importExportBusy(status);
@@ -180,11 +195,13 @@ export function ImportExport({
       return;
     }
     setSyncStatus(nextStatus);
-    Promise.resolve(action()).then(() => {
-      setSyncStatus('ready');
-    }).catch(() => {
-      setSyncStatus('ready');
-    });
+    Promise.resolve(action())
+      .then(() => {
+        setSyncStatus('ready');
+      })
+      .catch(() => {
+        setSyncStatus('ready');
+      });
   }
 
   function reloadOptionsPage() {
@@ -195,10 +212,12 @@ export function ImportExport({
     if (!optionsDirty) {
       return Promise.resolve(true);
     }
-    const confirmed = window.confirm([
-      message('options_applyOptionsRequired', 'Your changes to the options must be applied before you proceed.'),
-      message('options_applyOptionsConfirm', 'Do you want to save and apply the options?')
-    ].join('\n\n'));
+    const confirmed = window.confirm(
+      [
+        message('options_applyOptionsRequired', 'Your changes to the options must be applied before you proceed.'),
+        message('options_applyOptionsConfirm', 'Do you want to save and apply the options?')
+      ].join('\n\n')
+    );
     if (!confirmed) {
       return Promise.reject(new Error('cancelled'));
     }
@@ -222,13 +241,15 @@ export function ImportExport({
     const currentOptions = options || {};
     const {nextOptions, patch} = legacyRuleListPatch(currentOptions, checked);
     setOptions(nextOptions);
-    patchOptions(patch).then((loadedOptions) => {
-      setOptions(loadedOptions);
-      onOptionsReplace?.(loadedOptions, {dirty: false});
-    }).catch((err) => {
-      setOptions(currentOptions);
-      showError(err, 'options_saveError', 'Unable to save options.');
-    });
+    patchOptions(patch)
+      .then((loadedOptions) => {
+        setOptions(loadedOptions);
+        onOptionsReplace?.(loadedOptions, {dirty: false});
+      })
+      .catch((err) => {
+        setOptions(currentOptions);
+        showError(err, 'options_saveError', 'Unable to save options.');
+      });
   }
 
   const profileSection = (
@@ -236,7 +257,8 @@ export function ImportExport({
       <h3>{message('options_group_importExportProfile', 'Profile')}</h3>
       <div className="help-block">
         <div className="text-info">
-          <span className="glyphicon glyphicon-info-sign" /> {message('options_exportProfileHelp', 'To export a profile, use the top-right action bar on the profile page.')}
+          <span className="glyphicon glyphicon-info-sign" />{' '}
+          {message('options_exportProfileHelp', 'To export a profile, use the top-right action bar on the profile page.')}
         </div>
       </div>
       {!(Number(options?.['-showConditionTypes'] || 0) > 0) && (
@@ -278,19 +300,18 @@ export function ImportExport({
         <button type="button" className="btn btn-default" disabled={!options || busy} onClick={exportOptions}>
           <span className="glyphicon glyphicon-floppy-save" /> {message('options_makeBackup', 'Make backup')}
         </button>{' '}
-        <span className="help-inline">{message('options_makeBackupHelp', 'Make a full backup of your options (including profiles and all other options).')}</span>
+        <span className="help-inline">
+          {message('options_makeBackupHelp', 'Make a full backup of your options (including profiles and all other options).')}
+        </span>
       </p>
 
       <p className="react-action-row">
-        <input
-          ref={fileInputRef}
-          id="react-restore-local-file"
-          type="file"
-          style={{display: 'none'}}
-          onChange={restoreLocal}
-        />
+        <input ref={fileInputRef} id="react-restore-local-file" type="file" style={{display: 'none'}} onChange={restoreLocal} />
         <button type="button" className="btn btn-default" disabled={busy} onClick={() => fileInputRef.current?.click()}>
-          <span className="glyphicon glyphicon-folder-open" /> {status === 'restoringLocal' ? message('options_restoreOnlineSubmit', 'Restore') + '...' : message('options_restoreLocal', 'Restore from file')}
+          <span className="glyphicon glyphicon-folder-open" />{' '}
+          {status === 'restoringLocal'
+            ? message('options_restoreOnlineSubmit', 'Restore') + '...'
+            : message('options_restoreLocal', 'Restore from file')}
         </button>{' '}
         <span className="help-inline">{message('options_restoreLocalHelp', 'Restore your SwitchyAgain options from a local file.')}</span>
       </p>
@@ -312,7 +333,9 @@ export function ImportExport({
           />
           <span className="input-group-btn">
             <button type="button" className="btn btn-default" disabled={busy || !restoreUrl.trim()} onClick={restoreOnline}>
-              {status === 'restoringOnline' ? message('options_restoreOnlineSubmit', 'Restore') + '...' : message('options_restoreOnlineSubmit', 'Restore')}
+              {status === 'restoringOnline'
+                ? message('options_restoreOnlineSubmit', 'Restore') + '...'
+                : message('options_restoreOnlineSubmit', 'Restore')}
             </button>
           </span>
         </div>
@@ -327,7 +350,12 @@ export function ImportExport({
         <>
           <p className="help-block">{richMessage('options_syncPristineHelp', 'Sync your options using browser storage.')}</p>
           <p>
-            <button type="button" className="btn btn-default" disabled={syncActionBusy} onClick={() => runSyncAction('enabling', enableOptionsSync)}>
+            <button
+              type="button"
+              className="btn btn-default"
+              disabled={syncActionBusy}
+              onClick={() => runSyncAction('enabling', enableOptionsSync)}
+            >
               <span className="glyphicon glyphicon-cloud-upload" /> {message('options_syncEnable', 'Enable sync')}
             </button>
           </p>
@@ -340,7 +368,12 @@ export function ImportExport({
           </p>
           <p className="help-block">{richMessage('options_syncSyncHelp', 'Your options are synchronized.')}</p>
           <p>
-            <button type="button" className="btn btn-warning" disabled={syncActionBusy} onClick={() => runSyncAction('disabling', disableOptionsSync)}>
+            <button
+              type="button"
+              className="btn btn-warning"
+              disabled={syncActionBusy}
+              onClick={() => runSyncAction('disabling', disableOptionsSync)}
+            >
               <span className="glyphicon glyphicon-remove-sign" /> {message('options_syncDisable', 'Disable sync')}
             </button>
           </p>
@@ -353,10 +386,20 @@ export function ImportExport({
           </p>
           <p className="help-block">{richMessage('options_syncConflictHelp', 'Choose which options should be used for syncing.')}</p>
           <p>
-            <button type="button" className="btn btn-danger" disabled={syncActionBusy} onClick={() => runSyncAction('enabling', () => enableOptionsSync({force: true}))}>
+            <button
+              type="button"
+              className="btn btn-danger"
+              disabled={syncActionBusy}
+              onClick={() => runSyncAction('enabling', () => enableOptionsSync({force: true}))}
+            >
               <span className="glyphicon glyphicon-cloud-download" /> {message('options_syncEnableForce', 'Use synced options')}
             </button>{' '}
-            <button type="button" className="btn btn-link" disabled={syncActionBusy} onClick={() => runSyncAction('resetting', resetSyncedOptions)}>
+            <button
+              type="button"
+              className="btn btn-link"
+              disabled={syncActionBusy}
+              onClick={() => runSyncAction('resetting', resetSyncedOptions)}
+            >
               <span className="glyphicon glyphicon-erase" /> {message('options_syncReset', 'Reset sync')}
             </button>
           </p>

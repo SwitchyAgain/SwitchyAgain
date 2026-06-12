@@ -49,7 +49,11 @@ function appendText(frame: RichFrame, text: string) {
 function renderFrame(frame: RichFrame, key: string) {
   switch (frame.tag) {
     case 'a':
-      return <a key={key} href={frame.props?.href || '#'} target="_blank" rel="noreferrer">{frame.children}</a>;
+      return (
+        <a key={key} href={frame.props?.href || '#'} target="_blank" rel="noreferrer">
+          {frame.children}
+        </a>
+      );
     case 'code':
       return <code key={key}>{frame.children}</code>;
     case 'strong':

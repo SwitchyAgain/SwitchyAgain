@@ -2,11 +2,7 @@
 
 import React from 'react';
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
-import {
-  NewProfileModal,
-  ProxyAuthModal,
-  RenameProfileModal
-} from '../src/react/profile_modals';
+import {NewProfileModal, ProxyAuthModal, RenameProfileModal} from '../src/react/profile_modals';
 import type {Profile} from '../src/react/profile_widgets';
 
 function installChromeMock() {
@@ -29,19 +25,15 @@ describe('profile modal components', () => {
   it('blocks conflicting rename values and submits valid names', () => {
     const onClose = vi.fn();
     const profileByName = (name: string): Profile | null => {
-      return name === 'taken' ? {
-        name: 'taken',
-        profileType: 'FixedProfile'
-      } : null;
+      return name === 'taken'
+        ? {
+            name: 'taken',
+            profileType: 'FixedProfile'
+          }
+        : null;
     };
 
-    render(
-      <RenameProfileModal
-        fromName="old"
-        onClose={onClose}
-        profileByName={profileByName}
-      />
-    );
+    render(<RenameProfileModal fromName="old" onClose={onClose} profileByName={profileByName} />);
 
     const nameInput = screen.getByLabelText('New profile name');
     const submitButton = screen.getByRole('button', {name: 'Rename'}) as HTMLButtonElement;

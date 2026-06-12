@@ -2,20 +2,9 @@ import type {Options} from './options_client';
 
 export const RESTORE_URL_STATE = 'web.restoreOnlineUrl';
 
-export type ImportExportStatus =
-  | 'loading'
-  | 'ready'
-  | 'exporting'
-  | 'restoringLocal'
-  | 'restoringOnline'
-  | 'success'
-  | 'error';
+export type ImportExportStatus = 'loading' | 'ready' | 'exporting' | 'restoringLocal' | 'restoringOnline' | 'success' | 'error';
 
-export type SyncStatus =
-  | 'ready'
-  | 'enabling'
-  | 'disabling'
-  | 'resetting';
+export type SyncStatus = 'ready' | 'enabling' | 'disabling' | 'resetting';
 
 export function importExportErrorMessage(error: unknown) {
   const candidate = error as {message?: unknown; reason?: unknown} | null | undefined;

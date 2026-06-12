@@ -76,9 +76,7 @@ export function displayProfileName(profile?: Profile | null) {
 
 export function ProfileIcon({profile}: {profile?: ProfileModel | null}) {
   const icon = PROFILE_ICONS[profile?.profileType || ''] || 'glyphicon-question-sign';
-  return (
-    <span className={`glyphicon ${icon}`} style={{color: profile?.color}} />
-  );
+  return <span className={`glyphicon ${icon}`} style={{color: profile?.color}} />;
 }
 
 export function ProfileInline({profile, dispName}: {profile?: Profile | null; dispName?: (profile: Profile) => string}) {
@@ -148,7 +146,10 @@ export function profilesFromOptions(options?: Options | null) {
   if (!options) {
     return [];
   }
-  return Object.keys(options).filter(isProfileKey).map((key) => options[key]).filter(isVisibleProfile);
+  return Object.keys(options)
+    .filter(isProfileKey)
+    .map((key) => options[key])
+    .filter(isVisibleProfile);
 }
 
 export function profileOrder(a: Profile, b: Profile) {
@@ -160,9 +161,11 @@ export function profileOrder(a: Profile, b: Profile) {
 }
 
 export function allProfilesFromOptions(options?: Options | null) {
-  return profilesFromOptions(options).filter((profile) => {
-    return profile.name.charAt(0) !== '_';
-  }).concat(BUILTIN_PROFILES);
+  return profilesFromOptions(options)
+    .filter((profile) => {
+      return profile.name.charAt(0) !== '_';
+    })
+    .concat(BUILTIN_PROFILES);
 }
 
 export function profilesForFilter(options: Options | null | undefined, filter?: ProfileModel | string | null) {
@@ -170,8 +173,9 @@ export function profilesForFilter(options: Options | null | undefined, filter?: 
     return [];
   }
   if (filter && (typeof filter === 'object' || (typeof filter === 'string' && filter.charAt(0) === '+'))) {
-    return OmegaPac.Profiles.validResultProfilesFor(typeof filter === 'string' ? filter.slice(1) : filter, options)
-      .filter(isVisibleProfile);
+    return OmegaPac.Profiles.validResultProfilesFor(typeof filter === 'string' ? filter.slice(1) : filter, options).filter(
+      isVisibleProfile
+    );
   }
   if (filter === 'all') {
     return allProfilesFromOptions(options);
@@ -188,7 +192,10 @@ export function profileByName<TProfile extends Profile = Profile>(
   name: string,
   guard?: (profile: Profile) => profile is TProfile
 ) {
-  const profile = profilesFromOptions(options).concat(BUILTIN_PROFILES).find((candidate) => candidate.name === name) || null;
+  const profile =
+    profilesFromOptions(options)
+      .concat(BUILTIN_PROFILES)
+      .find((candidate) => candidate.name === name) || null;
   if (!profile) {
     return null;
   }
@@ -254,27 +261,30 @@ export function ProfileSelect({
         onClick={() => setOpen(!open)}
       >
         {selectedProfile ? <ProfileIcon profile={selectedProfile} /> : <span className={`glyphicon ${defaultIcon}`} />}{' '}
-        <span>{buttonLabel}</span>{' '}
-        <span className="caret" />
+        <span>{buttonLabel}</span> <span className="caret" />
       </button>
       {open && (
         <ul className="dropdown-menu" role="listbox">
           {defaultText != null && (
             <li role="option" className={name ? '' : 'active'}>
-              <a onClick={() => {
-                onChange('');
-                setOpen(false);
-              }}>
+              <a
+                onClick={() => {
+                  onChange('');
+                  setOpen(false);
+                }}
+              >
                 <span className={`glyphicon ${defaultIcon}`} /> {defaultText}
               </a>
             </li>
           )}
           {profileList.map((profile) => (
             <li key={profile.name} role="option" className={name === profile.name ? 'active' : ''}>
-              <a onClick={() => {
-                onChange(profile.name);
-                setOpen(false);
-              }}>
+              <a
+                onClick={() => {
+                  onChange(profile.name);
+                  setOpen(false);
+                }}
+              >
                 <ProfileIcon profile={profile} /> {profileName(profile, dispName)}
               </a>
             </li>

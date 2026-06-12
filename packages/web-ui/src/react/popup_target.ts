@@ -71,12 +71,7 @@ export type PopupCallback<T = unknown> = (error?: unknown, result?: T) => void;
 export type PopupVoidCallback = PopupCallback<void>;
 
 export type PopupTarget = {
-  addCondition?: (
-    condition: PopupConditionInput,
-    profileName: string,
-    addToBottom: boolean,
-    callback?: PopupVoidCallback
-  ) => void;
+  addCondition?: (condition: PopupConditionInput, profileName: string, addToBottom: boolean, callback?: PopupVoidCallback) => void;
   addProfile?: (profile: Profile, callback?: PopupVoidCallback) => void;
   addTempRule?: (domain: string, profileName: string, callback?: PopupVoidCallback) => void;
   applyProfile?: (name: string, callback?: PopupVoidCallback) => void;
@@ -91,16 +86,8 @@ export type PopupTarget = {
     (domain?: string, profileName?: string, callback?: PopupVoidCallback): void;
   };
   openOptions?: (hash?: string | null, callback?: PopupVoidCallback) => void;
-  setDefaultProfile?: (
-    profileName: string,
-    defaultProfileName: string,
-    callback?: PopupVoidCallback
-  ) => void;
-  setState?: <TKey extends PopupWritableStateKey>(
-    name: TKey,
-    value: PopupState[TKey],
-    callback?: PopupCallback
-  ) => void;
+  setDefaultProfile?: (profileName: string, defaultProfileName: string, callback?: PopupVoidCallback) => void;
+  setState?: <TKey extends PopupWritableStateKey>(name: TKey, value: PopupState[TKey], callback?: PopupCallback) => void;
 };
 
 declare global {
@@ -138,9 +125,7 @@ export function waitForPopupTarget() {
   });
 }
 
-export function callbackPromise<T>(
-  invoke: (callback: PopupCallback<T>) => void
-) {
+export function callbackPromise<T>(invoke: (callback: PopupCallback<T>) => void) {
   return new Promise<T>((resolve, reject) => {
     let settled = false;
     const callback = (error?: unknown, value?: T) => {

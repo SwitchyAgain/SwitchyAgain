@@ -20,13 +20,23 @@ export function WelcomeModal({onClose, onDismiss, upgrade = false}: WelcomeModal
       <div className="modal-body">
         {upgrade ? (
           <>
-            <p>{message('options_welcomeUpgrade', "You have successfully upgraded to SwitchyAgain. Don't panic, your existing options are fully preserved.")}</p>
+            <p>
+              {message(
+                'options_welcomeUpgrade',
+                "You have successfully upgraded to SwitchyAgain. Don't panic, your existing options are fully preserved."
+              )}
+            </p>
             <p>{message('options_welcomeUpgradeGuide', "Now let's go through a quick guide of the new options page.")}</p>
           </>
         ) : (
           <>
             <p>{message('options_welcomeNormal', 'You have successfully installed SwitchyAgain, the ultimate proxy switcher.')}</p>
-            <p>{message('options_welcomeNormalGuide', "Please tell SwitchyAgain about your proxies through the options page. Let's see how.")}</p>
+            <p>
+              {message(
+                'options_welcomeNormalGuide',
+                "Please tell SwitchyAgain about your proxies through the options page. Let's see how."
+              )}
+            </p>
           </>
         )}
       </div>

@@ -1,10 +1,6 @@
 import React from 'react';
 import {createRoot} from 'react-dom/client';
-import {
-  manifestVersion,
-  message,
-  shouldAutoMount
-} from './options_client';
+import {manifestVersion, message, shouldAutoMount} from './options_client';
 
 export type AboutProps = {
   embedded?: boolean;
@@ -14,29 +10,19 @@ export type AboutProps = {
   onResetOptions?: () => void;
 };
 
-function messageWithNodes(
-  key: string,
-  fallback: string,
-  nodes: Record<string, React.ReactNode>
-) {
+function messageWithNodes(key: string, fallback: string, nodes: Record<string, React.ReactNode>) {
   const text = message(key, fallback);
   const tokens = Object.keys(nodes);
   if (!tokens.length) {
     return text;
   }
   const pattern = new RegExp(`(${tokens.map((token) => token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g');
-  return text.split(pattern).map((part, index) => nodes[part] ? (
-    <React.Fragment key={`${part}-${index}`}>{nodes[part]}</React.Fragment>
-  ) : part);
+  return text
+    .split(pattern)
+    .map((part, index) => (nodes[part] ? <React.Fragment key={`${part}-${index}`}>{nodes[part]}</React.Fragment> : part));
 }
 
-export function About({
-  embedded = false,
-  isExperimental = false,
-  version,
-  onDownloadLog,
-  onResetOptions
-}: AboutProps) {
+export function About({embedded = false, isExperimental = false, version, onDownloadLog, onResetOptions}: AboutProps) {
   const shownVersion = version || manifestVersion();
   const iconPath = embedded ? 'img/icons/omega-action-32.png' : '../img/icons/omega-action-32.png';
   const content = (
@@ -45,7 +31,12 @@ export function About({
         <section className="omega-experimental">
           <p className="alert alert-warning">
             <span className="glyphicon glyphicon-warning-sign" />{' '}
-            <span>{message('about_experimental_warning_moz', 'Mozilla Firefox support is highly experimental! If you encounter issues, please report using the buttons below.')}</span>
+            <span>
+              {message(
+                'about_experimental_warning_moz',
+                'Mozilla Firefox support is highly experimental! If you encounter issues, please report using the buttons below.'
+              )}
+            </span>
           </p>
         </section>
       )}
@@ -88,29 +79,17 @@ export function About({
           <a href="https://github.com/iklh/SwitchyAgain">{message('about_projectHomepage', 'Project homepage')}</a>
           <br />
           <br />
-          {messageWithNodes(
-            'about_basedOnSwitchyOmega',
-            'Based on SwitchyOmega, Copyright 2012-2017 __SWITCHYOMEGA_AUTHORS__.',
-            {
-              __SWITCHYOMEGA_AUTHORS__: <a href="https://github.com/FelisCatus/SwitchyOmega/blob/master/AUTHORS">The SwitchyOmega Authors</a>
-            }
-          )}
+          {messageWithNodes('about_basedOnSwitchyOmega', 'Based on SwitchyOmega, Copyright 2012-2017 __SWITCHYOMEGA_AUTHORS__.', {
+            __SWITCHYOMEGA_AUTHORS__: <a href="https://github.com/FelisCatus/SwitchyOmega/blob/master/AUTHORS">The SwitchyOmega Authors</a>
+          })}
           <br />
-          {messageWithNodes(
-            'about_switchyagainChangesCopyright',
-            'SwitchyAgain changes Copyright 2026 __SWITCHYAGAIN_AUTHORS__.',
-            {
-              __SWITCHYAGAIN_AUTHORS__: <a href="https://github.com/iklh/SwitchyAgain/graphs/contributors">The SwitchyAgain Authors</a>
-            }
-          )}
+          {messageWithNodes('about_switchyagainChangesCopyright', 'SwitchyAgain changes Copyright 2026 __SWITCHYAGAIN_AUTHORS__.', {
+            __SWITCHYAGAIN_AUTHORS__: <a href="https://github.com/iklh/SwitchyAgain/graphs/contributors">The SwitchyAgain Authors</a>
+          })}
           <br />
-          {messageWithNodes(
-            'about_licenseLine',
-            'Licensed under the __GPL_LICENSE__ Version 3 or later.',
-            {
-              __GPL_LICENSE__: <a href="https://www.gnu.org/licenses/gpl.html">GNU General Public License</a>
-            }
-          )}
+          {messageWithNodes('about_licenseLine', 'Licensed under the __GPL_LICENSE__ Version 3 or later.', {
+            __GPL_LICENSE__: <a href="https://www.gnu.org/licenses/gpl.html">GNU General Public License</a>
+          })}
         </p>
       </section>
     </>

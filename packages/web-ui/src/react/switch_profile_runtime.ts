@@ -33,15 +33,9 @@ export type SwitchRuleEditableConditionType =
   | 'UrlWildcardCondition'
   | 'WeekdayCondition';
 
-export type SwitchRuleNumericConditionField =
-  | 'endHour'
-  | 'maxValue'
-  | 'minValue'
-  | 'startHour';
+export type SwitchRuleNumericConditionField = 'endHour' | 'maxValue' | 'minValue' | 'startHour';
 
-export type SwitchRuleEditableConditionField =
-  | SwitchRuleNumericConditionField
-  | 'pattern';
+export type SwitchRuleEditableConditionField = SwitchRuleNumericConditionField | 'pattern';
 
 export type SwitchRuleEditableConditionValue = string | null | undefined;
 
@@ -76,9 +70,10 @@ export type SwitchProfileModel = Profile & {
   rules?: SwitchRule[];
 };
 
-export type NamedSwitchProfileModel = SwitchProfileModel & NamedProfile & {
-  profileType: 'SwitchProfile';
-};
+export type NamedSwitchProfileModel = SwitchProfileModel &
+  NamedProfile & {
+    profileType: 'SwitchProfile';
+  };
 
 export type AttachedOptions = {
   defaultProfileName?: string;
@@ -87,9 +82,12 @@ export type AttachedOptions = {
 
 export type SwitchRuleSourceState = {
   code?: string;
-  error?: BackgroundError | Error | {
-    message?: string;
-  };
+  error?:
+    | BackgroundError
+    | Error
+    | {
+        message?: string;
+      };
   touched?: boolean;
 };
 
@@ -170,9 +168,7 @@ export function getUrlConditionTypeMap() {
   return URL_CONDITION_TYPE_MAP;
 }
 
-export function isSwitchRuleNumericConditionField(
-  field: SwitchRuleEditableConditionField
-): field is SwitchRuleNumericConditionField {
+export function isSwitchRuleNumericConditionField(field: SwitchRuleEditableConditionField): field is SwitchRuleNumericConditionField {
   return !!NUMERIC_CONDITION_FIELDS[field as SwitchRuleNumericConditionField];
 }
 
@@ -295,11 +291,7 @@ export function setAttachedEnabled(
   return true;
 }
 
-export function syncDefaultFromAttached(
-  attachedOptions: AttachedOptions,
-  enabled: boolean | undefined,
-  name?: string
-) {
+export function syncDefaultFromAttached(attachedOptions: AttachedOptions, enabled: boolean | undefined, name?: string) {
   if (name && enabled) {
     attachedOptions.defaultProfileName = name;
     return true;
@@ -352,12 +344,7 @@ export function attachNew(
   return attached;
 }
 
-export function removeAttached(
-  options: Options,
-  attachedKey: string,
-  profile: SwitchProfileModel,
-  attached: RuleListProfileModel
-) {
+export function removeAttached(options: Options, attachedKey: string, profile: SwitchProfileModel, attached: RuleListProfileModel) {
   profile.defaultProfileName = attached.defaultProfileName;
   delete options[attachedKey];
 }
@@ -443,11 +430,13 @@ export function updateIpCondition(rule: SwitchRule | undefined, value: string) {
   if (!rule) {
     return false;
   }
-  rule.condition = value ? OmegaPac.Conditions.fromStr(`Ip: ${value}`) : {
-    conditionType: 'IpCondition',
-    ip: '0.0.0.0',
-    prefixLength: 0
-  };
+  rule.condition = value
+    ? OmegaPac.Conditions.fromStr(`Ip: ${value}`)
+    : {
+        conditionType: 'IpCondition',
+        ip: '0.0.0.0',
+        prefixLength: 0
+      };
   return true;
 }
 
@@ -495,12 +484,15 @@ export function hasNotes(rules?: SwitchRule[]) {
 }
 
 export function composeSource(profile: SwitchProfileModel, defaultProfileName?: string) {
-  return OmegaPac.RuleList.Switchy.compose({
-    defaultProfileName,
-    rules: profile.rules || []
-  }, {
-    withResult: true
-  });
+  return OmegaPac.RuleList.Switchy.compose(
+    {
+      defaultProfileName,
+      rules: profile.rules || []
+    },
+    {
+      withResult: true
+    }
+  );
 }
 
 export function createSource(profile: SwitchProfileModel, attachedOptions: AttachedOptions): SwitchRuleSourceState {

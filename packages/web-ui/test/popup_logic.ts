@@ -113,12 +113,14 @@ describe('popup logic', () => {
     };
 
     expect(popupProfileFromExplanation(state, {name: 'known'})).toBe(known);
-    expect(popupProfileFromExplanation(state, {
-      color: 1,
-      name: 'missing',
-      profileType: 'SwitchProfile',
-      role: 'attachedRuleList'
-    })).toEqual({
+    expect(
+      popupProfileFromExplanation(state, {
+        color: 1,
+        name: 'missing',
+        profileType: 'SwitchProfile',
+        role: 'attachedRuleList'
+      })
+    ).toEqual({
       attachedToProfileName: undefined,
       builtin: false,
       color: undefined,
@@ -221,11 +223,13 @@ describe('popup logic', () => {
 
     expect(lastResultProfile(state)).toBe('proxy');
     expect(lastResultProfile(state, {tempRuleProfileName: 'direct'})).toBe('direct');
-    expect(lastResultProfile({
-      availableProfiles: state.availableProfiles,
-      lastProfileNameForCondition: 'missing',
-      validResultProfiles: ['direct']
-    })).toBe('direct');
+    expect(
+      lastResultProfile({
+        availableProfiles: state.availableProfiles,
+        lastProfileNameForCondition: 'missing',
+        validResultProfiles: ['direct']
+      })
+    ).toBe('direct');
     expect(lastResultProfile()).toBe('direct');
   });
 

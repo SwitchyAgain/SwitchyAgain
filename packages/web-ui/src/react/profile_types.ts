@@ -11,26 +11,13 @@ export type ProfileSyncError = {
   [key: string]: unknown;
 };
 
-export type BuiltinProfileType =
-  | 'DirectProfile'
-  | 'SystemProfile';
+export type BuiltinProfileType = 'DirectProfile' | 'SystemProfile';
 
-export type EditableProfileType =
-  | 'FixedProfile'
-  | 'PacProfile'
-  | 'RuleListProfile'
-  | 'SwitchProfile'
-  | 'VirtualProfile';
+export type EditableProfileType = 'FixedProfile' | 'PacProfile' | 'RuleListProfile' | 'SwitchProfile' | 'VirtualProfile';
 
-export type LegacyRuleListProfileType =
-  | 'AutoProxyRuleListProfile'
-  | 'SwitchyRuleListProfile';
+export type LegacyRuleListProfileType = 'AutoProxyRuleListProfile' | 'SwitchyRuleListProfile';
 
-export type KnownProfileType =
-  | BuiltinProfileType
-  | EditableProfileType
-  | LegacyRuleListProfileType
-  | 'AutoDetectProfile';
+export type KnownProfileType = BuiltinProfileType | EditableProfileType | LegacyRuleListProfileType | 'AutoDetectProfile';
 
 export type ProfileType = KnownProfileType | (string & {});
 
@@ -152,12 +139,6 @@ export type FixedProfileModel = Profile & {
 
 export type NamedFixedProfileModel = FixedProfileModel & NamedProfileOfType<'FixedProfile'>;
 
-export type RuleListProfileSourceField =
-  | 'format'
-  | 'ruleList'
-  | 'sourceUrl';
+export type RuleListProfileSourceField = 'format' | 'ruleList' | 'sourceUrl';
 
-export type RuleListProfileField =
-  | 'defaultProfileName'
-  | 'matchProfileName'
-  | RuleListProfileSourceField;
+export type RuleListProfileField = 'defaultProfileName' | 'matchProfileName' | RuleListProfileSourceField;

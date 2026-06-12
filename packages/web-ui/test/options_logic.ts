@@ -127,13 +127,23 @@ describe('options logic', () => {
     expect(isErrorResult(primary)).toBe(true);
     expect(isErrorResult(fallback)).toBe(true);
     expect(isErrorResult({message: 'missing name'})).toBe(false);
-    expect(updateProfileError({
-      '+other': fallback,
-      '+proxy': primary
-    }, 'proxy')).toBe(primary);
-    expect(updateProfileError({
-      '+other': fallback
-    }, 'proxy')).toBe(fallback);
+    expect(
+      updateProfileError(
+        {
+          '+other': fallback,
+          '+proxy': primary
+        },
+        'proxy'
+      )
+    ).toBe(primary);
+    expect(
+      updateProfileError(
+        {
+          '+other': fallback
+        },
+        'proxy'
+      )
+    ).toBe(fallback);
   });
 
   it('formats profile download error messages with status codes', () => {
@@ -148,17 +158,21 @@ describe('options logic', () => {
       }
     };
 
-    expect(profileDownloadErrorMessage({
-      name: 'HttpError',
-      original: {
-        statusCode: 502
-      }
-    })).toBe('HTTP 502');
+    expect(
+      profileDownloadErrorMessage({
+        name: 'HttpError',
+        original: {
+          statusCode: 502
+        }
+      })
+    ).toBe('HTTP 502');
 
-    expect(profileDownloadErrorMessage({
-      name: 'UnknownError',
-      statusCode: 404
-    })).toBe('Profile download failed.');
+    expect(
+      profileDownloadErrorMessage({
+        name: 'UnknownError',
+        statusCode: 404
+      })
+    ).toBe('Profile download failed.');
   });
 
   it('creates PAC export blobs and sanitized filenames', async () => {
@@ -286,17 +300,23 @@ describe('options logic', () => {
       }
     };
 
-    expect(isSwitchProfile({
-      name: 'auto',
-      profileType: 'SwitchProfile'
-    })).toBe(true);
-    expect(isSwitchProfile({
-      profileType: 'SwitchProfile'
-    })).toBe(false);
-    expect(isSwitchProfile({
-      name: 'proxy',
-      profileType: 'FixedProfile'
-    })).toBe(false);
+    expect(
+      isSwitchProfile({
+        name: 'auto',
+        profileType: 'SwitchProfile'
+      })
+    ).toBe(true);
+    expect(
+      isSwitchProfile({
+        profileType: 'SwitchProfile'
+      })
+    ).toBe(false);
+    expect(
+      isSwitchProfile({
+        name: 'proxy',
+        profileType: 'FixedProfile'
+      })
+    ).toBe(false);
 
     expect(attachedProfileOption(options, identity)).toEqual({
       defaultProfileName: 'direct',
@@ -304,10 +324,12 @@ describe('options logic', () => {
       name: '__ruleListOf_auto',
       profileType: 'RuleListProfile'
     });
-    expect(attachedProfileOption(options, {
-      attachedKey: '+wrong',
-      attachedName: '__ruleListOf_wrong'
-    })).toBeUndefined();
+    expect(
+      attachedProfileOption(options, {
+        attachedKey: '+wrong',
+        attachedName: '__ruleListOf_wrong'
+      })
+    ).toBeUndefined();
   });
 
   it('creates attached rule-list drafts from existing option records', () => {
@@ -347,27 +369,31 @@ describe('options logic', () => {
       }
     };
 
-    expect(firstFixedProfileName({
-      '+pac': {
-        name: 'pac',
-        profileType: 'PacProfile'
-      },
-      '+proxy-a': {
-        name: 'proxy-a',
-        profileType: 'FixedProfile'
-      },
-      '+proxy-b': {
-        name: 'proxy-b',
-        profileType: 'FixedProfile'
-      }
-    })).toBe('proxy-a');
+    expect(
+      firstFixedProfileName({
+        '+pac': {
+          name: 'pac',
+          profileType: 'PacProfile'
+        },
+        '+proxy-a': {
+          name: 'proxy-a',
+          profileType: 'FixedProfile'
+        },
+        '+proxy-b': {
+          name: 'proxy-b',
+          profileType: 'FixedProfile'
+        }
+      })
+    ).toBe('proxy-a');
 
-    expect(firstFixedProfileName({
-      '+pac': {
-        name: 'pac',
-        profileType: 'PacProfile'
-      }
-    })).toBe('');
+    expect(
+      firstFixedProfileName({
+        '+pac': {
+          name: 'pac',
+          profileType: 'PacProfile'
+        }
+      })
+    ).toBe('');
   });
 
   it('finds profiles that reference a target profile', () => {
@@ -505,13 +531,17 @@ describe('options logic', () => {
       name: 'proxy',
       profileType: 'FixedProfile'
     });
-    expect(profileOption(options, 'proxy', (profile): profile is Profile => {
-      return (profile as Profile).profileType === 'PacProfile';
-    })).toBeUndefined();
-    expect(profileDraft(options, 'missing', {
-      name: 'missing',
-      profileType: 'PacProfile'
-    })).toEqual({
+    expect(
+      profileOption(options, 'proxy', (profile): profile is Profile => {
+        return (profile as Profile).profileType === 'PacProfile';
+      })
+    ).toBeUndefined();
+    expect(
+      profileDraft(options, 'missing', {
+        name: 'missing',
+        profileType: 'PacProfile'
+      })
+    ).toEqual({
       name: 'missing',
       profileType: 'PacProfile'
     });

@@ -1,22 +1,11 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {flushSync} from 'react-dom';
 import {createRoot} from 'react-dom/client';
-import {
-  Options,
-  loadOptions,
-  message,
-  optionPatch,
-  patchOptions,
-  shouldAutoMount
-} from './options_client';
+import {Options, loadOptions, message, optionPatch, patchOptions, shouldAutoMount} from './options_client';
 import {cloneOptions} from './options_logic';
 import {richMessage} from './rich_message';
 
-const GENERAL_KEYS = [
-  '-monitorWebRequests',
-  '-downloadInterval',
-  '-showExternalProfile'
-];
+const GENERAL_KEYS = ['-monitorWebRequests', '-downloadInterval', '-showExternalProfile'];
 
 const DOWNLOAD_INTERVALS = [15, 60, 180, 360, 720, 1440, -1];
 
@@ -29,33 +18,29 @@ export type GeneralSettingsProps = {
 function ProfileBadge({label, icon, color}: {label: string; icon: string; color: string}) {
   return (
     <span className="profile-inline react-profile-inline">
-      <span className={`glyphicon ${icon}`} style={{color}} />{' '}
-      {label}
+      <span className={`glyphicon ${icon}`} style={{color}} /> {label}
     </span>
   );
 }
 
-function messageWithBadges(
-  key: string,
-  fallback: string,
-  substitutions: string[],
-  badges: Record<string, React.ReactNode>
-) {
+function messageWithBadges(key: string, fallback: string, substitutions: string[], badges: Record<string, React.ReactNode>) {
   const text = message(key, fallback, substitutions);
   const tokens = Object.keys(badges);
   if (!tokens.length) {
     return text;
   }
   const pattern = new RegExp(`(${tokens.map((token) => token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g');
-  return text.split(pattern).map((part, index) => badges[part] ? (
-    <React.Fragment key={`${part}-${index}`}>{badges[part]}</React.Fragment>
-  ) : part);
+  return text
+    .split(pattern)
+    .map((part, index) => (badges[part] ? <React.Fragment key={`${part}-${index}`}>{badges[part]}</React.Fragment> : part));
 }
 
 export function GeneralSettings({embedded = false, options, onOptionsChange}: GeneralSettingsProps) {
-  const [savedOptions, setSavedOptions] = useState<Options | null>(() => embedded && options ? cloneOptions(options) : null);
-  const [draftOptions, setDraftOptions] = useState<Options | null>(() => embedded && options ? cloneOptions(options) : null);
-  const [status, setStatus] = useState<'loading' | 'ready' | 'saving' | 'saved' | 'error'>(() => embedded && options ? 'ready' : 'loading');
+  const [savedOptions, setSavedOptions] = useState<Options | null>(() => (embedded && options ? cloneOptions(options) : null));
+  const [draftOptions, setDraftOptions] = useState<Options | null>(() => (embedded && options ? cloneOptions(options) : null));
+  const [status, setStatus] = useState<'loading' | 'ready' | 'saving' | 'saved' | 'error'>(() =>
+    embedded && options ? 'ready' : 'loading'
+  );
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -67,15 +52,17 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
       return;
     }
 
-    loadOptions().then((loadedOptions) => {
-      const cloned = cloneOptions(loadedOptions);
-      setSavedOptions(cloned);
-      setDraftOptions(cloneOptions(cloned));
-      setStatus('ready');
-    }).catch((err) => {
-      setError(err?.message || String(err));
-      setStatus('error');
-    });
+    loadOptions()
+      .then((loadedOptions) => {
+        const cloned = cloneOptions(loadedOptions);
+        setSavedOptions(cloned);
+        setDraftOptions(cloneOptions(cloned));
+        setStatus('ready');
+      })
+      .catch((err) => {
+        setError(err?.message || String(err));
+        setStatus('error');
+      });
   }, [embedded, options]);
 
   const dirty = useMemo(() => {
@@ -116,15 +103,17 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
     }
     const patch = optionPatch(savedOptions, draftOptions, GENERAL_KEYS);
     setStatus('saving');
-    patchOptions(patch).then((loadedOptions) => {
-      const cloned = cloneOptions(loadedOptions);
-      setSavedOptions(cloned);
-      setDraftOptions(cloneOptions(cloned));
-      setStatus('saved');
-    }).catch((err) => {
-      setError(err?.message || String(err));
-      setStatus('error');
-    });
+    patchOptions(patch)
+      .then((loadedOptions) => {
+        const cloned = cloneOptions(loadedOptions);
+        setSavedOptions(cloned);
+        setDraftOptions(cloneOptions(cloned));
+        setStatus('saved');
+      })
+      .catch((err) => {
+        setError(err?.message || String(err));
+        setStatus('error');
+      });
   }
 
   const pageHeader = (
@@ -176,17 +165,16 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
             <span> {message('options_monitorWebRequests', 'Show count of failed web requests for resources in the current tab.')}</span>
           </label>
           <p className="help-block">
-            {richMessage(
-              'options_monitorWebRequestsHelp',
-              'A yellow badge will be displayed on the icon if some resources fail to load.'
-            )}
+            {richMessage('options_monitorWebRequestsHelp', 'A yellow badge will be displayed on the icon if some resources fail to load.')}
           </p>
         </div>
       </section>
 
       <section className="settings-group width-limit">
         <h3>{message('options_downloadOptions', 'Download Options')}</h3>
-        <p className="help-block">{message('options_downloadOptionsHelp', 'Configure the update frequency of online rule lists and PAC scripts.')}</p>
+        <p className="help-block">
+          {message('options_downloadOptionsHelp', 'Configure the update frequency of online rule lists and PAC scripts.')}
+        </p>
         <div className="form-group">
           <label htmlFor="react-download-interval">{message('options_downloadInterval', 'Download Interval')}</label>
           <select
@@ -242,7 +230,9 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
             ['__SYSTEM_PROFILE__', '__EXTERNAL_PROFILE__'],
             {
               __SYSTEM_PROFILE__: <ProfileBadge label={message('profile_system', '[System Proxy]')} icon="glyphicon-off" color="#000" />,
-              __EXTERNAL_PROFILE__: <ProfileBadge label={message('popup_externalProfile', '(External Profile)')} icon="glyphicon-globe" color="#49afcd" />
+              __EXTERNAL_PROFILE__: (
+                <ProfileBadge label={message('popup_externalProfile', '(External Profile)')} icon="glyphicon-globe" color="#49afcd" />
+              )
             }
           )}
         </p>
@@ -250,8 +240,14 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
 
       {!embedded && (
         <div className="react-actions">
-          <button type="button" className={`btn ${dirty ? 'btn-success' : 'btn-default'}`} disabled={!dirty || status === 'saving'} onClick={applyChanges}>
-            <span className="glyphicon glyphicon-ok-circle" /> {status === 'saving' ? 'Saving...' : message('options_apply', 'Apply changes')}
+          <button
+            type="button"
+            className={`btn ${dirty ? 'btn-success' : 'btn-default'}`}
+            disabled={!dirty || status === 'saving'}
+            onClick={applyChanges}
+          >
+            <span className="glyphicon glyphicon-ok-circle" />{' '}
+            {status === 'saving' ? 'Saving...' : message('options_apply', 'Apply changes')}
           </button>
           <button type="button" className="btn btn-link text-danger" disabled={!dirty || status === 'saving'} onClick={discardChanges}>
             <span className="glyphicon glyphicon-remove-circle" /> {message('options_discard', 'Discard changes')}

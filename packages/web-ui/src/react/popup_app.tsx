@@ -86,9 +86,7 @@ function finalLabel(explanation: RequestExplanation, state: PopupState, {showPac
 }
 
 function requestCountText(count: number) {
-  return count === 1
-    ? popupMessage('popup_routeInfoRequest', 'request')
-    : popupMessage('popup_routeInfoRequests', 'requests');
+  return count === 1 ? popupMessage('popup_routeInfoRequest', 'request') : popupMessage('popup_routeInfoRequests', 'requests');
 }
 
 function RouteInfoGroupResult({group, loading, state}: {group: RouteInfoGroup; loading: boolean; state: PopupState}) {
@@ -96,7 +94,9 @@ function RouteInfoGroupResult({group, loading, state}: {group: RouteInfoGroup; l
   if (resultKeys.length === 0) {
     return (
       <span className="om-route-info-pending">
-        {loading ? popupMessage('options_profileDownloadStatusDownloading', 'Loading...') : popupMessage('popup_routeInfoUnknown', 'Unknown')}
+        {loading
+          ? popupMessage('options_profileDownloadStatusDownloading', 'Loading...')
+          : popupMessage('popup_routeInfoUnknown', 'Unknown')}
       </span>
     );
   }
@@ -113,15 +113,7 @@ function RouteInfoGroupResult({group, loading, state}: {group: RouteInfoGroup; l
   );
 }
 
-function RouteInfoList({
-  loading = false,
-  pageInfo,
-  state
-}: {
-  loading?: boolean;
-  pageInfo?: PageInfo;
-  state: PopupState;
-}) {
+function RouteInfoList({loading = false, pageInfo, state}: {loading?: boolean; pageInfo?: PageInfo; state: PopupState}) {
   const explanations = pageInfo?.requestExplanations || [];
   const requests = pageInfo?.requests || [];
   if (explanations.length === 0 && requests.length === 0) {
@@ -140,16 +132,34 @@ function RouteInfoList({
         return (
           <div className="om-route-info" key={group.hostname}>
             <div className="om-route-info-line">
-              <span className="label label-info om-route-info-request-count" title={`${group.requestCount} ${requestCountText(group.requestCount)}`}>{group.requestCount}</span>
-              {group.errorCount > 0 && <span className="label label-warning om-route-info-error-count" title={`${group.errorCount} ${popupMessage('popup_routeInfoErrors', 'errors')}`}>{group.errorCount}</span>}
+              <span
+                className="label label-info om-route-info-request-count"
+                title={`${group.requestCount} ${requestCountText(group.requestCount)}`}
+              >
+                {group.requestCount}
+              </span>
+              {group.errorCount > 0 && (
+                <span
+                  className="label label-warning om-route-info-error-count"
+                  title={`${group.errorCount} ${popupMessage('popup_routeInfoErrors', 'errors')}`}
+                >
+                  {group.errorCount}
+                </span>
+              )}
               <span className="om-route-info-host">
-                <strong className="om-route-info-host-text" title={group.hostname}>{group.hostname}</strong>
+                <strong className="om-route-info-host-text" title={group.hostname}>
+                  {group.hostname}
+                </strong>
               </span>
               <span className="om-route-info-result">
                 <RouteInfoGroupResult group={group} loading={loading} state={state} />
               </span>
             </div>
-            {group.errors.map((item) => <div className="om-route-info-error" key={item}>{item}</div>)}
+            {group.errors.map((item) => (
+              <div className="om-route-info-error" key={item}>
+                {item}
+              </div>
+            ))}
             {group.pacLimited && (
               <div className="om-route-info-warning">
                 {popupMessage('popup_routeInfoPacLimited', 'PAC scripts are delegated to the browser and cannot be fully expanded here.')}
@@ -172,33 +182,38 @@ function PopupApp() {
   const [keyboardHelp, setKeyboardHelp] = useState(false);
 
   useEffect(() => {
-    waitForPopupTarget().then(() => Promise.all([
-      getPopupState([
-        'availableProfiles',
-        'currentProfileCanAddRule',
-        'currentProfileName',
-        'externalProfile',
-        'isSystemProfile',
-        'lastProfileNameForCondition',
-        'proxyNotControllable',
-        'refreshOnProfileChange',
-        'showExternalProfile',
-        'uiLocale',
-        'validResultProfiles'
-      ]),
-      getPopupPageInfo()
-    ])).then(([nextState, nextPageInfo]) => {
-      if (nextState.proxyNotControllable) {
-        location.href = 'proxy_not_controllable.html';
-        return;
-      }
-      return setUiLocale(nextState.uiLocale).then(() => {
-        setState(nextState);
-        setPageInfo(nextPageInfo);
+    waitForPopupTarget()
+      .then(() =>
+        Promise.all([
+          getPopupState([
+            'availableProfiles',
+            'currentProfileCanAddRule',
+            'currentProfileName',
+            'externalProfile',
+            'isSystemProfile',
+            'lastProfileNameForCondition',
+            'proxyNotControllable',
+            'refreshOnProfileChange',
+            'showExternalProfile',
+            'uiLocale',
+            'validResultProfiles'
+          ]),
+          getPopupPageInfo()
+        ])
+      )
+      .then(([nextState, nextPageInfo]) => {
+        if (nextState.proxyNotControllable) {
+          location.href = 'proxy_not_controllable.html';
+          return;
+        }
+        return setUiLocale(nextState.uiLocale).then(() => {
+          setState(nextState);
+          setPageInfo(nextPageInfo);
+        });
+      })
+      .catch((err) => {
+        setError(err?.message || String(err));
       });
-    }).catch((err) => {
-      setError(err?.message || String(err));
-    });
   }, []);
 
   useEffect(() => {
@@ -211,7 +226,10 @@ function PopupApp() {
   const resultProfiles = useMemo(() => visibleResultProfiles(state), [state]);
   const hasResultProfiles = resultProfiles.length > 0;
   const hasPageDomain = !!pageInfo?.domain;
-  const showRouteInfo = !!(pageInfo && ((pageInfo.errorCount || 0) > 0 || (pageInfo.requestExplanations?.length || pageInfo.requests?.length || 0) > 0));
+  const showRouteInfo = !!(
+    pageInfo &&
+    ((pageInfo.errorCount || 0) > 0 || (pageInfo.requestExplanations?.length || pageInfo.requests?.length || 0) > 0)
+  );
   const showExternal = !!(state?.showExternalProfile && state.externalProfile);
   const showAddCondition = !!(state?.currentProfileCanAddRule && hasPageDomain && hasResultProfiles);
   const showTempRule = !!(hasPageDomain && hasResultProfiles);
@@ -253,8 +271,7 @@ function PopupApp() {
     }
 
     function visibleLinks() {
-      return Array.from(document.querySelectorAll<HTMLAnchorElement>('.om-nav a'))
-        .filter((element) => !element.closest('.om-hidden'));
+      return Array.from(document.querySelectorAll<HTMLAnchorElement>('.om-nav a')).filter((element) => !element.closest('.om-hidden'));
     }
 
     function move(delta: number) {
@@ -264,9 +281,7 @@ function PopupApp() {
       }
       const active = document.activeElement as HTMLElement | null;
       const currentIndex = active ? links.indexOf(active as HTMLAnchorElement) : -1;
-      const nextIndex = currentIndex < 0
-        ? delta > 0 ? 0 : links.length - 1
-        : (currentIndex + delta + links.length) % links.length;
+      const nextIndex = currentIndex < 0 ? (delta > 0 ? 0 : links.length - 1) : (currentIndex + delta + links.length) % links.length;
       links[nextIndex]?.focus();
     }
 
@@ -376,11 +391,21 @@ function PopupApp() {
   }, [mode, state]);
 
   if (error) {
-    return <form className="condition-form om-popup-form"><fieldset><p className="om-alert">{error}</p></fieldset></form>;
+    return (
+      <form className="condition-form om-popup-form">
+        <fieldset>
+          <p className="om-alert">{error}</p>
+        </fieldset>
+      </form>
+    );
   }
 
   if (!state) {
-    return <form className="condition-form om-popup-form"><fieldset>{popupMessage('options_profileDownloadStatusDownloading', 'Loading...')}</fieldset></form>;
+    return (
+      <form className="condition-form om-popup-form">
+        <fieldset>{popupMessage('options_profileDownloadStatusDownloading', 'Loading...')}</fieldset>
+      </form>
+    );
   }
 
   if (mode === 'condition') {
@@ -408,11 +433,7 @@ function PopupApp() {
   const currentProfileClass = state.isSystemProfile ? 'om-effective' : 'om-active';
   const tempRuleProfiles = resultProfiles
     .filter((profile) => profile.name.indexOf('__') !== 0)
-    .filter((profile) => (
-      !!pageInfo?.tempRuleProfileName ||
-      resultProfiles.length === 1 ||
-      profile.name !== state.currentProfileName
-    ));
+    .filter((profile) => !!pageInfo?.tempRuleProfileName || resultProfiles.length === 1 || profile.name !== state.currentProfileName);
 
   return (
     <ul className="om-nav">
@@ -464,24 +485,32 @@ function PopupApp() {
       <li className="om-divider" />
       {showAddCondition && (
         <li className="om-nav-item om-nav-addrule">
-          <a href="#!addRule" id="js-addrule" role="button" onClick={(event) => {
-            event.preventDefault();
-            showMode('condition');
-          }}>
-            <span className="glyphicon glyphicon-plus" />{' '}
-            {keyboardHelp && <span className="om-keyboard-help">A</span>}
+          <a
+            href="#!addRule"
+            id="js-addrule"
+            role="button"
+            onClick={(event) => {
+              event.preventDefault();
+              showMode('condition');
+            }}
+          >
+            <span className="glyphicon glyphicon-plus" /> {keyboardHelp && <span className="om-keyboard-help">A</span>}
             <span>{popupMessage('popup_addCondition', 'Add Condition')}</span>
           </a>
         </li>
       )}
       {showTempRule && (
         <li className={`om-nav-item om-nav-temprule om-has-dropdown ${tempMenuOpen ? 'om-open' : ''}`}>
-          <a href="#" id="js-temprule" role="button" onClick={(event) => {
-            event.preventDefault();
-            setTempMenuOpen(!tempMenuOpen);
-          }}>
-            <span className="glyphicon glyphicon-filter" />{' '}
-            {keyboardHelp && <span className="om-keyboard-help">T</span>}
+          <a
+            href="#"
+            id="js-temprule"
+            role="button"
+            onClick={(event) => {
+              event.preventDefault();
+              setTempMenuOpen(!tempMenuOpen);
+            }}
+          >
+            <span className="glyphicon glyphicon-filter" /> {keyboardHelp && <span className="om-keyboard-help">T</span>}
             <span>
               <span className="om-page-domain">{pageInfo?.domain}</span>
               <span className="om-caret" />
@@ -491,10 +520,15 @@ function PopupApp() {
             <ul className="om-dropdown">
               {tempRuleProfiles.map((profile) => (
                 <li className={`om-nav-item ${profile.name === pageInfo?.tempRuleProfileName ? 'om-active' : ''}`} key={profile.name}>
-                  <a href="#" role="button" title={profileTitle(profile, state.availableProfiles)} onClick={(event) => {
-                    event.preventDefault();
-                    addTempRule(pageInfo?.domain || '', profile.name);
-                  }}>
+                  <a
+                    href="#"
+                    role="button"
+                    title={profileTitle(profile, state.availableProfiles)}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      addTempRule(pageInfo?.domain || '', profile.name);
+                    }}
+                  >
                     <ProfileInline legacySpacing profile={profile} availableProfiles={state.availableProfiles} />
                   </a>
                 </li>
@@ -505,12 +539,16 @@ function PopupApp() {
       )}
       {showRouteInfo && (
         <li className="om-nav-item">
-          <a href="#!routeInfo" id="js-routeinfo" role="button" onClick={(event) => {
-            event.preventDefault();
-            showMode('routeInfo');
-          }}>
-            <span className="glyphicon glyphicon-road" />{' '}
-            {keyboardHelp && <span className="om-keyboard-help">R</span>}
+          <a
+            href="#!routeInfo"
+            id="js-routeinfo"
+            role="button"
+            onClick={(event) => {
+              event.preventDefault();
+              showMode('routeInfo');
+            }}
+          >
+            <span className="glyphicon glyphicon-road" /> {keyboardHelp && <span className="om-keyboard-help">R</span>}
             <span className="om-route-info-text">{popupMessage('popup_routeInfoMenu', 'Route Info')}</span>
             {(pageInfo?.errorCount || 0) > 0 && <span className="label label-warning om-route-info-count">{pageInfo?.errorCount}</span>}
           </a>
@@ -518,12 +556,17 @@ function PopupApp() {
       )}
       <li className="om-divider" />
       <li className="om-nav-item">
-        <a href="../options.html" target="_blank" id="js-option" role="button" onClick={(event) => {
-          event.preventDefault();
-          showOptions();
-        }}>
-          <span className="glyphicon glyphicon-wrench" />{' '}
-          {keyboardHelp && <span className="om-keyboard-help">O</span>}
+        <a
+          href="../options.html"
+          target="_blank"
+          id="js-option"
+          role="button"
+          onClick={(event) => {
+            event.preventDefault();
+            showOptions();
+          }}
+        >
+          <span className="glyphicon glyphicon-wrench" /> {keyboardHelp && <span className="om-keyboard-help">O</span>}
           <span>{popupMessage('popup_showOptions', 'Options')}</span>
         </a>
       </li>
@@ -570,7 +613,9 @@ function MenuProfileItem({
     effective ? 'om-effective' : '',
     hasDefaultMenu ? 'om-has-dropdown' : '',
     defaultMenuOpen ? 'om-open' : ''
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
   const text = displayProfileName(profile, label) + (profile?.defaultProfileName ? ` [${profile.defaultProfileName}]` : '');
   return (
     <li className={classes} data-default-profile-name={hasDefaultMenu ? profile?.name : undefined}>
@@ -588,11 +633,14 @@ function MenuProfileItem({
         <ProfileInline legacySpacing profile={profile} availableProfiles={state.availableProfiles} label={text} />
         {keyboardKey && <span className="om-keyboard-help">{keyboardKey}</span>}
         {hasDefaultMenu && (
-          <div className="om-edit-toggle" onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            onDefaultMenuToggle?.();
-          }}>
+          <div
+            className="om-edit-toggle"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onDefaultMenuToggle?.();
+            }}
+          >
             <span className="glyphicon glyphicon-chevron-down" />
           </div>
         )}
@@ -601,10 +649,15 @@ function MenuProfileItem({
         <ul className="om-dropdown">
           {resultProfiles.map((resultProfile) => (
             <li className={`om-nav-item ${resultProfile.name === profile?.defaultProfileName ? 'om-active' : ''}`} key={resultProfile.name}>
-              <a href="#" role="button" title={profileTitle(resultProfile, state.availableProfiles)} onClick={(event) => {
-                event.preventDefault();
-                onDefaultProfileChange?.(resultProfile.name);
-              }}>
+              <a
+                href="#"
+                role="button"
+                title={profileTitle(resultProfile, state.availableProfiles)}
+                onClick={(event) => {
+                  event.preventDefault();
+                  onDefaultProfileChange?.(resultProfile.name);
+                }}
+              >
                 <ProfileInline legacySpacing profile={resultProfile} availableProfiles={state.availableProfiles} />
               </a>
             </li>
@@ -656,7 +709,12 @@ function ConditionForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
       <fieldset>
         <legend>
           {popupMessage('popup_addConditionTo', 'Add condition to')}
-          <span className="profile-inline"><ProfileInline profile={profileFromMap(state.availableProfiles, state.currentProfileName)} availableProfiles={state.availableProfiles} /></span>
+          <span className="profile-inline">
+            <ProfileInline
+              profile={profileFromMap(state.availableProfiles, state.currentProfileName)}
+              availableProfiles={state.availableProfiles}
+            />
+          </span>
         </legend>
         {error && <p className="om-alert">{error}</p>}
         <div className="form-group">
@@ -667,28 +725,45 @@ function ConditionForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
               <span className="glyphicon glyphicon-new-window" />
             </button>
           </label>
-          <select className="form-control" value={conditionType} onChange={(event) => {
-            const nextConditionType = event.currentTarget.value;
-            if (isPopupConditionType(nextConditionType)) {
-              setConditionType(nextConditionType);
-            }
-          }}>
+          <select
+            className="form-control"
+            value={conditionType}
+            onChange={(event) => {
+              const nextConditionType = event.currentTarget.value;
+              if (isPopupConditionType(nextConditionType)) {
+                setConditionType(nextConditionType);
+              }
+            }}
+          >
             {conditionTypes.map((type) => (
-              <option key={type} value={type}>{popupMessage(`condition_${type}`, type)}</option>
+              <option key={type} value={type}>
+                {popupMessage(`condition_${type}`, type)}
+              </option>
             ))}
           </select>
         </div>
         <div className="form-group">
           <label>{popupMessage('options_conditionDetails', 'Condition Details')}</label>
-          <input className="form-control condition-details" autoFocus required spellCheck={false} value={pattern} onChange={(event) => setPattern(event.currentTarget.value)} />
+          <input
+            className="form-control condition-details"
+            autoFocus
+            required
+            spellCheck={false}
+            value={pattern}
+            onChange={(event) => setPattern(event.currentTarget.value)}
+          />
         </div>
         <div className="form-group">
           <label>{popupMessage('options_resultProfile', 'Result Profile')}</label>
           <ProfileSelect profiles={profiles} state={state} value={profile} onChange={setProfile} />
         </div>
         <div className="condition-controls">
-          <button className="btn btn-default" type="button" onClick={onClose}>{popupMessage('dialog_cancel', 'Cancel')}</button>
-          <button className="btn btn-primary" type="submit" disabled={saving || !pattern || !profiles.length}>{popupMessage('popup_addCondition', 'Add Condition')}</button>
+          <button className="btn btn-default" type="button" onClick={onClose}>
+            {popupMessage('dialog_cancel', 'Cancel')}
+          </button>
+          <button className="btn btn-primary" type="submit" disabled={saving || !pattern || !profiles.length}>
+            {popupMessage('popup_addCondition', 'Add Condition')}
+          </button>
         </div>
       </fieldset>
     </form>
@@ -721,13 +796,15 @@ function RouteInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
     }
     setExplanationsRequested(true);
     setLoadingExplanations(true);
-    getPopupPageInfo({includeExplanations: true}).then((nextPageInfo) => {
-      setDetailPageInfo(nextPageInfo || pageInfo);
-      setLoadingExplanations(false);
-    }).catch((err: unknown) => {
-      setError(popupErrorMessage(err));
-      setLoadingExplanations(false);
-    });
+    getPopupPageInfo({includeExplanations: true})
+      .then((nextPageInfo) => {
+        setDetailPageInfo(nextPageInfo || pageInfo);
+        setLoadingExplanations(false);
+      })
+      .catch((err: unknown) => {
+        setError(popupErrorMessage(err));
+        setLoadingExplanations(false);
+      });
   }, [explanationsRequested, loadingExplanations, needsExplanations, pageInfo]);
   useEffect(() => {
     setCheckedDomains((prev) => {
@@ -772,13 +849,14 @@ function RouteInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
         {error && <p className="om-alert">{error}</p>}
         {tempRulesActive && (
           <p className="help-block text-warning">
-            {popupMessage('popup_routeInfoTempRulesActive', 'Temporary rules are active; requests are checked against temporary rules before the current profile.')}
+            {popupMessage(
+              'popup_routeInfoTempRulesActive',
+              'Temporary rules are active; requests are checked against temporary rules before the current profile.'
+            )}
           </p>
         )}
         {detailPageInfo?.requestLimitExceeded && (
-          <p className="help-block">
-            {popupMessage('popup_routeInfoLimitExceeded', 'Only the first captured requests are shown.')}
-          </p>
+          <p className="help-block">{popupMessage('popup_routeInfoLimitExceeded', 'Only the first captured requests are shown.')}</p>
         )}
         <RouteInfoList loading={loadingExplanations || needsExplanations} pageInfo={detailPageInfo} state={state} />
 
@@ -786,9 +864,13 @@ function RouteInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
           <div className="om-route-info-add-condition">
             <div className="text-warning">{popupMessage('popup_requestErrorWarning', 'Some requests have failed.')}</div>
             <p className="help-block">{popupMessage('popup_requestErrorWarningHelp', 'You can add conditions for failed domains.')}</p>
-            {state.currentProfileCanAddRule
-              ? <p className="help-block">{popupMessage('popup_requestErrorAddCondition', 'Add conditions for selected domains.')}</p>
-              : <p className="help-block">{popupMessage('popup_requestErrorCannotAddCondition', 'The current profile cannot accept new conditions.')}</p>}
+            {state.currentProfileCanAddRule ? (
+              <p className="help-block">{popupMessage('popup_requestErrorAddCondition', 'Add conditions for selected domains.')}</p>
+            ) : (
+              <p className="help-block">
+                {popupMessage('popup_requestErrorCannotAddCondition', 'The current profile cannot accept new conditions.')}
+              </p>
+            )}
             <div className="om-domain-list">
               {domains.map((domain, index) => (
                 <div className="checkbox" key={domain.domain}>
@@ -799,8 +881,7 @@ function RouteInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
                       checked={!!checkedDomains[domain.domain]}
                       onChange={(event) => setCheckedDomains((prev) => ({...prev, [domain.domain]: event.currentTarget.checked}))}
                     />
-                    <span className="label label-warning">{domain.errorCount}</span>
-                    {' '}{domain.domain}
+                    <span className="label label-warning">{domain.errorCount}</span> {domain.domain}
                   </label>
                 </div>
               ))}
@@ -814,10 +895,23 @@ function RouteInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
           </div>
         )}
         <div className="condition-controls">
-          <button className="btn btn-default" type="button" onClick={onClose}>{popupMessage('dialog_cancel', 'Cancel')}</button>
-          {hasRequestFailures && (state.currentProfileCanAddRule
-            ? <button className="btn btn-primary" type="submit" disabled={saving || !profiles.length}>{popupMessage('popup_addCondition', 'Add Condition')}</button>
-            : <button className="btn btn-default pull-right" type="button" onClick={() => popupTarget().openOptions?.('#!/general', closePopup)}>{popupMessage('popup_configureMonitorWebRequests', 'Configure monitor web requests')}</button>)}
+          <button className="btn btn-default" type="button" onClick={onClose}>
+            {popupMessage('dialog_cancel', 'Cancel')}
+          </button>
+          {hasRequestFailures &&
+            (state.currentProfileCanAddRule ? (
+              <button className="btn btn-primary" type="submit" disabled={saving || !profiles.length}>
+                {popupMessage('popup_addCondition', 'Add Condition')}
+              </button>
+            ) : (
+              <button
+                className="btn btn-default pull-right"
+                type="button"
+                onClick={() => popupTarget().openOptions?.('#!/general', closePopup)}
+              >
+                {popupMessage('popup_configureMonitorWebRequests', 'Configure monitor web requests')}
+              </button>
+            ))}
         </div>
       </fieldset>
     </form>
@@ -843,10 +937,15 @@ function ExternalProfileForm({state, onClose}: {state: PopupState; onClose: () =
     setSaving(true);
     setError('');
     try {
-      await callbackPromise<void>((callback) => popupTarget().addProfile?.({
-        ...state.externalProfile,
-        name: externalName
-      }, callback));
+      await callbackPromise<void>((callback) =>
+        popupTarget().addProfile?.(
+          {
+            ...state.externalProfile,
+            name: externalName
+          },
+          callback
+        )
+      );
       popupTarget().applyProfile?.(externalName, closePopup);
     } catch (err: unknown) {
       setError(popupErrorMessage(err));
@@ -863,11 +962,25 @@ function ExternalProfileForm({state, onClose}: {state: PopupState; onClose: () =
           <label>{popupMessage('popup_externalProfileName', 'Profile name')}</label>
           <input className="form-control" autoFocus value={externalName} onChange={(event) => setExternalName(event.currentTarget.value)} />
         </div>
-        {externalNameConflict && <p className="om-alert">{popupMessage('options_profileNameConflict', 'A profile with this name already exists.')}</p>}
-        {externalNameHidden && <p className="om-alert">{popupMessage('options_profileNameHidden', 'Profiles with names starting with underscore will be hidden on the popup menu.')}</p>}
+        {externalNameConflict && (
+          <p className="om-alert">{popupMessage('options_profileNameConflict', 'A profile with this name already exists.')}</p>
+        )}
+        {externalNameHidden && (
+          <p className="om-alert">
+            {popupMessage('options_profileNameHidden', 'Profiles with names starting with underscore will be hidden on the popup menu.')}
+          </p>
+        )}
         <div className="condition-controls">
-          <button className="btn btn-default" type="button" onClick={onClose}>{popupMessage('dialog_cancel', 'Cancel')}</button>
-          <button className="btn btn-primary" type="submit" disabled={saving || !externalName || externalNameConflict || externalNameHidden}>{popupMessage('dialog_save', 'Save')}</button>
+          <button className="btn btn-default" type="button" onClick={onClose}>
+            {popupMessage('dialog_cancel', 'Cancel')}
+          </button>
+          <button
+            className="btn btn-primary"
+            type="submit"
+            disabled={saving || !externalName || externalNameConflict || externalNameHidden}
+          >
+            {popupMessage('dialog_save', 'Save')}
+          </button>
         </div>
       </fieldset>
     </form>
@@ -902,16 +1015,21 @@ function ProfileSelect({
           onBlur={() => window.setTimeout(() => setOpen(false), 120)}
           onClick={() => setOpen(!open)}
         >
-          <ProfileInline legacySpacing profile={selected} availableProfiles={state.availableProfiles} /><span className="caret" />
+          <ProfileInline legacySpacing profile={selected} availableProfiles={state.availableProfiles} />
+          <span className="caret" />
         </button>
         {open && (
           <ul className="dropdown-menu" role="listbox">
             {profiles.map((profile) => (
               <li className={profile.name === value ? 'active' : ''} key={profile.name} role="option">
-                <a href="#" onMouseDown={(event) => event.preventDefault()} onClick={(event) => {
-                  event.preventDefault();
-                  choose(profile.name);
-                }}>
+                <a
+                  href="#"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    choose(profile.name);
+                  }}
+                >
                   <ProfileInline legacySpacing profile={profile} availableProfiles={state.availableProfiles} />
                 </a>
               </li>
@@ -935,32 +1053,25 @@ function ProfileInline({
   profile?: Profile;
 }) {
   const targetProfile = profileTarget(profile, availableProfiles);
-  const iconClass = targetProfile?.profileType ? iconForProfileType[targetProfile.profileType] || 'glyphicon-question-sign' : 'glyphicon-question-sign';
+  const iconClass = targetProfile?.profileType
+    ? iconForProfileType[targetProfile.profileType] || 'glyphicon-question-sign'
+    : 'glyphicon-question-sign';
   const virtual = !!(profile && targetProfile && profile !== targetProfile);
-  const iconClasses = [
-    'glyphicon',
-    legacySpacing ? '' : 'om-profile-icon',
-    iconClass,
-    virtual ? 'om-virtual-profile-icon' : ''
-  ].filter(Boolean).join(' ');
+  const iconClasses = ['glyphicon', legacySpacing ? '' : 'om-profile-icon', iconClass, virtual ? 'om-virtual-profile-icon' : '']
+    .filter(Boolean)
+    .join(' ');
   const nameClass = legacySpacing ? 'om-profile-name om-profile-name-legacy' : 'om-profile-name';
   if (legacySpacing) {
     return (
       <>
-        <span
-          className={iconClasses}
-          style={{color: targetProfile?.color || undefined}}
-        />{' '}
+        <span className={iconClasses} style={{color: targetProfile?.color || undefined}} />{' '}
         <span className={nameClass}>{label || displayProfileName(profile)}</span>
       </>
     );
   }
   return (
     <span>
-      <span
-        className={iconClasses}
-        style={{color: targetProfile?.color || undefined}}
-      />
+      <span className={iconClasses} style={{color: targetProfile?.color || undefined}} />
       <span className={nameClass}>{label || displayProfileName(profile)}</span>
     </span>
   );

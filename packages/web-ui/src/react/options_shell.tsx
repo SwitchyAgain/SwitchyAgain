@@ -101,11 +101,7 @@ export function OptionsShell({
         <a href="#/about" title={message('about_title', 'About')} onClick={(event) => navClick(event, () => onNavigate?.('about'))}>
           {message('appNameShort', 'SwitchyAgain')}
         </a>
-        {isExperimental && (
-          <sup className="om-experimental text-danger">
-            {message('options_experimental_badge', 'Experimental')}
-          </sup>
-        )}
+        {isExperimental && <sup className="om-experimental text-danger">{message('options_experimental_badge', 'Experimental')}</sup>}
       </h1>
       <nav className="nav nav-pills nav-stacked">
         <li className="nav-header">{message('options_navHeader_setting', 'Settings')}</li>
@@ -171,12 +167,7 @@ export function OptionsShell({
           </a>
         </li>
         <li className={optionsDirty ? '' : 'disabled'}>
-          <a
-            className="text-danger"
-            href="#"
-            role="button"
-            onClick={(event) => navClick(event, optionsDirty ? onDiscard : undefined)}
-          >
+          <a className="text-danger" href="#" role="button" onClick={(event) => navClick(event, optionsDirty ? onDiscard : undefined)}>
             <span className="glyphicon glyphicon-remove-circle" /> {message('options_discard', 'Discard changes')}
           </a>
         </li>
