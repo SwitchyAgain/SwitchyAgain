@@ -1,4 +1,4 @@
-import type {BackgroundError, Options, ProfileUpdateResults} from './options_client';
+import {message, type BackgroundError, type Options, type ProfileUpdateResults} from './options_client';
 import type {Profile as ProfileModel, ProfileAuth} from './profile_types';
 import {createAttachedName, profileKey} from './switch_profile_runtime';
 
@@ -58,6 +58,13 @@ export function updateProfileError(results: ProfileUpdateResults | undefined, na
     return primaryResult;
   }
   return Object.values(results || {}).find(isErrorResult);
+}
+
+export function profileDownloadErrorMessage(err: unknown) {
+  const error = err as Partial<BackgroundError> | null | undefined;
+  const statusCode = error?.statusCode ?? error?.original?.statusCode ?? '';
+  return message(`options_profileDownloadError_${error?.name || ''}`, '', String(statusCode))
+    || message('options_profileDownloadError', 'Profile download failed.');
 }
 
 export function proxyAuthSupported(protocol?: string) {

@@ -4,7 +4,6 @@ import {About} from './about';
 import {GeneralSettings} from './general_settings';
 import {ImportExport} from './import_export';
 import {
-  BackgroundError,
   Options,
   downloadBlob,
   getState,
@@ -35,6 +34,7 @@ import {
   objectOption,
   optionsPatch,
   profileDraft,
+  profileDownloadErrorMessage,
   profileOption,
   profileUpdating,
   proxyAuthSupported,
@@ -178,13 +178,6 @@ const FIXED_PROXY_AUTH_KEYS: Record<FixedProfileScheme, FixedProfileProxyField> 
   https: 'proxyForHttps'
 };
 const RULE_LIST_USAGE_URL = 'https://github.com/FelisCatus/SwitchyOmega/wiki/RuleListUsage';
-
-function profileDownloadErrorMessage(err: unknown) {
-  const error = err as Partial<BackgroundError> | null | undefined;
-  const statusCode = error?.statusCode ?? error?.original?.statusCode ?? '';
-  return message(`options_profileDownloadError_${error?.name || ''}`, '', String(statusCode))
-    || message('options_profileDownloadError', 'Profile download failed.');
-}
 
 function createPacExport(options: Options, profileName: string) {
   let missingProfile = '';

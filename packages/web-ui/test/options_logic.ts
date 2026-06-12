@@ -13,6 +13,7 @@ import {
   numberOption,
   optionsPatch,
   profileDraft,
+  profileDownloadErrorMessage,
   profileOption,
   profileUpdating,
   proxyAuthSupported,
@@ -27,6 +28,11 @@ import type {Profile} from '../src/react/profile_types';
 beforeEach(() => {
   delete (globalThis as any).OmegaPac;
   delete (globalThis as any).browser;
+  (globalThis as any).chrome = {
+    i18n: {
+      getMessage: () => ''
+    }
+  };
 });
 
 describe('options logic', () => {
@@ -119,6 +125,31 @@ describe('options logic', () => {
     expect(updateProfileError({
       '+other': fallback
     }, 'proxy')).toBe(fallback);
+  });
+
+  it('formats profile download error messages with status codes', () => {
+    (globalThis as any).chrome = {
+      i18n: {
+        getMessage(key: string, substitutions?: string | string[]) {
+          if (key === 'options_profileDownloadError_HttpError') {
+            return `HTTP ${substitutions}`;
+          }
+          return '';
+        }
+      }
+    };
+
+    expect(profileDownloadErrorMessage({
+      name: 'HttpError',
+      original: {
+        statusCode: 502
+      }
+    })).toBe('HTTP 502');
+
+    expect(profileDownloadErrorMessage({
+      name: 'UnknownError',
+      statusCode: 404
+    })).toBe('Profile download failed.');
   });
 
   it('detects proxy authentication and proxy script API support', () => {
