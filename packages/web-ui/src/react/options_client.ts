@@ -320,7 +320,16 @@ export function runtimeAvailable() {
 export function shouldAutoMount(scriptName: string) {
   const script = document.currentScript as HTMLScriptElement | null;
   const src = script?.src || '';
-  return src.endsWith(`/${scriptName}`) || src.endsWith(scriptName);
+  if (src.endsWith(`/${scriptName}`) || src.endsWith(scriptName)) {
+    return true;
+  }
+  return Array.from(document.scripts).some((candidate) => {
+    const candidateSrc = candidate.src || candidate.getAttribute('src') || '';
+    return candidate.type === 'module' && (
+      candidateSrc.endsWith(`/${scriptName}`) ||
+      candidateSrc.endsWith(scriptName)
+    );
+  });
 }
 
 function isManifestV3() {

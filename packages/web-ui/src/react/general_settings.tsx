@@ -9,6 +9,7 @@ import {
   patchOptions,
   shouldAutoMount
 } from './options_client';
+import {richMessage} from './rich_message';
 
 const GENERAL_KEYS = [
   '-monitorWebRequests',
@@ -23,10 +24,6 @@ export type GeneralSettingsProps = {
   options?: Options | null;
   onOptionsChange?: (options: Options) => void;
 };
-
-function htmlMessage(key: string, fallback: string, substitutions?: string | string[]) {
-  return {__html: message(key, fallback, substitutions)};
-}
 
 function cloneOptions(options: Options) {
   return JSON.parse(JSON.stringify(options));
@@ -181,13 +178,12 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
             />
             <span> {message('options_monitorWebRequests', 'Show count of failed web requests for resources in the current tab.')}</span>
           </label>
-          <p
-            className="help-block"
-            dangerouslySetInnerHTML={htmlMessage(
+          <p className="help-block">
+            {richMessage(
               'options_monitorWebRequestsHelp',
               'A yellow badge will be displayed on the icon if some resources fail to load.'
             )}
-          />
+          </p>
         </div>
       </section>
 

@@ -2,6 +2,7 @@ import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {ConfirmModal} from './confirm_modals';
 import {Options} from './options_client';
 import {message} from './options_client';
+import {richMessage} from './rich_message';
 import {
   Profile,
   ProfileInline,
@@ -1478,10 +1479,6 @@ export function SwitchAttachedProfile({
   );
 }
 
-function htmlMessage(key: string, fallback = key) {
-  return {__html: message(key, fallback)};
-}
-
 export function SwitchConditionHelp({
   onClose,
   show = false,
@@ -1523,11 +1520,11 @@ export function SwitchConditionHelp({
                   <React.Fragment key={type}>
                     <dt>{message(`condition_${type}`, type)}</dt>
                     <dd>
-                      <div dangerouslySetInnerHTML={htmlMessage(`condition_help_${type}`, '')} />
+                      <div>{richMessage(`condition_help_${type}`, '')}</div>
                       {isUrlConditionType[type] && (
                         <div className="text-danger">
                           <span className="glyphicon glyphicon-alert" />{' '}
-                          <span dangerouslySetInnerHTML={htmlMessage('condition_alert_fullUrlLimitation', '')} />
+                          <span>{richMessage('condition_alert_fullUrlLimitation', '')}</span>
                         </div>
                       )}
                     </dd>
@@ -1596,7 +1593,7 @@ export function SwitchRulesHeader({
       {hasUrlConditions && (
         <div className="alert alert-danger">
           <span className="glyphicon glyphicon-alert" />{' '}
-          <span dangerouslySetInnerHTML={htmlMessage('condition_alert_fullUrlLimitation', '')} />
+          <span>{richMessage('condition_alert_fullUrlLimitation', '')}</span>
         </div>
       )}
       {editSource && (

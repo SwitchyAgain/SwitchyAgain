@@ -14,6 +14,7 @@ import {
   setLocalState,
   setOptionsSync
 } from './options_client';
+import {richMessage} from './rich_message';
 
 const RESTORE_URL_STATE = 'web.restoreOnlineUrl';
 
@@ -25,10 +26,6 @@ export type ImportExportProps = {
   options?: Options | null;
   optionsDirty?: boolean;
 };
-
-function htmlMessage(key: string, fallback: string) {
-  return {__html: message(key, fallback)};
-}
 
 function errorMessage(error: unknown) {
   const candidate = error as {message?: unknown; reason?: unknown} | null | undefined;
@@ -257,13 +254,12 @@ export function ImportExport({
             />{' '}
             <span>{message('options_exportLegacyRuleList', 'Export legacy rule lists')}</span>
           </label>
-          <p
-            className="help-block"
-            dangerouslySetInnerHTML={htmlMessage(
+          <p className="help-block">
+            {richMessage(
               'options_exportLegacyRuleListHelp',
               'Enable this option only if you publish rule lists for users of those projects.'
             )}
-          />
+          </p>
         </div>
       )}
     </section>
@@ -334,7 +330,7 @@ export function ImportExport({
       <h3>{message('options_group_syncing', 'Syncing')}</h3>
       {(syncOptions === 'pristine' || syncOptions === 'disabled') && (
         <>
-          <p className="help-block" dangerouslySetInnerHTML={htmlMessage('options_syncPristineHelp', 'Sync your options using browser storage.')} />
+          <p className="help-block">{richMessage('options_syncPristineHelp', 'Sync your options using browser storage.')}</p>
           <p>
             <button type="button" className="btn btn-default" disabled={syncBusy} onClick={() => runSyncAction('enabling', enableOptionsSync)}>
               <span className="glyphicon glyphicon-cloud-upload" /> {message('options_syncEnable', 'Enable sync')}
@@ -347,7 +343,7 @@ export function ImportExport({
           <p className="alert alert-success width-limit">
             <span className="glyphicon glyphicon-ok" /> {message('options_syncSyncAlert', 'Options sync is enabled.')}
           </p>
-          <p className="help-block" dangerouslySetInnerHTML={htmlMessage('options_syncSyncHelp', 'Your options are synchronized.')} />
+          <p className="help-block">{richMessage('options_syncSyncHelp', 'Your options are synchronized.')}</p>
           <p>
             <button type="button" className="btn btn-warning" disabled={syncBusy} onClick={() => runSyncAction('disabling', disableOptionsSync)}>
               <span className="glyphicon glyphicon-remove-sign" /> {message('options_syncDisable', 'Disable sync')}
@@ -360,7 +356,7 @@ export function ImportExport({
           <p className="alert alert-info width-limit">
             <span className="glyphicon glyphicon-info-sign" /> {message('options_syncConflictAlert', 'Options sync conflict detected.')}
           </p>
-          <p className="help-block" dangerouslySetInnerHTML={htmlMessage('options_syncConflictHelp', 'Choose which options should be used for syncing.')} />
+          <p className="help-block">{richMessage('options_syncConflictHelp', 'Choose which options should be used for syncing.')}</p>
           <p>
             <button type="button" className="btn btn-danger" disabled={syncBusy} onClick={() => runSyncAction('enabling', () => enableOptionsSync({force: true}))}>
               <span className="glyphicon glyphicon-cloud-download" /> {message('options_syncEnableForce', 'Use synced options')}
@@ -372,7 +368,7 @@ export function ImportExport({
         </>
       )}
       {syncOptions === 'unsupported' && (
-        <p className="help-block" dangerouslySetInnerHTML={htmlMessage('options_syncUnsupportedHelp', 'Options sync is not supported in this browser.')} />
+        <p className="help-block">{richMessage('options_syncUnsupportedHelp', 'Options sync is not supported in this browser.')}</p>
       )}
     </section>
   );

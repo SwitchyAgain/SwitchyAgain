@@ -33,7 +33,11 @@ function resolveSource(src: string) {
   return path.join(root, src);
 }
 
-async function writeReactHtml(dest: string, title: string, script: string, extraScripts: string[] = []) {
+function scriptTag(src: string, type = '') {
+  return `  <script${type ? ` type="${type}"` : ''} src="${src}"></script>`;
+}
+
+async function writeReactHtml(dest: string, title: string, script: string, extraScripts: string[] = [], scriptType = '') {
   const html = [
     '<!doctype html>',
     '<html>',
@@ -46,8 +50,8 @@ async function writeReactHtml(dest: string, title: string, script: string, extra
     '</head>',
     '<body>',
     '  <div id="react-root"></div>',
-    ...extraScripts.map((src) => `  <script src="${src}"></script>`),
-    `  <script src="${script}"></script>`,
+    ...extraScripts.map((src) => scriptTag(src)),
+    scriptTag(script, scriptType),
     '</body>',
     '</html>',
     ''
@@ -56,7 +60,7 @@ async function writeReactHtml(dest: string, title: string, script: string, extra
   await fs.writeFile(path.join(root, dest), html);
 }
 
-async function writeRootReactHtml(dest: string, title: string, script: string, extraScripts: string[] = []) {
+async function writeRootReactHtml(dest: string, title: string, script: string, extraScripts: string[] = [], scriptType = '') {
   const html = [
     '<!doctype html>',
     '<html lang="en">',
@@ -70,8 +74,8 @@ async function writeRootReactHtml(dest: string, title: string, script: string, e
     '</head>',
     '<body>',
     '  <div id="react-root"></div>',
-    ...extraScripts.map((src) => `  <script src="${src}"></script>`),
-    `  <script src="${script}"></script>`,
+    ...extraScripts.map((src) => scriptTag(src)),
+    scriptTag(script, scriptType),
     '</body>',
     '</html>',
     ''
@@ -80,17 +84,50 @@ async function writeRootReactHtml(dest: string, title: string, script: string, e
   await fs.writeFile(path.join(root, dest), html);
 }
 
-async function bundleReact(entry: string, dest: string) {
-  await ensureDir(path.join(root, dest));
+async function bundleReactEntries(entries: Record<string, string>) {
+  await ensureDir(path.join(root, 'build/react/index.js'));
   await esbuild.build({
     bundle: true,
-    entryPoints: [path.join(root, entry)],
-    format: 'iife',
+    chunkNames: 'chunks/[name]-[hash]',
+    entryNames: '[name]',
+    entryPoints: Object.fromEntries(Object.entries(entries).map(([name, entry]) => [name, path.join(root, entry)])),
+    format: 'esm',
     minify: true,
-    outfile: path.join(root, dest),
+    outdir: path.join(root, 'build/react'),
     platform: 'browser',
+    splitting: true,
     target: 'es2022'
   });
+}
+
+async function listJsFiles(dir: string) {
+  const files: string[] = [];
+  const entries = await fs.readdir(dir, {withFileTypes: true});
+  for (const entry of entries) {
+    const entryPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...await listJsFiles(entryPath));
+    } else if (entry.isFile() && entry.name.endsWith('.js')) {
+      files.push(entryPath);
+    }
+  }
+  return files;
+}
+
+async function disableRawHtmlAssignments(dir: string) {
+  for (const file of await listJsFiles(dir)) {
+    const source = await fs.readFile(file, 'utf8');
+    const patched = source.replace(
+      /\b[A-Za-z_$][\w$]*\.innerHTML\s*=\s*(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[A-Za-z_$][\w$]*)/g,
+      '(()=>{throw Error("innerHTML disabled")})()'
+    );
+    if (/\.innerHTML\s*=/.test(patched)) {
+      throw new Error(`Unsafe innerHTML assignment remains in ${path.relative(root, file)}`);
+    }
+    if (patched !== source) {
+      await fs.writeFile(file, patched);
+    }
+  }
 }
 
 async function processCss(src: string, tmpDest: string, buildDest: string) {
@@ -142,18 +179,21 @@ async function main() {
   await writeRootReactHtml('build/options.html', 'SwitchyAgain Options', 'react/options_app.js', [
     'js/log_error.js',
     'js/omega_pac.min.js'
-  ]);
-  await bundleReact('src/react/options_entry.tsx', 'build/react/options_app.js');
-  await writeReactHtml('build/react/general.html', 'SwitchyAgain General', 'general.js');
-  await bundleReact('src/react/general_settings.tsx', 'build/react/general.js');
-  await writeReactHtml('build/react/ui.html', 'SwitchyAgain Interface', 'ui.js');
-  await bundleReact('src/react/ui_settings.tsx', 'build/react/ui.js');
-  await writeReactHtml('build/react/about.html', 'SwitchyAgain About', 'about.js');
-  await bundleReact('src/react/about.tsx', 'build/react/about.js');
-  await bundleReact('src/react/popup_app.tsx', 'build/react/popup_app.js');
-  await bundleReact('src/react/proxy_not_controllable.tsx', 'build/react/proxy_not_controllable.js');
-  await writeReactHtml('build/react/import_export.html', 'SwitchyAgain Import / Export', 'import_export.js');
-  await bundleReact('src/react/import_export.tsx', 'build/react/import_export.js');
+  ], 'module');
+  await writeReactHtml('build/react/general.html', 'SwitchyAgain General', 'general.js', [], 'module');
+  await writeReactHtml('build/react/ui.html', 'SwitchyAgain Interface', 'ui.js', [], 'module');
+  await writeReactHtml('build/react/about.html', 'SwitchyAgain About', 'about.js', [], 'module');
+  await writeReactHtml('build/react/import_export.html', 'SwitchyAgain Import / Export', 'import_export.js', [], 'module');
+  await bundleReactEntries({
+    about: 'src/react/about.tsx',
+    general: 'src/react/general_settings.tsx',
+    import_export: 'src/react/import_export.tsx',
+    options_app: 'src/react/options_entry.tsx',
+    popup_app: 'src/react/popup_app.tsx',
+    proxy_not_controllable: 'src/react/proxy_not_controllable.tsx',
+    ui: 'src/react/ui_settings.tsx'
+  });
+  await disableRawHtmlAssignments(path.join(root, 'build/react'));
 
   await processCss('src/css/options.css', 'tmp/css/options.css', 'build/css/options.css');
 }

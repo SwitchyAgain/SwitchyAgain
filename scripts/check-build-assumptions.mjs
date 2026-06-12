@@ -114,7 +114,7 @@ function parseImportScripts(source) {
 }
 
 function parseHtmlScripts(source) {
-  return Array.from(source.matchAll(/<script\s+src="([^"]+)"\s*><\/script>/g), (entry) => entry[1]);
+  return Array.from(source.matchAll(/<script\b[^>]*\bsrc="([^"]+)"[^>]*><\/script>/g), (entry) => entry[1]);
 }
 
 async function checkClassicScriptEntrypoints() {
