@@ -103,6 +103,7 @@ export type ProfileLike = Record<string, unknown> & {
   builtin?: boolean;
   color?: string;
   defaultProfileName?: string;
+  hiddenInPopup?: boolean;
   name?: string;
   profileType?: string;
   revision?: string;

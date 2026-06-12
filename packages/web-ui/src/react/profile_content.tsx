@@ -242,8 +242,10 @@ export type ProfileShellProps = {
   onDelete?: () => void;
   onExportRuleList?: () => void;
   onExportScript?: () => void;
+  onPopupHiddenChange?: (hidden: boolean) => void;
   onRename?: () => void;
   profile: Profile & {
+    hiddenInPopup?: boolean;
     syncError?: {
       reason?: string;
     };
@@ -260,6 +262,7 @@ export function ProfileShell({
   onDelete,
   onExportRuleList,
   onExportScript,
+  onPopupHiddenChange,
   onRename,
   profile,
   profileColor,
@@ -317,6 +320,29 @@ export function ProfileShell({
           </button>
         </div>
       </div>
+      {!profile.builtin && (
+        <section className="settings-group profile-options">
+          <h3>{message('options_group_profileOptions', 'Profile Options')}</h3>
+          <label className="profile-switch-label">
+            <input
+              type="checkbox"
+              role="switch"
+              checked={!!profile.hiddenInPopup}
+              onChange={(event) => onPopupHiddenChange?.(event.currentTarget.checked)}
+            />
+            <span className="profile-switch" aria-hidden="true">
+              <span className="profile-switch-knob" />
+            </span>
+            <span>{message('options_hideFromPopupMenu', 'Hide from popup menu')}</span>
+          </label>
+          <p className="help-block profile-switch-help">
+            {message(
+              'options_hideFromPopupMenuHelp',
+              'When enabled, this profile is hidden from the popup profile list but remains available in options and rule targets.'
+            )}
+          </p>
+        </section>
+      )}
       {profile.syncOptions === 'disabled' && (
         <section className="settings-group">
           {!profile.syncError && (

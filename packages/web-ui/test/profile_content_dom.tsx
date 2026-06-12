@@ -2,7 +2,7 @@
 
 import React from 'react';
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
-import {FixedProfileContent, PacProfile} from '../src/react/profile_content';
+import {FixedProfileContent, PacProfile, ProfileShell} from '../src/react/profile_content';
 import type {NamedFixedProfileModel, NamedPacProfileModel} from '../src/react/profile_types';
 
 function installChromeMock() {
@@ -22,6 +22,33 @@ beforeEach(() => {
 });
 
 describe('profile content components', () => {
+  it('toggles popup visibility from profile options', () => {
+    const onPopupHiddenChange = vi.fn();
+
+    render(
+      <ProfileShell
+        onPopupHiddenChange={onPopupHiddenChange}
+        profile={{
+          name: 'proxy',
+          profileType: 'FixedProfile'
+        }}
+      />
+    );
+
+    expect(screen.getByRole('heading', {name: 'Profile Options'})).toBeTruthy();
+    expect(
+      screen.getByText(
+        'When enabled, this profile is hidden from the popup profile list but remains available in options and rule targets.'
+      )
+    ).toBeTruthy();
+
+    const switchInput = screen.getByRole('switch', {name: 'Hide from popup menu'}) as HTMLInputElement;
+    expect(switchInput.checked).toBe(false);
+
+    fireEvent.click(switchInput);
+    expect(onPopupHiddenChange).toHaveBeenCalledWith(true);
+  });
+
   it('updates PAC URLs and exposes download/auth actions', () => {
     const onDownload = vi.fn();
     const onEditProxyAuth = vi.fn();

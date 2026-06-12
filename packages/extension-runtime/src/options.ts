@@ -138,6 +138,7 @@ type AvailableProfile = {
   color?: unknown;
   defaultProfileName?: unknown;
   desc?: string | null;
+  hiddenInPopup?: boolean;
   name?: unknown;
   profileType?: unknown;
   validResultProfiles?: Array<string | undefined>;
@@ -997,6 +998,7 @@ class Options {
           profileType: p.profileType,
           color: p.color,
           desc: this.printProfile(p),
+          hiddenInPopup: p.hiddenInPopup ? true : void 0,
           builtin: p.builtin ? true : void 0
         };
         if (p.profileType === 'VirtualProfile') {

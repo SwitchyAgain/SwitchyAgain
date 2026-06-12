@@ -24,6 +24,7 @@ export type ProfileType = KnownProfileType | (string & {});
 export type Profile = {
   builtin?: boolean;
   color?: string;
+  hiddenInPopup?: boolean;
   name?: string;
   profileType?: ProfileType;
   syncError?: ProfileSyncError;

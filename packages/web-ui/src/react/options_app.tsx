@@ -1099,6 +1099,15 @@ export function OptionsApp() {
                 switchProfile && attachedOptions && exportRuleList(switchProfile, attachedOptions, ruleListOptions.legacy)
               }
               onExportScript={() => exportScript(profile.name)}
+              onPopupHiddenChange={(hidden) =>
+                updateProfile(profile.name, (nextProfile) => {
+                  if (hidden) {
+                    nextProfile.hiddenInPopup = true;
+                  } else {
+                    delete nextProfile.hiddenInPopup;
+                  }
+                })
+              }
               onRename={() => requestRenameProfile(profile)}
             />
           </div>

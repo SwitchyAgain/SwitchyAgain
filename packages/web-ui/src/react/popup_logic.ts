@@ -78,7 +78,12 @@ export function profileTarget(profile?: Profile, availableProfiles?: ProfileMap)
 
 export function visibleMenuProfiles(state?: PopupState) {
   return Object.values(state?.availableProfiles || {})
-    .filter((profile): profile is Profile => !!profile && !profile.builtin && profile.name.charAt(0) !== '_')
+    .filter((profile): profile is Profile => {
+      if (!profile || profile.builtin || profile.name.charAt(0) === '_') {
+        return false;
+      }
+      return !profile.hiddenInPopup || profile.name === state?.currentProfileName;
+    })
     .sort(compareProfile);
 }
 

@@ -70,16 +70,19 @@ describe('popup logic', () => {
       '+proxy-z': profile('proxy-z', 'FixedProfile'),
       '+pac-a': profile('pac-a', 'PacProfile'),
       '+virtual': profile('virtual', 'VirtualProfile'),
+      '+hidden-popup': profile('hidden-popup', 'FixedProfile', {hiddenInPopup: true}),
+      '+current-hidden-popup': profile('current-hidden-popup', 'FixedProfile', {hiddenInPopup: true}),
       '+_hidden': profile('_hidden', 'FixedProfile'),
       '+_temporary': profile('_temporary', 'FixedProfile'),
       '+__attached': profile('__attached', 'RuleListProfile')
     };
     const state: PopupState = {
       availableProfiles,
+      currentProfileName: 'current-hidden-popup',
       validResultProfiles: ['__attached', '_temporary', 'virtual', 'pac-a', 'proxy-z']
     };
 
-    expect(visibleMenuProfiles(state).map((item) => item.name)).toEqual(['proxy-z', 'pac-a', 'virtual']);
+    expect(visibleMenuProfiles(state).map((item) => item.name)).toEqual(['current-hidden-popup', 'proxy-z', 'pac-a', 'virtual']);
     expect(visibleResultProfiles(state).map((item) => item.name)).toEqual(['_temporary', 'proxy-z', 'pac-a', 'virtual']);
     expect(isVisibleResultProfileName('__attached')).toBe(false);
     expect(isVisibleResultProfileName('_temporary')).toBe(true);
