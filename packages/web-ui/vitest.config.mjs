@@ -6,6 +6,6 @@ export default defineConfig({
     environment: 'node',
     fileParallelism: false,
     globals: true,
-    include: ['test/*.ts']
+    include: ['test/*.ts', 'test/*.tsx']
   }
 });
