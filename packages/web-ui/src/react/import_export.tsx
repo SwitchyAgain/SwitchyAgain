@@ -14,9 +14,16 @@ import {
   setLocalState,
   setOptionsSync
 } from './options_client';
+import {
+  RESTORE_URL_STATE,
+  backupOptionsText,
+  importExportBusy,
+  importExportErrorMessage,
+  legacyRuleListPatch,
+  syncBusy
+} from './import_export_logic';
+import type {ImportExportStatus, SyncStatus} from './import_export_logic';
 import {richMessage} from './rich_message';
-
-const RESTORE_URL_STATE = 'web.restoreOnlineUrl';
 
 export type ImportExportProps = {
   embedded?: boolean;
@@ -26,11 +33,6 @@ export type ImportExportProps = {
   options?: Options | null;
   optionsDirty?: boolean;
 };
-
-function errorMessage(error: unknown) {
-  const candidate = error as {message?: unknown; reason?: unknown} | null | undefined;
-  return String(candidate?.message || candidate?.reason || error);
-}
 
 function readTextFile(file: File) {
   return new Promise<string>((resolve, reject) => {
@@ -55,8 +57,8 @@ export function ImportExport({
 }: ImportExportProps) {
   const [options, setOptions] = useState<Options | null>(() => embedded && initialOptions ? initialOptions : null);
   const [restoreUrl, setRestoreUrl] = useState(storedRestoreUrl);
-  const [status, setStatus] = useState<'loading' | 'ready' | 'exporting' | 'restoringLocal' | 'restoringOnline' | 'success' | 'error'>(() => embedded && initialOptions ? 'ready' : 'loading');
-  const [syncStatus, setSyncStatus] = useState<'ready' | 'enabling' | 'disabling' | 'resetting'>('ready');
+  const [status, setStatus] = useState<ImportExportStatus>(() => embedded && initialOptions ? 'ready' : 'loading');
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('ready');
   const [syncOptions, setSyncOptions] = useState<'pristine' | 'disabled' | 'sync' | 'conflict' | 'unsupported' | string | undefined>(() => getLocalState('syncOptions'));
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -76,7 +78,7 @@ export function ImportExport({
       setOptions(loadedOptions);
       setStatus('ready');
     }).catch((err) => {
-      setError(errorMessage(err));
+      setError(importExportErrorMessage(err));
       setStatus('error');
     });
   }, [embedded, initialOptions]);
@@ -97,7 +99,7 @@ export function ImportExport({
   }
 
   function showError(err: unknown, fallbackKey: string, fallback: string) {
-    const messageText = errorMessage(err) || message(fallbackKey, fallback);
+    const messageText = importExportErrorMessage(err) || message(fallbackKey, fallback);
     setError(messageText);
     setStatus('error');
   }
@@ -108,8 +110,7 @@ export function ImportExport({
     }
     setStatus('exporting');
     confirmCurrentOptions().then(() => {
-      const plainOptions = JSON.parse(JSON.stringify(options));
-      const blob = new Blob([JSON.stringify(plainOptions)], {
+      const blob = new Blob([backupOptionsText(options)], {
         type: 'text/plain;charset=utf-8'
       });
       downloadBlob(blob, 'OmegaOptions.bak');
@@ -171,8 +172,8 @@ export function ImportExport({
     });
   }
 
-  const busy = status === 'loading' || status === 'exporting' || status === 'restoringLocal' || status === 'restoringOnline';
-  const syncBusy = syncStatus !== 'ready';
+  const busy = importExportBusy(status);
+  const syncActionBusy = syncBusy(syncStatus);
 
   function runSyncAction(nextStatus: typeof syncStatus, action?: () => Promise<unknown> | unknown) {
     if (!action) {
@@ -219,15 +220,9 @@ export function ImportExport({
 
   function saveExportLegacyRuleList(checked: boolean) {
     const currentOptions = options || {};
-    const previous = currentOptions['-exportLegacyRuleList'];
-    const nextOptions = {
-      ...currentOptions,
-      '-exportLegacyRuleList': checked
-    };
+    const {nextOptions, patch} = legacyRuleListPatch(currentOptions, checked);
     setOptions(nextOptions);
-    patchOptions({
-      '-exportLegacyRuleList': [previous, checked]
-    }).then((loadedOptions) => {
+    patchOptions(patch).then((loadedOptions) => {
       setOptions(loadedOptions);
       onOptionsReplace?.(loadedOptions, {dirty: false});
     }).catch((err) => {
@@ -332,7 +327,7 @@ export function ImportExport({
         <>
           <p className="help-block">{richMessage('options_syncPristineHelp', 'Sync your options using browser storage.')}</p>
           <p>
-            <button type="button" className="btn btn-default" disabled={syncBusy} onClick={() => runSyncAction('enabling', enableOptionsSync)}>
+            <button type="button" className="btn btn-default" disabled={syncActionBusy} onClick={() => runSyncAction('enabling', enableOptionsSync)}>
               <span className="glyphicon glyphicon-cloud-upload" /> {message('options_syncEnable', 'Enable sync')}
             </button>
           </p>
@@ -345,7 +340,7 @@ export function ImportExport({
           </p>
           <p className="help-block">{richMessage('options_syncSyncHelp', 'Your options are synchronized.')}</p>
           <p>
-            <button type="button" className="btn btn-warning" disabled={syncBusy} onClick={() => runSyncAction('disabling', disableOptionsSync)}>
+            <button type="button" className="btn btn-warning" disabled={syncActionBusy} onClick={() => runSyncAction('disabling', disableOptionsSync)}>
               <span className="glyphicon glyphicon-remove-sign" /> {message('options_syncDisable', 'Disable sync')}
             </button>
           </p>
@@ -358,10 +353,10 @@ export function ImportExport({
           </p>
           <p className="help-block">{richMessage('options_syncConflictHelp', 'Choose which options should be used for syncing.')}</p>
           <p>
-            <button type="button" className="btn btn-danger" disabled={syncBusy} onClick={() => runSyncAction('enabling', () => enableOptionsSync({force: true}))}>
+            <button type="button" className="btn btn-danger" disabled={syncActionBusy} onClick={() => runSyncAction('enabling', () => enableOptionsSync({force: true}))}>
               <span className="glyphicon glyphicon-cloud-download" /> {message('options_syncEnableForce', 'Use synced options')}
             </button>{' '}
-            <button type="button" className="btn btn-link" disabled={syncBusy} onClick={() => runSyncAction('resetting', resetSyncedOptions)}>
+            <button type="button" className="btn btn-link" disabled={syncActionBusy} onClick={() => runSyncAction('resetting', resetSyncedOptions)}>
               <span className="glyphicon glyphicon-erase" /> {message('options_syncReset', 'Reset sync')}
             </button>
           </p>
