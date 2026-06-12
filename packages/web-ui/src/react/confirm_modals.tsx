@@ -177,7 +177,7 @@ function bodyFor(
         const toProfile = profileByName(props.options, replaceState.toName);
         return (
           <>
-            <p>
+            <div>
               {messageWithNodes(
                 'options_replaceProfileConfirm',
                 'Do you really want to replace __FROM_PROFILE__ with __TO_PROFILE__?',
@@ -199,7 +199,7 @@ function bodyFor(
                   )
                 }
               )}
-            </p>
+            </div>
             <div className="well">
               <ProfileInline profile={fromProfile} />{' '}
               <span className="glyphicon glyphicon-chevron-right" />{' '}
