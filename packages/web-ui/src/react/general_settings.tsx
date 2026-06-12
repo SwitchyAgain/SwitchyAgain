@@ -9,6 +9,7 @@ import {
   patchOptions,
   shouldAutoMount
 } from './options_client';
+import {cloneOptions} from './options_logic';
 import {richMessage} from './rich_message';
 
 const GENERAL_KEYS = [
@@ -24,10 +25,6 @@ export type GeneralSettingsProps = {
   options?: Options | null;
   onOptionsChange?: (options: Options) => void;
 };
-
-function cloneOptions(options: Options) {
-  return JSON.parse(JSON.stringify(options));
-}
 
 function ProfileBadge({label, icon, color}: {label: string; icon: string; color: string}) {
   return (

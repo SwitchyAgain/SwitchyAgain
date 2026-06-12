@@ -18,6 +18,7 @@ import {
   allProfilesFromOptions,
   profileByName
 } from './profile_widgets';
+import {cloneOptions} from './options_logic';
 import {
   moveQuickSwitchProfileName,
   notCycledProfileNames,
@@ -33,10 +34,6 @@ export type UiSettingsProps = {
   onOptionsChange?: (options: Options) => void;
   onOpenShortcutConfig?: () => void;
 };
-
-function cloneOptions(options: Options) {
-  return JSON.parse(JSON.stringify(options));
-}
 
 function displayProfileName(profile: Profile) {
   if (profile.builtin) {
