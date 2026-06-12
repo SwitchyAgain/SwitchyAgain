@@ -1,6 +1,8 @@
 import {
   cloneOptions,
   cloneAuth,
+  composeLegacyRuleList,
+  composeOmegaRuleList,
   createPacExport,
   deleteAttachedProfileOption,
   deleteProfileOption,
@@ -25,6 +27,7 @@ import {
 } from '../src/react/options_logic';
 import type {Options} from '../src/react/options_client';
 import type {Profile} from '../src/react/profile_types';
+import type {SwitchRule} from '../src/react/switch_profile_runtime';
 
 beforeEach(() => {
   delete (globalThis as any).OmegaPac;
@@ -185,6 +188,79 @@ describe('options logic', () => {
         comments: true
       }
     ]);
+  });
+
+  it('composes Omega rule lists with metadata headers', () => {
+    const rules = [
+      {
+        condition: {
+          conditionType: 'HostWildcardCondition',
+          pattern: '*.example.com'
+        },
+        profileName: 'proxy'
+      }
+    ] as SwitchRule[];
+    (globalThis as any).OmegaPac = {
+      RuleList: {
+        Switchy: {
+          compose(args: {defaultProfileName: string; rules: SwitchRule[]}) {
+            expect(args).toEqual({
+              defaultProfileName: 'direct',
+              rules
+            });
+            return '[SwitchyOmega Conditions]\nbody';
+          }
+        }
+      }
+    };
+
+    const text = composeOmegaRuleList(rules, 'direct');
+
+    expect(text).toContain('[SwitchyOmega Conditions]\r\n; Require: SwitchyOmega >= 2.3.2');
+    expect(text).toContain('; Usage: https://github.com/FelisCatus/SwitchyOmega/wiki/RuleListUsage');
+    expect(text).toContain('body');
+  });
+
+  it('composes legacy rule lists from supported switch conditions', () => {
+    const rules = [
+      {
+        condition: {
+          conditionType: 'HostWildcardCondition',
+          pattern: '*.example.com'
+        },
+        profileName: 'proxy'
+      },
+      {
+        condition: {
+          conditionType: 'UrlWildcardCondition',
+          pattern: 'http://internal/*'
+        },
+        profileName: 'direct'
+      },
+      {
+        condition: {
+          conditionType: 'UrlRegexCondition',
+          pattern: '^https://secure'
+        },
+        profileName: 'direct'
+      },
+      {
+        condition: {
+          conditionType: 'KeywordCondition',
+          pattern: 'ignored'
+        },
+        profileName: 'proxy'
+      }
+    ] as SwitchRule[];
+
+    const text = composeLegacyRuleList(rules, 'direct');
+
+    expect(text).toContain('; Summary: Proxy Switchy! Exported Rule List');
+    expect(text).toContain('; Website: https://github.com/FelisCatus/SwitchyOmega/wiki/RuleListUsage');
+    expect(text).toContain('@*://*.example.com/*\r\n');
+    expect(text).toContain('!@http://internal/*\r\n');
+    expect(text).toContain('!^https://secure\r\n');
+    expect(text).not.toContain('ignored');
   });
 
   it('detects proxy authentication and proxy script API support', () => {

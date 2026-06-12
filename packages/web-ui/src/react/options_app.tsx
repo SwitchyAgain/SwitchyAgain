@@ -22,6 +22,8 @@ import {OptionsAlert, OptionsShell} from './options_shell';
 import {
   cloneOptions,
   cloneAuth,
+  composeLegacyRuleList,
+  composeOmegaRuleList,
   createPacExport,
   deleteAttachedProfileOption,
   deleteProfileOption,
@@ -74,7 +76,6 @@ import {
   AttachedOptions,
   NamedSwitchProfileModel,
   SwitchProfileModel,
-  SwitchRule,
   SwitchRuleSourceState,
   addRule,
   applyParsedSource,
@@ -178,8 +179,6 @@ const FIXED_PROXY_AUTH_KEYS: Record<FixedProfileScheme, FixedProfileProxyField> 
   http: 'proxyForHttp',
   https: 'proxyForHttps'
 };
-const RULE_LIST_USAGE_URL = 'https://github.com/FelisCatus/SwitchyOmega/wiki/RuleListUsage';
-
 function referencedProfiles(profileName: string, options: Options): Profile[] {
   if (typeof OmegaPac === 'undefined' || !OmegaPac?.Profiles?.referencedBySet) {
     return [];
@@ -209,53 +208,6 @@ function firstFixedProfileName(options: Options) {
     }
   });
   return profileName;
-}
-
-function composeOmegaRuleList(rules: SwitchRule[], defaultProfileName: string) {
-  const text = OmegaPac.RuleList.Switchy.compose({
-    defaultProfileName,
-    rules
-  });
-  const eol = '\r\n';
-  const info = [
-    '',
-    '; Require: SwitchyOmega >= 2.3.2',
-    `; Date: ${new Date().toLocaleDateString()}`,
-    `; Usage: ${message('ruleList_usageUrl', RULE_LIST_USAGE_URL)}`
-  ].join(eol) + eol;
-  return text.replace('\n', info);
-}
-
-function composeLegacyRuleList(rules: SwitchRule[], defaultProfileName: string) {
-  let wildcardRules = '';
-  let regexpRules = '';
-  for (const rule of rules || []) {
-    const inverse = rule.profileName === defaultProfileName ? '!' : '';
-    switch (rule.condition?.conditionType) {
-      case 'HostWildcardCondition':
-        wildcardRules += `${inverse}@*://${rule.condition.pattern}/*\r\n`;
-        break;
-      case 'UrlWildcardCondition':
-        wildcardRules += `${inverse}@${rule.condition.pattern}\r\n`;
-        break;
-      case 'UrlRegexCondition':
-        regexpRules += `${inverse}${rule.condition.pattern}\r\n`;
-        break;
-    }
-  }
-  return [
-    '; Summary: Proxy Switchy! Exported Rule List',
-    `; Date: ${new Date().toLocaleDateString()}`,
-    `; Website: ${message('ruleList_usageUrl', RULE_LIST_USAGE_URL)}`,
-    '',
-    '#BEGIN',
-    '',
-    '[wildcard]',
-    wildcardRules,
-    '[regexp]',
-    regexpRules,
-    '#END'
-  ].join('\n');
 }
 
 function isSwitchProfile(value: unknown): value is NamedSwitchProfileModel {

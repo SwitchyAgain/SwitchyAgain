@@ -1,8 +1,9 @@
 import {message, type BackgroundError, type Options, type ProfileUpdateResults} from './options_client';
 import type {Profile as ProfileModel, ProfileAuth} from './profile_types';
-import {createAttachedName, profileKey} from './switch_profile_runtime';
+import {createAttachedName, profileKey, type SwitchRule} from './switch_profile_runtime';
 
 const CHAR_CODE_UNDERSCORE = '_'.charCodeAt(0);
+const RULE_LIST_USAGE_URL = 'https://github.com/FelisCatus/SwitchyOmega/wiki/RuleListUsage';
 
 type GlobalWithBrowserProxy = typeof globalThis & {
   browser?: {
@@ -81,6 +82,53 @@ export function createPacExport(options: Options, profileName: string) {
     fileName: `OmegaProfile_${fileName}.pac`,
     missingProfile
   };
+}
+
+export function composeOmegaRuleList(rules: SwitchRule[], defaultProfileName: string) {
+  const text = OmegaPac.RuleList.Switchy.compose({
+    defaultProfileName,
+    rules
+  });
+  const eol = '\r\n';
+  const info = [
+    '',
+    '; Require: SwitchyOmega >= 2.3.2',
+    `; Date: ${new Date().toLocaleDateString()}`,
+    `; Usage: ${message('ruleList_usageUrl', RULE_LIST_USAGE_URL)}`
+  ].join(eol) + eol;
+  return text.replace('\n', info);
+}
+
+export function composeLegacyRuleList(rules: SwitchRule[], defaultProfileName: string) {
+  let wildcardRules = '';
+  let regexpRules = '';
+  for (const rule of rules || []) {
+    const inverse = rule.profileName === defaultProfileName ? '!' : '';
+    switch (rule.condition?.conditionType) {
+      case 'HostWildcardCondition':
+        wildcardRules += `${inverse}@*://${rule.condition.pattern}/*\r\n`;
+        break;
+      case 'UrlWildcardCondition':
+        wildcardRules += `${inverse}@${rule.condition.pattern}\r\n`;
+        break;
+      case 'UrlRegexCondition':
+        regexpRules += `${inverse}${rule.condition.pattern}\r\n`;
+        break;
+    }
+  }
+  return [
+    '; Summary: Proxy Switchy! Exported Rule List',
+    `; Date: ${new Date().toLocaleDateString()}`,
+    `; Website: ${message('ruleList_usageUrl', RULE_LIST_USAGE_URL)}`,
+    '',
+    '#BEGIN',
+    '',
+    '[wildcard]',
+    wildcardRules,
+    '[regexp]',
+    regexpRules,
+    '#END'
+  ].join('\n');
 }
 
 export function profileDownloadErrorMessage(err: unknown) {
