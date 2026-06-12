@@ -31,7 +31,6 @@ import {
   deleteProfileOption,
   exportRuleListOptions,
   firstFixedProfileName,
-  getParentName,
   hasProxyScriptApi,
   isPatchEmpty,
   isProfileNameHidden,
@@ -44,6 +43,7 @@ import {
   profileOption,
   profileUpdating,
   proxyAuthSupported,
+  referencedProfiles,
   safeProfileFileName,
   setProfileOption,
   sameValue,
@@ -68,7 +68,6 @@ import {
   Profile,
   isBuiltinProfile,
   isFixedProfile,
-  isNamedProfile,
   isPacProfile,
   isRuleListProfile,
   isVirtualProfile,
@@ -180,27 +179,6 @@ const FIXED_PROXY_AUTH_KEYS: Record<FixedProfileScheme, FixedProfileProxyField> 
   http: 'proxyForHttp',
   https: 'proxyForHttps'
 };
-function referencedProfiles(profileName: string, options: Options): Profile[] {
-  if (typeof OmegaPac === 'undefined' || !OmegaPac?.Profiles?.referencedBySet) {
-    return [];
-  }
-  const refs = OmegaPac.Profiles.referencedBySet(profileName, options);
-  const refSet: Record<string, string> = {};
-  for (const key of Object.keys(refs || {})) {
-    let refName = refs[key];
-    const parentName = getParentName(refName);
-    let refKey = key;
-    if (parentName) {
-      refName = parentName;
-      refKey = profileKey(parentName);
-    }
-    refSet[refKey] = refName;
-  }
-  return Object.keys(refSet)
-    .map((key) => OmegaPac.Profiles.byKey?.(key, options) || profileByName(options, refSet[key]))
-    .filter(isNamedProfile);
-}
-
 function ModalFrame({
   children,
   onDismiss

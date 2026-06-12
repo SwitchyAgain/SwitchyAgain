@@ -24,6 +24,7 @@ import {
   profileOption,
   profileUpdating,
   proxyAuthSupported,
+  referencedProfiles,
   safeProfileFileName,
   setProfileOption,
   updateProfileError,
@@ -367,6 +368,59 @@ describe('options logic', () => {
         profileType: 'PacProfile'
       }
     })).toBe('');
+  });
+
+  it('finds profiles that reference a target profile', () => {
+    expect(referencedProfiles('proxy', {})).toEqual([]);
+
+    const byKeyProfile = {
+      color: '#ffffff',
+      name: 'auto',
+      profileType: 'SwitchProfile'
+    };
+    const options: Options = {
+      '+auto': {
+        name: 'auto',
+        profileType: 'SwitchProfile'
+      },
+      '+parent': {
+        name: 'parent',
+        profileType: 'SwitchProfile'
+      },
+      '+__ruleListOf_parent': {
+        name: '__ruleListOf_parent',
+        profileType: 'RuleListProfile'
+      }
+    };
+    (globalThis as any).OmegaPac = {
+      Profiles: {
+        byKey(key: string) {
+          return key === '+auto' ? byKeyProfile : undefined;
+        },
+        referencedBySet(profileName: string) {
+          expect(profileName).toBe('proxy');
+          return {
+            '+auto': 'auto',
+            '+__ruleListOf_parent': '__ruleListOf_parent',
+            '+direct': 'direct'
+          };
+        }
+      }
+    };
+
+    expect(referencedProfiles('proxy', options)).toEqual([
+      byKeyProfile,
+      {
+        name: 'parent',
+        profileType: 'SwitchProfile'
+      },
+      {
+        builtin: true,
+        color: '#aaaaaa',
+        name: 'direct',
+        profileType: 'DirectProfile'
+      }
+    ]);
   });
 
   it('detects proxy authentication and proxy script API support', () => {

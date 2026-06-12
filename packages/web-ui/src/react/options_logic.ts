@@ -1,6 +1,7 @@
 import {message, type BackgroundError, type Options, type ProfileUpdateResults} from './options_client';
 import type {
   NamedFixedProfileModel,
+  NamedProfile,
   NamedRuleListProfileModel,
   Profile as ProfileModel,
   ProfileAuth,
@@ -10,6 +11,20 @@ import {createAttachedName, profileKey, type NamedSwitchProfileModel, type Switc
 
 const CHAR_CODE_UNDERSCORE = '_'.charCodeAt(0);
 const RULE_LIST_USAGE_URL = 'https://github.com/FelisCatus/SwitchyOmega/wiki/RuleListUsage';
+const BUILTIN_PROFILES: NamedProfile[] = [
+  {
+    name: 'direct',
+    profileType: 'DirectProfile',
+    color: '#aaaaaa',
+    builtin: true
+  },
+  {
+    name: 'system',
+    profileType: 'SystemProfile',
+    color: '#000000',
+    builtin: true
+  }
+];
 
 type GlobalWithBrowserProxy = typeof globalThis & {
   browser?: {
@@ -24,6 +39,37 @@ type AttachedProfileIdentity = {
   attachedKey: string;
   attachedName: string;
 };
+
+function isProfileKey(key: string) {
+  return key.charAt(0) === '+';
+}
+
+function isNamedProfile(value: unknown): value is NamedProfile {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  const profile = value as ProfileModel;
+  return typeof profile.name === 'string' && profile.name.length > 0;
+}
+
+function isVisibleProfile(value: unknown): value is NamedProfile {
+  if (!isNamedProfile(value)) {
+    return false;
+  }
+  const name = value.name;
+  return !(name.charAt(0) === '_' && name.charAt(1) === '_');
+}
+
+function profilesFromOptions(options?: Options | null) {
+  if (!options) {
+    return [];
+  }
+  return Object.keys(options).filter(isProfileKey).map((key) => options[key]).filter(isVisibleProfile);
+}
+
+function profileByName(options: Options | null | undefined, name: string) {
+  return profilesFromOptions(options).concat(BUILTIN_PROFILES).find((candidate) => candidate.name === name);
+}
 
 export function cloneOptions<T>(options: T): T {
   return JSON.parse(JSON.stringify(options));
@@ -174,6 +220,27 @@ export function firstFixedProfileName(options: Options) {
     }
   });
   return profileName;
+}
+
+export function referencedProfiles(profileName: string, options: Options): NamedProfile[] {
+  if (typeof OmegaPac === 'undefined' || !OmegaPac?.Profiles?.referencedBySet) {
+    return [];
+  }
+  const refs = OmegaPac.Profiles.referencedBySet(profileName, options);
+  const refSet: Record<string, string> = {};
+  for (const key of Object.keys(refs || {})) {
+    let refName = refs[key];
+    const parentName = getParentName(refName);
+    let refKey = key;
+    if (parentName) {
+      refName = parentName;
+      refKey = profileKey(parentName);
+    }
+    refSet[refKey] = refName;
+  }
+  return Object.keys(refSet)
+    .map((key) => OmegaPac.Profiles.byKey?.(key, options) || profileByName(options, refSet[key]))
+    .filter(isNamedProfile);
 }
 
 export function attachedProfileOption(options: Options, identity: AttachedProfileIdentity): NamedRuleListProfileModel | undefined {
