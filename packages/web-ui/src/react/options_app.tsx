@@ -6,7 +6,6 @@ import {ImportExport} from './import_export';
 import {
   BackgroundError,
   Options,
-  ProfileUpdateResults,
   downloadBlob,
   getState,
   lastUrl,
@@ -21,6 +20,27 @@ import {
   updateProfile as updateProfileFromBackground
 } from './options_client';
 import {OptionsAlert, OptionsShell} from './options_shell';
+import {
+  cloneOptions,
+  deleteAttachedProfileOption,
+  deleteProfileOption,
+  exportRuleListOptions,
+  getParentName,
+  isPatchEmpty,
+  isProfileNameHidden,
+  isProfileNameReserved,
+  numberOption,
+  objectOption,
+  optionsPatch,
+  profileDraft,
+  profileOption,
+  profileUpdating,
+  safeProfileFileName,
+  setProfileOption,
+  sameValue,
+  updateProfileError,
+  updateProfileRevision
+} from './options_logic';
 import {parseRoute, routeHref} from './options_routes';
 import {ConfirmModal} from './confirm_modals';
 import {WelcomeModal} from './options_modals';
@@ -158,60 +178,12 @@ type ModalState =
   | null;
 
 const PROFILE_COLORS = ['#9ce', '#9d9', '#fa8', '#fe9', '#d497ee', '#47b', '#5b5', '#d63', '#ca0'];
-const CHAR_CODE_UNDERSCORE = '_'.charCodeAt(0);
 const FIXED_PROXY_AUTH_KEYS: Record<FixedProfileScheme, FixedProfileProxyField> = {
   '': 'fallbackProxy',
   http: 'proxyForHttp',
   https: 'proxyForHttps'
 };
 const RULE_LIST_USAGE_URL = 'https://github.com/FelisCatus/SwitchyOmega/wiki/RuleListUsage';
-
-function cloneOptions<T>(options: T): T {
-  return JSON.parse(JSON.stringify(options));
-}
-
-function sameValue(a: unknown, b: unknown) {
-  return JSON.stringify(a) === JSON.stringify(b);
-}
-
-function optionsPatch(before: Options, after: Options) {
-  const patch: Options = {};
-  const keys = new Set(Object.keys(before || {}).concat(Object.keys(after || {})));
-  keys.forEach((key) => {
-    const oldValue = before?.[key];
-    const nextValue = after?.[key];
-    if (sameValue(oldValue, nextValue)) {
-      return;
-    }
-    if (typeof nextValue === 'undefined') {
-      patch[key] = [oldValue, 0, 0];
-      return;
-    }
-    if (typeof oldValue === 'undefined') {
-      patch[key] = [nextValue];
-      return;
-    }
-    patch[key] = [oldValue, nextValue];
-  });
-  return patch;
-}
-
-function isPatchEmpty(patch: Options) {
-  return Object.keys(patch).length === 0;
-}
-
-function isErrorResult(result: unknown): result is BackgroundError {
-  const candidate = result as {message?: unknown; name?: unknown} | null | undefined;
-  return result instanceof Error || Boolean(candidate?.name && candidate?.message);
-}
-
-function updateProfileError(results: ProfileUpdateResults | undefined, name: string) {
-  const primaryResult = results?.[profileKey(name)];
-  if (isErrorResult(primaryResult)) {
-    return primaryResult;
-  }
-  return Object.values(results || {}).find(isErrorResult);
-}
 
 function profileDownloadErrorMessage(err: unknown) {
   const error = err as Partial<BackgroundError> | null | undefined;
@@ -241,22 +213,6 @@ function createPacExport(options: Options, profileName: string) {
     fileName: `OmegaProfile_${fileName}.pac`,
     missingProfile
   };
-}
-
-function isProfileNameHidden(name: string) {
-  return name.charCodeAt(0) === CHAR_CODE_UNDERSCORE;
-}
-
-function isProfileNameReserved(name: string) {
-  return name.charCodeAt(0) === CHAR_CODE_UNDERSCORE && name.charCodeAt(1) === CHAR_CODE_UNDERSCORE;
-}
-
-function getParentName(name: string) {
-  const prefix = '__ruleListOf_';
-  if (name.indexOf(prefix) === 0) {
-    return name.slice(prefix.length);
-  }
-  return undefined;
 }
 
 function referencedProfiles(profileName: string, options: Options): Profile[] {
@@ -309,10 +265,6 @@ function firstFixedProfileName(options: Options) {
   return profileName;
 }
 
-function safeProfileFileName(profileName: string) {
-  return profileName.replace(/\W+/g, '_');
-}
-
 function composeOmegaRuleList(rules: SwitchRule[], defaultProfileName: string) {
   const text = OmegaPac.RuleList.Switchy.compose({
     defaultProfileName,
@@ -360,75 +312,8 @@ function composeLegacyRuleList(rules: SwitchRule[], defaultProfileName: string) 
   ].join('\n');
 }
 
-function exportRuleListOptions(options: Options, showConditionTypes: number) {
-  if (!options['-exportLegacyRuleList']) {
-    return {
-      legacy: false,
-      warning: false
-    };
-  }
-  if (showConditionTypes > 0) {
-    return {
-      legacy: false,
-      warning: true
-    };
-  }
-  return {
-    legacy: true,
-    warning: false
-  };
-}
-
-function numberOption(value: unknown, fallback = 0) {
-  return typeof value === 'number' ? value : fallback;
-}
-
-function objectOption<T extends object>(value: unknown): Partial<T> {
-  return value && typeof value === 'object' ? value as Partial<T> : {};
-}
-
 function isSwitchProfile(value: unknown): value is NamedSwitchProfileModel {
   return isNamedProfileType<NamedSwitchProfileModel>(value, 'SwitchProfile');
-}
-
-function profileOption<TProfile extends ProfileModel>(
-  options: Options,
-  name: string,
-  guard?: (profile: unknown) => profile is TProfile
-) {
-  const value = options[profileKey(name)];
-  if (!value || typeof value !== 'object') {
-    return undefined;
-  }
-  if (guard && !guard(value)) {
-    return undefined;
-  }
-  return value as TProfile;
-}
-
-function profileDraft<TProfile extends ProfileModel>(options: Options, name: string, defaults?: Partial<TProfile>) {
-  return {
-    ...defaults,
-    ...objectOption<TProfile>(options[profileKey(name)])
-  } as TProfile;
-}
-
-function setProfileOption<TProfile extends ProfileModel>(options: Options, name: string, profile: TProfile) {
-  options[profileKey(name)] = profile;
-}
-
-function deleteProfileOption(options: Options, name: string) {
-  delete options[profileKey(name)];
-}
-
-function deleteAttachedProfileOption(options: Options, profileName: string) {
-  deleteProfileOption(options, createAttachedName(profileName));
-}
-
-function updateProfileRevision(profile: ProfileModel) {
-  if (typeof OmegaPac !== 'undefined' && OmegaPac?.Profiles?.updateRevision) {
-    OmegaPac.Profiles.updateRevision(profile);
-  }
 }
 
 function attachedProfileOption(options: Options, identity: ReturnType<typeof attachedIdentity>): NamedRuleListProfileModel | undefined {
@@ -443,10 +328,6 @@ function attachedProfileDraft(options: Options, identity: ReturnType<typeof atta
     name: identity.attachedName
   } as NamedRuleListProfileModel;
   return draft;
-}
-
-function profileUpdating(updatingProfiles: Record<string, boolean>, profileName: string) {
-  return !!updatingProfiles[profileKey(profileName)];
 }
 
 function ModalFrame({
