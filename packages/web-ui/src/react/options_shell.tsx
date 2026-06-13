@@ -15,8 +15,10 @@ export type OptionsShellProps = {
   onNewProfile?: () => void;
   options?: Options | null;
   optionsDirty?: boolean;
+  profileScopeHref?: string;
   profileHref?: (profile: Profile) => string;
   routeTraceHref?: string;
+  showProfileScope?: boolean;
   uiHref?: string;
 };
 
@@ -89,8 +91,10 @@ export function OptionsShell({
   onNewProfile,
   options,
   optionsDirty = false,
+  profileScopeHref = '#',
   profileHref,
   routeTraceHref = '#',
+  showProfileScope = false,
   uiHref = '#'
 }: OptionsShellProps) {
   const profiles = profilesForFilter(options, 'sorted');
@@ -120,6 +124,15 @@ export function OptionsShell({
             label={message('options_tab_general', 'General')}
             onClick={() => onNavigate?.('general')}
           />
+          {showProfileScope && (
+            <SettingsLink
+              active={currentState === 'profileScope'}
+              href={profileScopeHref}
+              icon="glyphicon-file"
+              label={message('options_tab_profileScope', 'Profile Scope')}
+              onClick={() => onNavigate?.('profileScope')}
+            />
+          )}
           <SettingsLink
             active={currentState === 'routeTrace'}
             href={routeTraceHref}

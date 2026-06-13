@@ -7,7 +7,7 @@ export type UiThemeOption = {
   value: UiTheme;
 };
 
-export const UI_THEME_ICON = 'glyphicon-adjust';
+export const UI_THEME_ICON = 'glyphicon-eye-open';
 
 export const UI_THEMES: UiThemeOption[] = [
   {

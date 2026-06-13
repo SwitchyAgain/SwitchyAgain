@@ -5,6 +5,7 @@ import {GeneralSettings} from './general_settings';
 import {ImportExport} from './import_export';
 import {
   Options,
+  callBackground,
   downloadBlob,
   getState,
   lastUrl,
@@ -74,6 +75,14 @@ import {
   isVirtualProfile,
   profileByName
 } from './profile_widgets';
+import {
+  DEFAULT_PROFILE_SCOPE_CAPABILITIES,
+  ProfileScopeSettingsPage,
+  hasVisibleProfileScopes,
+  visibleProfileScopes,
+  type ProfileScopeCapabilities,
+  type ProfileScopeContainerInfo
+} from './profile_scope_settings';
 import {
   AttachedOptions,
   NamedSwitchProfileModel,
@@ -407,15 +416,24 @@ export function OptionsApp() {
   const [pendingApplyAction, setPendingApplyAction] = useState<(() => void | Promise<void>) | null>(null);
   const [alert, setAlert] = useState<AlertState>(null);
   const [alertShown, setAlertShown] = useState(false);
+  const [profileScopeCapabilities, setProfileScopeCapabilities] =
+    useState<ProfileScopeCapabilities>(DEFAULT_PROFILE_SCOPE_CAPABILITIES);
+  const [profileScopeContainers, setProfileScopeContainers] = useState<ProfileScopeContainerInfo[]>([]);
   const isExperimental = useMemo(hasProxyScriptApi, []);
   const pacProfilesUnsupported = isExperimental;
 
   useEffect(() => {
-    loadOptions()
-      .then((loadedOptions) => {
+    Promise.all([
+      loadOptions(),
+      getState<ProfileScopeCapabilities>('profileScopeCapabilities').catch(() => DEFAULT_PROFILE_SCOPE_CAPABILITIES),
+      getState<ProfileScopeContainerInfo[]>('profileScopeContainers').catch(() => [])
+    ])
+      .then(([loadedOptions, capabilities, containers]) => {
         const cloned = cloneOptions(loadedOptions);
         setSavedOptions(cloned);
         setOptions(cloneOptions(cloned));
+        setProfileScopeCapabilities(capabilities || DEFAULT_PROFILE_SCOPE_CAPABILITIES);
+        setProfileScopeContainers(Array.isArray(containers) ? containers : []);
         setStatus('ready');
         showFirstRun(cloned);
       })
@@ -435,6 +453,28 @@ export function OptionsApp() {
     }
     return !sameValue(savedOptions, options);
   }, [options, savedOptions]);
+  const showProfileScope = useMemo(
+    () => hasVisibleProfileScopes(savedOptions, profileScopeCapabilities),
+    [savedOptions, profileScopeCapabilities]
+  );
+  const appliedVisibleProfileScopes = useMemo(
+    () => visibleProfileScopes(savedOptions, profileScopeCapabilities),
+    [savedOptions, profileScopeCapabilities]
+  );
+
+  useEffect(() => {
+    if (status !== 'ready' || route.name !== 'profileScope' || showProfileScope) {
+      return;
+    }
+    navigate('ui');
+  }, [route.name, showProfileScope, status]);
+
+  useEffect(() => {
+    if (status !== 'ready' || !appliedVisibleProfileScopes.container) {
+      return;
+    }
+    loadProfileScopeContainerNames();
+  }, [appliedVisibleProfileScopes.container, status]);
 
   useEffect(() => {
     if (!dirty) {
@@ -485,6 +525,16 @@ export function OptionsApp() {
 
   function updateOptions(nextOptions: Options) {
     setOptions(cloneOptions(nextOptions));
+  }
+
+  function loadProfileScopeContainerNames() {
+    callBackground('refreshProfileScopeContainerNames')
+      .then((containers) => {
+        if (Array.isArray(containers)) {
+          setProfileScopeContainers(containers);
+        }
+      })
+      .catch(() => {});
   }
 
   function updateOptionsDraft(updater: (nextOptions: Options) => void) {
@@ -997,6 +1047,31 @@ export function OptionsApp() {
         </div>
       );
     }
+    if (route.name === 'profileScope') {
+      const visibleScopes = appliedVisibleProfileScopes;
+      if (!visibleScopes.tab && !visibleScopes.container && !visibleScopes.window) {
+        return (
+          <div className="react-settings-host-profile-scope">
+            <div className="page-header">
+              <h2>{message('options_tab_profileScope', 'Profile Scope')}</h2>
+            </div>
+          </div>
+        );
+      }
+      return (
+        <div className="react-settings-host-profile-scope">
+          <ProfileScopeSettingsPage
+            appliedOptions={savedOptions}
+            capabilities={profileScopeCapabilities}
+            containers={profileScopeContainers}
+            onOptionsChange={updateOptions}
+            onRefreshContainers={loadProfileScopeContainerNames}
+            options={options}
+            visibleScopes={visibleScopes}
+          />
+        </div>
+      );
+    }
     if (route.name === 'profile') {
       const profile = route.profileName ? profileByName(options, route.profileName) : null;
       if (!profile) {
@@ -1138,7 +1213,9 @@ export function OptionsApp() {
             options={options}
             optionsDirty={dirty || status === 'saving'}
             profileHref={(profile) => routeHref('profile', {name: profile.name})}
+            profileScopeHref={routeHref('profileScope')}
             routeTraceHref={routeHref('routeTrace')}
+            showProfileScope={showProfileScope}
             isExperimental={isExperimental}
             uiHref={routeHref('ui')}
           />

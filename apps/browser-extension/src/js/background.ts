@@ -12,6 +12,7 @@ type BackgroundMethodArgs = {
   replaceRef: [fromName: string, toName: string];
   reset: [options?: OmegaOptionsData | string];
   resetOptionsSync: [];
+  refreshProfileScopeContainerNames: [];
   setDefaultProfile: [profileName: string, defaultProfileName: string];
   setOptionsSync: [enabled: boolean, args?: unknown];
   setProfileScope: [args: ProfileScopeSetArgs];
@@ -325,17 +326,17 @@ type BackgroundOmegaTarget = {
     ctx.globalCompositeOperation = 'source-over';
     ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
     ctx.beginPath();
-    ctx.arc(0.78, 0.22, 0.2, 0, Math.PI * 2, true);
+    ctx.arc(0.22, 0.22, 0.2, 0, Math.PI * 2, true);
     ctx.closePath();
     ctx.fill();
     ctx.fillStyle = '#fff';
     ctx.beginPath();
-    ctx.arc(0.78, 0.22, 0.17, 0, Math.PI * 2, true);
+    ctx.arc(0.22, 0.22, 0.17, 0, Math.PI * 2, true);
     ctx.closePath();
     ctx.fill();
     ctx.fillStyle = profileScopeMarkerColors[marker];
     ctx.beginPath();
-    ctx.arc(0.78, 0.22, 0.12, 0, Math.PI * 2, true);
+    ctx.arc(0.22, 0.22, 0.12, 0, Math.PI * 2, true);
     ctx.closePath();
     ctx.fill();
   }
@@ -810,6 +811,7 @@ type BackgroundOmegaTarget = {
       case 'replaceRef':
       case 'reset':
       case 'resetOptionsSync':
+      case 'refreshProfileScopeContainerNames':
       case 'setDefaultProfile':
       case 'setOptionsSync':
       case 'setProfileScope':

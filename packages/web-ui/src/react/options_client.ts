@@ -20,6 +20,15 @@ export type BackgroundResponse<T> = {
 
 export type ProfileUpdateResults = Record<string, BackgroundError | unknown>;
 
+export type ProfileScopeContainerInfo = {
+  color?: string;
+  colorCode?: string;
+  cookieStoreId: string;
+  icon?: string;
+  iconUrl?: string;
+  name?: string;
+};
+
 export type RequestExplainProfile = {
   attachedToProfileName?: string;
   builtin?: boolean;
@@ -83,6 +92,7 @@ export type BackgroundMethodArgs = {
   replaceRef: [fromName: string, toName: string];
   reset: [options?: Options | string];
   resetOptionsSync: [];
+  refreshProfileScopeContainerNames: [];
   setOptionsSync: [enabled: boolean, args?: unknown];
   setState: [items: Record<string, unknown>];
   updateProfile: [name?: string | string[] | null, bypassCache?: boolean | string];
@@ -97,6 +107,7 @@ export type BackgroundMethodResult = {
   replaceRef: Options;
   reset: Options;
   resetOptionsSync: void;
+  refreshProfileScopeContainerNames: ProfileScopeContainerInfo[];
   setOptionsSync: void;
   setState: Record<string, unknown>;
   updateProfile: Record<string, unknown>;

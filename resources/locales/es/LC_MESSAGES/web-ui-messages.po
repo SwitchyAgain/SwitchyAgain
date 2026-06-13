@@ -1492,6 +1492,9 @@ msgstr "Solo se muestran las primeras solicitudes capturadas."
 msgid "options_group_profileScope"
 msgstr "Ámbito del perfil"
 
+msgid "options_tab_profileScope"
+msgstr "Ámbito del perfil"
+
 msgid "options_profileScopeTab"
 msgstr "Perfiles por pestaña"
 
@@ -1524,3 +1527,54 @@ msgstr "Normal"
 
 msgid "popup_profileScopeUseDefault"
 msgstr "Usar predeterminado"
+
+msgid "options_profileScopeWindowSection"
+msgstr "Normal / privado"
+
+msgid "options_profileScopeNormalWindow"
+msgstr "Ventanas normales"
+
+msgid "options_profileScopePrivateWindow"
+msgstr "Ventanas privadas"
+
+msgid "options_profileScopeUseDefault"
+msgstr "Usar predeterminado"
+
+msgid "options_profileScopeContainersSection"
+msgstr "Contenedores"
+
+msgid "options_profileScopeRefreshContainers"
+msgstr "Actualizar"
+
+msgid "options_profileScopeShowDefaultContainers"
+msgstr "Mostrar contenedores que usan el perfil predeterminado"
+
+msgid "options_profileScopeShowDeletedContainers"
+msgstr "Mostrar contenedores eliminados"
+
+msgid "options_profileScopeRemoveDeletedContainers"
+msgstr "Quitar contenedores eliminados"
+
+msgid "options_profileScopeContainerColumn"
+msgstr "Contenedor"
+
+msgid "options_profileScopeProfileColumn"
+msgstr "Perfil"
+
+msgid "options_profileScopeContainersEmpty"
+msgstr "No hay contenedores conocidos."
+
+msgid "options_profileScopeConfiguredContainersEmpty"
+msgstr "No hay contenedores configurados."
+
+msgid "options_profileScopeDeletedContainer"
+msgstr "Eliminado"
+
+msgid "options_profileScopeContainerName"
+msgstr "Contenedor $1:NUMBER$"
+
+msgid "options_profileScopeTabsSection"
+msgstr "Pestañas"
+
+msgid "options_profileScopeTabsHelp"
+msgstr "Las asignaciones de perfiles de pestañas son temporales y permanecen con sus pestañas."

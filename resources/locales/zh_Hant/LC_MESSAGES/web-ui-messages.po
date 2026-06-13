@@ -1282,6 +1282,9 @@ msgstr "僅顯示已擷取的前幾個請求。"
 msgid "options_group_profileScope"
 msgstr "情境模式作用範圍"
 
+msgid "options_tab_profileScope"
+msgstr "情境模式作用範圍"
+
 msgid "options_profileScopeTab"
 msgstr "分頁情境模式"
 
@@ -1314,3 +1317,54 @@ msgstr "一般"
 
 msgid "popup_profileScopeUseDefault"
 msgstr "使用預設"
+
+msgid "options_profileScopeWindowSection"
+msgstr "一般 / 隱私"
+
+msgid "options_profileScopeNormalWindow"
+msgstr "一般視窗"
+
+msgid "options_profileScopePrivateWindow"
+msgstr "隱私視窗"
+
+msgid "options_profileScopeUseDefault"
+msgstr "使用預設"
+
+msgid "options_profileScopeContainersSection"
+msgstr "容器"
+
+msgid "options_profileScopeRefreshContainers"
+msgstr "重新整理"
+
+msgid "options_profileScopeShowDefaultContainers"
+msgstr "顯示使用預設情境模式的容器"
+
+msgid "options_profileScopeShowDeletedContainers"
+msgstr "顯示已刪除的容器"
+
+msgid "options_profileScopeRemoveDeletedContainers"
+msgstr "移除已刪除的容器"
+
+msgid "options_profileScopeContainerColumn"
+msgstr "容器"
+
+msgid "options_profileScopeProfileColumn"
+msgstr "情境模式"
+
+msgid "options_profileScopeContainersEmpty"
+msgstr "沒有已知容器。"
+
+msgid "options_profileScopeConfiguredContainersEmpty"
+msgstr "沒有已設定容器。"
+
+msgid "options_profileScopeDeletedContainer"
+msgstr "已刪除"
+
+msgid "options_profileScopeContainerName"
+msgstr "容器 $1:NUMBER$"
+
+msgid "options_profileScopeTabsSection"
+msgstr "分頁"
+
+msgid "options_profileScopeTabsHelp"
+msgstr "分頁情境模式是暫時的，並跟隨對應分頁。"

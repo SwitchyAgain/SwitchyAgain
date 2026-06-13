@@ -1435,6 +1435,9 @@ msgstr "Zobrazují se pouze první zachycené požadavky."
 msgid "options_group_profileScope"
 msgstr "Rozsah profilu"
 
+msgid "options_tab_profileScope"
+msgstr "Rozsah profilu"
+
 msgid "options_profileScopeTab"
 msgstr "Profily karet"
 
@@ -1467,3 +1470,54 @@ msgstr "Normální"
 
 msgid "popup_profileScopeUseDefault"
 msgstr "Použít výchozí"
+
+msgid "options_profileScopeWindowSection"
+msgstr "Normální / soukromé"
+
+msgid "options_profileScopeNormalWindow"
+msgstr "Normální okna"
+
+msgid "options_profileScopePrivateWindow"
+msgstr "Soukromá okna"
+
+msgid "options_profileScopeUseDefault"
+msgstr "Použít výchozí"
+
+msgid "options_profileScopeContainersSection"
+msgstr "Kontejnery"
+
+msgid "options_profileScopeRefreshContainers"
+msgstr "Obnovit"
+
+msgid "options_profileScopeShowDefaultContainers"
+msgstr "Zobrazit kontejnery používající výchozí profil"
+
+msgid "options_profileScopeShowDeletedContainers"
+msgstr "Zobrazit odstraněné kontejnery"
+
+msgid "options_profileScopeRemoveDeletedContainers"
+msgstr "Odebrat odstraněné kontejnery"
+
+msgid "options_profileScopeContainerColumn"
+msgstr "Kontejner"
+
+msgid "options_profileScopeProfileColumn"
+msgstr "Profil"
+
+msgid "options_profileScopeContainersEmpty"
+msgstr "Žádné známé kontejnery."
+
+msgid "options_profileScopeConfiguredContainersEmpty"
+msgstr "Žádné nakonfigurované kontejnery."
+
+msgid "options_profileScopeDeletedContainer"
+msgstr "Odstraněno"
+
+msgid "options_profileScopeContainerName"
+msgstr "Kontejner $1:NUMBER$"
+
+msgid "options_profileScopeTabsSection"
+msgstr "Karty"
+
+msgid "options_profileScopeTabsHelp"
+msgstr "Přiřazení profilů kartám jsou dočasná a zůstávají u svých karet."

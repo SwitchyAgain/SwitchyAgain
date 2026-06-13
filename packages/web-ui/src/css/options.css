@@ -866,6 +866,86 @@ main .profile-header {
   min-height: 220px;
 }
 
+.react-settings-host-profile-scope {
+  min-height: 220px;
+}
+
+.profile-scope-table {
+  max-width: 720px;
+}
+
+.settings-group > .profile-scope-section-heading {
+  margin-left: 0;
+}
+
+.profile-scope-section-heading {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.profile-scope-section-heading > h3 {
+  margin-bottom: 10px;
+  margin-top: 20px;
+}
+
+.profile-scope-section-heading > .btn {
+  margin-top: 10px;
+}
+
+.profile-scope-container-controls {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: 10px;
+}
+
+.profile-scope-container-controls > .checkbox-inline {
+  margin-left: 0;
+  padding-top: 0;
+}
+
+.profile-scope-container-identity {
+  align-items: center;
+  display: inline-flex;
+  min-height: 24px;
+}
+
+.profile-scope-container-icon {
+  align-items: center;
+  color: #6c757d;
+  display: inline-flex;
+  height: 20px;
+  justify-content: center;
+  margin-right: 8px;
+  width: 20px;
+}
+
+.profile-scope-container-icon-mask {
+  background-color: currentColor;
+  display: inline-block;
+  height: 16px;
+  width: 16px;
+}
+
+.profile-scope-container-icon-fallback {
+  font-size: 16px;
+}
+
+.profile-scope-deleted-label {
+  margin-left: 8px;
+}
+
+.profile-scope-container-deleted {
+  color: var(--sa-muted);
+}
+
+.profile-scope-table > tbody > tr > td {
+  vertical-align: middle;
+}
+
 .react-settings-host-import-export:empty {
   min-height: 230px;
 }

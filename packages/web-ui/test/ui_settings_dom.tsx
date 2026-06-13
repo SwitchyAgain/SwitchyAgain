@@ -86,7 +86,7 @@ describe('ui settings component', () => {
     );
 
     fireEvent.click(container.querySelector('#react-ui-theme') as HTMLButtonElement);
-    expect(container.querySelector('#react-ui-theme .glyphicon-adjust')).toBeTruthy();
+    expect(container.querySelector('#react-ui-theme .glyphicon-eye-open')).toBeTruthy();
     expect(container.querySelector('.ui-theme-select .dropdown-menu .glyphicon')).toBeNull();
     fireEvent.click(screen.getByRole('option', {name: 'Dark'}).querySelector('a') as HTMLAnchorElement);
     expect(onOptionsChange).toHaveBeenLastCalledWith(

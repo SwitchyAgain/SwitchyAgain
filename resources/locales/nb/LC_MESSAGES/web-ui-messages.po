@@ -1279,6 +1279,9 @@ msgstr "Bare de første fangede forespørslene vises."
 msgid "options_group_profileScope"
 msgstr "Profilomfang"
 
+msgid "options_tab_profileScope"
+msgstr "Profilomfang"
+
 msgid "options_profileScopeTab"
 msgstr "Faneprofiler"
 
@@ -1311,3 +1314,54 @@ msgstr "Normal"
 
 msgid "popup_profileScopeUseDefault"
 msgstr "Bruk standard"
+
+msgid "options_profileScopeWindowSection"
+msgstr "Normal / privat"
+
+msgid "options_profileScopeNormalWindow"
+msgstr "Normale vinduer"
+
+msgid "options_profileScopePrivateWindow"
+msgstr "Private vinduer"
+
+msgid "options_profileScopeUseDefault"
+msgstr "Bruk standard"
+
+msgid "options_profileScopeContainersSection"
+msgstr "Beholdere"
+
+msgid "options_profileScopeRefreshContainers"
+msgstr "Oppdater"
+
+msgid "options_profileScopeShowDefaultContainers"
+msgstr "Vis beholdere som bruker standardprofil"
+
+msgid "options_profileScopeShowDeletedContainers"
+msgstr "Vis slettede beholdere"
+
+msgid "options_profileScopeRemoveDeletedContainers"
+msgstr "Fjern slettede beholdere"
+
+msgid "options_profileScopeContainerColumn"
+msgstr "Beholder"
+
+msgid "options_profileScopeProfileColumn"
+msgstr "Profil"
+
+msgid "options_profileScopeContainersEmpty"
+msgstr "Ingen kjente beholdere."
+
+msgid "options_profileScopeConfiguredContainersEmpty"
+msgstr "Ingen konfigurerte beholdere."
+
+msgid "options_profileScopeDeletedContainer"
+msgstr "Slettet"
+
+msgid "options_profileScopeContainerName"
+msgstr "Beholder $1:NUMBER$"
+
+msgid "options_profileScopeTabsSection"
+msgstr "Faner"
+
+msgid "options_profileScopeTabsHelp"
+msgstr "Profiltilordninger for faner er midlertidige og følger fanene."

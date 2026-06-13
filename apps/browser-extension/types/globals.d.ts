@@ -219,6 +219,20 @@ interface BrowserDownloadsApi {
   [key: string]: unknown;
 }
 
+interface BrowserContextualIdentity {
+  color?: string;
+  colorCode?: string;
+  cookieStoreId?: string;
+  icon?: string;
+  iconUrl?: string;
+  name?: string;
+}
+
+interface BrowserContextualIdentitiesApi {
+  query(details: Record<string, unknown>): Promise<BrowserContextualIdentity[]>;
+  [key: string]: unknown;
+}
+
 interface ChromeGlobal {
   action?: ChromeActionApi;
   alarms: ChromeAlarmsApi;
@@ -235,6 +249,7 @@ interface ChromeGlobal {
 }
 
 interface BrowserGlobal {
+  contextualIdentities?: BrowserContextualIdentitiesApi;
   downloads?: BrowserDownloadsApi;
   proxy: BrowserProxyApi;
   runtime: BrowserRuntimeApi;

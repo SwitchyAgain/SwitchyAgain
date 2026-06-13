@@ -73,6 +73,15 @@ type ProfileScopeAssignments = {
   privateDefaultProfileName?: string;
 };
 
+type ProfileScopeContainerInfo = {
+  color?: string;
+  colorCode?: string;
+  cookieStoreId: string;
+  icon?: string;
+  iconUrl?: string;
+  name?: string;
+};
+
 type ProfileScopeSetArgs = {
   cookieStoreId?: string;
   incognito?: boolean;
@@ -90,6 +99,19 @@ type ProfileScopeInfoArgs = {
 type TabProfileContext = {
   cookieStoreId?: string;
   incognito?: boolean;
+};
+
+type ContextualIdentity = {
+  color?: string;
+  colorCode?: string;
+  cookieStoreId?: string;
+  icon?: string;
+  iconUrl?: string;
+  name?: string;
+};
+
+type ContextualIdentitiesApi = {
+  query(details: Record<string, unknown>): Promise<ContextualIdentity[]>;
 };
 
 type RequestMonitorLike = {
@@ -159,7 +181,7 @@ function normalizeProfileScopeAssignments(value: unknown): ProfileScopeAssignmen
   return assignments;
 }
 
-function isFirefoxContainerId(cookieStoreId?: string) {
+function isFirefoxContainerId(cookieStoreId?: string): cookieStoreId is string {
   return !!cookieStoreId && cookieStoreId !== 'firefox-default' && cookieStoreId !== 'firefox-private';
 }
 
@@ -273,6 +295,8 @@ class ChromeOptions extends OmegaTarget.Options {
   private _inspect: InspectLike | null;
   private _monitorWebRequests: boolean;
   private _proxyNotControllable: string | null;
+  private _profileScopeContainers: Record<string, ProfileScopeContainerInfo>;
+  private _profileScopeContainerOrder: string[];
   private _quickSwitchCanEnable: boolean;
   private _quickSwitchHandlerReady: boolean;
   private _quickSwitchInit: boolean;
@@ -292,6 +316,8 @@ class ChromeOptions extends OmegaTarget.Options {
     this._quickSwitchHandlerReady = false;
     this._quickSwitchCanEnable = false;
     this._requestMonitor = null;
+    this._profileScopeContainers = {};
+    this._profileScopeContainerOrder = [];
     this._tabProfileContexts = {};
     this._tabProfileNames = {};
     this._tabProfileScopeWatching = false;
@@ -309,6 +335,7 @@ class ChromeOptions extends OmegaTarget.Options {
     this._state.set({
       profileScopeCapabilities: this.profileScopeCapabilities()
     });
+    this.refreshProfileScopeContainers();
     this.watchTabProfileContexts();
   }
 
@@ -344,10 +371,98 @@ class ChromeOptions extends OmegaTarget.Options {
   }
 
   private updateTabProfileContext(tabId: number, tab: Pick<ChromeTab, 'cookieStoreId' | 'incognito'>) {
+    if (isFirefoxContainerId(tab.cookieStoreId)) {
+      this.rememberProfileScopeContainer(tab.cookieStoreId);
+    }
     this._tabProfileContexts[tabId] = {
       cookieStoreId: typeof tab.cookieStoreId === 'string' ? tab.cookieStoreId : this._tabProfileContexts[tabId]?.cookieStoreId,
       incognito: typeof tab.incognito === 'boolean' ? tab.incognito : this._tabProfileContexts[tabId]?.incognito
     };
+  }
+
+  private rememberProfileScopeContainer(cookieStoreId: string, details: Partial<ProfileScopeContainerInfo> = {}) {
+    const current = this._profileScopeContainers[cookieStoreId];
+    const next: ProfileScopeContainerInfo = {
+      ...current,
+      ...details,
+      cookieStoreId
+    };
+    if (
+      current &&
+      current.name === next.name &&
+      current.color === next.color &&
+      current.colorCode === next.colorCode &&
+      current.icon === next.icon &&
+      current.iconUrl === next.iconUrl
+    ) {
+      return;
+    }
+    if (this._profileScopeContainerOrder.indexOf(cookieStoreId) < 0) {
+      this._profileScopeContainerOrder.push(cookieStoreId);
+    }
+    this._profileScopeContainers[cookieStoreId] = next;
+    this.saveProfileScopeContainers();
+  }
+
+  private profileScopeContainerList() {
+    const seen = new Set<string>();
+    const containers: ProfileScopeContainerInfo[] = [];
+    for (const cookieStoreId of this._profileScopeContainerOrder) {
+      const container = this._profileScopeContainers[cookieStoreId];
+      if (container) {
+        seen.add(cookieStoreId);
+        containers.push(container);
+      }
+    }
+    for (const [cookieStoreId, container] of Object.entries(this._profileScopeContainers)) {
+      if (!seen.has(cookieStoreId)) {
+        containers.push(container);
+      }
+    }
+    return containers;
+  }
+
+  private saveProfileScopeContainers() {
+    const containers = this.profileScopeContainerList();
+    this._state.set({
+      profileScopeContainers: containers
+    });
+    return containers;
+  }
+
+  private refreshProfileScopeContainers() {
+    const api = (typeof browser !== 'undefined' ? browser.contextualIdentities : null) as ContextualIdentitiesApi | undefined | null;
+    if (!api?.query) {
+      return Promise.resolve(this.saveProfileScopeContainers());
+    }
+    return api.query({})
+      .then((identities) => {
+        const containers: Record<string, ProfileScopeContainerInfo> = {};
+        const order: string[] = [];
+        for (const identity of identities || []) {
+          if (isFirefoxContainerId(identity.cookieStoreId)) {
+            containers[identity.cookieStoreId] = {
+              color: identity.color,
+              colorCode: identity.colorCode,
+              cookieStoreId: identity.cookieStoreId,
+              icon: identity.icon,
+              iconUrl: identity.iconUrl,
+              name: identity.name
+            };
+            order.push(identity.cookieStoreId);
+          }
+        }
+        this._profileScopeContainers = containers;
+        this._profileScopeContainerOrder = order;
+        return this.saveProfileScopeContainers();
+      })
+      .catch(() => {
+        return this.saveProfileScopeContainers();
+      });
+  }
+
+  refreshProfileScopeContainerNames() {
+    return this.refreshProfileScopeContainers();
   }
 
   private profileScopeCapabilities(): ProfileScopeSettings {

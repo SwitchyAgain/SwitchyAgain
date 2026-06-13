@@ -1295,6 +1295,9 @@ msgstr "仅显示已捕获的前几个请求。"
 msgid "options_group_profileScope"
 msgstr "情景模式作用范围"
 
+msgid "options_tab_profileScope"
+msgstr "情景模式作用范围"
+
 msgid "options_profileScopeTab"
 msgstr "标签页情景模式"
 
@@ -1327,3 +1330,54 @@ msgstr "普通"
 
 msgid "popup_profileScopeUseDefault"
 msgstr "使用默认"
+
+msgid "options_profileScopeWindowSection"
+msgstr "普通 / 隐私"
+
+msgid "options_profileScopeNormalWindow"
+msgstr "普通窗口"
+
+msgid "options_profileScopePrivateWindow"
+msgstr "隐私窗口"
+
+msgid "options_profileScopeUseDefault"
+msgstr "使用默认"
+
+msgid "options_profileScopeContainersSection"
+msgstr "容器"
+
+msgid "options_profileScopeRefreshContainers"
+msgstr "刷新"
+
+msgid "options_profileScopeShowDefaultContainers"
+msgstr "显示使用默认情景模式的容器"
+
+msgid "options_profileScopeShowDeletedContainers"
+msgstr "显示已删除的容器"
+
+msgid "options_profileScopeRemoveDeletedContainers"
+msgstr "移除已删除的容器"
+
+msgid "options_profileScopeContainerColumn"
+msgstr "容器"
+
+msgid "options_profileScopeProfileColumn"
+msgstr "情景模式"
+
+msgid "options_profileScopeContainersEmpty"
+msgstr "没有已知容器。"
+
+msgid "options_profileScopeConfiguredContainersEmpty"
+msgstr "没有已配置容器。"
+
+msgid "options_profileScopeDeletedContainer"
+msgstr "已删除"
+
+msgid "options_profileScopeContainerName"
+msgstr "容器 $1:NUMBER$"
+
+msgid "options_profileScopeTabsSection"
+msgstr "标签页"
+
+msgid "options_profileScopeTabsHelp"
+msgstr "标签页情景模式是临时的，并跟随对应标签页。"

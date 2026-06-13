@@ -1476,6 +1476,9 @@ msgstr "Показаны только первые захваченные зап
 msgid "options_group_profileScope"
 msgstr "Область профиля"
 
+msgid "options_tab_profileScope"
+msgstr "Область профиля"
+
 msgid "options_profileScopeTab"
 msgstr "Профили вкладок"
 
@@ -1508,3 +1511,54 @@ msgstr "Обычное"
 
 msgid "popup_profileScopeUseDefault"
 msgstr "Использовать по умолчанию"
+
+msgid "options_profileScopeWindowSection"
+msgstr "Обычные / приватные"
+
+msgid "options_profileScopeNormalWindow"
+msgstr "Обычные окна"
+
+msgid "options_profileScopePrivateWindow"
+msgstr "Приватные окна"
+
+msgid "options_profileScopeUseDefault"
+msgstr "Использовать по умолчанию"
+
+msgid "options_profileScopeContainersSection"
+msgstr "Контейнеры"
+
+msgid "options_profileScopeRefreshContainers"
+msgstr "Обновить"
+
+msgid "options_profileScopeShowDefaultContainers"
+msgstr "Показать контейнеры с профилем по умолчанию"
+
+msgid "options_profileScopeShowDeletedContainers"
+msgstr "Показать удаленные контейнеры"
+
+msgid "options_profileScopeRemoveDeletedContainers"
+msgstr "Удалить удаленные контейнеры"
+
+msgid "options_profileScopeContainerColumn"
+msgstr "Контейнер"
+
+msgid "options_profileScopeProfileColumn"
+msgstr "Профиль"
+
+msgid "options_profileScopeContainersEmpty"
+msgstr "Нет известных контейнеров."
+
+msgid "options_profileScopeConfiguredContainersEmpty"
+msgstr "Нет настроенных контейнеров."
+
+msgid "options_profileScopeDeletedContainer"
+msgstr "Удален"
+
+msgid "options_profileScopeContainerName"
+msgstr "Контейнер $1:NUMBER$"
+
+msgid "options_profileScopeTabsSection"
+msgstr "Вкладки"
+
+msgid "options_profileScopeTabsHelp"
+msgstr "Назначения профилей вкладкам временные и остаются с этими вкладками."

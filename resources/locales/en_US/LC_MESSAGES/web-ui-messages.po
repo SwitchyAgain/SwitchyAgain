@@ -1424,6 +1424,9 @@ msgstr "Only the first captured requests are shown."
 msgid "options_group_profileScope"
 msgstr "Profile Scope"
 
+msgid "options_tab_profileScope"
+msgstr "Profile Scope"
+
 msgid "options_profileScopeTab"
 msgstr "Tab profiles"
 
@@ -1456,3 +1459,54 @@ msgstr "Normal"
 
 msgid "popup_profileScopeUseDefault"
 msgstr "Use Default"
+
+msgid "options_profileScopeWindowSection"
+msgstr "Normal / Private"
+
+msgid "options_profileScopeNormalWindow"
+msgstr "Normal windows"
+
+msgid "options_profileScopePrivateWindow"
+msgstr "Private windows"
+
+msgid "options_profileScopeUseDefault"
+msgstr "Use Default"
+
+msgid "options_profileScopeContainersSection"
+msgstr "Containers"
+
+msgid "options_profileScopeRefreshContainers"
+msgstr "Refresh"
+
+msgid "options_profileScopeShowDefaultContainers"
+msgstr "Show containers using default profile"
+
+msgid "options_profileScopeShowDeletedContainers"
+msgstr "Show deleted containers"
+
+msgid "options_profileScopeRemoveDeletedContainers"
+msgstr "Remove deleted containers"
+
+msgid "options_profileScopeContainerColumn"
+msgstr "Container"
+
+msgid "options_profileScopeProfileColumn"
+msgstr "Profile"
+
+msgid "options_profileScopeContainersEmpty"
+msgstr "No known containers."
+
+msgid "options_profileScopeConfiguredContainersEmpty"
+msgstr "No configured containers."
+
+msgid "options_profileScopeDeletedContainer"
+msgstr "Deleted"
+
+msgid "options_profileScopeContainerName"
+msgstr "Container $1:NUMBER$"
+
+msgid "options_profileScopeTabsSection"
+msgstr "Tabs"
+
+msgid "options_profileScopeTabsHelp"
+msgstr "Tab profile assignments are temporary and stay with their tabs."

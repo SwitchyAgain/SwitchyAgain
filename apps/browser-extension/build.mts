@@ -35,6 +35,7 @@ type ReleaseManifest = Record<string, unknown> & {
   background: Record<string, unknown>;
   key?: string;
   minimum_chrome_version?: string;
+  optional_permissions?: string[];
   permissions: string[];
 };
 
@@ -226,6 +227,7 @@ async function writeReleaseManifest(dest: string, target: 'chrome' | 'firefox') 
   const manifestPath = path.join(root, 'overlay/manifest.json');
   const manifest = JSON.parse(await fsp.readFile(manifestPath, 'utf8')) as ReleaseManifest;
   manifest.permissions = manifest.permissions.filter((permission: string) => permission !== 'downloads');
+  delete manifest.optional_permissions;
   if (target === 'chrome') {
     delete manifest.background.scripts;
     delete manifest.background.preferred_environment;
@@ -233,6 +235,10 @@ async function writeReleaseManifest(dest: string, target: 'chrome' | 'firefox') 
   if (target === 'firefox') {
     delete manifest.key;
     delete manifest.minimum_chrome_version;
+    manifest.permissions = Array.from(new Set([
+      ...manifest.permissions,
+      'contextualIdentities'
+    ]));
   }
   await ensureDir(dest);
   await fsp.writeFile(dest, JSON.stringify(manifest));

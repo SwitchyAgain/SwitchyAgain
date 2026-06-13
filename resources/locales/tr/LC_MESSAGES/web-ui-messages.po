@@ -1267,6 +1267,9 @@ msgstr "Yalnızca yakalanan ilk istekler gösterilir."
 msgid "options_group_profileScope"
 msgstr "Profil Kapsamı"
 
+msgid "options_tab_profileScope"
+msgstr "Profil Kapsamı"
+
 msgid "options_profileScopeTab"
 msgstr "Sekme profilleri"
 
@@ -1299,3 +1302,54 @@ msgstr "Normal"
 
 msgid "popup_profileScopeUseDefault"
 msgstr "Varsayılanı Kullan"
+
+msgid "options_profileScopeWindowSection"
+msgstr "Normal / gizli"
+
+msgid "options_profileScopeNormalWindow"
+msgstr "Normal pencereler"
+
+msgid "options_profileScopePrivateWindow"
+msgstr "Gizli pencereler"
+
+msgid "options_profileScopeUseDefault"
+msgstr "Varsayılanı Kullan"
+
+msgid "options_profileScopeContainersSection"
+msgstr "Kapsayıcılar"
+
+msgid "options_profileScopeRefreshContainers"
+msgstr "Yenile"
+
+msgid "options_profileScopeShowDefaultContainers"
+msgstr "Varsayılan profili kullanan kapsayıcıları göster"
+
+msgid "options_profileScopeShowDeletedContainers"
+msgstr "Silinen kapsayıcıları göster"
+
+msgid "options_profileScopeRemoveDeletedContainers"
+msgstr "Silinen kapsayıcıları kaldır"
+
+msgid "options_profileScopeContainerColumn"
+msgstr "Kapsayıcı"
+
+msgid "options_profileScopeProfileColumn"
+msgstr "Profil"
+
+msgid "options_profileScopeContainersEmpty"
+msgstr "Bilinen kapsayıcı yok."
+
+msgid "options_profileScopeConfiguredContainersEmpty"
+msgstr "Yapılandırılmış kapsayıcı yok."
+
+msgid "options_profileScopeDeletedContainer"
+msgstr "Silindi"
+
+msgid "options_profileScopeContainerName"
+msgstr "Kapsayıcı $1:NUMBER$"
+
+msgid "options_profileScopeTabsSection"
+msgstr "Sekmeler"
+
+msgid "options_profileScopeTabsHelp"
+msgstr "Sekme profil atamaları geçicidir ve kendi sekmeleriyle kalır."
