@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.2.0
+
+Profile scope controls, theme support, and popup customization.
+
+- Added profile scope controls for tab, container, and normal/private window
+  profile assignments where supported by the browser.
+- Added a dedicated Profile Scope settings page for managing scope assignments
+  outside the popup.
+- Added Interface theme selection with light, dark, and system theme modes.
+- Added popup controls for hiding profiles and optionally showing hidden
+  profiles in a separate popup section.
+- Added Interface options for showing or hiding the popup Add Condition and Add
+  Temporary Rule entries.
+- Improved popup and settings-page layout behavior for long profile lists and
+  sticky action areas.
+
 ## v1.1.20
 
 Legacy cleanup and startup fallback fixes.
