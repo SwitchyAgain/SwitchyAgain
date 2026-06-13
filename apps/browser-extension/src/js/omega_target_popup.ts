@@ -15,6 +15,10 @@ type PageInfoOptions = {
   includeExplanations?: boolean;
 };
 
+function popupTabUrl(tab?: Pick<ChromeTab, 'pendingUrl' | 'url'> | null) {
+  return tab?.pendingUrl || tab?.url;
+}
+
 type PopupBackgroundMethodArgs = {
   addCondition: [condition: PopupApiConditionInput, profileName: string, addToBottom: boolean];
   addProfile: [profile: PopupApiProfile];
@@ -180,11 +184,13 @@ function cacheActivePageInfo(info?: PopupApiPageInfo | null) {
     const options = typeof optionsOrCallback === 'function' ? {} : optionsOrCallback || {};
     const callback = typeof optionsOrCallback === 'function' ? optionsOrCallback : cb;
     chrome.tabs.query({active: true, lastFocusedWindow: true}, (tabs) => {
-      if (tabs.length === 0 || !tabs[0].url) return callback?.();
+      const tab = tabs[0];
+      const url = popupTabUrl(tab);
+      if (tabs.length === 0 || !url) return callback?.();
       const args = {
         includeExplanations: options.includeExplanations,
-        tabId: tabs[0].id,
-        url: tabs[0].url
+        tabId: tab.id,
+        url
       };
       callBackground('getPageInfo', [args], (err?: unknown, info?: PopupApiPageInfo) => {
         if (!err) cacheActivePageInfo(info);

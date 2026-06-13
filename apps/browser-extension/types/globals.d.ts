@@ -85,6 +85,7 @@ interface BrowserRuntimeApi {
 interface ChromeTab {
   active?: boolean;
   id?: number;
+  pendingUrl?: string;
   url?: string;
   [key: string]: unknown;
 }

@@ -16,6 +16,10 @@ type TabChangeInfo = {
   url?: string;
 };
 
+export function tabUrl(tab?: Pick<ChromeTab, 'pendingUrl' | 'url'> | null) {
+  return tab?.pendingUrl || tab?.url;
+}
+
 function actionApi(): ChromeActionApi {
   const legacyKey = 'browser' + 'Action';
   return (chrome.action || chrome[legacyKey]) as ChromeActionApi;
@@ -103,7 +107,8 @@ class ChromeTabs {
         this._badgeTab = null;
       }
     }
-    if (tab.url == null || tab.url.indexOf('chrome') === 0) {
+    const url = tabUrl(tab);
+    if (url == null || url.indexOf('chrome') === 0) {
       if (this._defaultAction) {
         actionApi().setTitle({
           title: this._defaultAction.title,
@@ -113,7 +118,7 @@ class ChromeTabs {
       }
       return;
     }
-    return this.actionForUrl(tab.url).then((action) => {
+    return this.actionForUrl(url).then((action) => {
       if (!action) {
         this.clearIcon(tab.id);
         return;

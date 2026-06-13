@@ -1,6 +1,7 @@
 import OmegaTarget from '@switchyagain/extension-runtime';
 import ChromePort from './chrome_port';
 import fetchUrl from './fetch_url';
+import {tabUrl} from './tabs';
 import WebRequestMonitor from './web_request_monitor';
 import type {ProxyImplInstance, ProxyProfile} from './proxy/proxy_types';
 
@@ -311,7 +312,7 @@ class ChromeOptions extends OmegaTarget.Options {
       }
       if (!this._quickSwitchInit) {
         this._quickSwitchInit = true;
-        actionApi().onClicked.addListener((tab: {id?: number; url?: string}) => {
+        actionApi().onClicked.addListener((tab: ChromeTab) => {
           this.clearBadge();
           if (!this._options['-enableQuickSwitch']) {
             chrome.tabs.create({
@@ -324,7 +325,7 @@ class ChromeOptions extends OmegaTarget.Options {
           index = (index + 1) % profiles.length;
           return this.applyProfile(profiles[index]).then(() => {
             if (this._options['-refreshOnProfileChange']) {
-              const url = tab.url;
+              const url = tabUrl(tab);
               if (!url) {
                 return;
               }

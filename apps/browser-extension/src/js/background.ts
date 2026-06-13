@@ -24,6 +24,10 @@ type PageInfoArgs = {
   url?: string;
 };
 
+function backgroundTabUrl(tab?: Pick<ChromeTab, 'pendingUrl' | 'url'> | null) {
+  return tab?.pendingUrl || tab?.url;
+}
+
 type BackgroundMethod = keyof BackgroundMethodArgs;
 type BackgroundStateMethod = 'getState' | 'setState';
 type BackgroundOptionMethod = Exclude<BackgroundMethod, BackgroundStateMethod>;
@@ -651,7 +655,8 @@ type BackgroundOmegaTarget = {
       active: true,
       lastFocusedWindow: true
     }, (tabs) => {
-      const url = tabs[0].url;
+      const tab = tabs[0];
+      const url = backgroundTabUrl(tab);
       if (!url) {
         return;
       }
@@ -664,7 +669,7 @@ type BackgroundOmegaTarget = {
       if (url.substring(0, 4) === 'moz-') {
         return;
       }
-      return chrome.tabs.reload(tabs[0].id, {
+      return chrome.tabs.reload(tab.id, {
         bypassCache: true
       }, () => {
         chrome.runtime.lastError;
