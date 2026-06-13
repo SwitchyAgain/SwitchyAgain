@@ -343,6 +343,8 @@ interface OmegaOptionsData extends Record<string, unknown> {
   };
   '-quickSwitchProfiles'?: string[];
   '-refreshOnProfileChange'?: boolean;
+  '-showPopupAddCondition'?: boolean;
+  '-showPopupAddTempRule'?: boolean;
   '-uiTheme'?: string;
 }
 
@@ -491,6 +493,8 @@ type PopupApiState = {
   proxyNotControllable?: string;
   refreshOnProfileChange?: boolean;
   showExternalProfile?: boolean;
+  showPopupAddCondition?: boolean;
+  showPopupAddTempRule?: boolean;
   uiLocale?: string;
   uiTheme?: string;
   validResultProfiles?: string[];

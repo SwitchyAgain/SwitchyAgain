@@ -285,8 +285,14 @@ msgstr "Obnovit aktuální záložku při změnu profilu."
 msgid "options_showInspectMenu"
 msgstr "Povolit kontrolu proxy pro prvky stránky přes kontextové menu."
 
+msgid "options_showPopupAddCondition"
+msgstr "Zobrazit „Přidat podmínku“ ve vyskakovacím menu."
+
+msgid "options_showPopupAddTempRule"
+msgstr "Zobrazit „Přidat dočasné pravidlo“ ve vyskakovacím menu."
+
 msgid "options_addConditionsToBottom"
-msgstr "Put new conditions added using the popup to the bottom of the list."
+msgstr "Put new conditions added using the popup menu to the bottom of the list."
 
 msgid "options_group_keyboardShortcut"
 msgstr "Klávesové zkratky"

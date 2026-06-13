@@ -80,6 +80,8 @@ export type PopupState = {
   proxyNotControllable?: string;
   refreshOnProfileChange?: boolean;
   showExternalProfile?: boolean;
+  showPopupAddCondition?: boolean;
+  showPopupAddTempRule?: boolean;
   uiLocale?: string;
   uiTheme?: string;
   validResultProfiles?: string[];

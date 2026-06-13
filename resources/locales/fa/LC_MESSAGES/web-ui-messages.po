@@ -287,8 +287,14 @@ msgstr ""
 "مجوز برای بررسی پروکسی مورد استفاده برای یک المان صفحه در منوی زمنیه ("
 "context menu)."
 
+msgid "options_showPopupAddCondition"
+msgstr "نمایش «افزودن شرط» در منوی بازشو."
+
+msgid "options_showPopupAddTempRule"
+msgstr "نمایش «افزودن قانون موقت» در منوی بازشو."
+
 msgid "options_addConditionsToBottom"
-msgstr "شرایط جدید اضافه شد از طریق پنجره ی pop-up را در انتهای لیست قرار بده."
+msgstr "شرایط جدید افزوده‌شده از منوی بازشو را در انتهای فهرست قرار بده."
 
 msgid "options_group_keyboardShortcut"
 msgstr "میان‌برهای صفحه‌کلید"

@@ -538,7 +538,30 @@ export function UiSettings({embedded = false, options, onOptionsChange, onOpenSh
               checked={Boolean(draftOptions['-addConditionsToBottom'])}
               onChange={(event) => updateOption('-addConditionsToBottom', event.currentTarget.checked)}
             />
-            <span> {message('options_addConditionsToBottom', 'Add new conditions to the bottom.')}</span>
+            <span>
+              {' '}
+              {message('options_addConditionsToBottom', 'Put new conditions added using the popup menu to the bottom of the list.')}
+            </span>
+          </label>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={draftOptions['-showPopupAddCondition'] !== false}
+              onChange={(event) => updateOption('-showPopupAddCondition', event.currentTarget.checked)}
+            />
+            <span> {message('options_showPopupAddCondition', 'Show Add Condition in the popup menu.')}</span>
+          </label>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={draftOptions['-showPopupAddTempRule'] !== false}
+              onChange={(event) => updateOption('-showPopupAddTempRule', event.currentTarget.checked)}
+            />
+            <span> {message('options_showPopupAddTempRule', 'Show Add Temporary Rule in the popup menu.')}</span>
           </label>
         </div>
       </section>

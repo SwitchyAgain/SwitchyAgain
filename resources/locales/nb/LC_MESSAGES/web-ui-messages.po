@@ -241,8 +241,14 @@ msgstr "Gjenoppfrisk gjeldende fane ved profilendring."
 msgid "options_showInspectMenu"
 msgstr ""
 
+msgid "options_showPopupAddCondition"
+msgstr "Vis «Legg til betingelse» i oppsprettsmenyen."
+
+msgid "options_showPopupAddTempRule"
+msgstr "Vis «Legg til midlertidig regel» i oppsprettsmenyen."
+
 msgid "options_addConditionsToBottom"
-msgstr "Put new conditions added using the popup to the bottom of the list."
+msgstr "Put new conditions added using the popup menu to the bottom of the list."
 
 msgid "options_group_keyboardShortcut"
 msgstr "Tastatursnarvei"

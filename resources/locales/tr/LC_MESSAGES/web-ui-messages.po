@@ -249,6 +249,12 @@ msgstr "Profil güncellendiğinde mevcut sekmeyi yenile."
 msgid "options_showInspectMenu"
 msgstr ""
 
+msgid "options_showPopupAddCondition"
+msgstr "Açılır menüde \"Koşul Ekle\" öğesini göster."
+
+msgid "options_showPopupAddTempRule"
+msgstr "Açılır menüde \"Geçici Kural Ekle\" öğesini göster."
+
 msgid "options_addConditionsToBottom"
 msgstr ""
 

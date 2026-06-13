@@ -199,6 +199,8 @@ function PopupApp() {
             'proxyNotControllable',
             'refreshOnProfileChange',
             'showExternalProfile',
+            'showPopupAddCondition',
+            'showPopupAddTempRule',
             'uiLocale',
             'uiTheme',
             'validResultProfiles'
@@ -238,8 +240,13 @@ function PopupApp() {
     ((pageInfo.errorCount || 0) > 0 || (pageInfo.requestExplanations?.length || pageInfo.requests?.length || 0) > 0)
   );
   const showExternal = !!(state?.showExternalProfile && state.externalProfile);
-  const showAddCondition = !!(state?.currentProfileCanAddRule && hasPageDomain && hasResultProfiles);
-  const showTempRule = !!(hasPageDomain && hasResultProfiles);
+  const showAddCondition = !!(
+    state?.showPopupAddCondition !== false &&
+    state?.currentProfileCanAddRule &&
+    hasPageDomain &&
+    hasResultProfiles
+  );
+  const showTempRule = !!(state?.showPopupAddTempRule !== false && hasPageDomain && hasResultProfiles);
 
   function showMode(nextMode: Exclude<PopupMode, 'menu'>) {
     location.hash = nextMode === 'condition' ? '#!addRule' : `#!${nextMode}`;

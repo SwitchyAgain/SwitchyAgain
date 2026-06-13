@@ -49,6 +49,7 @@ const hasProp = Object.prototype.hasOwnProperty;
 const optionNumber = (value: unknown) => Number(value);
 const supportedUiLocales = new Set(['en', 'zh-Hans', 'zh-Hant', 'es', 'ru', 'cs', 'fa']);
 const supportedUiThemes = new Set(['light', 'dark', 'system']);
+const defaultEnabledOption = (value: unknown): boolean => value !== false;
 
 type ProfileScopeSettings = {
   container: boolean;
@@ -922,6 +923,16 @@ class Options {
         if ((changes['-uiTheme'] != null) || changes === this._options) {
           this._state.set({
             'uiTheme': this._options['-uiTheme']
+          });
+        }
+        if (hasProp.call(changes, '-showPopupAddCondition') || changes === this._options) {
+          this._state.set({
+            'showPopupAddCondition': defaultEnabledOption(this._options['-showPopupAddCondition'])
+          });
+        }
+        if (hasProp.call(changes, '-showPopupAddTempRule') || changes === this._options) {
+          this._state.set({
+            'showPopupAddTempRule': defaultEnabledOption(this._options['-showPopupAddTempRule'])
           });
         }
         if (Object.prototype.hasOwnProperty.call(changes, '-showExternalProfile')) {

@@ -293,9 +293,15 @@ msgstr ""
 "Permitir inspeccionar el proxy utilizado por cada elemento de la página a "
 "través del menú contextual."
 
+msgid "options_showPopupAddCondition"
+msgstr "Mostrar «Añadir condición» en el menú emergente."
+
+msgid "options_showPopupAddTempRule"
+msgstr "Mostrar «Añadir regla temporal» en el menú emergente."
+
 msgid "options_addConditionsToBottom"
 msgstr ""
-"Agregue nuevas condiciones usando la ventana emergente al final de la lista."
+"Agregue nuevas condiciones usando el menú emergente al final de la lista."
 
 msgid "options_group_keyboardShortcut"
 msgstr "Atajo de teclado"

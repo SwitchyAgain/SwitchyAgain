@@ -289,9 +289,15 @@ msgstr ""
 "Узнавать прокси, использованный для элемента страницы, через контекстное "
 "меню."
 
+msgid "options_showPopupAddCondition"
+msgstr "Показывать «Добавить условие» во всплывающем меню."
+
+msgid "options_showPopupAddTempRule"
+msgstr "Показывать «Добавить временное правило» во всплывающем меню."
+
 msgid "options_addConditionsToBottom"
 msgstr ""
-"Помещать новые условия, добавленные через всплывающее окно, в низ списка."
+"Помещать новые условия, добавленные через всплывающее меню, в низ списка."
 
 msgid "options_group_keyboardShortcut"
 msgstr "Горячая клавиша"

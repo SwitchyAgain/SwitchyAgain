@@ -11,7 +11,9 @@ export const UI_KEYS = [
   '-confirmDeletion',
   '-refreshOnProfileChange',
   '-showInspectMenu',
-  '-addConditionsToBottom'
+  '-addConditionsToBottom',
+  '-showPopupAddCondition',
+  '-showPopupAddTempRule'
 ];
 
 export function sameOptionValue(a: unknown, b: unknown) {
