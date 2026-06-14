@@ -2,13 +2,24 @@
 
 import React from 'react';
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
-import {FixedProfileContent, PacProfile, ProfileShell} from '../src/react/profile_content';
-import type {NamedFixedProfileModel, NamedPacProfileModel} from '../src/react/profile_types';
+import {FixedProfileContent, PacProfile, ProfileShell, RuleListProfile, SwitchAttachedProfile} from '../src/react/profile_content';
+import type {NamedFixedProfileModel, NamedPacProfileModel, NamedRuleListProfileModel} from '../src/react/profile_types';
 
 function installChromeMock() {
   (globalThis as any).chrome = {
     i18n: {
       getMessage: () => ''
+    }
+  };
+}
+
+function installOmegaPacMock() {
+  (globalThis as any).OmegaPac = {
+    Profiles: {
+      ruleListFormats: ['Switchy', 'AutoProxy'],
+      validResultProfilesFor() {
+        return [];
+      }
     }
   };
 }
@@ -19,6 +30,7 @@ afterEach(() => {
 
 beforeEach(() => {
   installChromeMock();
+  installOmegaPacMock();
 });
 
 describe('profile content components', () => {
@@ -36,9 +48,7 @@ describe('profile content components', () => {
     );
 
     expect(screen.getByRole('heading', {name: 'Profile Options'})).toBeTruthy();
-    expect(
-      screen.getByText('When enabled, this profile is moved to the hidden profiles section in the popup menu.')
-    ).toBeTruthy();
+    expect(screen.getByText('When enabled, this profile is moved to the hidden profiles section in the popup menu.')).toBeTruthy();
 
     const switchInput = screen.getByRole('switch', {name: 'Hide from popup menu'}) as HTMLInputElement;
     expect(switchInput.checked).toBe(false);
@@ -95,6 +105,78 @@ describe('profile content components', () => {
 
     expect(screen.getByText('File URLs are disabled for referenced PAC profiles.')).toBeTruthy();
     expect(screen.queryByRole('button', {name: 'Download Profile Now'})).toBeNull();
+  });
+
+  it('updates rule-list export cache preference', () => {
+    const onProfileChange = vi.fn();
+    const profile: NamedRuleListProfileModel = {
+      defaultProfileName: 'direct',
+      format: 'Switchy',
+      matchProfileName: 'proxy',
+      name: 'rules',
+      profileType: 'RuleListProfile',
+      ruleList: '*.example.com',
+      sourceUrl: 'https://example.com/rules.txt'
+    };
+
+    render(<RuleListProfile onProfileChange={onProfileChange} profile={profile} />);
+
+    expect(
+      screen.getByText('This can significantly reduce exported config size for large rule lists. Download the rules again after import.')
+    ).toBeTruthy();
+    expect(screen.getByRole('heading', {name: 'Rule List Content'})).toBeTruthy();
+    expect(screen.queryByDisplayValue('*.example.com')).toBeNull();
+    fireEvent.click(screen.getByRole('button', {name: 'Show downloaded rule list content'}));
+    expect(screen.getByDisplayValue('*.example.com')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', {name: 'Hide downloaded rule list content'}));
+    expect(screen.queryByDisplayValue('*.example.com')).toBeNull();
+
+    const switchInput = screen.getByRole('switch', {
+      name: 'Exclude downloaded rule list content from exported config.'
+    }) as HTMLInputElement;
+    expect(switchInput.checked).toBe(false);
+
+    fireEvent.click(switchInput);
+    expect(onProfileChange).toHaveBeenCalledWith('omitRuleListFromExport', true);
+  });
+
+  it('updates attached rule-list export cache preference', () => {
+    const onAttachedChange = vi.fn();
+    const attached: NamedRuleListProfileModel = {
+      format: 'Switchy',
+      name: '__ruleListOf_auto',
+      profileType: 'RuleListProfile',
+      ruleList: '*.example.com',
+      sourceUrl: 'https://example.com/rules.txt'
+    };
+
+    render(<SwitchAttachedProfile attached={attached} onAttachedChange={onAttachedChange} />);
+
+    expect(screen.queryByDisplayValue('*.example.com')).toBeNull();
+    fireEvent.click(screen.getByRole('button', {name: 'Show downloaded rule list content'}));
+    expect(screen.getByDisplayValue('*.example.com')).toBeTruthy();
+
+    const switchInput = screen.getByRole('switch', {
+      name: 'Exclude downloaded rule list content from exported config.'
+    }) as HTMLInputElement;
+    expect(switchInput.checked).toBe(false);
+
+    fireEvent.click(switchInput);
+    expect(onAttachedChange).toHaveBeenCalledWith('omitRuleListFromExport', true);
+  });
+
+  it('keeps manual attached rule-list content visible', () => {
+    const attached: NamedRuleListProfileModel = {
+      format: 'Switchy',
+      name: '__ruleListOf_auto',
+      profileType: 'RuleListProfile',
+      ruleList: '*.manual.example'
+    };
+
+    render(<SwitchAttachedProfile attached={attached} />);
+
+    expect(screen.queryByRole('button', {name: 'Show downloaded rule list content'})).toBeNull();
+    expect(screen.getByDisplayValue('*.manual.example')).toBeTruthy();
   });
 
   it('commits fixed proxy edits and bypass list changes', () => {

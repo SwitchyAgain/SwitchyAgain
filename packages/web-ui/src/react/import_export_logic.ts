@@ -11,8 +11,18 @@ export function importExportErrorMessage(error: unknown) {
   return String(candidate?.message || candidate?.reason || error);
 }
 
+function isRecordValue(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object';
+}
+
 export function backupOptionsText(options: Options) {
   const plainOptions = JSON.parse(JSON.stringify(options));
+  for (const value of Object.values(plainOptions)) {
+    if (isRecordValue(value) && value.profileType === 'RuleListProfile' && value.sourceUrl && value.omitRuleListFromExport === true) {
+      delete value.ruleList;
+      delete value.lastUpdate;
+    }
+  }
   return JSON.stringify(plainOptions);
 }
 

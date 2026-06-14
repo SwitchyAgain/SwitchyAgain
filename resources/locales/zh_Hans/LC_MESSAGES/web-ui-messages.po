@@ -628,8 +628,20 @@ msgstr "规则列表网址"
 msgid "options_ruleListUrlHelp"
 msgstr "应用将从此网址下载规则列表。如果网址留空，则以下文本会被直接处理后作为规则列表使用。"
 
+msgid "options_ruleListOmitDownloadedContent"
+msgstr "导出配置时不包含已下载的规则列表内容。"
+
+msgid "options_ruleListOmitDownloadedContentHelp"
+msgstr "对于较大的规则列表，这可以显著减小导出配置的体积。导入后请重新下载规则。"
+
+msgid "options_ruleListShowDownloadedContent"
+msgstr "显示已下载的规则列表内容"
+
+msgid "options_ruleListHideDownloadedContent"
+msgstr "隐藏已下载的规则列表内容"
+
 msgid "options_group_ruleListText"
-msgstr "规则列表正文"
+msgstr "规则列表内容"
 
 msgid "options_ruleListLastUpdate"
 msgstr "规则列表下载时间 $TIME$："

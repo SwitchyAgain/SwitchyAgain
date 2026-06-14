@@ -127,8 +127,8 @@ import type {
   ProfileAuthKey,
   ProfileType,
   PacProfileField,
+  RuleListProfileAttachedField,
   RuleListProfileField,
-  RuleListProfileSourceField,
   RuleListProfileModel,
   VirtualProfileModel
 } from './profile_types';
@@ -266,7 +266,7 @@ function SwitchProfilePreview({
     });
   }
 
-  function updateAttachedSourceField(field: RuleListProfileSourceField, value: string) {
+  function updateAttachedField<TField extends RuleListProfileAttachedField>(field: TField, value: RuleListProfileModel[TField]) {
     mutateAttached((nextAttached) => {
       nextAttached[field] = value;
     });
@@ -322,7 +322,7 @@ function SwitchProfilePreview({
           updateProfileRevision(nextProfile);
         })
       }
-      onAttachedChange={updateAttachedSourceField}
+      onAttachedChange={updateAttachedField}
       onAttachedEnabledChange={(enabled) =>
         mutateProfile((nextProfile) => {
           setAttachedEnabled(nextProfile, attached, identity.attachedName, attachedOptions, enabled, attachedOptions.enabled);
@@ -416,8 +416,7 @@ export function OptionsApp() {
   const [pendingApplyAction, setPendingApplyAction] = useState<(() => void | Promise<void>) | null>(null);
   const [alert, setAlert] = useState<AlertState>(null);
   const [alertShown, setAlertShown] = useState(false);
-  const [profileScopeCapabilities, setProfileScopeCapabilities] =
-    useState<ProfileScopeCapabilities>(DEFAULT_PROFILE_SCOPE_CAPABILITIES);
+  const [profileScopeCapabilities, setProfileScopeCapabilities] = useState<ProfileScopeCapabilities>(DEFAULT_PROFILE_SCOPE_CAPABILITIES);
   const [profileScopeContainers, setProfileScopeContainers] = useState<ProfileScopeContainerInfo[]>([]);
   const isExperimental = useMemo(hasProxyScriptApi, []);
   const pacProfilesUnsupported = isExperimental;
@@ -584,7 +583,7 @@ export function OptionsApp() {
     updateProfileField<PacProfileModel, PacProfileField>(profileName, field, value);
   }
 
-  function updateRuleListProfileField(profileName: string, field: RuleListProfileField, value: string) {
+  function updateRuleListProfileField(profileName: string, field: RuleListProfileField, value: RuleListProfileModel[RuleListProfileField]) {
     updateProfileField<RuleListProfileModel, RuleListProfileField>(profileName, field, value);
   }
 

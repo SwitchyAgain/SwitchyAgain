@@ -702,8 +702,22 @@ msgstr ""
 "The rule list will be updated from this URL. If it is left blank, the "
 "following text will be parsed instead."
 
+msgid "options_ruleListOmitDownloadedContent"
+msgstr "Exclude downloaded rule list content from exported config."
+
+msgid "options_ruleListOmitDownloadedContentHelp"
+msgstr ""
+"This can significantly reduce exported config size for large rule lists. "
+"Download the rules again after import."
+
+msgid "options_ruleListShowDownloadedContent"
+msgstr "Show downloaded rule list content"
+
+msgid "options_ruleListHideDownloadedContent"
+msgstr "Hide downloaded rule list content"
+
 msgid "options_group_ruleListText"
-msgstr "Rule List Text"
+msgstr "Rule List Content"
 
 msgid "options_ruleListLastUpdate"
 msgstr "Rule list downloaded at $TIME$:"

@@ -718,8 +718,22 @@ msgstr ""
 "لیست قوانین از این آدرس به روز رسانی میشود ، در صورت خالی بودن ، متن بعدی "
 "پردازش میشود."
 
+msgid "options_ruleListOmitDownloadedContent"
+msgstr "محتوای فهرست قوانین دانلودشده را در پیکربندی صادرشده قرار نده."
+
+msgid "options_ruleListOmitDownloadedContentHelp"
+msgstr ""
+"برای فهرست‌های قوانین بزرگ، این کار می‌تواند اندازهٔ پیکربندی صادرشده را "
+"به‌طور قابل توجهی کاهش دهد. پس از وارد کردن، قوانین را دوباره دانلود کنید."
+
+msgid "options_ruleListShowDownloadedContent"
+msgstr "نمایش محتوای فهرست قوانین دانلودشده"
+
+msgid "options_ruleListHideDownloadedContent"
+msgstr "پنهان کردن محتوای فهرست قوانین دانلودشده"
+
 msgid "options_group_ruleListText"
-msgstr "متن لیست قوانین"
+msgstr "محتوای فهرست قوانین"
 
 msgid "options_ruleListLastUpdate"
 msgstr "سیاههٔ قوانین بارگیری شده در $TIME$:"

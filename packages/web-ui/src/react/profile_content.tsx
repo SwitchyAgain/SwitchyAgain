@@ -58,6 +58,7 @@ import type {
   NamedRuleListProfileModel,
   NamedVirtualProfileModel,
   PacProfileField,
+  RuleListProfileAttachedField,
   ProfileType,
   ProxyEditor,
   RuleListProfileField,
@@ -83,7 +84,7 @@ export type VirtualProfileProps = {
 
 export type RuleListProfileProps = {
   onDownload?: (name: string) => void;
-  onProfileChange?: (field: RuleListProfileField, value: string) => void;
+  onProfileChange?: (field: RuleListProfileField, value: NamedRuleListProfileModel[RuleListProfileField]) => void;
   options?: Options | null;
   profile: NamedRuleListProfileModel;
   updating?: boolean;
@@ -110,7 +111,7 @@ export type SwitchAttachedProfileProps = {
   attached?: NamedRuleListProfileModel | null;
   attachedRuleListError?: {message?: string} | null;
   onAttachNew?: () => void;
-  onAttachedChange?: (field: RuleListProfileSourceField, value: string) => void;
+  onAttachedChange?: (field: RuleListProfileAttachedField, value: NamedRuleListProfileModel[RuleListProfileAttachedField]) => void;
   onDownload?: (name: string) => void;
   updating?: boolean;
 };
@@ -889,8 +890,57 @@ export function UnsupportedProfile({profile}: UnsupportedProfileProps) {
 }
 
 type PacProfileDraft = Record<PacProfileField, string>;
-type RuleListProfileDraft = Record<RuleListProfileField, string>;
-type RuleListProfileSourceDraft = Record<RuleListProfileSourceField, string>;
+type RuleListProfileDraft = Record<Exclude<RuleListProfileField, 'omitRuleListFromExport'>, string> & {
+  omitRuleListFromExport: boolean;
+};
+type RuleListProfileAttachedDraft = Record<RuleListProfileSourceField, string> & {
+  omitRuleListFromExport: boolean;
+};
+
+function RuleListExportContentSwitch({
+  checked,
+  disabled = false,
+  onChange
+}: {
+  checked: boolean;
+  disabled?: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <>
+      <label className="profile-switch-label">
+        <input
+          type="checkbox"
+          role="switch"
+          checked={checked}
+          disabled={disabled}
+          onChange={(event) => onChange(event.currentTarget.checked)}
+        />
+        <span className="profile-switch" aria-hidden="true">
+          <span className="profile-switch-knob" />
+        </span>
+        <span>{message('options_ruleListOmitDownloadedContent', 'Exclude downloaded rule list content from exported config.')}</span>
+      </label>
+      <p className="help-block profile-switch-help">
+        {message(
+          'options_ruleListOmitDownloadedContentHelp',
+          'This can significantly reduce exported config size for large rule lists. Download the rules again after import.'
+        )}
+      </p>
+    </>
+  );
+}
+
+function DownloadedRuleListContentToggle({shown, onToggle}: {shown: boolean; onToggle: () => void}) {
+  return (
+    <button type="button" className="btn btn-default btn-sm" onClick={onToggle}>
+      <span className={`glyphicon ${shown ? 'glyphicon-eye-close' : 'glyphicon-eye-open'}`} />{' '}
+      {shown
+        ? message('options_ruleListHideDownloadedContent', 'Hide downloaded rule list content')
+        : message('options_ruleListShowDownloadedContent', 'Show downloaded rule list content')}
+    </button>
+  );
+}
 
 export function PacProfile({
   onDownload,
@@ -1262,8 +1312,10 @@ export function SwitchAttachedProfile({
 }: SwitchAttachedProfileProps) {
   const formattedLastUpdate = formatMediumDate(attached?.lastUpdate);
   const ruleListFormats = getRuleListFormats();
-  const [draft, setDraft] = useState<RuleListProfileSourceDraft>({
+  const [showDownloadedContent, setShowDownloadedContent] = useState(false);
+  const [draft, setDraft] = useState<RuleListProfileAttachedDraft>({
     format: attached?.format || '',
+    omitRuleListFromExport: attached?.omitRuleListFromExport === true,
     ruleList: attached?.ruleList || '',
     sourceUrl: attached?.sourceUrl || ''
   });
@@ -1271,12 +1323,17 @@ export function SwitchAttachedProfile({
   useEffect(() => {
     setDraft({
       format: attached?.format || '',
+      omitRuleListFromExport: attached?.omitRuleListFromExport === true,
       ruleList: attached?.ruleList || '',
       sourceUrl: attached?.sourceUrl || ''
     });
-  }, [attached?.name, attached?.format, attached?.ruleList, attached?.sourceUrl]);
+  }, [attached?.name, attached?.format, attached?.omitRuleListFromExport, attached?.ruleList, attached?.sourceUrl]);
 
-  function changeField(field: RuleListProfileSourceField, value: string) {
+  useEffect(() => {
+    setShowDownloadedContent(false);
+  }, [attached?.name, attached?.sourceUrl]);
+
+  function changeField<TField extends RuleListProfileAttachedField>(field: TField, value: RuleListProfileAttachedDraft[TField]) {
     setDraft((current) => ({...current, [field]: value}));
     onAttachedChange?.(field, value);
   }
@@ -1294,6 +1351,9 @@ export function SwitchAttachedProfile({
       </section>
     );
   }
+
+  const downloadedContent = !!draft.sourceUrl;
+  const showRuleListContent = !downloadedContent || showDownloadedContent;
 
   return (
     <div>
@@ -1321,23 +1381,26 @@ export function SwitchAttachedProfile({
             <label>{message('options_group_ruleListUrl', 'Rule List URL')}</label>{' '}
             <div className="width-limit inline-form-control" style={{verticalAlign: 'middle'}}>
               <ClearableInput type="url" value={draft.sourceUrl} onChange={(value) => changeField('sourceUrl', value)} />
-            </div>
+            </div>{' '}
+            <button
+              type="button"
+              className={`btn ${draft.sourceUrl && !attached.lastUpdate ? 'btn-primary' : 'btn-default'}`}
+              disabled={!draft.sourceUrl || updating}
+              onClick={() => onDownload?.(attached.name)}
+            >
+              <span className="glyphicon glyphicon-download-alt" /> {message('options_downloadProfileNow', 'Download Profile Now')}
+            </button>
           </div>
           <p className="help-block">{message('options_ruleListUrlHelp', 'The rule list will be downloaded from this URL.')}</p>
+          <RuleListExportContentSwitch
+            checked={draft.omitRuleListFromExport}
+            disabled={!draft.sourceUrl}
+            onChange={(checked) => changeField('omitRuleListFromExport', checked)}
+          />
         </form>
-        <p>
-          <button
-            type="button"
-            className={`btn ${draft.sourceUrl && !attached.lastUpdate ? 'btn-primary' : 'btn-default'}`}
-            disabled={!draft.sourceUrl || updating}
-            onClick={() => onDownload?.(attached.name)}
-          >
-            <span className="glyphicon glyphicon-download-alt" /> {message('options_downloadProfileNow', 'Download Profile Now')}
-          </button>
-        </p>
       </section>
       <section className="settings-group">
-        <h3>{message('options_group_ruleListText', 'Rule List Text')}</h3>
+        <h3>{message('options_group_ruleListText', 'Rule List Content')}</h3>
         {draft.sourceUrl && attached.lastUpdate && (
           <p className="alert alert-success width-limit">{message('options_ruleListLastUpdate', 'Last update: $1', formattedLastUpdate)}</p>
         )}
@@ -1351,14 +1414,21 @@ export function SwitchAttachedProfile({
             <span className="glyphicon glyphicon-remove" /> {attachedRuleListError.message}
           </p>
         )}
-        <textarea
-          id="attached-rulelist"
-          className="monospace form-control width-limit"
-          rows={20}
-          value={draft.ruleList}
-          disabled={!!draft.sourceUrl}
-          onChange={(event) => changeField('ruleList', event.currentTarget.value)}
-        />
+        {downloadedContent && (
+          <p>
+            <DownloadedRuleListContentToggle shown={showDownloadedContent} onToggle={() => setShowDownloadedContent((shown) => !shown)} />
+          </p>
+        )}
+        {showRuleListContent && (
+          <textarea
+            id="attached-rulelist"
+            className="monospace form-control width-limit"
+            rows={20}
+            value={draft.ruleList}
+            disabled={!!draft.sourceUrl}
+            onChange={(event) => changeField('ruleList', event.currentTarget.value)}
+          />
+        )}
       </section>
     </div>
   );
@@ -2297,10 +2367,12 @@ export function SwitchProfileStatefulContent({
 export function RuleListProfile({onDownload, onProfileChange, options, profile, updating = false}: RuleListProfileProps) {
   const resultProfiles = resultProfilesFor(options, profile);
   const ruleListFormats = getRuleListFormats();
+  const [showDownloadedContent, setShowDownloadedContent] = useState(false);
   const [draft, setDraft] = useState<RuleListProfileDraft>({
     defaultProfileName: profile.defaultProfileName || '',
     format: profile.format || '',
     matchProfileName: profile.matchProfileName || '',
+    omitRuleListFromExport: profile.omitRuleListFromExport === true,
     ruleList: profile.ruleList || '',
     sourceUrl: profile.sourceUrl || ''
   });
@@ -2310,15 +2382,31 @@ export function RuleListProfile({onDownload, onProfileChange, options, profile, 
       defaultProfileName: profile.defaultProfileName || '',
       format: profile.format || '',
       matchProfileName: profile.matchProfileName || '',
+      omitRuleListFromExport: profile.omitRuleListFromExport === true,
       ruleList: profile.ruleList || '',
       sourceUrl: profile.sourceUrl || ''
     });
-  }, [profile.name, profile.defaultProfileName, profile.format, profile.matchProfileName, profile.ruleList, profile.sourceUrl]);
+  }, [
+    profile.name,
+    profile.defaultProfileName,
+    profile.format,
+    profile.matchProfileName,
+    profile.omitRuleListFromExport,
+    profile.ruleList,
+    profile.sourceUrl
+  ]);
 
-  function changeField(field: RuleListProfileField, value: string) {
+  useEffect(() => {
+    setShowDownloadedContent(false);
+  }, [profile.name, profile.sourceUrl]);
+
+  function changeField(field: RuleListProfileField, value: NamedRuleListProfileModel[RuleListProfileField]) {
     setDraft((current) => ({...current, [field]: value}));
     onProfileChange?.(field, value);
   }
+
+  const downloadedContent = !!draft.sourceUrl;
+  const showRuleListContent = !downloadedContent || showDownloadedContent;
 
   return (
     <div>
@@ -2362,14 +2450,10 @@ export function RuleListProfile({onDownload, onProfileChange, options, profile, 
       </section>
       <section className="settings-group">
         <h3>{message('options_group_ruleListUrl', 'Rule List URL')}</h3>
-        <div className="width-limit">
-          <ClearableInput type="url" value={draft.sourceUrl} onChange={(value) => changeField('sourceUrl', value)} />
-        </div>
-        <p className="help-block">{message('options_ruleListUrlHelp', 'The rule list will be downloaded from this URL.')}</p>
-      </section>
-      <section className="settings-group">
-        <h3>{message('options_group_ruleListText', 'Rule List Text')}</h3>
-        <p>
+        <div className="form-group">
+          <div className="width-limit inline-form-control" style={{marginLeft: 0, verticalAlign: 'middle'}}>
+            <ClearableInput type="url" value={draft.sourceUrl} onChange={(value) => changeField('sourceUrl', value)} />
+          </div>{' '}
           <button
             type="button"
             className="btn btn-default"
@@ -2378,14 +2462,30 @@ export function RuleListProfile({onDownload, onProfileChange, options, profile, 
           >
             <span className="glyphicon glyphicon-download-alt" /> {message('options_downloadProfileNow', 'Download Profile Now')}
           </button>
-        </p>
-        <textarea
-          className="monospace form-control width-limit"
-          rows={20}
-          value={draft.ruleList}
-          disabled={!!draft.sourceUrl}
-          onChange={(event) => changeField('ruleList', event.currentTarget.value)}
+        </div>
+        <p className="help-block">{message('options_ruleListUrlHelp', 'The rule list will be downloaded from this URL.')}</p>
+        <RuleListExportContentSwitch
+          checked={draft.omitRuleListFromExport}
+          disabled={!draft.sourceUrl}
+          onChange={(checked) => changeField('omitRuleListFromExport', checked)}
         />
+      </section>
+      <section className="settings-group">
+        <h3>{message('options_group_ruleListText', 'Rule List Content')}</h3>
+        {downloadedContent && (
+          <p>
+            <DownloadedRuleListContentToggle shown={showDownloadedContent} onToggle={() => setShowDownloadedContent((shown) => !shown)} />
+          </p>
+        )}
+        {showRuleListContent && (
+          <textarea
+            className="monospace form-control width-limit"
+            rows={20}
+            value={draft.ruleList}
+            disabled={!!draft.sourceUrl}
+            onChange={(event) => changeField('ruleList', event.currentTarget.value)}
+          />
+        )}
       </section>
     </div>
   );

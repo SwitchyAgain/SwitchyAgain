@@ -77,6 +77,7 @@ export type Profile = {
   lastUpdate?: number | string | null;
   matchProfileName?: string;
   name?: string;
+  omitRuleListFromExport?: boolean;
   pacScript?: string;
   pacUrl?: string;
   profileType?: ProfileType;

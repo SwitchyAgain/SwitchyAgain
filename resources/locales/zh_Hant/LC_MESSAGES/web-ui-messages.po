@@ -617,8 +617,20 @@ msgstr "規則清單網址"
 msgid "options_ruleListUrlHelp"
 msgstr "應用將從此網址下載規則清單。如果網址留空，則以下文字會被直接處理後作為規則清單使用。"
 
+msgid "options_ruleListOmitDownloadedContent"
+msgstr "匯出設定時不包含已下載的規則清單內容。"
+
+msgid "options_ruleListOmitDownloadedContentHelp"
+msgstr "對於較大的規則清單，這可以顯著減小匯出設定的大小。匯入後請重新下載規則。"
+
+msgid "options_ruleListShowDownloadedContent"
+msgstr "顯示已下載的規則清單內容"
+
+msgid "options_ruleListHideDownloadedContent"
+msgstr "隱藏已下載的規則清單內容"
+
 msgid "options_group_ruleListText"
-msgstr "規則清單正文"
+msgstr "規則清單內容"
 
 msgid "options_ruleListLastUpdate"
 msgstr "規則清單最後更新時間：$TIME$"

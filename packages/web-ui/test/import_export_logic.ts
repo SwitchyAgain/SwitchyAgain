@@ -41,6 +41,74 @@ describe('import export logic', () => {
     );
   });
 
+  it('omits downloaded online rule-list content from backup when requested', () => {
+    const options: Options = {
+      '+online': {
+        defaultProfileName: 'direct',
+        lastUpdate: '2024-01-01T00:00:00.000Z',
+        matchProfileName: 'proxy',
+        name: 'online',
+        omitRuleListFromExport: true,
+        profileType: 'RuleListProfile',
+        ruleList: '*.example.com',
+        sourceUrl: 'https://example.com/list.txt'
+      },
+      '+__ruleListOf_auto': {
+        lastUpdate: '2024-01-03T00:00:00.000Z',
+        name: '__ruleListOf_auto',
+        omitRuleListFromExport: true,
+        profileType: 'RuleListProfile',
+        ruleList: '*.attached.example',
+        sourceUrl: 'https://example.com/attached.txt'
+      },
+      '+manual': {
+        name: 'manual',
+        omitRuleListFromExport: true,
+        profileType: 'RuleListProfile',
+        ruleList: '*.manual.example'
+      },
+      '+full': {
+        lastUpdate: '2024-01-02T00:00:00.000Z',
+        name: 'full',
+        profileType: 'RuleListProfile',
+        ruleList: '*.full.example',
+        sourceUrl: 'https://example.com/full.txt'
+      }
+    };
+
+    expect(backupOptionsText(options)).toBe(
+      JSON.stringify({
+        '+online': {
+          defaultProfileName: 'direct',
+          matchProfileName: 'proxy',
+          name: 'online',
+          omitRuleListFromExport: true,
+          profileType: 'RuleListProfile',
+          sourceUrl: 'https://example.com/list.txt'
+        },
+        '+__ruleListOf_auto': {
+          name: '__ruleListOf_auto',
+          omitRuleListFromExport: true,
+          profileType: 'RuleListProfile',
+          sourceUrl: 'https://example.com/attached.txt'
+        },
+        '+manual': {
+          name: 'manual',
+          omitRuleListFromExport: true,
+          profileType: 'RuleListProfile',
+          ruleList: '*.manual.example'
+        },
+        '+full': {
+          lastUpdate: '2024-01-02T00:00:00.000Z',
+          name: 'full',
+          profileType: 'RuleListProfile',
+          ruleList: '*.full.example',
+          sourceUrl: 'https://example.com/full.txt'
+        }
+      })
+    );
+  });
+
   it('detects busy import/export statuses', () => {
     expect(importExportBusy('loading')).toBe(true);
     expect(importExportBusy('exporting')).toBe(true);

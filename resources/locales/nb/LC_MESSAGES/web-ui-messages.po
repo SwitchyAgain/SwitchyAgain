@@ -616,8 +616,22 @@ msgstr ""
 msgid "options_ruleListUrlHelp"
 msgstr ""
 
-msgid "options_group_ruleListText"
+msgid "options_ruleListOmitDownloadedContent"
+msgstr "Ikke ta med nedlastet regelisteinnhold i eksportert oppsett."
+
+msgid "options_ruleListOmitDownloadedContentHelp"
 msgstr ""
+"Dette kan redusere størrelsen på eksportert oppsett betydelig for store "
+"regelister. Last ned reglene på nytt etter import."
+
+msgid "options_ruleListShowDownloadedContent"
+msgstr "Vis nedlastet regelisteinnhold"
+
+msgid "options_ruleListHideDownloadedContent"
+msgstr "Skjul nedlastet regelisteinnhold"
+
+msgid "options_group_ruleListText"
+msgstr "Regelisteinnhold"
 
 msgid "options_ruleListLastUpdate"
 msgstr ""

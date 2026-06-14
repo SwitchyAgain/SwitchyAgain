@@ -607,8 +607,22 @@ msgstr "Kural Listesi Bağlantısı"
 msgid "options_ruleListUrlHelp"
 msgstr ""
 
+msgid "options_ruleListOmitDownloadedContent"
+msgstr "Dışa aktarılan yapılandırmaya indirilen kural listesi içeriğini dahil etme."
+
+msgid "options_ruleListOmitDownloadedContentHelp"
+msgstr ""
+"Bu, büyük kural listelerinde dışa aktarılan yapılandırma boyutunu önemli "
+"ölçüde azaltabilir. İçe aktardıktan sonra kuralları yeniden indirin."
+
+msgid "options_ruleListShowDownloadedContent"
+msgstr "İndirilen kural listesi içeriğini göster"
+
+msgid "options_ruleListHideDownloadedContent"
+msgstr "İndirilen kural listesi içeriğini gizle"
+
 msgid "options_group_ruleListText"
-msgstr "Kural Listesi Metni"
+msgstr "Kural Listesi İçeriği"
 
 msgid "options_ruleListLastUpdate"
 msgstr "Kural listesi indirilme zamanı $TIME$:"

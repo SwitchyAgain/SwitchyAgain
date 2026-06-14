@@ -736,8 +736,23 @@ msgstr ""
 "Esta lista de reglas será actualizada desde esta URL. Si se deja en blanco, "
 "el siguiente texto será interpretado en su lugar."
 
+msgid "options_ruleListOmitDownloadedContent"
+msgstr "Excluir el contenido de la lista de reglas descargada de la configuración exportada."
+
+msgid "options_ruleListOmitDownloadedContentHelp"
+msgstr ""
+"Esto puede reducir significativamente el tamaño de la configuración exportada "
+"para listas de reglas grandes. Vuelve a descargar las reglas después de "
+"importar."
+
+msgid "options_ruleListShowDownloadedContent"
+msgstr "Mostrar el contenido de la lista de reglas descargada"
+
+msgid "options_ruleListHideDownloadedContent"
+msgstr "Ocultar el contenido de la lista de reglas descargada"
+
 msgid "options_group_ruleListText"
-msgstr "Texto de la Lista de Reglas"
+msgstr "Contenido de la lista de reglas"
 
 msgid "options_ruleListLastUpdate"
 msgstr "Lista de reglas descargada el $TIME$:"

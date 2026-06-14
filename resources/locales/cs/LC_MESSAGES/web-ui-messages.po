@@ -709,8 +709,22 @@ msgstr ""
 "Seznam pravidel bude aktualizován z této adresy URL. Pokud je ponechán "
 "prázdný, bude následující text analyzován."
 
+msgid "options_ruleListOmitDownloadedContent"
+msgstr "V exportované konfiguraci nezahrnovat stažený obsah seznamu pravidel."
+
+msgid "options_ruleListOmitDownloadedContentHelp"
+msgstr ""
+"U velkých seznamů pravidel to může výrazně zmenšit velikost exportované "
+"konfigurace. Po importu pravidla stáhněte znovu."
+
+msgid "options_ruleListShowDownloadedContent"
+msgstr "Zobrazit stažený obsah seznamu pravidel"
+
+msgid "options_ruleListHideDownloadedContent"
+msgstr "Skrýt stažený obsah seznamu pravidel"
+
 msgid "options_group_ruleListText"
-msgstr "Text seznamu pravidel"
+msgstr "Obsah seznamu pravidel"
 
 msgid "options_ruleListLastUpdate"
 msgstr "Seznam pravidel stažen $TIME$:"

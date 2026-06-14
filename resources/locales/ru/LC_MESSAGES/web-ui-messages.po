@@ -730,8 +730,22 @@ msgstr ""
 "Список правил будет обновлён с этого URL-адреса. Если оставить его пустым, "
 "будет анализироваться следующий текст."
 
+msgid "options_ruleListOmitDownloadedContent"
+msgstr "Не включать скачанное содержимое списка правил в экспортируемую конфигурацию."
+
+msgid "options_ruleListOmitDownloadedContentHelp"
+msgstr ""
+"Для больших списков правил это может значительно уменьшить размер "
+"экспортируемой конфигурации. После импорта скачайте правила заново."
+
+msgid "options_ruleListShowDownloadedContent"
+msgstr "Показать скачанное содержимое списка правил"
+
+msgid "options_ruleListHideDownloadedContent"
+msgstr "Скрыть скачанное содержимое списка правил"
+
 msgid "options_group_ruleListText"
-msgstr "Текст списка правил"
+msgstr "Содержимое списка правил"
 
 msgid "options_ruleListLastUpdate"
 msgstr "Список правил загружен $TIME$:"

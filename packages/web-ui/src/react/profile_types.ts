@@ -94,6 +94,7 @@ export type RuleListProfileModel = Profile & {
   format?: string;
   lastUpdate?: number | string | null;
   matchProfileName?: string;
+  omitRuleListFromExport?: boolean;
   profileType?: 'RuleListProfile' | LegacyRuleListProfileType;
   ruleList?: string;
   sourceUrl?: string;
@@ -155,4 +156,6 @@ export type NamedFixedProfileModel = FixedProfileModel & NamedProfileOfType<'Fix
 
 export type RuleListProfileSourceField = 'format' | 'ruleList' | 'sourceUrl';
 
-export type RuleListProfileField = 'defaultProfileName' | 'matchProfileName' | RuleListProfileSourceField;
+export type RuleListProfileAttachedField = RuleListProfileSourceField | 'omitRuleListFromExport';
+
+export type RuleListProfileField = 'defaultProfileName' | 'matchProfileName' | 'omitRuleListFromExport' | RuleListProfileSourceField;
