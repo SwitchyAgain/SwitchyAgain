@@ -250,6 +250,9 @@ msgstr "Vis «Legg til midlertidig regel» i oppsprettsmenyen."
 msgid "options_addConditionsToBottom"
 msgstr "Put new conditions added using the popup menu to the bottom of the list."
 
+msgid "options_showProfileOptions"
+msgstr "Vis profilalternativer på profilsider for å skjule profiler fra sprettoppmenyen."
+
 msgid "options_group_keyboardShortcut"
 msgstr "Tastatursnarvei"
 

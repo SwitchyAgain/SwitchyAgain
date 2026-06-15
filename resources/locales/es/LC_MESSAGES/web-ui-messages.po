@@ -303,6 +303,11 @@ msgid "options_addConditionsToBottom"
 msgstr ""
 "Agregue nuevas condiciones usando el menú emergente al final de la lista."
 
+msgid "options_showProfileOptions"
+msgstr ""
+"Mostrar Opciones de perfil en las páginas de perfil para ocultar perfiles "
+"del menú emergente."
+
 msgid "options_group_keyboardShortcut"
 msgstr "Atajo de teclado"
 

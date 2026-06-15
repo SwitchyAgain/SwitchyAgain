@@ -77,6 +77,13 @@ describe('ui settings component', () => {
       })
     );
 
+    fireEvent.click(screen.getByLabelText('Show Profile Options on profile pages for hiding profiles from the popup menu.'));
+    expect(onOptionsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        '-showProfileOptions': true
+      })
+    );
+
     fireEvent.click(container.querySelector('#react-ui-locale') as HTMLButtonElement);
     fireEvent.click(screen.getByRole('option', {name: /Espa/}).querySelector('a') as HTMLAnchorElement);
     expect(onOptionsChange).toHaveBeenLastCalledWith(

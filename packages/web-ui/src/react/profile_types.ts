@@ -75,6 +75,7 @@ export type OptionsData = {
   '-showConditionTypes'?: number;
   '-showExternalProfile'?: boolean;
   '-showInspectMenu'?: boolean;
+  '-showProfileOptions'?: boolean;
   '-showPopupAddCondition'?: boolean;
   '-showPopupAddTempRule'?: boolean;
   '-startupProfileName'?: string;

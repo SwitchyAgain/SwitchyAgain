@@ -258,6 +258,9 @@ msgstr "Açılır menüde \"Geçici Kural Ekle\" öğesini göster."
 msgid "options_addConditionsToBottom"
 msgstr ""
 
+msgid "options_showProfileOptions"
+msgstr "Açılır menüden profilleri gizlemek için profil sayfalarında Profil Seçenekleri'ni göster."
+
 msgid "options_group_keyboardShortcut"
 msgstr "Klavye Kısayolu"
 

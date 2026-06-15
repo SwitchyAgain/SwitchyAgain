@@ -293,6 +293,9 @@ msgstr "Show Add Temporary Rule in the popup menu."
 msgid "options_addConditionsToBottom"
 msgstr "Put new conditions added using the popup menu to the bottom of the list."
 
+msgid "options_showProfileOptions"
+msgstr "Show Profile Options on profile pages for hiding profiles from the popup menu."
+
 msgid "options_group_keyboardShortcut"
 msgstr "Keyboard Shortcut"
 

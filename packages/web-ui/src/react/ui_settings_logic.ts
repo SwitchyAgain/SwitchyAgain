@@ -12,6 +12,7 @@ export const UI_KEYS = [
   '-refreshOnProfileChange',
   '-showInspectMenu',
   '-addConditionsToBottom',
+  '-showProfileOptions',
   '-showPopupAddCondition',
   '-showPopupAddTempRule'
 ];

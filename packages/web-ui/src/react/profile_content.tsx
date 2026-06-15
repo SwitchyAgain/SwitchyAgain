@@ -255,6 +255,7 @@ export type ProfileShellProps = {
   };
   profileColor?: string;
   scriptable?: boolean;
+  showProfileOptions?: boolean;
 };
 
 export function ProfileShell({
@@ -268,7 +269,8 @@ export function ProfileShell({
   onRename,
   profile,
   profileColor,
-  scriptable = false
+  scriptable = false,
+  showProfileOptions = false
 }: ProfileShellProps) {
   const color = normalizeColor(profileColor || profile.color);
   const isVirtual = isVirtualProfile(profile);
@@ -322,7 +324,7 @@ export function ProfileShell({
           </button>
         </div>
       </div>
-      {!profile.builtin && (
+      {showProfileOptions && !profile.builtin && (
         <section className="settings-group profile-options">
           <h3>{message('options_group_profileOptions', 'Profile Options')}</h3>
           <label className="profile-switch-label">

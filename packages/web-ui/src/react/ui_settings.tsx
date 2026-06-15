@@ -548,6 +548,22 @@ export function UiSettings({embedded = false, options, onOptionsChange, onOpenSh
           <label>
             <input
               type="checkbox"
+              checked={Boolean(draftOptions['-showProfileOptions'])}
+              onChange={(event) => updateOption('-showProfileOptions', event.currentTarget.checked)}
+            />
+            <span>
+              {' '}
+              {message(
+                'options_showProfileOptions',
+                'Show Profile Options on profile pages for hiding profiles from the popup menu.'
+              )}
+            </span>
+          </label>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
               checked={draftOptions['-showPopupAddCondition'] !== false}
               onChange={(event) => updateOption('-showPopupAddCondition', event.currentTarget.checked)}
             />

@@ -49,8 +49,9 @@ describe('profile content components', () => {
         onPopupHiddenChange={onPopupHiddenChange}
         profile={{
           name: 'proxy',
-          profileType: 'FixedProfile'
-        }}
+            profileType: 'FixedProfile'
+          }}
+        showProfileOptions
       />
     );
 
@@ -62,6 +63,19 @@ describe('profile content components', () => {
 
     fireEvent.click(switchInput);
     expect(onPopupHiddenChange).toHaveBeenCalledWith(true);
+  });
+
+  it('hides profile options when profile options are disabled', () => {
+    render(
+      <ProfileShell
+        profile={{
+          name: 'proxy',
+          profileType: 'FixedProfile'
+        }}
+      />
+    );
+
+    expect(screen.queryByRole('heading', {name: 'Profile Options'})).toBeNull();
   });
 
   it('updates PAC URLs and exposes download/auth actions', () => {

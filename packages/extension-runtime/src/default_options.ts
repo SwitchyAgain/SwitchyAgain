@@ -19,6 +19,7 @@ export default function defaultOptions() {
     '-confirmDeletion': true,
     '-showInspectMenu': true,
     '-addConditionsToBottom': false,
+    '-showProfileOptions': false,
     '-showPopupAddCondition': true,
     '-showPopupAddTempRule': true,
     '-showExternalProfile': true,

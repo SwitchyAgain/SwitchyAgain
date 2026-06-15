@@ -1191,6 +1191,7 @@ export function OptionsApp() {
               profile={profile}
               profileColor={profile.color}
               scriptable={!isBuiltinProfile(profile)}
+              showProfileOptions={options['-showProfileOptions'] === true}
               onColorChange={(color) =>
                 updateProfile(profile.name, (nextProfile) => {
                   nextProfile.color = color;

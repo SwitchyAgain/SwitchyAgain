@@ -294,6 +294,9 @@ msgstr "Zobrazit „Přidat dočasné pravidlo“ ve vyskakovacím menu."
 msgid "options_addConditionsToBottom"
 msgstr "Put new conditions added using the popup menu to the bottom of the list."
 
+msgid "options_showProfileOptions"
+msgstr "Zobrazit možnosti profilu na stránkách profilů pro skrytí profilů ve vyskakovacím menu."
+
 msgid "options_group_keyboardShortcut"
 msgstr "Klávesové zkratky"
 
