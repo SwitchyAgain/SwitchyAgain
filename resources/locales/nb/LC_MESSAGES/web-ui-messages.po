@@ -909,6 +909,24 @@ msgstr "Virtuell profil"
 msgid "options_profileDescVirtualProfile"
 msgstr ""
 
+msgid "options_profileTypeDuplicate"
+msgstr "Dupliser"
+
+msgid "options_profileDescDuplicate"
+msgstr "Opprett en ny profil ved å kopiere en eksisterende profil."
+
+msgid "options_profileDuplicateEmpty"
+msgstr "Ingen profiler er tilgjengelige for duplisering."
+
+msgid "options_profileDuplicateSource"
+msgstr "Profil"
+
+msgid "options_profileDuplicateSourcePlaceholder"
+msgstr "Velg en profil"
+
+msgid "options_profileDuplicateSourceRequired"
+msgstr "Velg en profil som skal dupliseres."
+
 msgid "options_createProfile"
 msgstr "Opprett"
 

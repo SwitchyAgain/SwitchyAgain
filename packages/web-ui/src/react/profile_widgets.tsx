@@ -207,6 +207,7 @@ export function resultProfilesFor(options: Options | null | undefined, filter?: 
 }
 
 export function ProfileSelect({
+  ariaLabel,
   defaultIcon = 'glyphicon-time',
   defaultText,
   dispName,
@@ -216,6 +217,7 @@ export function ProfileSelect({
   options,
   profiles
 }: {
+  ariaLabel?: string;
   defaultIcon?: string;
   defaultText?: string;
   dispName?: (profile: Profile) => string;
@@ -257,6 +259,7 @@ export function ProfileSelect({
         className="btn btn-default dropdown-toggle"
         aria-expanded={open ? 'true' : 'false'}
         aria-haspopup="true"
+        aria-label={ariaLabel}
         role="listbox"
         onClick={() => setOpen(!open)}
       >

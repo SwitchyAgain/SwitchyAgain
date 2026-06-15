@@ -920,6 +920,24 @@ msgstr "虚情景模式"
 msgid "options_profileDescVirtualProfile"
 msgstr "虚情景模式可以作为某个其他情景模式使用，并可以根据需要更改对象。一般用在自动切换中，这样就可以一次性更改多个条件对应的代理。"
 
+msgid "options_profileTypeDuplicate"
+msgstr "复制"
+
+msgid "options_profileDescDuplicate"
+msgstr "通过复制已有情景模式来创建新的情景模式。"
+
+msgid "options_profileDuplicateEmpty"
+msgstr "没有可复制的情景模式。"
+
+msgid "options_profileDuplicateSource"
+msgstr "情景模式"
+
+msgid "options_profileDuplicateSourcePlaceholder"
+msgstr "选择情景模式"
+
+msgid "options_profileDuplicateSourceRequired"
+msgstr "请选择要复制的情景模式。"
+
 msgid "options_createProfile"
 msgstr "创建"
 

@@ -907,6 +907,24 @@ msgstr "虛擬情境模式"
 msgid "options_profileDescVirtualProfile"
 msgstr "虛擬情境模式可以作為某個其他情境模式使用，並可以依據需要變更目標。一般用在自動切換中，這樣就可以一次性變更多個條件對應的代理。"
 
+msgid "options_profileTypeDuplicate"
+msgstr "複製"
+
+msgid "options_profileDescDuplicate"
+msgstr "透過複製既有情境模式來建立新的情境模式。"
+
+msgid "options_profileDuplicateEmpty"
+msgstr "沒有可複製的情境模式。"
+
+msgid "options_profileDuplicateSource"
+msgstr "情境模式"
+
+msgid "options_profileDuplicateSourcePlaceholder"
+msgstr "選擇情境模式"
+
+msgid "options_profileDuplicateSourceRequired"
+msgstr "請選擇要複製的情境模式。"
+
 msgid "options_createProfile"
 msgstr "建立"
 

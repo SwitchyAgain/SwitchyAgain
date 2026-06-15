@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {message} from './options_client';
-import {PROFILE_ICONS, Profile} from './profile_widgets';
+import {PROFILE_ICONS, Profile, ProfileSelect} from './profile_widgets';
 import {profileNameErrors, profileNameValid} from './profile_modals_logic';
 import type {ProfileType} from './profile_types';
 
@@ -14,13 +14,24 @@ export type RenameProfileProps = {
 };
 
 export type NewProfileProps = {
+  duplicatableProfiles?: Profile[];
   isProfileNameHidden?: (name: string) => boolean;
   isProfileNameReserved?: (name: string) => boolean;
-  onClose?: (profile: {name: string; profileType: ProfileType}) => void;
+  onClose?: (profile: NewProfileSpec) => void;
   onDismiss?: () => void;
   pacProfilesUnsupported?: boolean;
   profileByName?: (name: string) => Profile | null;
 };
+
+export type NewProfileSpec =
+  | {
+      name: string;
+      profileType: ProfileType;
+    }
+  | {
+      duplicateProfileName: string;
+      name: string;
+    };
 
 export type ProxyAuth = {
   password?: string;
@@ -202,6 +213,7 @@ function ProfileTypeOption({
 }
 
 export function NewProfileModal({
+  duplicatableProfiles = [],
   isProfileNameHidden,
   isProfileNameReserved,
   onClose,
@@ -210,16 +222,41 @@ export function NewProfileModal({
   profileByName
 }: NewProfileProps) {
   const [name, setName] = useState('');
+  const [createMode, setCreateMode] = useState<'profile' | 'duplicate'>('profile');
+  const [duplicateProfileName, setDuplicateProfileName] = useState('');
   const [profileType, setProfileType] = useState<ProfileType>('FixedProfile');
   const errors = useMemo(
     () => profileNameErrors(name, '', isProfileNameReserved, profileByName),
     [isProfileNameReserved, name, profileByName]
   );
-  const valid = profileNameValid(errors);
+  const duplicateSelected = createMode === 'duplicate';
+  const duplicateProfileSelected = !duplicateSelected || Boolean(duplicateProfileName);
+  const duplicateProfilesAvailable = duplicatableProfiles.length > 0;
+  const duplicateSourceLabel = message('options_profileDuplicateSource', 'Profile');
+  const duplicateSourcePlaceholder = message('options_profileDuplicateSourcePlaceholder', 'Select a profile');
+  const valid = profileNameValid(errors) && duplicateProfileSelected;
+
+  function selectProfileType(type: ProfileType) {
+    setCreateMode('profile');
+    setProfileType(type);
+  }
+
+  function selectDuplicateProfile() {
+    if (duplicateProfilesAvailable) {
+      setCreateMode('duplicate');
+    }
+  }
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
     if (valid) {
+      if (duplicateSelected) {
+        onClose?.({
+          duplicateProfileName,
+          name
+        });
+        return;
+      }
       onClose?.({name, profileType});
     }
   }
@@ -244,28 +281,28 @@ export function NewProfileModal({
         />
         <label>{message('options_profileType', 'Profile type')}</label>
         <ProfileTypeOption
-          checked={profileType === 'FixedProfile'}
+          checked={!duplicateSelected && profileType === 'FixedProfile'}
           description={message('options_profileDescFixedProfile', 'Tunneling traffic through proxy servers.')}
           icon={PROFILE_ICONS.FixedProfile}
           name="profile-new-type"
-          onChange={setProfileType}
+          onChange={selectProfileType}
           title={message('options_profileTypeFixedProfile', 'Proxy Profile')}
           value="FixedProfile"
         />
         <ProfileTypeOption
-          checked={profileType === 'SwitchProfile'}
+          checked={!duplicateSelected && profileType === 'SwitchProfile'}
           description={message(
             'options_profileDescSwitchProfile',
             'Applying different profiles automatically on various conditions such as domains or patterns.\n You can also import rules published online for easier switching. (Replaces AutoSwitch mode + Rule List.)'
           )}
           icon={PROFILE_ICONS.SwitchProfile}
           name="profile-new-type"
-          onChange={setProfileType}
+          onChange={selectProfileType}
           title={message('options_profileTypeSwitchProfile', 'Switch Profile')}
           value="SwitchProfile"
         />
         <ProfileTypeOption
-          checked={profileType === 'PacProfile'}
+          checked={!duplicateSelected && profileType === 'PacProfile'}
           description={message('options_profileDescPacProfile', 'Choosing proxies using an online/local PAC script.')}
           disabled={pacProfilesUnsupported}
           extraHelp={
@@ -278,7 +315,7 @@ export function NewProfileModal({
           }
           icon={PROFILE_ICONS.PacProfile}
           name="profile-new-type"
-          onChange={setProfileType}
+          onChange={selectProfileType}
           title={message('options_profileTypePacProfile', 'PAC Profile')}
           value="PacProfile"
           warning={
@@ -291,17 +328,60 @@ export function NewProfileModal({
           }
         />
         <ProfileTypeOption
-          checked={profileType === 'VirtualProfile'}
+          checked={!duplicateSelected && profileType === 'VirtualProfile'}
           description={message(
             'options_profileDescVirtualProfile',
             'A virtual profile can act as any of the other profiles on demand. It works well with SwitchProfile, allowing you to change the result of multiple conditions by one click.'
           )}
           icon={PROFILE_ICONS.VirtualProfile}
           name="profile-new-type"
-          onChange={setProfileType}
+          onChange={selectProfileType}
           title={message('options_profileTypeVirtualProfile', 'Virtual Profile')}
           value="VirtualProfile"
         />
+        <div className="radio">
+          <label className={duplicateProfilesAvailable ? '' : 'text-muted'}>
+            <input
+              type="radio"
+              name="profile-new-type"
+              value="DuplicateProfile"
+              checked={duplicateSelected}
+              disabled={!duplicateProfilesAvailable}
+              onChange={selectDuplicateProfile}
+            />
+            <span className="profile-type">
+              <span className="glyphicon glyphicon-duplicate" />{' '}
+              <span>{message('options_profileTypeDuplicate', 'Duplicate')}</span>
+            </span>
+            <div className="help-block profile-duplicate-description">
+              {message('options_profileDescDuplicate', 'Create a new profile by copying an existing profile.')}
+            </div>
+            {!duplicateProfilesAvailable && (
+              <div className="help-block">
+                {message('options_profileDuplicateEmpty', 'No profiles available to duplicate.')}
+              </div>
+            )}
+          </label>
+          {duplicateSelected && duplicateProfilesAvailable && (
+            <div className="profile-duplicate-source">
+              <span className="profile-duplicate-source-label">{duplicateSourceLabel}</span>{' '}
+              <ProfileSelect
+                ariaLabel={duplicateSourceLabel}
+                defaultIcon="glyphicon-question-sign"
+                defaultText={duplicateSourcePlaceholder}
+                inline
+                name={duplicateProfileName}
+                onChange={setDuplicateProfileName}
+                profiles={duplicatableProfiles}
+              />
+              {!duplicateProfileName && (
+                <div className="help-block">
+                  {message('options_profileDuplicateSourceRequired', 'Please select a profile to duplicate.')}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
       <div className="modal-footer">
         <button type="button" className="btn btn-default" onClick={onDismiss}>

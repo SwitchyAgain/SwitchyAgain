@@ -1055,6 +1055,24 @@ msgstr ""
 "профиль. Он хорошо работает с «Переключаемым профилем», позволяя вам "
 "изменить результат нескольких условий одним щелчком мыши."
 
+msgid "options_profileTypeDuplicate"
+msgstr "Дублировать"
+
+msgid "options_profileDescDuplicate"
+msgstr "Создать новый профиль, скопировав существующий профиль."
+
+msgid "options_profileDuplicateEmpty"
+msgstr "Нет профилей, доступных для дублирования."
+
+msgid "options_profileDuplicateSource"
+msgstr "Профиль"
+
+msgid "options_profileDuplicateSourcePlaceholder"
+msgstr "Выберите профиль"
+
+msgid "options_profileDuplicateSourceRequired"
+msgstr "Выберите профиль для дублирования."
+
 msgid "options_createProfile"
 msgstr "Создать"
 

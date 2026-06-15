@@ -903,6 +903,24 @@ msgstr "Sanal Profil"
 msgid "options_profileDescVirtualProfile"
 msgstr ""
 
+msgid "options_profileTypeDuplicate"
+msgstr "Çoğalt"
+
+msgid "options_profileDescDuplicate"
+msgstr "Mevcut bir profili kopyalayarak yeni bir profil oluştur."
+
+msgid "options_profileDuplicateEmpty"
+msgstr "Çoğaltılabilecek profil yok."
+
+msgid "options_profileDuplicateSource"
+msgstr "Profil"
+
+msgid "options_profileDuplicateSourcePlaceholder"
+msgstr "Bir profil seç"
+
+msgid "options_profileDuplicateSourceRequired"
+msgstr "Çoğaltılacak bir profil seçin."
+
 msgid "options_createProfile"
 msgstr "Oluştur"
 

@@ -1064,6 +1064,24 @@ msgstr ""
 "Funciona bien con SwitchProfile, permitiondo cambiar el resultado de "
 "múltiples condiciones con un solo click."
 
+msgid "options_profileTypeDuplicate"
+msgstr "Duplicar"
+
+msgid "options_profileDescDuplicate"
+msgstr "Crear un perfil nuevo copiando un perfil existente."
+
+msgid "options_profileDuplicateEmpty"
+msgstr "No hay perfiles disponibles para duplicar."
+
+msgid "options_profileDuplicateSource"
+msgstr "Perfil"
+
+msgid "options_profileDuplicateSourcePlaceholder"
+msgstr "Seleccionar un perfil"
+
+msgid "options_profileDuplicateSourceRequired"
+msgstr "Selecciona un perfil para duplicar."
+
 msgid "options_createProfile"
 msgstr "Crear"
 

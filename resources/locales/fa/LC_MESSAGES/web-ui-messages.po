@@ -1036,6 +1036,24 @@ msgstr ""
 "SwitchProfile خوب عمل میکند ، که این امکان را به شما میدهد که نتایج چندین "
 "شرط را با یک کلیک تغییر دهید."
 
+msgid "options_profileTypeDuplicate"
+msgstr "تکثیر"
+
+msgid "options_profileDescDuplicate"
+msgstr "با کپی کردن یک پروفایل موجود، پروفایل جدید بسازید."
+
+msgid "options_profileDuplicateEmpty"
+msgstr "پروفایلی برای تکثیر موجود نیست."
+
+msgid "options_profileDuplicateSource"
+msgstr "پروفایل"
+
+msgid "options_profileDuplicateSourcePlaceholder"
+msgstr "یک پروفایل انتخاب کنید"
+
+msgid "options_profileDuplicateSourceRequired"
+msgstr "لطفاً پروفایلی را برای تکثیر انتخاب کنید."
+
 msgid "options_createProfile"
 msgstr "ایجاد"
 

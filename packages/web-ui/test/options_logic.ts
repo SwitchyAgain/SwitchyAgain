@@ -8,6 +8,8 @@ import {
   createPacExport,
   deleteAttachedProfileOption,
   deleteProfileOption,
+  duplicatableProfilesFromOptions,
+  duplicateProfileOption,
   exportRuleListOptions,
   firstFixedProfileName,
   getParentName,
@@ -356,6 +358,141 @@ describe('options logic', () => {
       name: '__ruleListOf_auto',
       profileType: 'RuleListProfile'
     });
+  });
+
+  it('lists only editable profiles for duplication', () => {
+    const options: Options = {
+      '+__ruleListOf_auto': {
+        name: '__ruleListOf_auto',
+        profileType: 'RuleListProfile'
+      },
+      '+auto': {
+        name: 'auto',
+        profileType: 'SwitchProfile'
+      },
+      '+direct': {
+        builtin: true,
+        name: 'direct',
+        profileType: 'DirectProfile'
+      },
+      '+legacy': {
+        name: 'legacy',
+        profileType: 'AutoProxyRuleListProfile'
+      },
+      '+pac': {
+        name: 'pac',
+        profileType: 'PacProfile'
+      }
+    };
+
+    expect(duplicatableProfilesFromOptions(options).map((profile) => profile.name)).toEqual(['auto', 'pac']);
+  });
+
+  it('duplicates profile options without carrying hidden popup state or stale revisions', () => {
+    const revisions: string[] = [];
+    (globalThis as any).OmegaPac = {
+      Profiles: {
+        updateRevision(profile: Profile) {
+          profile.revision = `revision:${profile.name}`;
+          revisions.push(profile.name || '');
+        }
+      }
+    };
+    const options: Options = {
+      '+proxy': {
+        auth: {
+          all: {
+            password: 'pass',
+            username: 'user'
+          }
+        },
+        hiddenInPopup: true,
+        name: 'proxy',
+        profileType: 'FixedProfile',
+        revision: 'old'
+      }
+    };
+
+    const duplicated = duplicateProfileOption(options, 'proxy', 'proxy-copy');
+
+    expect(duplicated).toEqual(options['+proxy-copy']);
+    expect(options['+proxy-copy']).toEqual({
+      auth: {
+        all: {
+          password: 'pass',
+          username: 'user'
+        }
+      },
+      name: 'proxy-copy',
+      profileType: 'FixedProfile',
+      revision: 'revision:proxy-copy'
+    });
+    expect(options['+proxy-copy']).not.toBe(options['+proxy']);
+    expect((options['+proxy-copy'] as {auth?: unknown}).auth).not.toBe((options['+proxy'] as {auth?: unknown}).auth);
+    expect(revisions).toEqual(['proxy-copy']);
+  });
+
+  it('duplicates switch profile attached rule-list options with a new attached identity', () => {
+    (globalThis as any).OmegaPac = {
+      Profiles: {
+        updateRevision(profile: Profile) {
+          profile.revision = `revision:${profile.name}`;
+        }
+      }
+    };
+    const options: Options = {
+      '+__ruleListOf_auto': {
+        defaultProfileName: 'direct',
+        hiddenInPopup: true,
+        name: '__ruleListOf_auto',
+        profileType: 'RuleListProfile',
+        revision: 'old-attached',
+        ruleList: 'example.com'
+      },
+      '+auto': {
+        defaultProfileName: '__ruleListOf_auto',
+        hiddenInPopup: true,
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        revision: 'old-switch',
+        rules: [
+          {
+            condition: {
+              conditionType: 'HostWildcardCondition',
+              pattern: '*.example.com'
+            },
+            profileName: 'proxy'
+          }
+        ]
+      }
+    };
+
+    duplicateProfileOption(options, 'auto', 'auto-copy');
+
+    expect(options['+auto-copy']).toEqual({
+      defaultProfileName: '__ruleListOf_auto-copy',
+      name: 'auto-copy',
+      profileType: 'SwitchProfile',
+      revision: 'revision:auto-copy',
+      rules: [
+        {
+          condition: {
+            conditionType: 'HostWildcardCondition',
+            pattern: '*.example.com'
+          },
+          profileName: 'proxy'
+        }
+      ]
+    });
+    expect(options['+__ruleListOf_auto-copy']).toEqual({
+      defaultProfileName: 'direct',
+      name: '__ruleListOf_auto-copy',
+      profileType: 'RuleListProfile',
+      revision: 'revision:__ruleListOf_auto-copy',
+      ruleList: 'example.com'
+    });
+    expect(options['+__ruleListOf_auto-copy']).not.toBe(options['+__ruleListOf_auto']);
+    expect(options['+auto']).toHaveProperty('defaultProfileName', '__ruleListOf_auto');
   });
 
   it('finds the first fixed profile name from OmegaPac profile iteration', () => {

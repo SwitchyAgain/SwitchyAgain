@@ -79,6 +79,64 @@ describe('profile modal components', () => {
     });
   });
 
+  it('shows duplicate as a disabled final option when no profiles can be copied', () => {
+    render(<NewProfileModal duplicatableProfiles={[]} />);
+
+    const duplicateOption = screen.getByRole('radio', {name: /Duplicate/}) as HTMLInputElement;
+    const allOptions = screen.getAllByRole('radio') as HTMLInputElement[];
+
+    expect(duplicateOption.disabled).toBe(true);
+    expect(allOptions[allOptions.length - 1]).toBe(duplicateOption);
+    expect(screen.getByText('No profiles available to duplicate.')).toBeTruthy();
+    expect(screen.queryByRole('listbox', {name: 'Profile'})).toBeNull();
+  });
+
+  it('duplicates an existing profile after selecting a source profile', () => {
+    const onClose = vi.fn();
+
+    render(
+      <NewProfileModal
+        duplicatableProfiles={[
+          {
+            name: 'proxy',
+            profileType: 'FixedProfile'
+          },
+          {
+            name: 'auto',
+            profileType: 'SwitchProfile'
+          }
+        ]}
+        onClose={onClose}
+      />
+    );
+
+    const createButton = screen.getByRole('button', {name: 'Create'}) as HTMLButtonElement;
+    fireEvent.change(screen.getByLabelText('Profile name'), {
+      target: {
+        value: 'proxy-copy'
+      }
+    });
+    fireEvent.click(screen.getByRole('radio', {name: /Duplicate/}));
+
+    expect(createButton.disabled).toBe(true);
+    expect(screen.getByText('Please select a profile to duplicate.')).toBeTruthy();
+
+    const sourcePicker = screen.getByRole('listbox', {name: 'Profile'});
+    expect(sourcePicker.closest('.profile-duplicate-source')).toBeTruthy();
+    expect(screen.getByText('Select a profile')).toBeTruthy();
+
+    fireEvent.click(sourcePicker);
+    const proxyOption = screen.getByRole('option', {name: /proxy/});
+    expect(proxyOption.querySelector('.glyphicon-globe')).toBeTruthy();
+    fireEvent.click(proxyOption.querySelector('a') as HTMLAnchorElement);
+    fireEvent.click(createButton);
+
+    expect(onClose).toHaveBeenCalledWith({
+      duplicateProfileName: 'proxy',
+      name: 'proxy-copy'
+    });
+  });
+
   it('edits proxy authentication and toggles password visibility', () => {
     const onClose = vi.fn();
 

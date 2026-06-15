@@ -272,6 +272,34 @@ a[role="button"] {
   cursor: pointer;
 }
 
+.profile-duplicate-description {
+  margin-bottom: 5px;
+}
+
+.profile-duplicate-source {
+  margin: 0 0 0 20px;
+}
+
+.profile-duplicate-source-label {
+  font-weight: bold;
+  margin-right: 6px;
+}
+
+.profile-duplicate-source .omega-profile-select {
+  vertical-align: middle;
+  width: auto;
+}
+
+.profile-duplicate-source .omega-profile-select .btn {
+  min-width: 160px;
+  width: auto;
+}
+
+.profile-duplicate-source .omega-profile-select .dropdown-menu {
+  min-width: 100%;
+  width: auto;
+}
+
 .monospace {
   font-family: Menlo, Monaco, Consolas, "Courier New", monospace !important;
 }

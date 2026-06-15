@@ -31,6 +31,8 @@ import {
   deleteAttachedProfileOption,
   deleteProfileOption,
   deleteProfileScopeAssignments,
+  duplicatableProfilesFromOptions,
+  duplicateProfileOption,
   exportRuleListOptions,
   firstFixedProfileName,
   hasProxyScriptApi,
@@ -55,7 +57,7 @@ import {
 import {parseRoute, routeHref} from './options_routes';
 import {ConfirmModal} from './confirm_modals';
 import {WelcomeModal} from './options_modals';
-import {NewProfileModal, ProxyAuthModal, RenameProfileModal} from './profile_modals';
+import {NewProfileModal, ProxyAuthModal, RenameProfileModal, type NewProfileSpec} from './profile_modals';
 import {
   FixedProfileContent,
   PacProfile,
@@ -723,7 +725,18 @@ export function OptionsApp() {
       .finally(() => setProfileUpdating(profileName, false));
   }
 
-  function createProfile(profileSpec: {name: string; profileType: ProfileType}) {
+  function createProfile(profileSpec: NewProfileSpec) {
+    if ('duplicateProfileName' in profileSpec) {
+      updateOptionsDraft((nextOptions) => {
+        duplicateProfileOption(nextOptions, profileSpec.duplicateProfileName, profileSpec.name);
+      });
+      setModal(null);
+      navigate('profile', {
+        name: profileSpec.name
+      });
+      return;
+    }
+
     updateOptionsDraft((nextOptions) => {
       const profile = OmegaPac.Profiles.create(profileSpec);
       const choice = Math.floor(Math.random() * PROFILE_COLORS.length);
@@ -1243,6 +1256,7 @@ export function OptionsApp() {
       {modal?.kind === 'newProfile' && options && (
         <ModalFrame onDismiss={() => setModal(null)}>
           <NewProfileModal
+            duplicatableProfiles={duplicatableProfilesFromOptions(options)}
             isProfileNameHidden={isProfileNameHidden}
             isProfileNameReserved={isProfileNameReserved}
             onClose={createProfile}

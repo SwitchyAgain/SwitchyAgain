@@ -1026,6 +1026,24 @@ msgstr ""
 "požádání. To funguje dobře s SwitchProfile, což umožňuje změnit výsledek "
 "více podmínek jedním kliknutím."
 
+msgid "options_profileTypeDuplicate"
+msgstr "Duplikovat"
+
+msgid "options_profileDescDuplicate"
+msgstr "Vytvořit nový profil zkopírováním existujícího profilu."
+
+msgid "options_profileDuplicateEmpty"
+msgstr "Nejsou k dispozici žádné profily k duplikování."
+
+msgid "options_profileDuplicateSource"
+msgstr "Profil"
+
+msgid "options_profileDuplicateSourcePlaceholder"
+msgstr "Vyberte profil"
+
+msgid "options_profileDuplicateSourceRequired"
+msgstr "Vyberte profil, který chcete duplikovat."
+
 msgid "options_createProfile"
 msgstr "Vytvořit"
 

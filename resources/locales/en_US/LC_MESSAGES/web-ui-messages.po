@@ -1023,6 +1023,24 @@ msgstr ""
 "well with SwitchProfile, allowing you to change the result of multiple "
 "conditions by one click."
 
+msgid "options_profileTypeDuplicate"
+msgstr "Duplicate"
+
+msgid "options_profileDescDuplicate"
+msgstr "Create a new profile by copying an existing profile."
+
+msgid "options_profileDuplicateEmpty"
+msgstr "No profiles available to duplicate."
+
+msgid "options_profileDuplicateSource"
+msgstr "Profile"
+
+msgid "options_profileDuplicateSourcePlaceholder"
+msgstr "Select a profile"
+
+msgid "options_profileDuplicateSourceRequired"
+msgstr "Please select a profile to duplicate."
+
 msgid "options_createProfile"
 msgstr "Create"
 

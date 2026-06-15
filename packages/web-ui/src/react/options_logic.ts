@@ -7,10 +7,23 @@ import type {
   ProfileAuth,
   RuleListProfileModel
 } from './profile_types';
-import {createAttachedName, profileKey, type NamedSwitchProfileModel, type SwitchRule} from './switch_profile_runtime';
+import {
+  attachedIdentity,
+  createAttachedName,
+  profileKey,
+  type NamedSwitchProfileModel,
+  type SwitchRule
+} from './switch_profile_runtime';
 
 const CHAR_CODE_UNDERSCORE = '_'.charCodeAt(0);
 const RULE_LIST_USAGE_URL = 'https://github.com/FelisCatus/SwitchyOmega/wiki/RuleListUsage';
+const DUPLICATABLE_PROFILE_TYPES: Record<string, true> = {
+  FixedProfile: true,
+  PacProfile: true,
+  RuleListProfile: true,
+  SwitchProfile: true,
+  VirtualProfile: true
+};
 const BUILTIN_PROFILES: NamedProfile[] = [
   {
     name: 'direct',
@@ -68,6 +81,10 @@ function profilesFromOptions(options?: Options | null) {
     .filter(isProfileKey)
     .map((key) => options[key])
     .filter(isVisibleProfile);
+}
+
+function isDuplicatableProfile(value: unknown): value is NamedProfile {
+  return isNamedProfile(value) && !value.builtin && Boolean(DUPLICATABLE_PROFILE_TYPES[value.profileType || '']);
 }
 
 function profileByName(options: Options | null | undefined, name: string) {
@@ -261,6 +278,41 @@ export function attachedProfileDraft(options: Options, identity: AttachedProfile
     name: identity.attachedName
   } as NamedRuleListProfileModel;
   return draft;
+}
+
+export function duplicatableProfilesFromOptions(options?: Options | null) {
+  return profilesFromOptions(options).filter(isDuplicatableProfile);
+}
+
+function cloneDuplicatedProfile<TProfile extends NamedProfile>(profile: TProfile, name: string): TProfile {
+  const nextProfile = cloneOptions(profile);
+  nextProfile.name = name;
+  delete nextProfile.hiddenInPopup;
+  delete nextProfile.revision;
+  updateProfileRevision(nextProfile);
+  return nextProfile;
+}
+
+export function duplicateProfileOption(options: Options, sourceName: string, targetName: string) {
+  const sourceProfile = profileOption<NamedProfile>(options, sourceName, isDuplicatableProfile);
+  if (!sourceProfile) {
+    return undefined;
+  }
+
+  const targetProfile = cloneDuplicatedProfile(sourceProfile, targetName);
+  if (isSwitchProfile(sourceProfile) && isSwitchProfile(targetProfile)) {
+    const sourceIdentity = attachedIdentity(sourceName);
+    const sourceAttachedProfile = attachedProfileOption(options, sourceIdentity);
+    if (sourceAttachedProfile) {
+      const targetIdentity = attachedIdentity(targetName);
+      if (targetProfile.defaultProfileName === sourceIdentity.attachedName) {
+        targetProfile.defaultProfileName = targetIdentity.attachedName;
+      }
+      options[targetIdentity.attachedKey] = cloneDuplicatedProfile(sourceAttachedProfile, targetIdentity.attachedName);
+    }
+  }
+  setProfileOption(options, targetName, targetProfile);
+  return targetProfile;
 }
 
 export function profileDownloadErrorMessage(err: unknown) {
