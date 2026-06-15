@@ -662,8 +662,12 @@ export function OptionsApp() {
     if (!savedOptions) {
       return;
     }
-    setOptions(cloneOptions(savedOptions));
+    const nextOptions = cloneOptions(savedOptions);
+    setOptions(nextOptions);
     showAlert(null);
+    if (route.name === 'profile' && route.profileName && !profileByName(nextOptions, route.profileName)) {
+      navigate('ui');
+    }
   }
 
   function requireAppliedOptions(action: () => void | Promise<void>) {
