@@ -9,6 +9,7 @@ import {
   fixedProfileAuthActive,
   fixedProfileAuthSupported,
   fixedProfileBypassList,
+  fixedProfileBypassListEquals,
   fixedProfileBypassText,
   fixedProfileEditors,
   fixedProfileHasAdvancedProxy,
@@ -255,6 +256,8 @@ describe('profile content logic', () => {
         pattern: '*.internal'
       }
     ]);
+    expect(fixedProfileBypassListEquals(profile.bypassList, fixedProfileBypassList('localhost\n*.internal\n'))).toBe(true);
+    expect(fixedProfileBypassListEquals(profile.bypassList, fixedProfileBypassList('*.internal\nlocalhost'))).toBe(false);
   });
 
   it('detects advanced proxy and active proxy auth state', () => {

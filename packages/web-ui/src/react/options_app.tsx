@@ -100,6 +100,7 @@ import {
   detectAdvancedConditionTypes,
   moveRule,
   parseSource,
+  parsedSourceChangesProfile,
   profileKey,
   removeAttached,
   removeRule,
@@ -247,7 +248,7 @@ function SwitchProfilePreview({
   profile: NamedSwitchProfileModel;
   showConditionHelp?: boolean;
   updatingProfiles: Record<string, boolean>;
-  updateOptionsDraft: (updater: (options: Options) => void) => void;
+  updateOptionsDraft: (updater: (options: Options) => void | false) => void;
   updateProfile: <TProfile extends ProfileModel = ProfileModel>(profileName: string, updater: (profile: TProfile) => void) => void;
 }) {
   const identity = attachedIdentity(profile.name);
@@ -293,13 +294,19 @@ function SwitchProfilePreview({
         }
       };
     }
+    const parsedRules = result.rules || [];
+    if (!parsedSourceChangesProfile(profile, attached, identity.attachedName, parsedRules)) {
+      return {
+        ok: true
+      };
+    }
     updateOptionsDraft((nextOptions) => {
       const nextProfile = profileOption<SwitchProfileModel>(nextOptions, profile.name);
       if (!nextProfile) {
-        return;
+        return false;
       }
       const nextAttached = attachedProfileOption(nextOptions, identity) || null;
-      applyParsedSource(nextProfile, nextAttached, attachedOptions, identity.attachedName, result.rules || []);
+      return applyParsedSource(nextProfile, nextAttached, attachedOptions, identity.attachedName, parsedRules) ? undefined : false;
     });
     return {
       ok: true
@@ -538,13 +545,15 @@ export function OptionsApp() {
       .catch(() => {});
   }
 
-  function updateOptionsDraft(updater: (nextOptions: Options) => void) {
+  function updateOptionsDraft(updater: (nextOptions: Options) => void | false) {
     setOptions((current) => {
       if (!current) {
         return current;
       }
       const nextOptions = cloneOptions(current);
-      updater(nextOptions);
+      if (updater(nextOptions) === false) {
+        return current;
+      }
       return nextOptions;
     });
   }

@@ -35,6 +35,7 @@ import {
   fixedProfileAuthActive,
   fixedProfileAuthSupported,
   fixedProfileBypassList,
+  fixedProfileBypassListEquals,
   fixedProfileBypassText,
   fixedProfileEditors,
   fixedProfileHasAdvancedProxy,
@@ -1179,6 +1180,13 @@ export function FixedProfileContent({profile, onBypassListChange, onEditProxyAut
     setDraftEditors({...nextEditors});
   }
 
+  function commitBypassList() {
+    const nextBypassList = fixedProfileBypassList(draftBypassList);
+    if (!fixedProfileBypassListEquals(bypassList || [], nextBypassList)) {
+      onBypassListChange?.(nextBypassList);
+    }
+  }
+
   const defaultEditor = draftEditors[''] || {};
   const visibleSchemes = FIXED_PROFILE_SCHEMES.filter((scheme) => scheme === '' || showAdvanced);
 
@@ -1295,7 +1303,7 @@ export function FixedProfileContent({profile, onBypassListChange, onEditProxyAut
           rows={10}
           value={draftBypassList}
           onChange={(event) => setDraftBypassList(event.currentTarget.value)}
-          onBlur={() => onBypassListChange?.(fixedProfileBypassList(draftBypassList))}
+          onBlur={commitBypassList}
         />
       </section>
     </div>
@@ -2191,6 +2199,16 @@ export function SwitchProfileStatefulContent({
 
   function closeSourceEditor() {
     const currentSource = source || {code: ''};
+    if (!currentSource.touched) {
+      setSource(undefined);
+      setEditSource(false);
+      updateEditorState(false, null);
+      onEditorModeChange?.(false);
+      onRulesLoaded?.();
+      forceLocalRender();
+      return;
+    }
+
     const result = onApplySource?.(currentSource);
     let ok = true;
     let nextSource = currentSource;

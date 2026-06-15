@@ -160,6 +160,13 @@ export function fixedProfileBypassList(value: string): FixedProfileBypassConditi
     }));
 }
 
+export function fixedProfileBypassListEquals(left: FixedProfileBypassCondition[] = [], right: FixedProfileBypassCondition[] = []) {
+  return (
+    left.length === right.length &&
+    left.every((item, index) => item.conditionType === right[index]?.conditionType && item.pattern === right[index]?.pattern)
+  );
+}
+
 export function fixedProfileHasAdvancedProxy(editors: FixedProfileProxyEditors) {
   return !!(editors.http?.scheme || editors.https?.scheme);
 }

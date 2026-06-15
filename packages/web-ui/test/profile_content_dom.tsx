@@ -2,7 +2,14 @@
 
 import React from 'react';
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
-import {FixedProfileContent, PacProfile, ProfileShell, RuleListProfile, SwitchAttachedProfile} from '../src/react/profile_content';
+import {
+  FixedProfileContent,
+  PacProfile,
+  ProfileShell,
+  RuleListProfile,
+  SwitchAttachedProfile,
+  SwitchProfileStatefulContent
+} from '../src/react/profile_content';
 import type {NamedFixedProfileModel, NamedPacProfileModel, NamedRuleListProfileModel} from '../src/react/profile_types';
 
 function installChromeMock() {
@@ -241,5 +248,61 @@ describe('profile content components', () => {
         pattern: '*.internal'
       }
     ]);
+  });
+
+  it('does not commit unchanged fixed proxy bypass list on blur', () => {
+    const onBypassListChange = vi.fn();
+    const profile: NamedFixedProfileModel = {
+      bypassList: [
+        {
+          conditionType: 'BypassCondition',
+          pattern: 'localhost'
+        }
+      ],
+      name: 'proxy',
+      profileType: 'FixedProfile'
+    };
+
+    const {container} = render(<FixedProfileContent onBypassListChange={onBypassListChange} profile={profile} />);
+
+    const bypassList = container.querySelector('textarea') as HTMLTextAreaElement;
+    fireEvent.focus(bypassList);
+    fireEvent.blur(bypassList);
+    expect(onBypassListChange).not.toHaveBeenCalled();
+
+    fireEvent.change(bypassList, {
+      target: {
+        value: 'localhost\n'
+      }
+    });
+    fireEvent.blur(bypassList);
+    expect(onBypassListChange).not.toHaveBeenCalled();
+  });
+
+  it('closes switch source editing without applying untouched source', () => {
+    const onApplySource = vi.fn();
+    const sourceCode = '[SwitchyOmega Conditions]\n@with result\n* +direct';
+
+    render(
+      <SwitchProfileStatefulContent
+        onApplySource={onApplySource}
+        onCreateSource={() => ({
+          code: sourceCode
+        })}
+        profile={{
+          defaultProfileName: 'direct',
+          name: 'auto switch',
+          profileType: 'SwitchProfile',
+          rules: []
+        }}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    expect((screen.getByRole('textbox') as HTMLTextAreaElement).value).toBe(sourceCode);
+
+    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    expect(onApplySource).not.toHaveBeenCalled();
+    expect(screen.queryByRole('textbox')).toBeNull();
   });
 });

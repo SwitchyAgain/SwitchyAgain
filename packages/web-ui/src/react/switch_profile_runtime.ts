@@ -547,6 +547,39 @@ export function parseSource(code: string, options: Options | null | undefined) {
   }
 }
 
+function effectiveProfileName(name?: string | null) {
+  return name || 'direct';
+}
+
+function switchRulesEqual(left: SwitchRule[] = [], right: SwitchRule[] = []) {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function splitParsedSourceRules(rules: SwitchRule[]) {
+  const parsedRules = rules.slice();
+  const defaultRule = parsedRules.pop();
+  return {
+    defaultProfileName: effectiveProfileName(defaultRule?.profileName),
+    parsedRules
+  };
+}
+
+export function parsedSourceChangesProfile(
+  profile: SwitchProfileModel,
+  attached: RuleListProfileModel | null | undefined,
+  attachedName: string,
+  rules: SwitchRule[]
+) {
+  const {defaultProfileName, parsedRules} = splitParsedSourceRules(rules);
+  if (!switchRulesEqual(profile.rules || [], parsedRules)) {
+    return true;
+  }
+  if (attached && profile.defaultProfileName === attachedName) {
+    return effectiveProfileName(attached.defaultProfileName) !== defaultProfileName;
+  }
+  return effectiveProfileName(profile.defaultProfileName) !== defaultProfileName;
+}
+
 export function applyParsedSource(
   profile: SwitchProfileModel,
   attached: RuleListProfileModel | null | undefined,
@@ -554,18 +587,31 @@ export function applyParsedSource(
   attachedName: string,
   rules: SwitchRule[]
 ) {
-  const parsedRules = rules.slice();
-  const defaultRule = parsedRules.pop();
-  const defaultProfileName = defaultRule?.profileName || 'direct';
-  profile.rules = parsedRules;
+  const {defaultProfileName, parsedRules} = splitParsedSourceRules(rules);
+  let profileChanged = false;
+  let attachedChanged = false;
+
+  if (!switchRulesEqual(profile.rules || [], parsedRules)) {
+    profile.rules = parsedRules;
+    profileChanged = true;
+  }
   if (attached && profile.defaultProfileName === attachedName) {
-    attached.defaultProfileName = defaultProfileName;
-    OmegaPac.Profiles.updateRevision(attached);
-  } else {
+    if (effectiveProfileName(attached.defaultProfileName) !== defaultProfileName) {
+      attached.defaultProfileName = defaultProfileName;
+      OmegaPac.Profiles.updateRevision(attached);
+      attachedChanged = true;
+    }
+  } else if (effectiveProfileName(profile.defaultProfileName) !== defaultProfileName) {
     profile.defaultProfileName = defaultProfileName;
+    profileChanged = true;
   }
   attachedOptions.defaultProfileName = defaultProfileName;
-  OmegaPac.Profiles.updateRevision(profile);
+  if (!profileChanged && !attachedChanged) {
+    return false;
+  }
+  if (profileChanged || attachedChanged) {
+    OmegaPac.Profiles.updateRevision(profile);
+  }
   return true;
 }
 

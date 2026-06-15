@@ -5,6 +5,7 @@ import {
   inspectRules,
   moveRule,
   parseSource,
+  parsedSourceChangesProfile,
   removeRule,
   resetRuleProfiles,
   setAttachedEnabled,
@@ -287,6 +288,85 @@ describe('switch profile runtime', () => {
     expect(profile.defaultProfileName).toBe('__ruleListOf_auto');
     expect(attached.defaultProfileName).toBe('direct');
     expect(attachedOptions.defaultProfileName).toBe('direct');
+    expect(profile.revision).toBe(1);
+    expect(attached.revision).toBeUndefined();
+  });
+
+  it('does not apply parsed source when rules and defaults are unchanged', () => {
+    const rule: SwitchRule = {
+      condition: {
+        conditionType: 'HostWildcardCondition',
+        pattern: '*.example.com'
+      },
+      profileName: 'proxy'
+    };
+    const profile: SwitchProfileModel = {
+      defaultProfileName: '__ruleListOf_auto',
+      name: 'auto',
+      profileType: 'SwitchProfile',
+      rules: [rule]
+    };
+    const attached: RuleListProfileModel = {
+      defaultProfileName: 'direct',
+      name: '__ruleListOf_auto',
+      profileType: 'RuleListProfile'
+    };
+    const attachedOptions: AttachedOptions = {
+      defaultProfileName: 'direct',
+      enabled: true
+    };
+    const parsedRules: SwitchRule[] = [
+      {
+        condition: {
+          conditionType: 'HostWildcardCondition',
+          pattern: '*.example.com'
+        },
+        profileName: 'proxy'
+      },
+      {
+        condition: {
+          conditionType: 'TrueCondition'
+        },
+        profileName: 'direct'
+      }
+    ];
+
+    expect(parsedSourceChangesProfile(profile, attached, '__ruleListOf_auto', parsedRules)).toBe(false);
+    expect(applyParsedSource(profile, attached, attachedOptions, '__ruleListOf_auto', parsedRules)).toBe(false);
+    expect(profile.revision).toBeUndefined();
+    expect(attached.revision).toBeUndefined();
+  });
+
+  it('applies parsed source when the attached default changes', () => {
+    const profile: SwitchProfileModel = {
+      defaultProfileName: '__ruleListOf_auto',
+      name: 'auto',
+      profileType: 'SwitchProfile',
+      rules: []
+    };
+    const attached: RuleListProfileModel = {
+      defaultProfileName: 'direct',
+      name: '__ruleListOf_auto',
+      profileType: 'RuleListProfile'
+    };
+    const attachedOptions: AttachedOptions = {
+      defaultProfileName: 'direct',
+      enabled: true
+    };
+    const parsedRules: SwitchRule[] = [
+      {
+        condition: {
+          conditionType: 'TrueCondition'
+        },
+        profileName: 'proxy'
+      }
+    ];
+
+    expect(parsedSourceChangesProfile(profile, attached, '__ruleListOf_auto', parsedRules)).toBe(true);
+    expect(applyParsedSource(profile, attached, attachedOptions, '__ruleListOf_auto', parsedRules)).toBe(true);
+    expect(profile.defaultProfileName).toBe('__ruleListOf_auto');
+    expect(attached.defaultProfileName).toBe('proxy');
+    expect(attachedOptions.defaultProfileName).toBe('proxy');
     expect(profile.revision).toBe(1);
     expect(attached.revision).toBe(1);
   });
