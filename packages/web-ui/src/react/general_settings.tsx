@@ -1,8 +1,18 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {flushSync} from 'react-dom';
 import {createRoot} from 'react-dom/client';
-import {Options, loadOptions, message, optionPatch, patchOptions, shouldAutoMount} from './options_client';
+import {
+  Options,
+  applyProfile as applyBackgroundProfile,
+  getState,
+  loadOptions,
+  message,
+  optionPatch,
+  patchOptions,
+  shouldAutoMount
+} from './options_client';
 import {cloneOptions} from './options_logic';
+import {ProfileSelect, allProfilesFromOptions} from './profile_widgets';
 import {richMessage} from './rich_message';
 
 const GENERAL_KEYS = ['-monitorWebRequests', '-downloadInterval', '-showExternalProfile'];
@@ -38,6 +48,10 @@ function messageWithBadges(key: string, fallback: string, substitutions: string[
 export function GeneralSettings({embedded = false, options, onOptionsChange}: GeneralSettingsProps) {
   const [savedOptions, setSavedOptions] = useState<Options | null>(() => (embedded && options ? cloneOptions(options) : null));
   const [draftOptions, setDraftOptions] = useState<Options | null>(() => (embedded && options ? cloneOptions(options) : null));
+  const [profileOptions, setProfileOptions] = useState<Options | null>(() => (embedded && options ? cloneOptions(options) : null));
+  const [activeProfileName, setActiveProfileName] = useState('direct');
+  const [profileStatus, setProfileStatus] = useState<'idle' | 'applying' | 'applied' | 'error'>('idle');
+  const [profileError, setProfileError] = useState('');
   const [status, setStatus] = useState<'loading' | 'ready' | 'saving' | 'saved' | 'error'>(() =>
     embedded && options ? 'ready' : 'loading'
   );
@@ -48,6 +62,7 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
       const cloned = cloneOptions(options);
       setSavedOptions(cloned);
       setDraftOptions(cloneOptions(cloned));
+      setProfileOptions((current) => current || cloneOptions(cloned));
       setStatus('ready');
       return;
     }
@@ -57,6 +72,7 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
         const cloned = cloneOptions(loadedOptions);
         setSavedOptions(cloned);
         setDraftOptions(cloneOptions(cloned));
+        setProfileOptions(cloneOptions(cloned));
         setStatus('ready');
       })
       .catch((err) => {
@@ -64,6 +80,47 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
         setStatus('error');
       });
   }, [embedded, options]);
+
+  useEffect(() => {
+    let mounted = true;
+    Promise.all([getState<string>('currentProfileName'), getState<boolean>('isSystemProfile')])
+      .then(([name, isSystem]) => {
+        if (mounted) {
+          setActiveProfileName(isSystem ? 'system' : name || 'direct');
+        }
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!embedded) {
+      return;
+    }
+    let mounted = true;
+    loadOptions()
+      .then((loadedOptions) => {
+        if (mounted) {
+          setProfileOptions(cloneOptions(loadedOptions));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, [embedded]);
+
+  useEffect(() => {
+    if (profileStatus !== 'applied') {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setProfileStatus('idle');
+    }, 2000);
+    return () => window.clearTimeout(timer);
+  }, [profileStatus]);
 
   const dirty = useMemo(() => {
     if (!savedOptions || !draftOptions) {
@@ -116,6 +173,43 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
       });
   }
 
+  function refreshActiveProfileName() {
+    return Promise.all([getState<string>('currentProfileName'), getState<boolean>('isSystemProfile')]).then(([name, isSystem]) => {
+      setActiveProfileName(isSystem ? 'system' : name || 'direct');
+    });
+  }
+
+  function changeActiveProfile(profileName: string) {
+    if (!profileName || profileName === activeProfileName || profileStatus === 'applying') {
+      return;
+    }
+    const previousProfileName = activeProfileName;
+    setActiveProfileName(profileName);
+    setProfileStatus('applying');
+    setProfileError('');
+    applyBackgroundProfile(profileName)
+      .then(refreshActiveProfileName)
+      .then(() => {
+        setProfileStatus('applied');
+      })
+      .catch((err) => {
+        setActiveProfileName(previousProfileName);
+        setProfileError(err?.message || String(err));
+        setProfileStatus('error');
+      });
+  }
+
+  const profileStatusText =
+    profileStatus === 'applying'
+      ? message('options_currentProfileApplying', 'Applying...')
+      : profileStatus === 'applied'
+        ? message('options_currentProfileApplied', 'Applied.')
+        : profileStatus === 'error'
+          ? message('options_currentProfileApplyFailed', 'Failed to apply profile.')
+          : '';
+
+  const profileStatusClass = profileStatus === 'applied' ? 'text-success' : profileStatus === 'error' ? 'text-danger' : 'text-muted';
+
   const pageHeader = (
     <div className="page-header">
       <h2>{message('options_tab_general', 'General')}</h2>
@@ -151,6 +245,27 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
           <span className="glyphicon glyphicon-ok" /> {message('options_saveSuccess', 'Options saved.')}
         </div>
       )}
+
+      <section className="settings-group width-limit">
+        <h3>{message('options_group_currentProfile', 'Current Profile')}</h3>
+        <p className="help-block">{message('options_currentProfileHelp', 'Choose the active proxy profile.')}</p>
+        <div className="form-group current-profile-control">
+          <label>{message('options_activeProfile', 'Active Profile')}</label>
+          <ProfileSelect
+            ariaLabel={message('options_activeProfile', 'Active Profile')}
+            disabled={profileStatus === 'applying'}
+            inline
+            name={activeProfileName}
+            profiles={allProfilesFromOptions(profileOptions || draftOptions)}
+            onChange={changeActiveProfile}
+          />
+          {profileStatusText && (
+            <span className={`help-inline current-profile-status ${profileStatusClass}`} title={profileError || undefined}>
+              {profileStatusText}
+            </span>
+          )}
+        </div>
+      </section>
 
       <section className="settings-group">
         <h3>{message('options_group_networkRequests', 'Network Requests')}</h3>

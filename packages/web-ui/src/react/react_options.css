@@ -51,6 +51,26 @@
   padding: 1px 4px;
 }
 
+.current-profile-control .omega-profile-select {
+  margin-left: 20px;
+  margin-right: 8px;
+  min-width: 160px;
+  vertical-align: middle;
+}
+
+.current-profile-status {
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.current-profile-status.text-success {
+  color: #3c763d;
+}
+
+.current-profile-status.text-danger {
+  color: #a94442;
+}
+
 .route-trace-input .omega-profile-select {
   margin-right: 8px;
   min-width: 200px;

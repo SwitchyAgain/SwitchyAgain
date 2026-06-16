@@ -210,6 +210,7 @@ export function ProfileSelect({
   ariaLabel,
   defaultIcon = 'glyphicon-time',
   defaultText,
+  disabled = false,
   dispName,
   inline = false,
   name,
@@ -220,6 +221,7 @@ export function ProfileSelect({
   ariaLabel?: string;
   defaultIcon?: string;
   defaultText?: string;
+  disabled?: boolean;
   dispName?: (profile: Profile) => string;
   inline?: boolean;
   name: string;
@@ -260,6 +262,7 @@ export function ProfileSelect({
         aria-expanded={open ? 'true' : 'false'}
         aria-haspopup="true"
         aria-label={ariaLabel}
+        disabled={disabled}
         role="listbox"
         onClick={() => setOpen(!open)}
       >

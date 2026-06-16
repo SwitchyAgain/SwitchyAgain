@@ -84,6 +84,7 @@ export type RequestExplainArgs = {
 };
 
 export type BackgroundMethodArgs = {
+  applyProfile: [name: string];
   explainRequest: [args: RequestExplainArgs | string];
   getAll: [];
   getState: [name: string | string[]];
@@ -99,6 +100,7 @@ export type BackgroundMethodArgs = {
 };
 
 export type BackgroundMethodResult = {
+  applyProfile: unknown;
   explainRequest: RequestExplanation;
   getAll: Options;
   getState: Record<string, unknown>;
@@ -375,6 +377,29 @@ export function callBackground<M extends BackgroundMethod>(
   });
 }
 
+export function callBackgroundWithRefresh<M extends BackgroundMethod>(
+  method: M,
+  ...args: BackgroundMethodArgs[M]
+): Promise<BackgroundMethodResult[M]> {
+  return new Promise((resolve, reject) => {
+    if (!chrome?.runtime?.sendMessage) {
+      reject(new Error('Extension runtime is unavailable.'));
+      return;
+    }
+    chrome.runtime.sendMessage({method, args, refreshActivePage: true}, (response) => {
+      if (chrome.runtime?.lastError) {
+        reject(new Error(chrome.runtime.lastError.message || 'Unknown runtime error.'));
+        return;
+      }
+      if (response?.error) {
+        reject(decodeBackgroundError(response.error));
+        return;
+      }
+      resolve(response?.result as BackgroundMethodResult[M]);
+    });
+  });
+}
+
 export function callBackgroundNoReply<M extends BackgroundMethod>(method: M, ...args: BackgroundMethodArgs[M]) {
   chrome?.runtime?.sendMessage?.(
     {
@@ -417,6 +442,10 @@ export function decodeBackgroundError(error: unknown): BackgroundError | unknown
 
 export function loadOptions() {
   return callBackground('getAll').then(applyOptionsUi);
+}
+
+export function applyProfile(name: string) {
+  return callBackgroundWithRefresh('applyProfile', name);
 }
 
 export function patchOptions(patch: OptionsPatch) {

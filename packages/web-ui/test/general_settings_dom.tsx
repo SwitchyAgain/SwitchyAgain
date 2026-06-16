@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import React from 'react';
-import {cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {GeneralSettings} from '../src/react/general_settings';
 import type {Options} from '../src/react/options_client';
 
@@ -18,7 +18,11 @@ function optionsFixture(): Options {
   return {
     '-downloadInterval': 60,
     '-monitorWebRequests': false,
-    '-showExternalProfile': false
+    '-showExternalProfile': false,
+    '+proxy': {
+      name: 'proxy',
+      profileType: 'FixedProfile'
+    }
   };
 }
 
@@ -61,6 +65,57 @@ describe('general settings component', () => {
       expect.objectContaining({
         '-showExternalProfile': true
       })
+    );
+  });
+
+  it('applies the selected active profile from general settings', async () => {
+    const options = optionsFixture();
+    let currentProfileName = 'direct';
+    const sendMessage = vi.fn((request, callback) => {
+      if (request.method === 'getState') {
+        callback({
+          result: {
+            currentProfileName,
+            isSystemProfile: currentProfileName === 'system'
+          }
+        });
+        return;
+      }
+      if (request.method === 'getAll') {
+        callback({result: options});
+        return;
+      }
+      if (request.method === 'applyProfile') {
+        currentProfileName = request.args[0];
+        callback({result: null});
+      }
+    });
+    (globalThis as any).chrome = {
+      i18n: {
+        getMessage: () => '',
+        getUILanguage: () => 'en'
+      },
+      runtime: {
+        getManifest: () => ({manifest_version: 3}),
+        sendMessage
+      }
+    };
+
+    render(<GeneralSettings embedded options={options} />);
+
+    expect(screen.getByRole('heading', {name: 'Current Profile'})).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('listbox', {name: 'Active Profile'}));
+    fireEvent.click(screen.getByText('proxy'));
+
+    await waitFor(() => expect(screen.getByText('Applied.')).toBeTruthy());
+    expect(sendMessage).toHaveBeenCalledWith(
+      {
+        args: ['proxy'],
+        method: 'applyProfile',
+        refreshActivePage: true
+      },
+      expect.any(Function)
     );
   });
 });
