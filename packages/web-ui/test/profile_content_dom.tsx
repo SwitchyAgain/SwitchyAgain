@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import React from 'react';
-import {cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {
   FixedProfileContent,
   PacProfile,
@@ -22,6 +22,11 @@ function installChromeMock() {
 
 function installOmegaPacMock() {
   (globalThis as any).OmegaPac = {
+    Conditions: {
+      getWeekdayList() {
+        return [];
+      }
+    },
     Profiles: {
       ruleListFormats: ['Switchy', 'AutoProxy'],
       validResultProfilesFor() {
@@ -49,8 +54,8 @@ describe('profile content components', () => {
         onPopupHiddenChange={onPopupHiddenChange}
         profile={{
           name: 'proxy',
-            profileType: 'FixedProfile'
-          }}
+          profileType: 'FixedProfile'
+        }}
         showProfileOptions
       />
     );
@@ -354,9 +359,7 @@ describe('profile content components', () => {
     };
 
     rerender(<FixedProfileContent onEditProxyAuth={onEditProxyAuth} profile={socks5Profile} />);
-    const socks5Tooltip = screen.getByTitle(
-      'Chromium-based browsers do not expose SOCKS5 username/password authentication to extensions.'
-    );
+    const socks5Tooltip = screen.getByTitle('Chromium-based browsers do not expose SOCKS5 username/password authentication to extensions.');
     expect(socks5Tooltip.querySelector('button')?.disabled).toBe(true);
     fireEvent.click(socks5Tooltip);
     expect(onEditProxyAuth).not.toHaveBeenCalled();
@@ -431,5 +434,53 @@ describe('profile content components', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
     expect(onApplySource).not.toHaveBeenCalled();
     expect(screen.queryByRole('textbox')).toBeNull();
+  });
+
+  it('keeps loaded switch rules visible after deleting a rule', () => {
+    vi.useFakeTimers();
+
+    function SwitchRulesHarness() {
+      const [rules, setRules] = React.useState(() =>
+        Array.from({length: 23}, (_value, index) => ({
+          condition: {
+            conditionType: 'HostWildcardCondition',
+            pattern: `rule-${index}.example`
+          },
+          profileName: 'direct'
+        }))
+      );
+
+      return (
+        <SwitchProfileStatefulContent
+          confirmDeletion={false}
+          loadRules
+          onRemoveRule={(index) => {
+            setRules((current) => current.filter((_rule, ruleIndex) => ruleIndex !== index));
+          }}
+          profile={{
+            defaultProfileName: 'direct',
+            name: 'auto switch',
+            profileType: 'SwitchProfile',
+            rules
+          }}
+          rules={rules}
+        />
+      );
+    }
+
+    try {
+      const {container} = render(<SwitchRulesHarness />);
+      expect(container.querySelectorAll('.switch-rule-row')).toHaveLength(15);
+
+      act(() => {
+        vi.advanceTimersByTime(64);
+      });
+      expect(container.querySelectorAll('.switch-rule-row')).toHaveLength(23);
+
+      fireEvent.click(screen.getAllByTitle('Delete rule')[0]);
+      expect(container.querySelectorAll('.switch-rule-row')).toHaveLength(22);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

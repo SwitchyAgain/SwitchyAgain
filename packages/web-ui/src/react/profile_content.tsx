@@ -1101,11 +1101,7 @@ function fixedProfileProtocolLabel(protocol: string) {
   return protocol.toUpperCase();
 }
 
-function fixedProfileOptionsForScheme(
-  scheme: FixedProfileScheme,
-  showSocks5LocalDnsOption = false,
-  currentProtocol?: string
-) {
+function fixedProfileOptionsForScheme(scheme: FixedProfileScheme, showSocks5LocalDnsOption = false, currentProtocol?: string) {
   const defaultLabel = scheme ? message('options_protocol_useDefault', 'Use default') : message('options_protocol_direct', 'Direct');
   const includeSocks5LocalDns = showSocks5LocalDnsOption || currentProtocol === FIXED_PROFILE_SOCKS5_LOCAL_DNS_PROTOCOL;
   const protocols = includeSocks5LocalDns
@@ -1921,8 +1917,11 @@ export function SwitchRulesSection({
     setRenderedRuleCount((current) => {
       const profileChanged = previousProfileNameRef.current !== profile.name;
       previousProfileNameRef.current = profile.name;
-      if (profileChanged || current === 0 || current > rules.length) {
+      if (profileChanged || current === 0) {
         return Math.min(INITIAL_SWITCH_RULE_BATCH_SIZE, rules.length);
+      }
+      if (current > rules.length) {
+        return rules.length;
       }
       return current;
     });
