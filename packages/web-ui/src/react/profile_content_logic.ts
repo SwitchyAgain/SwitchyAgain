@@ -25,9 +25,15 @@ export const FIXED_PROFILE_DEFAULT_PORT: Record<FixedProfileProxyProtocol, numbe
   http: 80,
   https: 443,
   socks4: 1080,
-  socks5: 1080
+  socks5: 1080,
+  'socks5-local': 1080
 };
 export const FIXED_PROFILE_PROTOCOLS: FixedProfileProxyProtocol[] = ['http', 'https', 'socks4', 'socks5'];
+export const FIXED_PROFILE_SOCKS5_LOCAL_DNS_PROTOCOL: FixedProfileProxyProtocol = 'socks5-local';
+export const FIXED_PROFILE_KNOWN_PROTOCOLS: FixedProfileProxyProtocol[] = [
+  ...FIXED_PROFILE_PROTOCOLS,
+  FIXED_PROFILE_SOCKS5_LOCAL_DNS_PROTOCOL
+];
 
 const PAC_URL_REGEX = /^(http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?$/;
 const PAC_URL_WITH_FILE_REGEX = /^(http|https|file):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?$/;
@@ -115,7 +121,7 @@ export function getRuleListFormats(): string[] {
 }
 
 export function isFixedProfileProxyProtocol(value?: string): value is FixedProfileProxyProtocol {
-  return FIXED_PROFILE_PROTOCOLS.includes(value as FixedProfileProxyProtocol);
+  return FIXED_PROFILE_KNOWN_PROTOCOLS.includes(value as FixedProfileProxyProtocol);
 }
 
 export function cloneProxyEditors(proxyEditors?: Partial<FixedProfileProxyEditors>): FixedProfileProxyEditors {
@@ -179,7 +185,10 @@ export function fixedProfileAuthSupported(
   protocol?: string,
   capabilities: ProxyAuthCapabilities = DEFAULT_FIXED_PROFILE_AUTH_CAPABILITIES
 ) {
-  return !!protocol && capabilities[protocol as FixedProfileProxyProtocol] === true;
+  if (protocol === FIXED_PROFILE_SOCKS5_LOCAL_DNS_PROTOCOL) {
+    return capabilities.socks5 === true;
+  }
+  return !!protocol && capabilities[protocol as keyof ProxyAuthCapabilities] === true;
 }
 
 export function cloneSourceState(source?: SwitchRuleSourceState | null): SwitchRuleSourceState | undefined {

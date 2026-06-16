@@ -13,9 +13,10 @@ import {
   uiLocaleForOptions
 } from './options_client';
 import {Profile, ProfileInline, ProfileSelect, allProfilesFromOptions, profileByName} from './profile_widgets';
-import {cloneOptions} from './options_logic';
+import {DEFAULT_PROXY_DNS_CAPABILITIES, cloneOptions} from './options_logic';
 import {UI_THEME_ICON, UI_THEMES, uiThemeForOptions} from './ui_theme';
 import type {UiTheme} from './ui_theme';
+import type {ProxyDnsCapabilities} from './profile_types';
 import {
   moveQuickSwitchProfileName,
   notCycledProfileNames,
@@ -184,6 +185,7 @@ export function UiSettings({embedded = false, options, onOptionsChange, onOpenSh
   );
   const [error, setError] = useState('');
   const [profileScopeCapabilities, setProfileScopeCapabilities] = useState<ProfileScopeCapabilities>(DEFAULT_PROFILE_SCOPE_CAPABILITIES);
+  const [proxyDnsCapabilities, setProxyDnsCapabilities] = useState<ProxyDnsCapabilities>(DEFAULT_PROXY_DNS_CAPABILITIES);
 
   useEffect(() => {
     let mounted = true;
@@ -204,6 +206,24 @@ export function UiSettings({embedded = false, options, onOptionsChange, onOpenSh
   }, []);
 
   useEffect(() => {
+    let mounted = true;
+    getState<ProxyDnsCapabilities>('proxyDnsCapabilities')
+      .then((capabilities) => {
+        if (mounted) {
+          setProxyDnsCapabilities(capabilities || DEFAULT_PROXY_DNS_CAPABILITIES);
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setProxyDnsCapabilities(DEFAULT_PROXY_DNS_CAPABILITIES);
+        }
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (embedded && options) {
       const cloned = cloneOptions(options);
       setSavedOptions(cloned);
@@ -214,13 +234,15 @@ export function UiSettings({embedded = false, options, onOptionsChange, onOpenSh
 
     Promise.all([
       loadOptions(),
-      getState<ProfileScopeCapabilities>('profileScopeCapabilities').catch(() => DEFAULT_PROFILE_SCOPE_CAPABILITIES)
+      getState<ProfileScopeCapabilities>('profileScopeCapabilities').catch(() => DEFAULT_PROFILE_SCOPE_CAPABILITIES),
+      getState<ProxyDnsCapabilities>('proxyDnsCapabilities').catch(() => DEFAULT_PROXY_DNS_CAPABILITIES)
     ])
-      .then(([loadedOptions, capabilities]) => {
+      .then(([loadedOptions, capabilities, dnsCapabilities]) => {
         const cloned = cloneOptions(loadedOptions);
         setSavedOptions(cloned);
         setDraftOptions(cloneOptions(cloned));
         setProfileScopeCapabilities(capabilities || DEFAULT_PROFILE_SCOPE_CAPABILITIES);
+        setProxyDnsCapabilities(dnsCapabilities || DEFAULT_PROXY_DNS_CAPABILITIES);
         setStatus('ready');
       })
       .catch((err) => {
@@ -368,6 +390,7 @@ export function UiSettings({embedded = false, options, onOptionsChange, onOpenSh
   const quickSwitchProfiles = quickSwitchProfileNames(draftOptions['-quickSwitchProfiles']);
   const notCycledProfiles = notCycledProfileNames(allProfiles, quickSwitchProfiles);
   const profileScopes = profileScopesForOptions(draftOptions);
+  const socks5LocalDnsSupported = proxyDnsCapabilities.socks5 === true;
 
   function QuickSwitchList({enabled, names}: {enabled: boolean; names: string[]}) {
     return (
@@ -578,6 +601,17 @@ export function UiSettings({embedded = false, options, onOptionsChange, onOpenSh
               onChange={(event) => updateOption('-showPopupAddTempRule', event.currentTarget.checked)}
             />
             <span> {message('options_showPopupAddTempRule', 'Show Add Temporary Rule in the popup menu.')}</span>
+          </label>
+        </div>
+        <div className={`checkbox ${socks5LocalDnsSupported ? '' : 'disabled'}`}>
+          <label>
+            <input
+              type="checkbox"
+              checked={socks5LocalDnsSupported && Boolean(draftOptions['-showSocks5LocalDnsOption'])}
+              disabled={!socks5LocalDnsSupported}
+              onChange={(event) => updateOption('-showSocks5LocalDnsOption', event.currentTarget.checked)}
+            />
+            <span> {message('options_showSocks5LocalDnsOption', 'Show SOCKS5 local DNS option. Firefox only.')}</span>
           </label>
         </div>
       </section>

@@ -185,6 +185,16 @@ describe('Profiles', function() {
     it('should not return authentication if not provided for protocol', function() {
       return testProfile(profile, 'http://www.example.com/', ['SOCKS 127.0.0.1:1234', 'http', profile.proxyForHttp, void 0]);
     });
+    it('should generate normal SOCKS5 PAC output for SOCKS5 local DNS', function() {
+      assert.strictEqual(
+        Profiles.pacResult({
+          scheme: 'socks5-local',
+          host: '127.0.0.1',
+          port: 1080
+        }),
+        'SOCKS5 127.0.0.1:1080; SOCKS 127.0.0.1:1080'
+      );
+    });
     it('should not use any proxy for requests matching the bypassList', function() {
       return testProfile(profile, 'wss://localhost/', [
         'DIRECT', profile.bypassList[0], {

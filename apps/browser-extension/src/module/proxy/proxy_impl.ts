@@ -5,6 +5,7 @@ import type {
   ProxyChangeDetails,
   ProxyChangeWatcher,
   ProxyAuthCapabilities,
+  ProxyDnsCapabilities,
   ProxyLog,
   ProxyProfile
 } from './proxy_types';
@@ -16,6 +17,7 @@ class ProxyImpl {
   features: string[];
   log: ProxyLog;
   proxyAuthCapabilities: ProxyAuthCapabilities;
+  proxyDnsCapabilities: ProxyDnsCapabilities;
   private _proxyAuth?: InstanceType<typeof ProxyAuth>;
 
   constructor(log: ProxyLog) {
@@ -24,6 +26,9 @@ class ProxyImpl {
       http: true,
       https: true,
       socks4: false,
+      socks5: false
+    };
+    this.proxyDnsCapabilities = {
       socks5: false
     };
     this.log = log;

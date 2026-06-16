@@ -28,6 +28,7 @@ import {
   FIXED_PROFILE_PROXY_FIELDS,
   FIXED_PROFILE_SCHEME_DISP,
   FIXED_PROFILE_SCHEMES,
+  FIXED_PROFILE_SOCKS5_LOCAL_DNS_PROTOCOL,
   cloneProxyEditors,
   cloneSourceState,
   conditionTypeFromSelectValue,
@@ -108,6 +109,7 @@ export type FixedProfileProps = {
   onProxyChange?: (field: FixedProfileProxyField, value?: ProxyEditor, options?: FixedProfileProxyChangeOptions) => void;
   profile: NamedFixedProfileModel;
   proxyAuthCapabilities?: ProxyAuthCapabilities;
+  showSocks5LocalDnsOption?: boolean;
 };
 
 export type SwitchAttachedProfileProps = {
@@ -1092,15 +1094,30 @@ export function PacProfile({
   );
 }
 
-function fixedProfileOptionsForScheme(scheme: FixedProfileScheme) {
+function fixedProfileProtocolLabel(protocol: string) {
+  if (protocol === FIXED_PROFILE_SOCKS5_LOCAL_DNS_PROTOCOL) {
+    return 'SOCKS5 LOCAL DNS';
+  }
+  return protocol.toUpperCase();
+}
+
+function fixedProfileOptionsForScheme(
+  scheme: FixedProfileScheme,
+  showSocks5LocalDnsOption = false,
+  currentProtocol?: string
+) {
   const defaultLabel = scheme ? message('options_protocol_useDefault', 'Use default') : message('options_protocol_direct', 'Direct');
+  const includeSocks5LocalDns = showSocks5LocalDnsOption || currentProtocol === FIXED_PROFILE_SOCKS5_LOCAL_DNS_PROTOCOL;
+  const protocols = includeSocks5LocalDns
+    ? FIXED_PROFILE_PROTOCOLS.concat(FIXED_PROFILE_SOCKS5_LOCAL_DNS_PROTOCOL)
+    : FIXED_PROFILE_PROTOCOLS;
   return [
     {
       label: defaultLabel,
       value: ''
     },
-    ...FIXED_PROFILE_PROTOCOLS.map((protocol) => ({
-      label: protocol.toUpperCase(),
+    ...protocols.map((protocol) => ({
+      label: fixedProfileProtocolLabel(protocol),
       value: protocol
     }))
   ];
@@ -1113,7 +1130,7 @@ function fixedProfileAuthTitle(protocol?: string, supported = false) {
   if (protocol === 'socks4') {
     return message('options_proxy_authUnsupportedSocks4', 'SOCKS4 does not support username/password authentication.');
   }
-  if (protocol === 'socks5') {
+  if (protocol === 'socks5' || protocol === FIXED_PROFILE_SOCKS5_LOCAL_DNS_PROTOCOL) {
     return message(
       'options_proxy_authUnsupportedSocks5Browser',
       'Chromium-based browsers do not expose SOCKS5 username/password authentication to extensions.'
@@ -1122,7 +1139,14 @@ function fixedProfileAuthTitle(protocol?: string, supported = false) {
   return message('options_proxy_authUnsupportedProtocol', '$1 proxy authentication is not supported.', protocol.toUpperCase());
 }
 
-export function FixedProfileContent({profile, proxyAuthCapabilities, onBypassListChange, onEditProxyAuth, onProxyChange}: FixedProfileProps) {
+export function FixedProfileContent({
+  profile,
+  proxyAuthCapabilities,
+  showSocks5LocalDnsOption = false,
+  onBypassListChange,
+  onEditProxyAuth,
+  onProxyChange
+}: FixedProfileProps) {
   const {bypassList, fallbackProxy, name: profileName, proxyForHttp, proxyForHttps} = profile;
   const initialEditors = fixedProfileEditors(profile);
   const [draftEditors, setDraftEditors] = useState<FixedProfileProxyEditors>(() => cloneProxyEditors(initialEditors));
@@ -1240,7 +1264,7 @@ export function FixedProfileContent({profile, proxyAuthCapabilities, onBypassLis
                         value={editor.scheme || ''}
                         onChange={(event) => changeProxyEditor(scheme, 'scheme', event.currentTarget.value)}
                       >
-                        {fixedProfileOptionsForScheme(scheme).map((option) => (
+                        {fixedProfileOptionsForScheme(scheme, showSocks5LocalDnsOption, editor.scheme).map((option) => (
                           <option key={option.value || ''} value={option.value || ''}>
                             {option.label}
                           </option>

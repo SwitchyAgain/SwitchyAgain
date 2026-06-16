@@ -297,6 +297,9 @@ msgstr "Put new conditions added using the popup menu to the bottom of the list.
 msgid "options_showProfileOptions"
 msgstr "Zobrazit možnosti profilu na stránkách profilů pro skrytí profilů ve vyskakovacím menu."
 
+msgid "options_showSocks5LocalDnsOption"
+msgstr "Zobrazit volbu místního DNS pro SOCKS5. Pouze Firefox."
+
 msgid "options_group_keyboardShortcut"
 msgstr "Klávesové zkratky"
 

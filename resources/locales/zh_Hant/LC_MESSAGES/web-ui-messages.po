@@ -273,6 +273,9 @@ msgstr "把以彈出式選單建立的規則加入到清單末尾。"
 msgid "options_showProfileOptions"
 msgstr "在情境模式頁面顯示「情境模式選項」，用於從彈出式選單隱藏情境模式。"
 
+msgid "options_showSocks5LocalDnsOption"
+msgstr "顯示 SOCKS5 本機 DNS 選項。僅 Firefox 支援。"
+
 msgid "options_group_keyboardShortcut"
 msgstr "鍵盤快速鍵"
 

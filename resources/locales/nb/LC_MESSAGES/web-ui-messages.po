@@ -253,6 +253,9 @@ msgstr "Put new conditions added using the popup menu to the bottom of the list.
 msgid "options_showProfileOptions"
 msgstr "Vis profilalternativer på profilsider for å skjule profiler fra sprettoppmenyen."
 
+msgid "options_showSocks5LocalDnsOption"
+msgstr "Vis alternativet for lokal DNS med SOCKS5. Bare Firefox."
+
 msgid "options_group_keyboardShortcut"
 msgstr "Tastatursnarvei"
 

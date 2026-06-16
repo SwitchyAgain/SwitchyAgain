@@ -6,6 +6,7 @@ import type {
   Profile as ProfileModel,
   ProfileAuth,
   ProxyAuthCapabilities,
+  ProxyDnsCapabilities,
   FixedProfileProxyProtocol,
   RuleListProfileModel
 } from './profile_types';
@@ -333,8 +334,15 @@ export const DEFAULT_PROXY_AUTH_CAPABILITIES: ProxyAuthCapabilities = {
   socks5: false
 };
 
+export const DEFAULT_PROXY_DNS_CAPABILITIES: ProxyDnsCapabilities = {
+  socks5: false
+};
+
 export function proxyAuthSupported(protocol?: string, capabilities: ProxyAuthCapabilities = DEFAULT_PROXY_AUTH_CAPABILITIES) {
-  return !!protocol && capabilities[protocol as FixedProfileProxyProtocol] === true;
+  if (protocol === 'socks5-local') {
+    return capabilities.socks5 === true;
+  }
+  return !!protocol && capabilities[protocol as keyof ProxyAuthCapabilities] === true;
 }
 
 export function cloneAuth(auth?: ProfileAuth) {

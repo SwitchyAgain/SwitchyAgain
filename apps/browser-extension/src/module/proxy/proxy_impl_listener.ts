@@ -45,6 +45,9 @@ class ListenerProxyImpl extends ProxyImpl {
       socks4: false,
       socks5: true
     };
+    this.proxyDnsCapabilities = {
+      socks5: true
+    };
     this._optionsReadyCallback = null;
     this._optionsReady = new (NativePromise as PromiseConstructor)((resolve) => {
       this._optionsReadyCallback = resolve;
@@ -130,7 +133,7 @@ class ListenerProxyImpl extends ProxyImpl {
 
   proxyInfo(proxy: MatchedProxyServer, auth?: ProxyCredentials) {
     const proxyInfo: ProxyInfo = {
-      type: proxy.scheme,
+      type: proxy.scheme === 'socks5-local' ? 'socks5' : proxy.scheme,
       host: proxy.host,
       port: proxy.port
     };
@@ -142,7 +145,7 @@ class ListenerProxyImpl extends ProxyImpl {
       }
     }
     if (proxyInfo.type === 'socks') {
-      proxyInfo.proxyDNS = true;
+      proxyInfo.proxyDNS = proxy.scheme !== 'socks5-local';
     }
     return [proxyInfo];
   }

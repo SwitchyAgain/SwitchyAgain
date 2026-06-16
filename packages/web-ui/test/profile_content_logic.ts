@@ -1,5 +1,6 @@
 import {
   FIXED_PROFILE_DEFAULT_PORT,
+  FIXED_PROFILE_KNOWN_PROTOCOLS,
   FIXED_PROFILE_PROTOCOLS,
   FIXED_PROFILE_PROXY_FIELDS,
   cloneSourceState,
@@ -172,9 +173,12 @@ describe('profile content logic', () => {
       http: 80,
       https: 443,
       socks4: 1080,
-      socks5: 1080
+      socks5: 1080,
+      'socks5-local': 1080
     });
+    expect(FIXED_PROFILE_KNOWN_PROTOCOLS).toEqual(['http', 'https', 'socks4', 'socks5', 'socks5-local']);
     expect(isFixedProfileProxyProtocol('socks5')).toBe(true);
+    expect(isFixedProfileProxyProtocol('socks5-local')).toBe(true);
     expect(isFixedProfileProxyProtocol('direct')).toBe(false);
   });
 
@@ -299,9 +303,16 @@ describe('profile content logic', () => {
     expect(fixedProfileAuthSupported('https')).toBe(true);
     expect(fixedProfileAuthSupported('socks4')).toBe(false);
     expect(fixedProfileAuthSupported('socks5')).toBe(false);
+    expect(fixedProfileAuthSupported('socks5-local')).toBe(false);
     expect(fixedProfileAuthSupported()).toBe(false);
 
     expect(fixedProfileAuthSupported('socks5', {
+      http: true,
+      https: true,
+      socks4: false,
+      socks5: true
+    })).toBe(true);
+    expect(fixedProfileAuthSupported('socks5-local', {
       http: true,
       https: true,
       socks4: false,

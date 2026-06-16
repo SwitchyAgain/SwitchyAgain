@@ -299,6 +299,9 @@ msgstr "شرایط جدید افزوده‌شده از منوی بازشو را 
 msgid "options_showProfileOptions"
 msgstr "نمایش گزینه‌های پروفایل در صفحه‌های پروفایل برای پنهان کردن پروفایل‌ها از منوی بازشو."
 
+msgid "options_showSocks5LocalDnsOption"
+msgstr "گزینه DNS محلی SOCKS5 را نشان بده. فقط Firefox."
+
 msgid "options_group_keyboardShortcut"
 msgstr "میان‌برهای صفحه‌کلید"
 

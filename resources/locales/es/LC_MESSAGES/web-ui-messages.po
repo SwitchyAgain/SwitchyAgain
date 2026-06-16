@@ -308,6 +308,9 @@ msgstr ""
 "Mostrar Opciones de perfil en las páginas de perfil para ocultar perfiles "
 "del menú emergente."
 
+msgid "options_showSocks5LocalDnsOption"
+msgstr "Mostrar la opción de DNS local SOCKS5. Solo Firefox."
+
 msgid "options_group_keyboardShortcut"
 msgstr "Atajo de teclado"
 

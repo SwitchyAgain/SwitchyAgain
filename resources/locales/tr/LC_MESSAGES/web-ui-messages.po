@@ -261,6 +261,9 @@ msgstr ""
 msgid "options_showProfileOptions"
 msgstr "Açılır menüden profilleri gizlemek için profil sayfalarında Profil Seçenekleri'ni göster."
 
+msgid "options_showSocks5LocalDnsOption"
+msgstr "SOCKS5 yerel DNS seçeneğini göster. Yalnızca Firefox."
+
 msgid "options_group_keyboardShortcut"
 msgstr "Klavye Kısayolu"
 

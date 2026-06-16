@@ -84,6 +84,8 @@ describe('ui settings component', () => {
       })
     );
 
+    expect((screen.getByLabelText('Show SOCKS5 local DNS option. Firefox only.') as HTMLInputElement).disabled).toBe(true);
+
     fireEvent.click(container.querySelector('#react-ui-locale') as HTMLButtonElement);
     fireEvent.click(screen.getByRole('option', {name: /Espa/}).querySelector('a') as HTMLAnchorElement);
     expect(onOptionsChange).toHaveBeenLastCalledWith(

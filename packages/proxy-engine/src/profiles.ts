@@ -130,7 +130,8 @@ const ProfilesApi: ProfilesApiType = {
     'http': 'PROXY',
     'https': 'HTTPS',
     'socks4': 'SOCKS',
-    'socks5': 'SOCKS5'
+    'socks5': 'SOCKS5',
+    'socks5-local': 'SOCKS5'
   },
   formatByType: {
     'SwitchyRuleListProfile': 'Switchy',
@@ -155,7 +156,7 @@ const ProfilesApi: ProfilesApiType = {
   },
   pacResult(proxy?: ProxyServer | null): string {
     if (proxy) {
-      if (proxy.scheme === 'socks5') {
+      if (proxy.scheme === 'socks5' || proxy.scheme === 'socks5-local') {
         return "SOCKS5 " + proxy.host + ":" + proxy.port + "; SOCKS " + proxy.host + ":" + proxy.port;
       } else {
         return ProfilesApi.pacProtocols[proxy.scheme] + " " + proxy.host + ":" + proxy.port;

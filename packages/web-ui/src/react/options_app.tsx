@@ -29,6 +29,7 @@ import {
   composeOmegaRuleList,
   createPacExport,
   DEFAULT_PROXY_AUTH_CAPABILITIES,
+  DEFAULT_PROXY_DNS_CAPABILITIES,
   deleteAttachedProfileOption,
   deleteProfileOption,
   deleteProfileScopeAssignments,
@@ -130,6 +131,7 @@ import type {
   ProfileAuthMap,
   ProfileAuthKey,
   ProxyAuthCapabilities,
+  ProxyDnsCapabilities,
   ProfileType,
   PacProfileField,
   RuleListProfileAttachedField,
@@ -434,6 +436,7 @@ export function OptionsApp() {
   const [alertShown, setAlertShown] = useState(false);
   const [profileScopeCapabilities, setProfileScopeCapabilities] = useState<ProfileScopeCapabilities>(DEFAULT_PROFILE_SCOPE_CAPABILITIES);
   const [proxyAuthCapabilities, setProxyAuthCapabilities] = useState<ProxyAuthCapabilities>(DEFAULT_PROXY_AUTH_CAPABILITIES);
+  const [proxyDnsCapabilities, setProxyDnsCapabilities] = useState<ProxyDnsCapabilities>(DEFAULT_PROXY_DNS_CAPABILITIES);
   const [profileScopeContainers, setProfileScopeContainers] = useState<ProfileScopeContainerInfo[]>([]);
   const isExperimental = useMemo(hasProxyScriptApi, []);
   const pacProfilesUnsupported = isExperimental;
@@ -443,14 +446,16 @@ export function OptionsApp() {
       loadOptions(),
       getState<ProfileScopeCapabilities>('profileScopeCapabilities').catch(() => DEFAULT_PROFILE_SCOPE_CAPABILITIES),
       getState<ProxyAuthCapabilities>('proxyAuthCapabilities').catch(() => DEFAULT_PROXY_AUTH_CAPABILITIES),
+      getState<ProxyDnsCapabilities>('proxyDnsCapabilities').catch(() => DEFAULT_PROXY_DNS_CAPABILITIES),
       getState<ProfileScopeContainerInfo[]>('profileScopeContainers').catch(() => [])
     ])
-      .then(([loadedOptions, capabilities, authCapabilities, containers]) => {
+      .then(([loadedOptions, capabilities, authCapabilities, dnsCapabilities, containers]) => {
         const cloned = cloneOptions(loadedOptions);
         setSavedOptions(cloned);
         setOptions(cloneOptions(cloned));
         setProfileScopeCapabilities(capabilities || DEFAULT_PROFILE_SCOPE_CAPABILITIES);
         setProxyAuthCapabilities(authCapabilities || DEFAULT_PROXY_AUTH_CAPABILITIES);
+        setProxyDnsCapabilities(dnsCapabilities || DEFAULT_PROXY_DNS_CAPABILITIES);
         setProfileScopeContainers(Array.isArray(containers) ? containers : []);
         setStatus('ready');
         showFirstRun(cloned);
@@ -1187,6 +1192,7 @@ export function OptionsApp() {
             <FixedProfileContent
               profile={profile}
               proxyAuthCapabilities={proxyAuthCapabilities}
+              showSocks5LocalDnsOption={proxyDnsCapabilities.socks5 === true && options['-showSocks5LocalDnsOption'] === true}
               onBypassListChange={(value) => updateFixedProfileBypassList(profile.name, value)}
               onEditProxyAuth={(scheme) => requestFixedProxyAuth(profile, scheme)}
               onProxyChange={(field, value, changeOptions) => updateFixedProfileProxy(profile.name, field, value, changeOptions)}

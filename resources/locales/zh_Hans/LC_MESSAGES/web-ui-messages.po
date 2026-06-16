@@ -278,6 +278,9 @@ msgstr "把以弹出菜单方式创建的规则添加到列表末尾。"
 msgid "options_showProfileOptions"
 msgstr "在情景模式页面显示“情景模式选项”，用于从弹出菜单隐藏情景模式。"
 
+msgid "options_showSocks5LocalDnsOption"
+msgstr "显示 SOCKS5 本地 DNS 选项。仅 Firefox 支持。"
+
 msgid "options_group_keyboardShortcut"
 msgstr "键盘快捷键"
 

@@ -304,6 +304,9 @@ msgstr ""
 "Показывать параметры профиля на страницах профилей, чтобы скрывать профили "
 "во всплывающем меню."
 
+msgid "options_showSocks5LocalDnsOption"
+msgstr "Показывать вариант локального DNS для SOCKS5. Только Firefox."
+
 msgid "options_group_keyboardShortcut"
 msgstr "Горячая клавиша"
 

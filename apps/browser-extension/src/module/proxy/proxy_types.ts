@@ -15,6 +15,10 @@ export type ProxyAuthCapabilities = {
   socks5: boolean;
 };
 
+export type ProxyDnsCapabilities = {
+  socks5: boolean;
+};
+
 export type ProxyServer = Record<string, unknown> & {
   host?: string;
   port?: number;
@@ -88,6 +92,7 @@ export type ProxyChangeWatcher = (details: ProxyChangeDetails) => unknown;
 export type ProxyImplInstance = {
   features: string[];
   proxyAuthCapabilities: ProxyAuthCapabilities;
+  proxyDnsCapabilities: ProxyDnsCapabilities;
   applyProfile(profile: ProxyProfile, meta?: unknown, options?: unknown): Promise<unknown>;
   parseExternalProfile(details: ExternalProxyDetails | ProxyProfile, options?: unknown): unknown;
   setProfileResolver?(resolver: ProxyProfileResolver | null, profileNames?: ProxyScopeProfileNames): void;

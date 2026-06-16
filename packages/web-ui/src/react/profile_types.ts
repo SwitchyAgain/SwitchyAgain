@@ -75,6 +75,7 @@ export type OptionsData = {
   '-showConditionTypes'?: number;
   '-showExternalProfile'?: boolean;
   '-showInspectMenu'?: boolean;
+  '-showSocks5LocalDnsOption'?: boolean;
   '-showProfileOptions'?: boolean;
   '-showPopupAddCondition'?: boolean;
   '-showPopupAddTempRule'?: boolean;
@@ -117,9 +118,13 @@ export type NamedPacProfileModel = PacProfileModel & NamedProfileOfType<'PacProf
 
 export type PacProfileField = 'pacScript' | 'pacUrl';
 
-export type FixedProfileProxyProtocol = 'http' | 'https' | 'socks4' | 'socks5';
+export type FixedProfileProxyProtocol = 'http' | 'https' | 'socks4' | 'socks5' | 'socks5-local';
 
-export type ProxyAuthCapabilities = Record<FixedProfileProxyProtocol, boolean>;
+export type ProxyAuthCapabilities = Record<Exclude<FixedProfileProxyProtocol, 'socks5-local'>, boolean>;
+
+export type ProxyDnsCapabilities = {
+  socks5: boolean;
+};
 
 export type ProxyEditor = {
   host?: string;

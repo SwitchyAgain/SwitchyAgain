@@ -15,6 +15,9 @@ type BadgeOptions = {
 };
 
 type Profile = ProxyProfile;
+type FixedProfileProxyField = 'fallbackProxy' | 'proxyForHttp' | 'proxyForHttps';
+
+const FIXED_PROFILE_PROXY_FIELDS: FixedProfileProxyField[] = ['fallbackProxy', 'proxyForHttp', 'proxyForHttps'];
 
 type ExternalApiLike = {
   disabled: boolean;
@@ -129,6 +132,21 @@ type ChromePortLike = InstanceType<typeof ChromePort>;
 type UpgradeOptions = Record<string, unknown> & {
   schemaVersion?: unknown;
 };
+
+function normalizeSocks5LocalDnsProfile(profile: Profile) {
+  if (profile.profileType !== 'FixedProfile') {
+    return false;
+  }
+  let changed = false;
+  for (const field of FIXED_PROFILE_PROXY_FIELDS) {
+    const proxy = profile[field] as {scheme?: unknown} | undefined;
+    if (proxy?.scheme === 'socks5-local') {
+      proxy.scheme = 'socks5';
+      changed = true;
+    }
+  }
+  return changed;
+}
 
 type PageInfoArgs = {
   cookieStoreId?: string;
@@ -334,7 +352,8 @@ class ChromeOptions extends OmegaTarget.Options {
     );
     this._state.set({
       profileScopeCapabilities: this.profileScopeCapabilities(),
-      proxyAuthCapabilities: this.proxyImpl.proxyAuthCapabilities
+      proxyAuthCapabilities: this.proxyImpl.proxyAuthCapabilities,
+      proxyDnsCapabilities: this.proxyImpl.proxyDnsCapabilities
     });
     this.refreshProfileScopeContainers();
     this.watchTabProfileContexts();
@@ -995,7 +1014,19 @@ class ChromeOptions extends OmegaTarget.Options {
     if (options == null || Object.keys(options).length === 0 || options.schemaVersion == null) {
       return OmegaPromise.reject(new OmegaTarget.Options.NoOptionsError());
     }
-    return super.upgrade(options, changes);
+    return super.upgrade(options, changes).then(([upgradedOptions, upgradedChanges]: [Record<string, unknown>, Record<string, unknown>]) => {
+      if (this.proxyImpl.proxyDnsCapabilities.socks5) {
+        return [upgradedOptions, upgradedChanges];
+      }
+      OmegaPac.Profiles.each(upgradedOptions, (key: string, profile: Profile) => {
+        if (!normalizeSocks5LocalDnsProfile(profile)) {
+          return;
+        }
+        OmegaPac.Profiles.updateRevision(profile);
+        upgradedChanges[key] = profile;
+      });
+      return [upgradedOptions, upgradedChanges];
+    });
   }
 
   onFirstRun(_reason: string) {

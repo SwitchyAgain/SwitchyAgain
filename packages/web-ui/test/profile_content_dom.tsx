@@ -264,6 +264,67 @@ describe('profile content components', () => {
     ]);
   });
 
+  it('shows the SOCKS5 local DNS protocol only when enabled', () => {
+    const onProxyChange = vi.fn();
+    const profile: NamedFixedProfileModel = {
+      name: 'proxy',
+      profileType: 'FixedProfile'
+    };
+
+    const {container, rerender} = render(<FixedProfileContent onProxyChange={onProxyChange} profile={profile} />);
+
+    expect(screen.queryByRole('option', {name: 'SOCKS5 LOCAL DNS'})).toBeNull();
+
+    rerender(
+      <FixedProfileContent
+        onProxyChange={onProxyChange}
+        profile={profile}
+        proxyAuthCapabilities={{
+          http: true,
+          https: true,
+          socks4: false,
+          socks5: true
+        }}
+        showSocks5LocalDnsOption
+      />
+    );
+    expect(screen.getByRole('option', {name: 'SOCKS5 LOCAL DNS'})).toBeTruthy();
+
+    fireEvent.change(container.querySelector('select') as HTMLSelectElement, {
+      target: {
+        value: 'socks5-local'
+      }
+    });
+
+    expect(onProxyChange).toHaveBeenLastCalledWith(
+      'fallbackProxy',
+      {
+        host: 'example.com',
+        port: 1080,
+        scheme: 'socks5-local'
+      },
+      {
+        clearAuth: false
+      }
+    );
+  });
+
+  it('keeps an existing SOCKS5 local DNS protocol visible', () => {
+    const profile: NamedFixedProfileModel = {
+      fallbackProxy: {
+        host: '127.0.0.1',
+        port: 1080,
+        scheme: 'socks5-local'
+      },
+      name: 'proxy',
+      profileType: 'FixedProfile'
+    };
+
+    render(<FixedProfileContent profile={profile} />);
+
+    expect((screen.getByRole('option', {name: 'SOCKS5 LOCAL DNS'}) as HTMLOptionElement).selected).toBe(true);
+  });
+
   it('disables fixed proxy authentication controls for unsupported protocols', () => {
     const onEditProxyAuth = vi.fn();
     const socks4Profile: NamedFixedProfileModel = {

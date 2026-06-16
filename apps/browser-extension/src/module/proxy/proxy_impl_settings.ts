@@ -177,7 +177,7 @@ class SettingsProxyImpl extends ProxyImpl {
     const rules: ProxyRules = {};
     let protocolProxySet = false;
     for (const protocol of PROTOCOL_PROXY_RULE_KEYS) {
-      const proxy = profile[protocol] as ProxyServer | undefined;
+      const proxy = this._proxyForSettings(profile[protocol] as ProxyServer | undefined);
       if (proxy == null) {
         continue;
       }
@@ -185,19 +185,20 @@ class SettingsProxyImpl extends ProxyImpl {
       protocolProxySet = true;
     }
 
-    if (profile.fallbackProxy) {
-      if (profile.fallbackProxy.scheme === 'http') {
+    const fallbackProxy = this._proxyForSettings(profile.fallbackProxy);
+    if (fallbackProxy) {
+      if (fallbackProxy.scheme === 'http') {
         if (!protocolProxySet) {
-          rules.singleProxy = profile.fallbackProxy;
+          rules.singleProxy = fallbackProxy;
         } else {
           for (const protocol of PROTOCOL_PROXY_RULE_KEYS) {
             if (rules[protocol] == null) {
-              rules[protocol] = JSON.parse(JSON.stringify(profile.fallbackProxy)) as ProxyServer;
+              rules[protocol] = JSON.parse(JSON.stringify(fallbackProxy)) as ProxyServer;
             }
           }
         }
       } else {
-        rules.fallbackProxy = profile.fallbackProxy;
+        rules.fallbackProxy = fallbackProxy;
       }
     } else if (!protocolProxySet) {
       config.mode = 'direct';
@@ -212,6 +213,19 @@ class SettingsProxyImpl extends ProxyImpl {
       config.rules = rules;
     }
     return config;
+  }
+
+  private _proxyForSettings(proxy?: ProxyServer) {
+    if (!proxy) {
+      return undefined;
+    }
+    if (proxy.scheme !== 'socks5-local') {
+      return proxy;
+    }
+    return {
+      ...proxy,
+      scheme: 'socks5'
+    };
   }
 
   private _formatBypassItem(condition: ProxyCondition) {
