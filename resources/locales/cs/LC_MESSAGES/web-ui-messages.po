@@ -587,10 +587,16 @@ msgstr "Port"
 msgid "options_proxy_auth"
 msgstr "Ověřování"
 
-msgid "options_proxy_authNotSupported"
-msgstr "Your browser DOES NOT support $PROTOCOLDISP$ proxy authentication! "
-"Please do not report this issue to SwitchyAgain. Contact the support for "
-"your browser instead."
+msgid "options_proxy_authUnsupportedSocks4"
+msgstr "SOCKS4 nepodporuje ověřování uživatelským jménem a heslem."
+
+msgid "options_proxy_authUnsupportedSocks5Browser"
+msgstr ""
+"Prohlížeče založené na Chromiu nezpřístupňují rozšířením ověřování SOCKS5 "
+"uživatelským jménem a heslem."
+
+msgid "options_proxy_authUnsupportedProtocol"
+msgstr "Ověřování proxy $1 není podporováno."
 
 msgid "options_proxy_authAllWarningPac"
 msgstr ""

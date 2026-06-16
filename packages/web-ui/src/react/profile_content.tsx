@@ -1106,6 +1106,22 @@ function fixedProfileOptionsForScheme(scheme: FixedProfileScheme) {
   ];
 }
 
+function fixedProfileAuthTitle(protocol?: string, supported = false) {
+  if (supported || !protocol) {
+    return message('options_proxy_auth', 'Proxy Authentication');
+  }
+  if (protocol === 'socks4') {
+    return message('options_proxy_authUnsupportedSocks4', 'SOCKS4 does not support username/password authentication.');
+  }
+  if (protocol === 'socks5') {
+    return message(
+      'options_proxy_authUnsupportedSocks5Browser',
+      'Chromium-based browsers do not expose SOCKS5 username/password authentication to extensions.'
+    );
+  }
+  return message('options_proxy_authUnsupportedProtocol', '$1 proxy authentication is not supported.', protocol.toUpperCase());
+}
+
 export function FixedProfileContent({profile, proxyAuthCapabilities, onBypassListChange, onEditProxyAuth, onProxyChange}: FixedProfileProps) {
   const {bypassList, fallbackProxy, name: profileName, proxyForHttp, proxyForHttps} = profile;
   const initialEditors = fixedProfileEditors(profile);
@@ -1213,6 +1229,8 @@ export function FixedProfileContent({profile, proxyAuthCapabilities, onBypassLis
               {visibleSchemes.map((scheme) => {
                 const editor = draftEditors[scheme] || {};
                 const hasScheme = !!editor.scheme;
+                const authSupported = hasScheme && fixedProfileAuthSupported(editor.scheme, proxyAuthCapabilities);
+                const authTitle = fixedProfileAuthTitle(editor.scheme, authSupported);
                 return (
                   <tr key={scheme || 'default'}>
                     <td>{FIXED_PROFILE_SCHEME_DISP[scheme] || message('options_scheme_default', 'Default')}</td>
@@ -1265,16 +1283,20 @@ export function FixedProfileContent({profile, proxyAuthCapabilities, onBypassLis
                       )}
                     </td>
                     <td className="proxy-actions">
-                      <button
-                        type="button"
-                        role="button"
-                        className={`btn btn-xs proxy-auth-toggle ${fixedProfileAuthActive(profile, scheme) ? 'btn-success' : 'btn-default'}`}
-                        disabled={!hasScheme}
-                        title={message('options_proxy_auth', 'Proxy Authentication')}
-                        onClick={() => onEditProxyAuth?.(scheme)}
-                      >
-                        <span className="glyphicon glyphicon-lock" />
-                      </button>
+                      <span title={!hasScheme || !authSupported ? authTitle : undefined}>
+                        <button
+                          type="button"
+                          role="button"
+                          className={`btn btn-xs proxy-auth-toggle ${
+                            fixedProfileAuthActive(profile, scheme) && authSupported ? 'btn-success' : 'btn-default'
+                          }`}
+                          disabled={!hasScheme || !authSupported}
+                          title={authSupported ? authTitle : undefined}
+                          onClick={() => onEditProxyAuth?.(scheme)}
+                        >
+                          <span className="glyphicon glyphicon-lock" />
+                        </button>
+                      </span>
                     </td>
                   </tr>
                 );

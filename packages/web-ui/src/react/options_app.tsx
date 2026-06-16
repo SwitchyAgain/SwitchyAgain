@@ -47,7 +47,6 @@ import {
   profileDownloadErrorMessage,
   profileOption,
   profileUpdating,
-  proxyAuthSupported,
   referencedProfiles,
   safeProfileFileName,
   setProfileOption,
@@ -172,10 +171,8 @@ type ModalState =
   | {
       auth?: ProfileAuth;
       authKey: ProfileAuthKey;
-      authSupported: boolean;
       kind: 'proxyAuth';
       profileName: string;
-      protocolDisp: string;
     }
   | {
       fromName: string;
@@ -978,10 +975,8 @@ export function OptionsApp() {
     setModal({
       auth: cloneAuth(profile.auth?.all),
       authKey: 'all',
-      authSupported: true,
       kind: 'proxyAuth',
-      profileName,
-      protocolDisp: ''
+      profileName
     });
   }
 
@@ -998,10 +993,8 @@ export function OptionsApp() {
     setModal({
       auth: cloneAuth(profile.auth?.[authKey]),
       authKey,
-      authSupported: proxyAuthSupported(proxy.scheme, proxyAuthCapabilities),
       kind: 'proxyAuth',
-      profileName,
-      protocolDisp: proxy.scheme
+      profileName
     });
   }
 
@@ -1398,10 +1391,8 @@ export function OptionsApp() {
         <ModalFrame onDismiss={() => setModal(null)}>
           <ProxyAuthModal
             auth={modal.auth}
-            authSupported={modal.authSupported}
             onClose={(auth) => saveProxyAuth(auth, modal)}
             onDismiss={() => setModal(null)}
-            protocolDisp={modal.protocolDisp}
           />
         </ModalFrame>
       )}

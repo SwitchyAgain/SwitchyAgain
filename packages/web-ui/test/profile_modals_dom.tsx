@@ -146,13 +146,9 @@ describe('profile modal components', () => {
           password: 'pass',
           username: 'user'
         }}
-        authSupported={false}
         onClose={onClose}
-        protocolDisp="SOCKS5"
       />
     );
-
-    expect(screen.getByText(/Your browser DOES NOT support SOCKS5 proxy authentication/)).toBeTruthy();
 
     const usernameInput = screen.getByPlaceholderText('Username');
     const passwordInput = screen.getByPlaceholderText('Password') as HTMLInputElement;

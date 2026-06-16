@@ -509,8 +509,16 @@ msgstr "Port"
 msgid "options_proxy_auth"
 msgstr "Kimlik doğrulama"
 
-msgid "options_proxy_authNotSupported"
+msgid "options_proxy_authUnsupportedSocks4"
+msgstr "SOCKS4 kullanıcı adı/parola kimlik doğrulamasını desteklemez."
+
+msgid "options_proxy_authUnsupportedSocks5Browser"
 msgstr ""
+"Chromium tabanlı tarayıcılar SOCKS5 kullanıcı adı/parola kimlik "
+"doğrulamasını uzantılara açmaz."
+
+msgid "options_proxy_authUnsupportedProtocol"
+msgstr "$1 proxy kimlik doğrulaması desteklenmiyor."
 
 msgid "options_proxy_authAllWarningPac"
 msgstr ""

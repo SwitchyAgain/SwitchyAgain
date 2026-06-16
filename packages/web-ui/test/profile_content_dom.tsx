@@ -264,6 +264,58 @@ describe('profile content components', () => {
     ]);
   });
 
+  it('disables fixed proxy authentication controls for unsupported protocols', () => {
+    const onEditProxyAuth = vi.fn();
+    const socks4Profile: NamedFixedProfileModel = {
+      fallbackProxy: {
+        host: '127.0.0.1',
+        port: 1080,
+        scheme: 'socks4'
+      },
+      name: 'proxy',
+      profileType: 'FixedProfile'
+    };
+
+    const {rerender} = render(<FixedProfileContent onEditProxyAuth={onEditProxyAuth} profile={socks4Profile} />);
+    const socks4Tooltip = screen.getByTitle('SOCKS4 does not support username/password authentication.');
+    expect(socks4Tooltip.querySelector('button')?.disabled).toBe(true);
+    fireEvent.click(socks4Tooltip);
+    expect(onEditProxyAuth).not.toHaveBeenCalled();
+
+    const socks5Profile: NamedFixedProfileModel = {
+      fallbackProxy: {
+        host: '127.0.0.1',
+        port: 1080,
+        scheme: 'socks5'
+      },
+      name: 'proxy',
+      profileType: 'FixedProfile'
+    };
+
+    rerender(<FixedProfileContent onEditProxyAuth={onEditProxyAuth} profile={socks5Profile} />);
+    const socks5Tooltip = screen.getByTitle(
+      'Chromium-based browsers do not expose SOCKS5 username/password authentication to extensions.'
+    );
+    expect(socks5Tooltip.querySelector('button')?.disabled).toBe(true);
+    fireEvent.click(socks5Tooltip);
+    expect(onEditProxyAuth).not.toHaveBeenCalled();
+
+    rerender(
+      <FixedProfileContent
+        onEditProxyAuth={onEditProxyAuth}
+        profile={socks5Profile}
+        proxyAuthCapabilities={{
+          http: true,
+          https: true,
+          socks4: false,
+          socks5: true
+        }}
+      />
+    );
+    fireEvent.click(screen.getByTitle('Proxy Authentication'));
+    expect(onEditProxyAuth).toHaveBeenCalledWith('');
+  });
+
   it('does not commit unchanged fixed proxy bypass list on blur', () => {
     const onBypassListChange = vi.fn();
     const profile: NamedFixedProfileModel = {

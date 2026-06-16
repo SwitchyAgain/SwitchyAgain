@@ -611,11 +611,16 @@ msgstr "Puerto"
 msgid "options_proxy_auth"
 msgstr "Autenticación"
 
-msgid "options_proxy_authNotSupported"
+msgid "options_proxy_authUnsupportedSocks4"
+msgstr "SOCKS4 no admite autenticación con nombre de usuario/contraseña."
+
+msgid "options_proxy_authUnsupportedSocks5Browser"
 msgstr ""
-"¡Tu navegador NO soporta la autenticación proxy $PROTOCOLDISP$! Por favor no "
-"reportes esta incidencia a SwitchyAgain. Ponte en contacto con el soporte "
-"para tu navegador."
+"Los navegadores basados en Chromium no exponen la autenticación SOCKS5 con "
+"nombre de usuario/contraseña a las extensiones."
+
+msgid "options_proxy_authUnsupportedProtocol"
+msgstr "No se admite la autenticación de proxy $1."
 
 msgid "options_proxy_authAllWarningPac"
 msgstr ""

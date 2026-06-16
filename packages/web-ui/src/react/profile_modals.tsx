@@ -40,10 +40,8 @@ export type ProxyAuth = {
 
 export type ProxyAuthProps = {
   auth?: ProxyAuth | null;
-  authSupported?: boolean;
   onClose?: (auth: ProxyAuth) => void;
   onDismiss?: () => void;
-  protocolDisp?: string;
 };
 
 function ProfileNameField({
@@ -441,7 +439,7 @@ function ClearableInput({
   );
 }
 
-export function ProxyAuthModal({auth, authSupported = true, onClose, onDismiss, protocolDisp = ''}: ProxyAuthProps) {
+export function ProxyAuthModal({auth, onClose, onDismiss}: ProxyAuthProps) {
   const [username, setUsername] = useState(auth?.username || '');
   const [password, setPassword] = useState(auth?.password || '');
   const [showPassword, setShowPassword] = useState(false);
@@ -466,18 +464,6 @@ export function ProxyAuthModal({auth, authSupported = true, onClose, onDismiss, 
         <h4 className="modal-title">{message('options_modalHeader_proxyAuth', 'Proxy Authentication')}</h4>
       </div>
       <div className="modal-body" style={{paddingBottom: 0}}>
-        {!authSupported && (
-          <div className="form-group">
-            <div className="alert alert-danger">
-              <span className="glyphicon glyphicon-warning-sign" />{' '}
-              {message(
-                'options_proxy_authNotSupported',
-                `Your browser DOES NOT support ${protocolDisp} proxy authentication! Please do not report this issue to SwitchyAgain. Contact the support for your browser instead.`,
-                protocolDisp
-              )}
-            </div>
-          </div>
-        )}
         <div className="form-group">
           <label className="sr-only">{message('options_proxyAuthUsername', 'Username')}</label>
           <ClearableInput

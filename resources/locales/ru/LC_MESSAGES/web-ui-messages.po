@@ -606,11 +606,16 @@ msgstr "Порт"
 msgid "options_proxy_auth"
 msgstr "Аутентификация"
 
-msgid "options_proxy_authNotSupported"
+msgid "options_proxy_authUnsupportedSocks4"
+msgstr "SOCKS4 не поддерживает аутентификацию по имени пользователя и паролю."
+
+msgid "options_proxy_authUnsupportedSocks5Browser"
 msgstr ""
-"Ваш браузер НЕ поддерживает аутентификацию прокси $PROTOCOLDISP$! "
-"Пожалуйста, не сообщайте об этой проблеме в SwitchyAgain. Вместо этого "
-"обратитесь в службу поддержки вашего браузера."
+"Браузеры на базе Chromium не предоставляют расширениям доступ к "
+"аутентификации SOCKS5 по имени пользователя и паролю."
+
+msgid "options_proxy_authUnsupportedProtocol"
+msgstr "Аутентификация прокси $1 не поддерживается."
 
 msgid "options_proxy_authAllWarningPac"
 msgstr ""
