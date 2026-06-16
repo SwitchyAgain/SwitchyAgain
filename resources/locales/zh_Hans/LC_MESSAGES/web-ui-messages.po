@@ -272,6 +272,9 @@ msgstr "在弹出菜单中显示“添加条件”入口。"
 msgid "options_showPopupAddTempRule"
 msgstr "在弹出菜单中显示“添加临时规则”入口。"
 
+msgid "options_showCurrentProfileInGeneral"
+msgstr "在常规设置页面显示当前情景模式。"
+
 msgid "options_addConditionsToBottom"
 msgstr "把以弹出菜单方式创建的规则添加到列表末尾。"
 

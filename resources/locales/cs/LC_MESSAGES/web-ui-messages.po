@@ -291,6 +291,9 @@ msgstr "Zobrazit „Přidat podmínku“ ve vyskakovacím menu."
 msgid "options_showPopupAddTempRule"
 msgstr "Zobrazit „Přidat dočasné pravidlo“ ve vyskakovacím menu."
 
+msgid "options_showCurrentProfileInGeneral"
+msgstr "Zobrazit Aktuální profil na stránce Obecná nastavení."
+
 msgid "options_addConditionsToBottom"
 msgstr "Put new conditions added using the popup menu to the bottom of the list."
 

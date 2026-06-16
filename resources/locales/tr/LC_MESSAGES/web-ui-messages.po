@@ -255,6 +255,9 @@ msgstr "Açılır menüde \"Koşul Ekle\" öğesini göster."
 msgid "options_showPopupAddTempRule"
 msgstr "Açılır menüde \"Geçici Kural Ekle\" öğesini göster."
 
+msgid "options_showCurrentProfileInGeneral"
+msgstr "Genel ayarlar sayfasında Geçerli Profil'i göster."
+
 msgid "options_addConditionsToBottom"
 msgstr ""
 

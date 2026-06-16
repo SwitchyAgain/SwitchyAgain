@@ -11,6 +11,7 @@ export const UI_KEYS = [
   '-confirmDeletion',
   '-refreshOnProfileChange',
   '-showInspectMenu',
+  '-showCurrentProfileInGeneral',
   '-showSocks5LocalDnsOption',
   '-addConditionsToBottom',
   '-showProfileOptions',

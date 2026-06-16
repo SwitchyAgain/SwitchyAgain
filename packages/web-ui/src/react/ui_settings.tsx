@@ -56,7 +56,7 @@ function displayProfileName(profile: Profile) {
 
 function profileScopesForOptions(options?: Options | null): Required<ProfileScopeCapabilities> {
   const raw = options?.['-profileScopes'];
-  const scopes = raw && typeof raw === 'object' ? raw as ProfileScopeCapabilities : {};
+  const scopes = raw && typeof raw === 'object' ? (raw as ProfileScopeCapabilities) : {};
   return {
     tab: scopes.tab === true,
     container: scopes.container === true,
@@ -154,8 +154,8 @@ function UiThemeSelect({value, onChange}: {value: UiTheme; onChange: (value: UiT
         role="listbox"
         onClick={() => setOpen(!open)}
       >
-        <span className={`glyphicon ${UI_THEME_ICON}`} />{' '}
-        <span>{message(selectedTheme.messageKey, selectedTheme.fallback)}</span> <span className="caret" />
+        <span className={`glyphicon ${UI_THEME_ICON}`} /> <span>{message(selectedTheme.messageKey, selectedTheme.fallback)}</span>{' '}
+        <span className="caret" />
       </button>
       {open && (
         <ul className="dropdown-menu" role="listbox">
@@ -558,6 +558,16 @@ export function UiSettings({embedded = false, options, onOptionsChange, onOpenSh
           <label>
             <input
               type="checkbox"
+              checked={Boolean(draftOptions['-showCurrentProfileInGeneral'])}
+              onChange={(event) => updateOption('-showCurrentProfileInGeneral', event.currentTarget.checked)}
+            />
+            <span> {message('options_showCurrentProfileInGeneral', 'Show Current Profile on the General settings page.')}</span>
+          </label>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
               checked={Boolean(draftOptions['-addConditionsToBottom'])}
               onChange={(event) => updateOption('-addConditionsToBottom', event.currentTarget.checked)}
             />
@@ -576,10 +586,7 @@ export function UiSettings({embedded = false, options, onOptionsChange, onOpenSh
             />
             <span>
               {' '}
-              {message(
-                'options_showProfileOptions',
-                'Show Profile Options on profile pages for hiding profiles from the popup menu.'
-              )}
+              {message('options_showProfileOptions', 'Show Profile Options on profile pages for hiding profiles from the popup menu.')}
             </span>
           </label>
         </div>

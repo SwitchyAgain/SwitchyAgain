@@ -70,6 +70,7 @@ describe('general settings component', () => {
 
   it('applies the selected active profile from general settings', async () => {
     const options = optionsFixture();
+    options['-showCurrentProfileInGeneral'] = true;
     let currentProfileName = 'direct';
     const sendMessage = vi.fn((request, callback) => {
       if (request.method === 'getState') {
@@ -117,5 +118,12 @@ describe('general settings component', () => {
       },
       expect.any(Function)
     );
+  });
+
+  it('hides current profile controls unless enabled', () => {
+    render(<GeneralSettings embedded options={optionsFixture()} />);
+
+    expect(screen.queryByRole('heading', {name: 'Current Profile'})).toBeNull();
+    expect(screen.queryByRole('listbox', {name: 'Active Profile'})).toBeNull();
   });
 });

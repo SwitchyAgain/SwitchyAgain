@@ -29,6 +29,7 @@ describe('ui settings logic', () => {
     };
     const after: Options = {
       '-quickSwitchProfiles': ['direct', 'proxy'],
+      '-showCurrentProfileInGeneral': true,
       '-showProfileOptions': true,
       '-showSocks5LocalDnsOption': true,
       '-uiLocale': 'en',
@@ -42,6 +43,7 @@ describe('ui settings logic', () => {
     expect(uiOptionsDirty(before, after)).toBe(true);
     expect(uiOptionPatch(before, after)).toEqual({
       '-quickSwitchProfiles': [['direct'], ['direct', 'proxy']],
+      '-showCurrentProfileInGeneral': [undefined, true],
       '-showProfileOptions': [undefined, true],
       '-showSocks5LocalDnsOption': [undefined, true],
       '-uiTheme': ['light', 'dark']

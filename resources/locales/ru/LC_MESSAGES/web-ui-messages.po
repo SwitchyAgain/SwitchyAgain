@@ -295,6 +295,9 @@ msgstr "Показывать «Добавить условие» во всплы
 msgid "options_showPopupAddTempRule"
 msgstr "Показывать «Добавить временное правило» во всплывающем меню."
 
+msgid "options_showCurrentProfileInGeneral"
+msgstr "Показывать Текущий профиль на странице общих настроек."
+
 msgid "options_addConditionsToBottom"
 msgstr ""
 "Помещать новые условия, добавленные через всплывающее меню, в низ списка."

@@ -128,6 +128,7 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
     }
     return GENERAL_KEYS.some((key) => savedOptions[key] !== draftOptions[key]);
   }, [savedOptions, draftOptions]);
+  const showCurrentProfile = draftOptions?.['-showCurrentProfileInGeneral'] === true;
 
   function updateOption(key: string, value: unknown) {
     setDraftOptions((current) => {
@@ -246,26 +247,28 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
         </div>
       )}
 
-      <section className="settings-group width-limit">
-        <h3>{message('options_group_currentProfile', 'Current Profile')}</h3>
-        <p className="help-block">{message('options_currentProfileHelp', 'Choose the active proxy profile.')}</p>
-        <div className="form-group current-profile-control">
-          <label>{message('options_activeProfile', 'Active Profile')}</label>
-          <ProfileSelect
-            ariaLabel={message('options_activeProfile', 'Active Profile')}
-            disabled={profileStatus === 'applying'}
-            inline
-            name={activeProfileName}
-            profiles={allProfilesFromOptions(profileOptions || draftOptions)}
-            onChange={changeActiveProfile}
-          />
-          {profileStatusText && (
-            <span className={`help-inline current-profile-status ${profileStatusClass}`} title={profileError || undefined}>
-              {profileStatusText}
-            </span>
-          )}
-        </div>
-      </section>
+      {showCurrentProfile && (
+        <section className="settings-group width-limit">
+          <h3>{message('options_group_currentProfile', 'Current Profile')}</h3>
+          <p className="help-block">{message('options_currentProfileHelp', 'Choose the active proxy profile.')}</p>
+          <div className="form-group current-profile-control">
+            <label>{message('options_activeProfile', 'Active Profile')}</label>
+            <ProfileSelect
+              ariaLabel={message('options_activeProfile', 'Active Profile')}
+              disabled={profileStatus === 'applying'}
+              inline
+              name={activeProfileName}
+              profiles={allProfilesFromOptions(profileOptions || draftOptions)}
+              onChange={changeActiveProfile}
+            />
+            {profileStatusText && (
+              <span className={`help-inline current-profile-status ${profileStatusClass}`} title={profileError || undefined}>
+                {profileStatusText}
+              </span>
+            )}
+          </div>
+        </section>
+      )}
 
       <section className="settings-group">
         <h3>{message('options_group_networkRequests', 'Network Requests')}</h3>

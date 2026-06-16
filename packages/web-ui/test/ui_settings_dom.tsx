@@ -84,6 +84,13 @@ describe('ui settings component', () => {
       })
     );
 
+    fireEvent.click(screen.getByLabelText('Show Current Profile on the General settings page.'));
+    expect(onOptionsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        '-showCurrentProfileInGeneral': true
+      })
+    );
+
     expect((screen.getByLabelText('Show SOCKS5 local DNS option. Firefox only.') as HTMLInputElement).disabled).toBe(true);
 
     fireEvent.click(container.querySelector('#react-ui-locale') as HTMLButtonElement);
@@ -105,7 +112,9 @@ describe('ui settings component', () => {
     );
     expect(document.documentElement.classList.contains('theme-dark')).toBe(false);
 
-    fireEvent.click(container.querySelector('.omega-profile-select:not(.ui-locale-select):not(.ui-theme-select) button') as HTMLButtonElement);
+    fireEvent.click(
+      container.querySelector('.omega-profile-select:not(.ui-locale-select):not(.ui-theme-select) button') as HTMLButtonElement
+    );
     fireEvent.click(screen.getByRole('option', {name: 'proxy'}).querySelector('a') as HTMLAnchorElement);
     expect(onOptionsChange).toHaveBeenLastCalledWith(
       expect.objectContaining({

@@ -18,6 +18,7 @@ export default function defaultOptions() {
     '-revertProxyChanges': true,
     '-confirmDeletion': true,
     '-showInspectMenu': true,
+    '-showCurrentProfileInGeneral': false,
     '-addConditionsToBottom': false,
     '-showProfileOptions': false,
     '-showPopupAddCondition': true,

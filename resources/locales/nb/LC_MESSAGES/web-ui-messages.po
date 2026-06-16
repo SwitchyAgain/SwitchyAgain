@@ -247,6 +247,9 @@ msgstr "Vis «Legg til betingelse» i oppsprettsmenyen."
 msgid "options_showPopupAddTempRule"
 msgstr "Vis «Legg til midlertidig regel» i oppsprettsmenyen."
 
+msgid "options_showCurrentProfileInGeneral"
+msgstr "Vis Gjeldende profil på siden Generelle innstillinger."
+
 msgid "options_addConditionsToBottom"
 msgstr "Put new conditions added using the popup menu to the bottom of the list."
 

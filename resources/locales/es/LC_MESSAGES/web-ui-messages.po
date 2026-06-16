@@ -299,6 +299,9 @@ msgstr "Mostrar «Añadir condición» en el menú emergente."
 msgid "options_showPopupAddTempRule"
 msgstr "Mostrar «Añadir regla temporal» en el menú emergente."
 
+msgid "options_showCurrentProfileInGeneral"
+msgstr "Mostrar Perfil actual en la página de configuración General."
+
 msgid "options_addConditionsToBottom"
 msgstr ""
 "Agregue nuevas condiciones usando el menú emergente al final de la lista."
