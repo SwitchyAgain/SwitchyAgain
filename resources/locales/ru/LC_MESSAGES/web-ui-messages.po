@@ -22,7 +22,7 @@ msgid "manifest_app_name"
 msgstr "Proxy SwitchyAgain"
 
 msgid "manifest_app_description"
-msgstr "Управляйте и переключайтесь между прокси-серверами быстро и легко."
+msgstr "Управляйте и переключайтесь между прокси-серверами быстро и легко в современных браузерах."
 
 msgid "manifest_icon_default_title"
 msgstr "Загрузка…"

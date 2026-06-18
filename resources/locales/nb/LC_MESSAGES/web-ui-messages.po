@@ -22,7 +22,7 @@ msgid "manifest_app_name"
 msgstr "Proxy SwitchyAgain"
 
 msgid "manifest_app_description"
-msgstr "Behandle og bytt mellom flerfoldige mellomtjenere raskt og enkelt."
+msgstr "Behandle og bytt mellom flerfoldige mellomtjenere raskt og enkelt i moderne nettlesere."
 
 msgid "manifest_icon_default_title"
 msgstr "Laster inn…"

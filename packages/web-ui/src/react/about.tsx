@@ -31,7 +31,7 @@ export function About({embedded = false, isExperimental = false, version, onDown
   }, [embedded]);
 
   const shownVersion = version || manifestVersion();
-  const iconPath = embedded ? 'img/icons/omega-action-32.png' : '../img/icons/omega-action-32.png';
+  const iconPath = embedded ? 'img/icons/omega-32.png' : '../img/icons/omega-32.png';
   const content = (
     <>
       {isExperimental && (
@@ -83,7 +83,7 @@ export function About({embedded = false, isExperimental = false, version, onDown
         <p>
           {message('about_version', `Version ${shownVersion}`, shownVersion)}
           <br />
-          <a href="https://github.com/iklh/SwitchyAgain">{message('about_projectHomepage', 'Project homepage')}</a>
+          <a href="https://github.com/SwitchyAgain/SwitchyAgain">{message('about_projectHomepage', 'Project homepage')}</a>
           <br />
           <br />
           {messageWithNodes('about_basedOnSwitchyOmega', 'Based on SwitchyOmega, Copyright 2012-2017 __SWITCHYOMEGA_AUTHORS__.', {
@@ -91,7 +91,7 @@ export function About({embedded = false, isExperimental = false, version, onDown
           })}
           <br />
           {messageWithNodes('about_switchyagainChangesCopyright', 'SwitchyAgain changes Copyright 2026 __SWITCHYAGAIN_AUTHORS__.', {
-            __SWITCHYAGAIN_AUTHORS__: <a href="https://github.com/iklh/SwitchyAgain/graphs/contributors">The SwitchyAgain Authors</a>
+            __SWITCHYAGAIN_AUTHORS__: <a href="https://github.com/SwitchyAgain/SwitchyAgain/graphs/contributors">The SwitchyAgain Authors</a>
           })}
           <br />
           {messageWithNodes('about_licenseLine', 'Licensed under the __GPL_LICENSE__ Version 3 or later.', {

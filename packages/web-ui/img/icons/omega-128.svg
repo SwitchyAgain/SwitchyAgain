@@ -9,4 +9,16 @@
      fill-rule="evenodd"
      fill="#31afec"
      stroke="none" />
+  <ellipse
+     cx="54.5"
+     cy="57.5"
+     rx="5.8"
+     ry="13.5"
+     fill="#31afec" />
+  <ellipse
+     cx="73.5"
+     cy="57.5"
+     rx="5.8"
+     ry="13.5"
+     fill="#31afec" />
 </svg>

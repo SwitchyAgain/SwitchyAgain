@@ -21,7 +21,7 @@ msgid "manifest_app_name"
 msgstr "Proxy SwitchyAgain"
 
 msgid "manifest_app_description"
-msgstr "Správa a přepínání mezi více proxy servery ."
+msgstr "Spravujte a přepínejte mezi více proxy servery rychle a snadno v moderních prohlížečích."
 
 msgid "manifest_icon_default_title"
 msgstr "Načítám…"

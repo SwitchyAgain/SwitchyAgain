@@ -21,7 +21,7 @@ msgid "manifest_app_name"
 msgstr "Proxy SwitchyAgain"
 
 msgid "manifest_app_description"
-msgstr "Manage and switch between multiple proxies quickly & easily."
+msgstr "Manage and switch between multiple proxies quickly & easily on modern browsers."
 
 msgid "manifest_icon_default_title"
 msgstr "Loading…"

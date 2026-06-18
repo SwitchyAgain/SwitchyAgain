@@ -21,7 +21,7 @@ msgid "manifest_app_name"
 msgstr "Proxy SwitchyAgain"
 
 msgid "manifest_app_description"
-msgstr "مدیریت و تعویض سریع و آسان بین چندین پیشکار."
+msgstr "مدیریت و تعویض سریع و آسان بین چندین پیشکار در مرورگرهای مدرن."
 
 msgid "manifest_icon_default_title"
 msgstr "بار کردن…"

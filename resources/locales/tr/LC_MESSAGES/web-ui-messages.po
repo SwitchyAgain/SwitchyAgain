@@ -22,7 +22,8 @@ msgstr "Proxy SwitchyAgain"
 
 msgid "manifest_app_description"
 msgstr ""
-"Birden çok vekil sunucuyu yönet ve aralarında kolayca ve hızlıca geçiş yap."
+"Modern tarayıcılarda birden çok vekil sunucuyu yönet ve aralarında kolayca ve "
+"hızlıca geçiş yap."
 
 msgid "manifest_icon_default_title"
 msgstr "Yükleniyor…"

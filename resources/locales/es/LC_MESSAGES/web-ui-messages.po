@@ -22,7 +22,8 @@ msgstr "Proxy SwitchyAgain"
 
 msgid "manifest_app_description"
 msgstr ""
-"Gestiona y utiliza diferentes servidores proxy de forma rápida y sencilla."
+"Gestiona y utiliza diferentes servidores proxy de forma rápida y sencilla en "
+"navegadores modernos."
 
 msgid "manifest_icon_default_title"
 msgstr "Cargando…"

@@ -21,7 +21,7 @@ msgid "manifest_app_name"
 msgstr "Proxy SwitchyAgain"
 
 msgid "manifest_app_description"
-msgstr "轻松快捷地管理和切换多个代理设置。"
+msgstr "在现代浏览器上轻松快捷地管理和切换多个代理设置。"
 
 msgid "manifest_icon_default_title"
 msgstr "正在加载……"
