@@ -1,5 +1,8 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {Options, RequestExplanation, RequestExplainStep, explainRequest, getState, message} from './options_client';
+import {message} from './i18n_client';
+import {explainRequest} from './options_api_client';
+import type {Options, RequestExplanation, RequestExplainStep} from './options_client_types';
+import {getState} from './state_client';
 import {ProfileInline, ProfileSelect, allProfilesFromOptions, profileByName} from './profile_widgets';
 import {formatRequestUrl, profileFromExplanation, routeTraceStepCondition, routeTraceSteps} from './route_trace_logic';
 

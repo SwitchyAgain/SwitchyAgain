@@ -1,7 +1,7 @@
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {ConfirmModal} from './confirm_modals';
-import {Options} from './options_client';
-import {message} from './options_client';
+import {message} from './i18n_client';
+import type {Options} from './options_client_types';
 import {richMessage} from './rich_message';
 import {Profile, ProfileInline, ProfileSelect, PROFILE_ICONS, isVirtualProfile, profileByName, resultProfilesFor} from './profile_widgets';
 import {

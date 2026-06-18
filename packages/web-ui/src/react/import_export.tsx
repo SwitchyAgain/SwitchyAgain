@@ -1,19 +1,17 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 import {createRoot} from 'react-dom/client';
+import {message} from './i18n_client';
+import {downloadBlob, shouldAutoMount} from './navigation_client';
 import {
-  downloadBlob,
-  getLocalState,
   loadOptions,
-  message,
-  Options,
   patchOptions,
   resetOptions,
   resetOptionsSync,
-  shouldAutoMount,
-  setLocalState,
   setOptionsSync
-} from './options_client';
+} from './options_api_client';
+import type {Options} from './options_client_types';
+import {getLocalState, setLocalState} from './state_client';
 import {
   RESTORE_URL_STATE,
   backupOptionsText,

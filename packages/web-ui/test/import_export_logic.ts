@@ -6,7 +6,7 @@ import {
   legacyRuleListPatch,
   syncBusy
 } from '../src/react/import_export_logic';
-import type {Options} from '../src/react/options_client';
+import type {Options} from '../src/react/options_client_types';
 
 describe('import export logic', () => {
   it('uses a stable local state key for online restore URLs', () => {

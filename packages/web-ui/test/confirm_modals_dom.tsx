@@ -3,7 +3,7 @@
 import React from 'react';
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {ConfirmModal} from '../src/react/confirm_modals';
-import type {Options} from '../src/react/options_client';
+import type {Options} from '../src/react/options_client_types';
 import type {Profile} from '../src/react/profile_widgets';
 
 function profile(name: string, profileType = 'FixedProfile'): Profile {

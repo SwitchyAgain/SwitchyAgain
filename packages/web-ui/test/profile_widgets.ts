@@ -12,7 +12,7 @@ import {
   profilesFromOptions,
   resultProfilesFor
 } from '../src/react/profile_widgets';
-import type {Options} from '../src/react/options_client';
+import type {Options} from '../src/react/options_client_types';
 import type {Profile} from '../src/react/profile_widgets';
 
 function installBrowserMessageMock() {

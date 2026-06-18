@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {message} from './options_client';
+import {message} from './i18n_client';
 import {PROFILE_ICONS, Profile, ProfileSelect} from './profile_widgets';
 import {profileNameErrors, profileNameValid} from './profile_modals_logic';
 import type {ProfileType} from './profile_types';

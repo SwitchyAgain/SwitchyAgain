@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {setUiLocale} from './options_client';
-import type {RequestExplanation} from './options_client';
+import {setUiLocale} from './i18n_client';
+import type {RequestExplanation} from './options_client_types';
 import {createRoot} from 'react-dom/client';
 import {
   PageInfo,

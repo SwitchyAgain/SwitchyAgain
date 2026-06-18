@@ -1,4 +1,4 @@
-import type {RequestExplanation, RequestExplainProfile} from './options_client';
+import type {RequestExplanation, RequestExplainProfile} from './options_client_types';
 import type {PageInfo, PopupConditionType, PopupMode, PopupState, Profile, ProfileKey, ProfileMap} from './popup_target';
 
 export const defaultConditionType: PopupConditionType = 'HostWildcardCondition';

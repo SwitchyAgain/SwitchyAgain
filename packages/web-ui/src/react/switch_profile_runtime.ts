@@ -1,4 +1,4 @@
-import type {BackgroundError, Options} from './options_client';
+import type {BackgroundError, Options} from './options_client_types';
 import type {NamedProfile, Profile, ProfileKey, RuleListProfileModel} from './profile_types';
 
 export type {RuleListProfileModel} from './profile_types';

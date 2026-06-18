@@ -32,7 +32,7 @@ import {
   updateProfileError,
   updateProfileRevision
 } from '../src/react/options_logic';
-import type {Options} from '../src/react/options_client';
+import type {Options} from '../src/react/options_client_types';
 import type {Profile} from '../src/react/profile_types';
 import type {SwitchRule} from '../src/react/switch_profile_runtime';
 

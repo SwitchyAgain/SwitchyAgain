@@ -1,5 +1,5 @@
 import React from 'react';
-import {message} from './options_client';
+import {message} from './i18n_client';
 
 export type WelcomeModalProps = {
   onClose?: (result: string) => void;

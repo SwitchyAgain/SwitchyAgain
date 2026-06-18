@@ -5,7 +5,7 @@ import {
   routeTraceStepCondition,
   routeTraceSteps
 } from '../src/react/route_trace_logic';
-import type {Options, RequestExplainStep} from '../src/react/options_client';
+import type {Options, RequestExplainStep} from '../src/react/options_client_types';
 
 describe('route trace logic', () => {
   it('resolves known profiles from options and builds fallback profiles', () => {

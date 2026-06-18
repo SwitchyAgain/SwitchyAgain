@@ -1,4 +1,5 @@
-import {message, type BackgroundError, type Options, type ProfileUpdateResults} from './options_client';
+import {message} from './i18n_client';
+import type {BackgroundError, Options, ProfileUpdateResults} from './options_client_types';
 import type {
   NamedFixedProfileModel,
   NamedProfile,

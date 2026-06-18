@@ -1,5 +1,5 @@
 import React from 'react';
-import {message} from './options_client';
+import {message} from './i18n_client';
 
 type RichFrame = {
   children: React.ReactNode[];

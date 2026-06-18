@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {message} from './options_client';
+import {message} from './i18n_client';
 
 export type OptionsGuideKind = 'options' | 'switch';
 

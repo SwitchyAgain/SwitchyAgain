@@ -1,5 +1,5 @@
-import {message} from './options_client';
-import type {RequestExplanation} from './options_client';
+import {message} from './i18n_client';
+import type {RequestExplanation} from './options_client_types';
 import type {NamedProfile, ProfileKey} from './profile_types';
 import {closeWindow, getGlobalValue, reloadHistory, setBodyOpacity} from './browser_env';
 

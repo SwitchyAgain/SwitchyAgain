@@ -1,4 +1,4 @@
-import type {Options, RequestExplainProfile, RequestExplainStep} from './options_client';
+import type {Options, RequestExplainProfile, RequestExplainStep} from './options_client_types';
 import {profileByName} from './profile_widgets';
 import type {Profile} from './profile_widgets';
 

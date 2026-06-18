@@ -1,17 +1,11 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 import {createRoot} from 'react-dom/client';
-import {
-  Options,
-  getState,
-  loadOptions,
-  message,
-  openShortcutConfig as openDefaultShortcutConfig,
-  patchOptions,
-  shouldAutoMount,
-  UI_LOCALES,
-  uiLocaleForOptions
-} from './options_client';
+import {UI_LOCALES, message, uiLocaleForOptions} from './i18n_client';
+import {openShortcutConfig as openDefaultShortcutConfig, shouldAutoMount} from './navigation_client';
+import {loadOptions, patchOptions} from './options_api_client';
+import type {Options} from './options_client_types';
+import {getState} from './state_client';
 import {Profile, ProfileInline, ProfileSelect, allProfilesFromOptions, profileByName} from './profile_widgets';
 import {DEFAULT_PROXY_DNS_CAPABILITIES, cloneOptions} from './options_logic';
 import {UI_THEME_ICON, UI_THEMES, uiThemeForOptions} from './ui_theme';

@@ -4,7 +4,7 @@ import React from 'react';
 import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {ImportExport} from '../src/react/import_export';
 import {RESTORE_URL_STATE} from '../src/react/import_export_logic';
-import type {Options} from '../src/react/options_client';
+import type {Options} from '../src/react/options_client_types';
 
 const optionsClientMock = vi.hoisted(() => ({
   downloadBlob: vi.fn(),
@@ -19,17 +19,26 @@ const optionsClientMock = vi.hoisted(() => ({
   shouldAutoMount: vi.fn(() => false)
 }));
 
-vi.mock('../src/react/options_client', () => ({
+vi.mock('../src/react/navigation_client', () => ({
   downloadBlob: optionsClientMock.downloadBlob,
+  shouldAutoMount: optionsClientMock.shouldAutoMount
+}));
+
+vi.mock('../src/react/state_client', () => ({
   getLocalState: optionsClientMock.getLocalState,
+  setLocalState: optionsClientMock.setLocalState
+}));
+
+vi.mock('../src/react/options_api_client', () => ({
   loadOptions: optionsClientMock.loadOptions,
-  message: optionsClientMock.message,
   patchOptions: optionsClientMock.patchOptions,
   resetOptions: optionsClientMock.resetOptions,
   resetOptionsSync: optionsClientMock.resetOptionsSync,
-  setLocalState: optionsClientMock.setLocalState,
-  setOptionsSync: optionsClientMock.setOptionsSync,
-  shouldAutoMount: optionsClientMock.shouldAutoMount
+  setOptionsSync: optionsClientMock.setOptionsSync
+}));
+
+vi.mock('../src/react/i18n_client', () => ({
+  message: optionsClientMock.message
 }));
 
 function optionsFixture(): Options {

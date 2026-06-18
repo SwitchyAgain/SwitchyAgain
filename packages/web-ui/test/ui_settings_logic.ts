@@ -7,7 +7,7 @@ import {
   uiOptionPatch,
   uiOptionsDirty
 } from '../src/react/ui_settings_logic';
-import type {Options} from '../src/react/options_client';
+import type {Options} from '../src/react/options_client_types';
 
 describe('ui settings logic', () => {
   it('compares scalar and array option values', () => {

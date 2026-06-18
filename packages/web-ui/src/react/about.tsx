@@ -1,6 +1,8 @@
 import React, {useEffect} from 'react';
 import {createRoot} from 'react-dom/client';
-import {loadOptions, manifestVersion, message, shouldAutoMount} from './options_client';
+import {message} from './i18n_client';
+import {manifestVersion, shouldAutoMount} from './navigation_client';
+import {loadOptions} from './options_api_client';
 
 export type AboutProps = {
   embedded?: boolean;

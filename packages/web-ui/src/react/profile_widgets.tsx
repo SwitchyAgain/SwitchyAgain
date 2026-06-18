@@ -1,5 +1,6 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {Options, message} from './options_client';
+import {message} from './i18n_client';
+import type {Options} from './options_client_types';
 import type {
   KnownProfileType,
   NamedBuiltinProfileModel,

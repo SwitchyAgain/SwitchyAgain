@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
-import {Options, message} from './options_client';
+import {message} from './i18n_client';
+import type {Options} from './options_client_types';
 import {Profile, ProfileIcon, ProfileInline, ProfileSelect, profileByName} from './profile_widgets';
 import type {RuleListProfileModel} from './profile_types';
 import type {SwitchRule} from './switch_profile_runtime';

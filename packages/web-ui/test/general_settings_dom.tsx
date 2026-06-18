@@ -3,7 +3,7 @@
 import React from 'react';
 import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {GeneralSettings} from '../src/react/general_settings';
-import type {Options} from '../src/react/options_client';
+import type {Options} from '../src/react/options_client_types';
 
 function optionsFixture(): Options {
   return {

@@ -3,22 +3,19 @@ import {createRoot} from 'react-dom/client';
 import {About} from './about';
 import {GeneralSettings} from './general_settings';
 import {ImportExport} from './import_export';
+import {callBackground} from './background_client';
+import {message} from './i18n_client';
+import {downloadBlob, openShortcutConfig} from './navigation_client';
 import {
-  Options,
-  callBackground,
-  downloadBlob,
-  getState,
-  lastUrl,
   loadOptions,
-  message,
-  openShortcutConfig,
   patchOptions,
   renameProfile as renameProfileFromBackground,
   replaceRef as replaceRefFromBackground,
   resetOptions,
-  setState,
   updateProfile as updateProfileFromBackground
-} from './options_client';
+} from './options_api_client';
+import type {Options} from './options_client_types';
+import {getState, lastUrl, setState} from './state_client';
 import {OptionsAlert, OptionsShell} from './options_shell';
 import {
   attachedProfileDraft,

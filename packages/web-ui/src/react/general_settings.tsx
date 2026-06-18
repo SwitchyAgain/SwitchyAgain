@@ -1,16 +1,12 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {flushSync} from 'react-dom';
 import {createRoot} from 'react-dom/client';
-import {
-  Options,
-  applyProfile as applyBackgroundProfile,
-  getState,
-  loadOptions,
-  message,
-  optionPatch,
-  patchOptions,
-  shouldAutoMount
-} from './options_client';
+import {message} from './i18n_client';
+import {shouldAutoMount} from './navigation_client';
+import {optionPatch} from './option_patch';
+import {applyProfile as applyBackgroundProfile, loadOptions, patchOptions} from './options_api_client';
+import type {Options} from './options_client_types';
+import {getState} from './state_client';
 import {cloneOptions} from './options_logic';
 import {ProfileSelect, allProfilesFromOptions} from './profile_widgets';
 import {richMessage} from './rich_message';

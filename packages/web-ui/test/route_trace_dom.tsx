@@ -3,16 +3,22 @@
 import React from 'react';
 import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {RouteTrace} from '../src/react/route_trace';
-import type {Options, RequestExplanation} from '../src/react/options_client';
+import type {Options, RequestExplanation} from '../src/react/options_client_types';
 
 const optionsClientMock = vi.hoisted(() => ({
   explainRequest: vi.fn(),
   getState: vi.fn()
 }));
 
-vi.mock('../src/react/options_client', () => ({
-  explainRequest: optionsClientMock.explainRequest,
-  getState: optionsClientMock.getState,
+vi.mock('../src/react/options_api_client', () => ({
+  explainRequest: optionsClientMock.explainRequest
+}));
+
+vi.mock('../src/react/state_client', () => ({
+  getState: optionsClientMock.getState
+}));
+
+vi.mock('../src/react/i18n_client', () => ({
   message(_key: string, fallback = '') {
     return fallback;
   }

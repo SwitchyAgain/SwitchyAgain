@@ -1,4 +1,4 @@
-import type {Options} from './options_client';
+import type {Options} from './options_client_types';
 
 export const RESTORE_URL_STATE = 'web.restoreOnlineUrl';
 
