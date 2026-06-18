@@ -1,4 +1,5 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
+import {useOutsidePointer} from './dom_event_hooks';
 import {message} from './i18n_client';
 import type {Options} from './options_client_types';
 import type {
@@ -237,23 +238,7 @@ export function ProfileSelect({
   const buttonLabel = selectedProfile ? profileName(selectedProfile, dispName) : defaultText || '';
   const selectStyle: React.CSSProperties = inline ? {display: 'inline-block', width: 'auto'} : {display: 'inline-block'};
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    function closeOnOutsidePointer(event: MouseEvent | TouchEvent) {
-      if (rootRef.current?.contains(event.target as Node)) {
-        return;
-      }
-      setOpen(false);
-    }
-    document.addEventListener('mousedown', closeOnOutsidePointer);
-    document.addEventListener('touchstart', closeOnOutsidePointer);
-    return () => {
-      document.removeEventListener('mousedown', closeOnOutsidePointer);
-      document.removeEventListener('touchstart', closeOnOutsidePointer);
-    };
-  }, [open]);
+  useOutsidePointer(rootRef, () => setOpen(false), open);
 
   return (
     <div ref={rootRef} className={`btn-group omega-profile-select ${open ? 'open' : ''}`} style={selectStyle}>

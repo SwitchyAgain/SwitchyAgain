@@ -54,6 +54,7 @@ import {
 } from './options_logic';
 import {parseRoute, routeHref} from './options_routes';
 import {ConfirmModal} from './confirm_modals';
+import {useWindowEvent} from './dom_event_hooks';
 import {OPTIONS_GUIDE_STEPS, OptionsGuide, SWITCH_PROFILE_GUIDE_STEPS, type OptionsGuideState} from './options_guide';
 import {WelcomeModal} from './options_modals';
 import {NewProfileModal, ProxyAuthModal, RenameProfileModal, type NewProfileSpec} from './profile_modals';
@@ -221,19 +222,19 @@ function ModalFrame({children, onDismiss}: {children: React.ReactNode; onDismiss
 
 function useHashRoute() {
   const [route, setRoute] = useState(() => parseRoute(window.location.hash));
+  function syncRoute() {
+    const nextRoute = parseRoute(window.location.hash);
+    setRoute(nextRoute);
+    lastUrl(routeHref(nextRoute.name, nextRoute.profileName ? {name: nextRoute.profileName} : undefined).replace(/^#/, ''));
+  }
+  useWindowEvent('hashchange', syncRoute);
+
   useEffect(() => {
-    function syncRoute() {
-      const nextRoute = parseRoute(window.location.hash);
-      setRoute(nextRoute);
-      lastUrl(routeHref(nextRoute.name, nextRoute.profileName ? {name: nextRoute.profileName} : undefined).replace(/^#/, ''));
-    }
-    window.addEventListener('hashchange', syncRoute);
     if (!window.location.hash) {
       const storedUrl = lastUrl();
       window.location.hash = storedUrl || routeHref('about');
     }
     syncRoute();
-    return () => window.removeEventListener('hashchange', syncRoute);
   }, []);
   return route;
 }

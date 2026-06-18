@@ -2,6 +2,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {setUiLocale} from './i18n_client';
 import type {RequestExplanation} from './options_client_types';
 import {createRoot} from 'react-dom/client';
+import {useWindowEvent} from './dom_event_hooks';
 import {
   PageInfo,
   PopupCondition,
@@ -224,11 +225,7 @@ function PopupApp() {
       });
   }, []);
 
-  useEffect(() => {
-    const updateMode = () => setMode(modeFromHash());
-    window.addEventListener('hashchange', updateMode);
-    return () => window.removeEventListener('hashchange', updateMode);
-  }, []);
+  useWindowEvent('hashchange', () => setMode(modeFromHash()));
 
   const customProfiles = useMemo(() => visibleMenuProfiles(state), [state]);
   const hiddenProfiles = useMemo(() => hiddenMenuProfiles(state), [state]);
@@ -292,128 +289,123 @@ function PopupApp() {
     popupTarget().openOptions?.(null, closePopup);
   }
 
-  useEffect(() => {
-    function clickById(id: string) {
-      document.getElementById(id)?.click();
-    }
+  function clickById(id: string) {
+    document.getElementById(id)?.click();
+  }
 
-    function visibleLinks() {
-      return Array.from(document.querySelectorAll<HTMLAnchorElement>('.om-nav a')).filter((element) => !element.closest('.om-hidden'));
-    }
+  function visibleLinks() {
+    return Array.from(document.querySelectorAll<HTMLAnchorElement>('.om-nav a')).filter((element) => !element.closest('.om-hidden'));
+  }
 
-    function move(delta: number) {
-      const links = visibleLinks();
-      if (!links.length) {
+  function move(delta: number) {
+    const links = visibleLinks();
+    if (!links.length) {
+      return;
+    }
+    const active = document.activeElement as HTMLElement | null;
+    const currentIndex = active ? links.indexOf(active as HTMLAnchorElement) : -1;
+    const nextIndex = currentIndex < 0 ? (delta > 0 ? 0 : links.length - 1) : (currentIndex + delta + links.length) % links.length;
+    links[nextIndex]?.focus();
+  }
+
+  function closeDropdown() {
+    if (defaultMenuOpen || hiddenMenuOpen || profileScopeMenuOpen || tempMenuOpen) {
+      setDefaultMenuOpen('');
+      setHiddenMenuOpen(false);
+      setProfileScopeMenuOpen('');
+      setTempMenuOpen(false);
+    }
+  }
+
+  function openDropdown() {
+    const active = document.activeElement as HTMLElement | null;
+    const item = active?.closest<HTMLElement>('.om-nav-item');
+    const profileName = item?.dataset.defaultProfileName;
+    if (profileName) {
+      setDefaultMenuOpen(profileName);
+    } else if (item?.classList.contains('om-nav-hidden-profiles')) {
+      setHiddenMenuOpen(true);
+    } else if (item?.dataset.profileScope) {
+      setProfileScopeMenuOpen(item.dataset.profileScope);
+    } else if (item?.classList.contains('om-nav-temprule')) {
+      setTempMenuOpen(true);
+    }
+  }
+
+  useWindowEvent('keydown', (event) => {
+    const tagName = (event.target as HTMLElement | null)?.tagName;
+    if (tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT') {
+      return;
+    }
+    if (mode !== 'menu') {
+      if (event.key === 'Escape') {
+        closeToMenu();
+        event.preventDefault();
+      }
+      return;
+    }
+    switch (event.keyCode) {
+      case 38:
+      case 75:
+        move(-1);
+        event.preventDefault();
         return;
-      }
-      const active = document.activeElement as HTMLElement | null;
-      const currentIndex = active ? links.indexOf(active as HTMLAnchorElement) : -1;
-      const nextIndex = currentIndex < 0 ? (delta > 0 ? 0 : links.length - 1) : (currentIndex + delta + links.length) % links.length;
-      links[nextIndex]?.focus();
-    }
-
-    function closeDropdown() {
-      if (defaultMenuOpen || hiddenMenuOpen || profileScopeMenuOpen || tempMenuOpen) {
-        setDefaultMenuOpen('');
-        setHiddenMenuOpen(false);
-        setProfileScopeMenuOpen('');
-        setTempMenuOpen(false);
-      }
-    }
-
-    function openDropdown() {
-      const active = document.activeElement as HTMLElement | null;
-      const item = active?.closest<HTMLElement>('.om-nav-item');
-      const profileName = item?.dataset.defaultProfileName;
-      if (profileName) {
-        setDefaultMenuOpen(profileName);
-      } else if (item?.classList.contains('om-nav-hidden-profiles')) {
-        setHiddenMenuOpen(true);
-      } else if (item?.dataset.profileScope) {
-        setProfileScopeMenuOpen(item.dataset.profileScope);
-      } else if (item?.classList.contains('om-nav-temprule')) {
-        setTempMenuOpen(true);
-      }
-    }
-
-    function onKeyDown(event: KeyboardEvent) {
-      const tagName = (event.target as HTMLElement | null)?.tagName;
-      if (tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT') {
+      case 40:
+      case 74:
+        move(1);
+        event.preventDefault();
         return;
-      }
-      if (mode !== 'menu') {
-        if (event.key === 'Escape') {
-          closeToMenu();
+      case 37:
+      case 72:
+        closeDropdown();
+        event.preventDefault();
+        return;
+      case 39:
+      case 76:
+        openDropdown();
+        event.preventDefault();
+        return;
+      case 191:
+      case 63:
+        setKeyboardHelp(true);
+        event.preventDefault();
+        return;
+      case 48:
+        clickById('js-direct');
+        event.preventDefault();
+        return;
+      case 83:
+        clickById('js-system');
+        event.preventDefault();
+        return;
+      case 69:
+        clickById('js-external');
+        event.preventDefault();
+        return;
+      case 65:
+      case 187:
+        clickById('js-addrule');
+        event.preventDefault();
+        return;
+      case 84:
+        clickById('js-temprule');
+        event.preventDefault();
+        return;
+      case 79:
+        clickById('js-option');
+        event.preventDefault();
+        return;
+      case 82:
+        clickById('js-routeinfo');
+        event.preventDefault();
+        return;
+      default:
+        if (event.keyCode >= 49 && event.keyCode <= 57) {
+          clickById(`js-profile-${event.keyCode - 48}`);
           event.preventDefault();
         }
-        return;
-      }
-      switch (event.keyCode) {
-        case 38:
-        case 75:
-          move(-1);
-          event.preventDefault();
-          return;
-        case 40:
-        case 74:
-          move(1);
-          event.preventDefault();
-          return;
-        case 37:
-        case 72:
-          closeDropdown();
-          event.preventDefault();
-          return;
-        case 39:
-        case 76:
-          openDropdown();
-          event.preventDefault();
-          return;
-        case 191:
-        case 63:
-          setKeyboardHelp(true);
-          event.preventDefault();
-          return;
-        case 48:
-          clickById('js-direct');
-          event.preventDefault();
-          return;
-        case 83:
-          clickById('js-system');
-          event.preventDefault();
-          return;
-        case 69:
-          clickById('js-external');
-          event.preventDefault();
-          return;
-        case 65:
-        case 187:
-          clickById('js-addrule');
-          event.preventDefault();
-          return;
-        case 84:
-          clickById('js-temprule');
-          event.preventDefault();
-          return;
-        case 79:
-          clickById('js-option');
-          event.preventDefault();
-          return;
-        case 82:
-          clickById('js-routeinfo');
-          event.preventDefault();
-          return;
-        default:
-          if (event.keyCode >= 49 && event.keyCode <= 57) {
-            clickById(`js-profile-${event.keyCode - 48}`);
-            event.preventDefault();
-          }
-      }
     }
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [customProfiles, defaultMenuOpen, hiddenMenuOpen, mode, profileScopeMenuOpen, tempMenuOpen]);
+  });
 
   useEffect(() => {
     if (mode !== 'menu') {

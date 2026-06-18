@@ -1,4 +1,5 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {useWindowEvent} from './dom_event_hooks';
 import {message} from './i18n_client';
 
 export type OptionsGuideKind = 'options' | 'switch';
@@ -266,6 +267,16 @@ export function OptionsGuide({
   const contentNodes = useMemo(() => renderGuideContent(content), [content]);
   const nowrapContent = guide.kind === 'options';
 
+  function updatePosition() {
+    if (!targetRef.current || !step) {
+      return;
+    }
+    setPosition(positionForTarget(targetRef.current, step, popoverRef.current));
+  }
+
+  useWindowEvent('resize', updatePosition, undefined, !!step);
+  useWindowEvent('scroll', updatePosition, true, !!step);
+
   useEffect(() => {
     if (!step) {
       return;
@@ -282,13 +293,6 @@ export function OptionsGuide({
         targetRef.current.classList.remove('options-guide-target');
         targetRef.current = null;
       }
-    }
-
-    function updatePosition() {
-      if (!targetRef.current) {
-        return;
-      }
-      setPosition(positionForTarget(targetRef.current, step, popoverRef.current));
     }
 
     function resolve(attempt = 0) {
@@ -308,16 +312,12 @@ export function OptionsGuide({
     }
 
     resolve();
-    window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition, true);
 
     return () => {
       cancelled = true;
       if (timeout != null) {
         window.clearTimeout(timeout);
       }
-      window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition, true);
       clearTarget();
       document.body.classList.remove('options-guide-active');
       document.body.removeAttribute('data-options-guide-step');

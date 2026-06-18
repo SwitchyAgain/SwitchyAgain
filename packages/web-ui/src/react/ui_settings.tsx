@@ -6,6 +6,7 @@ import {openShortcutConfig as openDefaultShortcutConfig, shouldAutoMount} from '
 import {loadOptions, patchOptions} from './options_api_client';
 import type {Options} from './options_client_types';
 import {getState} from './state_client';
+import {useOutsidePointer} from './dom_event_hooks';
 import {Profile, ProfileInline, ProfileSelect, allProfilesFromOptions, profileByName} from './profile_widgets';
 import {DEFAULT_PROXY_DNS_CAPABILITIES, cloneOptions} from './options_logic';
 import {UI_THEME_ICON, UI_THEMES, uiThemeForOptions} from './ui_theme';
@@ -63,23 +64,7 @@ function UiLocaleSelect({value, onChange}: {value: string; onChange: (value: str
   const rootRef = useRef<HTMLDivElement>(null);
   const selectedLocale = UI_LOCALES.find((locale) => locale.value === value) || UI_LOCALES[0];
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    function closeOnOutsidePointer(event: MouseEvent | TouchEvent) {
-      if (rootRef.current?.contains(event.target as Node)) {
-        return;
-      }
-      setOpen(false);
-    }
-    document.addEventListener('mousedown', closeOnOutsidePointer);
-    document.addEventListener('touchstart', closeOnOutsidePointer);
-    return () => {
-      document.removeEventListener('mousedown', closeOnOutsidePointer);
-      document.removeEventListener('touchstart', closeOnOutsidePointer);
-    };
-  }, [open]);
+  useOutsidePointer(rootRef, () => setOpen(false), open);
 
   return (
     <div ref={rootRef} className={`btn-group omega-profile-select ui-locale-select ${open ? 'open' : ''}`}>
@@ -119,23 +104,7 @@ function UiThemeSelect({value, onChange}: {value: UiTheme; onChange: (value: UiT
   const rootRef = useRef<HTMLDivElement>(null);
   const selectedTheme = UI_THEMES.find((theme) => theme.value === value) || UI_THEMES[0];
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    function closeOnOutsidePointer(event: MouseEvent | TouchEvent) {
-      if (rootRef.current?.contains(event.target as Node)) {
-        return;
-      }
-      setOpen(false);
-    }
-    document.addEventListener('mousedown', closeOnOutsidePointer);
-    document.addEventListener('touchstart', closeOnOutsidePointer);
-    return () => {
-      document.removeEventListener('mousedown', closeOnOutsidePointer);
-      document.removeEventListener('touchstart', closeOnOutsidePointer);
-    };
-  }, [open]);
+  useOutsidePointer(rootRef, () => setOpen(false), open);
 
   return (
     <div ref={rootRef} className={`btn-group omega-profile-select ui-theme-select ${open ? 'open' : ''}`}>
