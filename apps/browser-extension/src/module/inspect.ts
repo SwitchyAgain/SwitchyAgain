@@ -31,23 +31,24 @@ class Inspect {
   }
 
   enable() {
-    if (chrome.contextMenus == null || chrome.i18n.getUILanguage == null || this._enabled) {
+    const contextMenus = chrome.contextMenus;
+    if (contextMenus == null || chrome.i18n.getUILanguage == null || this._enabled) {
       return;
     }
-    chrome.contextMenus.onClicked.addListener(this._onContextMenuClicked);
-    chrome.contextMenus.create({
+    contextMenus.onClicked.addListener(this._onContextMenuClicked);
+    contextMenus.create({
       id: 'inspectFrame',
       title: chrome.i18n.getMessage('contextMenu_inspectFrame'),
       contexts: ['frame'],
       documentUrlPatterns: WEB_RESOURCE_PATTERNS
     });
-    chrome.contextMenus.create({
+    contextMenus.create({
       id: 'inspectLink',
       title: chrome.i18n.getMessage('contextMenu_inspectLink'),
       contexts: ['link'],
       targetUrlPatterns: WEB_RESOURCE_PATTERNS
     });
-    chrome.contextMenus.create({
+    contextMenus.create({
       id: 'inspectElement',
       title: chrome.i18n.getMessage('contextMenu_inspectElement'),
       contexts: ['image', 'video', 'audio'],
@@ -57,7 +58,8 @@ class Inspect {
   }
 
   disable() {
-    if (!this._enabled) {
+    const contextMenus = chrome.contextMenus;
+    if (!this._enabled || contextMenus == null) {
       return;
     }
     for (const menuId of Object.keys(this.propForMenuItem)) {
@@ -65,13 +67,13 @@ class Inspect {
         continue;
       }
       try {
-        chrome.contextMenus.remove(menuId, () => {
+        contextMenus.remove(menuId, () => {
           chrome.runtime.lastError;
         });
       } catch (error) {
       }
     }
-    chrome.contextMenus.onClicked.removeListener(this._onContextMenuClicked);
+    contextMenus.onClicked.removeListener(this._onContextMenuClicked);
     this._enabled = false;
   }
 

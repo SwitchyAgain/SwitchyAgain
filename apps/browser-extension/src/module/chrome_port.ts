@@ -78,8 +78,8 @@ class TrackedEvent<T extends Listener = Listener> {
 class ChromePort {
   disconnect: () => void;
   name: string;
-  onDisconnect: TrackedEvent;
-  onMessage: TrackedEvent;
+  onDisconnect: TrackedEvent<() => void>;
+  onMessage: TrackedEvent<(message: unknown) => void>;
   port: ChromeRuntimePort;
   postMessage: (...args: unknown[]) => void;
   sender?: ChromeRuntimePort['sender'];

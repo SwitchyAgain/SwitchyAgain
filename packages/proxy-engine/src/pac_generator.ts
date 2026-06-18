@@ -8,7 +8,7 @@ const ProfilesApi = Profiles as {
   allReferenceSet(profile: string | Profile, options: OptionsMap, args?: PacGeneratorOptions): ReferenceSet;
   byName(profileName: string, options: OptionsMap): Profile | undefined;
   compile(profile: Profile): Ast.Node;
-  profileNotFound(name: string, action?: unknown): Profile | null;
+  profileNotFound(name: string | Profile, action?: unknown): Profile | null;
   profileResult(profileName: string | Profile): Ast.Node;
 };
 
@@ -29,11 +29,21 @@ export function compress(ast: PacAst): PacAst {
 }
 
 export function script(options: OptionsMap, profile: string | Profile, args?: PacGeneratorOptions) {
-  let targetProfile;
+  let targetProfile: Profile | undefined;
   if (typeof profile === 'string') {
     targetProfile = ProfilesApi.byName(profile, options);
   } else {
     targetProfile = profile;
+  }
+  if (targetProfile == null) {
+    const missing = ProfilesApi.profileNotFound(profile, args != null ? args.profileNotFound : void 0);
+    if (missing == null) {
+      throw new Error("Profile " + profile + " does not exist!");
+    }
+    targetProfile = missing;
+  }
+  if (!targetProfile.name) {
+    throw new Error("Cannot generate PAC script for unnamed profile.");
   }
   const refs = ProfilesApi.allReferenceSet(targetProfile, options, {
     profileNotFound: args != null ? args.profileNotFound : void 0
@@ -41,12 +51,18 @@ export function script(options: OptionsMap, profile: string | Profile, args?: Pa
   const properties = [];
   for (const key in refs) {
     const name = refs[key];
+    if (typeof name !== 'string') {
+      continue;
+    }
     if (!(key !== '+direct')) {
       continue;
     }
     let p = typeof targetProfile === 'object' && targetProfile.name === name ? targetProfile : ProfilesApi.byName(name, options);
     if (p == null) {
-      p = ProfilesApi.profileNotFound(name, args != null ? args.profileNotFound : void 0);
+      p = ProfilesApi.profileNotFound(name, args != null ? args.profileNotFound : void 0) || undefined;
+    }
+    if (p == null) {
+      continue;
     }
     properties.push(Ast.objectKeyVal(key, ProfilesApi.compile(p)));
   }

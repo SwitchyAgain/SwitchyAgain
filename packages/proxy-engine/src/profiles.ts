@@ -159,7 +159,7 @@ const ProfilesApi: ProfilesApiType = {
       if (proxy.scheme === 'socks5' || proxy.scheme === 'socks5-local') {
         return "SOCKS5 " + proxy.host + ":" + proxy.port + "; SOCKS " + proxy.host + ":" + proxy.port;
       } else {
-        return ProfilesApi.pacProtocols[proxy.scheme] + " " + proxy.host + ":" + proxy.port;
+        return ProfilesApi.pacProtocols[proxy.scheme as string] + " " + proxy.host + ":" + proxy.port;
       }
     } else {
       return 'DIRECT';
@@ -170,20 +170,20 @@ const ProfilesApi: ProfilesApiType = {
   },
   nameAsKey(profileName: string | Profile): string {
     if (typeof profileName !== 'string') {
-      profileName = profileName.name;
+      profileName = profileName.name as string;
     }
     return '+' + profileName;
   },
   byName(profileName: string | Profile, options?: OptionsMap): Profile | undefined {
     if (typeof profileName === 'string') {
       const key = ProfilesApi.nameAsKey(profileName);
-      profileName = (ProfilesApi.builtinProfiles[key] != null ? ProfilesApi.builtinProfiles[key] : options != null ? options[key] : void 0) as Profile | undefined;
+      return (ProfilesApi.builtinProfiles[key] != null ? ProfilesApi.builtinProfiles[key] : options != null ? options[key] : void 0) as Profile | undefined;
     }
     return profileName as Profile | undefined;
   },
   byKey(key: string | Profile, options?: OptionsMap): Profile | undefined {
     if (typeof key === 'string') {
-      key = (ProfilesApi.builtinProfiles[key] != null ? ProfilesApi.builtinProfiles[key] : options != null ? options[key] : void 0) as Profile | undefined;
+      return (ProfilesApi.builtinProfiles[key] != null ? ProfilesApi.builtinProfiles[key] : options != null ? options[key] : void 0) as Profile | undefined;
     }
     return key as Profile | undefined;
   },
@@ -232,7 +232,8 @@ const ProfilesApi: ProfilesApiType = {
     return updateContentTypeHints != null ? updateContentTypeHints.call(ProfilesApi, profile) : void 0;
   },
   update(profile: Profile, data: unknown): boolean {
-    return ProfilesApi._handler(profile).update.call(ProfilesApi, profile, data);
+    const update = ProfilesApi._handler(profile).update;
+    return update != null ? update.call(ProfilesApi, profile, data) : false;
   },
   tag(profile: Profile) {
     return ProfilesApi._profileCache.tag(profile);
@@ -264,7 +265,8 @@ const ProfilesApi: ProfilesApiType = {
       return false;
     }
     const handler = ProfilesApi._handler(profile);
-    return handler.replaceRef.call(ProfilesApi, profile, fromName, toName);
+    const replaceRef = handler.replaceRef;
+    return replaceRef != null ? replaceRef.call(ProfilesApi, profile, fromName, toName) : false;
   },
   analyze(profile: Profile) {
     const cache = ProfilesApi._profileCache.get(profile, {}) as ProfileCache;
@@ -287,7 +289,8 @@ const ProfilesApi: ProfilesApiType = {
       return cache.directReferenceSet;
     }
     const handler = ProfilesApi._handler(profile);
-    return cache.directReferenceSet = handler.directReferenceSet.call(ProfilesApi, profile);
+    const directReferenceSet = handler.directReferenceSet;
+    return cache.directReferenceSet = directReferenceSet != null ? directReferenceSet.call(ProfilesApi, profile) : {};
   },
   profileNotFound(name, action) {
     if (action == null) {
@@ -318,16 +321,22 @@ const ProfilesApi: ProfilesApiType = {
     }
     let resolvedProfile = ProfilesApi.byName(profile, options);
     if (resolvedProfile == null) {
-      resolvedProfile = typeof ProfilesApi.profileNotFound === "function" ? ProfilesApi.profileNotFound(o_profile, opt_args.profileNotFound) : void 0;
+      resolvedProfile = ProfilesApi.profileNotFound(o_profile, opt_args.profileNotFound) || undefined;
     }
     const has_out = opt_args.out != null;
     const result = opt_args.out != null ? opt_args.out : opt_args.out = {};
     if (resolvedProfile) {
-      result[ProfilesApi.nameAsKey(resolvedProfile.name)] = resolvedProfile.name;
+      const resolvedName = resolvedProfile.name;
+      if (!resolvedName) {
+        return result;
+      }
+      result[ProfilesApi.nameAsKey(resolvedName)] = resolvedName;
       const ref2 = ProfilesApi.directReferenceSet(resolvedProfile);
       for (const key in ref2) {
         const name = ref2[key];
-        ProfilesApi.allReferenceSet(name, options, opt_args);
+        if (typeof name === 'string') {
+          ProfilesApi.allReferenceSet(name, options, opt_args);
+        }
       }
     }
     if (!has_out) {
@@ -344,7 +353,9 @@ const ProfilesApi: ProfilesApiType = {
     const result = opt_args.out != null ? opt_args.out : opt_args.out = {};
     ProfilesApi.each(options, (key, prof) => {
       if (ProfilesApi.directReferenceSet(prof)[profileKey]) {
-        result[key] = prof.name;
+        if (typeof prof.name === 'string') {
+          result[key] = prof.name;
+        }
         return ProfilesApi.referencedBySet(prof, options, opt_args);
       }
     });
@@ -354,7 +365,11 @@ const ProfilesApi: ProfilesApiType = {
     return result;
   },
   validResultProfilesFor(profile: string | Profile, options: OptionsMap): Profile[] {
-    profile = ProfilesApi.byName(profile, options);
+    const resolvedProfile = ProfilesApi.byName(profile, options);
+    if (!resolvedProfile) {
+      return [];
+    }
+    profile = resolvedProfile;
     if (!ProfilesApi.isInclusive(profile)) {
       return [];
     }
@@ -371,7 +386,7 @@ const ProfilesApi: ProfilesApiType = {
   },
   match(profile: Profile, request: PacRequest, opt_profileType?: string): ProfileMatchResult {
     if (opt_profileType == null) {
-      opt_profileType = profile.profileType;
+      opt_profileType = profile.profileType || '';
     }
     const cache = ProfilesApi.analyze(profile) as ProfileCache;
     const match = ProfilesApi._handler(opt_profileType).match;
@@ -379,20 +394,23 @@ const ProfilesApi: ProfilesApiType = {
   },
   compile(profile: Profile, opt_profileType?: string) {
     if (opt_profileType == null) {
-      opt_profileType = profile.profileType;
+      opt_profileType = profile.profileType || '';
     }
     const cache = ProfilesApi.analyze(profile);
     if (cache.compiled) {
       return cache.compiled;
     }
     const handler = ProfilesApi._handler(opt_profileType);
+    if (handler.compile == null) {
+      throw new Error("Profile type " + opt_profileType + " cannot be compiled.");
+    }
     return cache.compiled = handler.compile.call(ProfilesApi, profile, cache);
   },
   _profileCache: new AttachedCache((profile) => {
     return profile.revision;
   }),
   _handler(profileType) {
-    const profileTypeName = typeof profileType === 'string' ? profileType : profileType.profileType;
+    const profileTypeName = typeof profileType === 'string' ? profileType : profileType.profileType || '';
     let handler: ProfileHandler = profileTypeName;
     while (typeof handler === 'string') {
       handler = ProfilesApi._profileTypes[handler];
@@ -444,11 +462,13 @@ const ProfilesApi: ProfilesApiType = {
         }
         for (const s of this.schemes) {
           if (s.scheme === request.scheme && profile[s.prop]) {
-            const auth = (profile.auth != null ? profile.auth[s.prop] : void 0) != null ? profile.auth[s.prop] : profile.auth != null ? profile.auth['all'] : void 0;
+            const authMap = profile.auth;
+            const auth = authMap != null && authMap[s.prop] != null ? authMap[s.prop] : authMap != null ? authMap['all'] : void 0;
             return [this.pacResult(profile[s.prop]), s.scheme, profile[s.prop], auth];
           }
         }
-        const auth = (profile.auth != null ? profile.auth.fallbackProxy : void 0) != null ? profile.auth.fallbackProxy : profile.auth != null ? profile.auth['all'] : void 0;
+        const authMap = profile.auth;
+        const auth = authMap != null && authMap.fallbackProxy != null ? authMap.fallbackProxy : authMap != null ? authMap['all'] : void 0;
         return [this.pacResult(profile.fallbackProxy), '', profile.fallbackProxy, auth];
       },
       compile(profile) {
@@ -462,13 +482,18 @@ const ProfilesApi: ProfilesApiType = {
           let conditions = null;
           for (const cond of profile.bypassList) {
             const condition = Conditions.compile(cond);
+            if (condition == null) {
+              continue;
+            }
             if (conditions != null) {
               conditions = Ast.binary(conditions, '||', condition);
             } else {
               conditions = condition;
             }
           }
-          body.push(Ast.ifStmt(conditions, Ast.returnStmt(Ast.str(this.pacResult()))));
+          if (conditions != null) {
+            body.push(Ast.ifStmt(conditions, Ast.returnStmt(Ast.str(this.pacResult()))));
+          }
         }
         if (!profile.proxyForHttp && !profile.proxyForHttps) {
           body.push(Ast.returnStmt(Ast.str(this.pacResult(profile.fallbackProxy))));
@@ -540,9 +565,12 @@ const ProfilesApi: ProfilesApiType = {
       },
       directReferenceSet(profile) {
         const refs: ReferenceSet = {};
-        refs[ProfilesApi.nameAsKey(profile.defaultProfileName)] = profile.defaultProfileName;
-        for (const rule of profile.rules) {
-          refs[ProfilesApi.nameAsKey(rule.profileName)] = rule.profileName;
+        const defaultProfileName = profile.defaultProfileName || 'direct';
+        refs[ProfilesApi.nameAsKey(defaultProfileName)] = defaultProfileName;
+        for (const rule of profile.rules || []) {
+          if (typeof rule.profileName === 'string') {
+            refs[ProfilesApi.nameAsKey(rule.profileName)] = rule.profileName;
+          }
         }
         return refs;
       },
@@ -555,7 +583,7 @@ const ProfilesApi: ProfilesApiType = {
           profile.defaultProfileName = toName;
           changed = true;
         }
-        for (const rule of profile.rules) {
+        for (const rule of profile.rules || []) {
           if (rule.profileName === fromName) {
             rule.profileName = toName;
             changed = true;
@@ -569,23 +597,27 @@ const ProfilesApi: ProfilesApiType = {
             return rule;
           }
         }
-        return [ProfilesApi.nameAsKey(profile.defaultProfileName), null];
+        return [ProfilesApi.nameAsKey(profile.defaultProfileName || 'direct'), null];
       },
       compile(profile, cache) {
         const rules = cache.analyzed;
         if (rules.length === 0) {
-          return this.profileResult(profile.defaultProfileName);
+          return this.profileResult(profile.defaultProfileName || 'direct');
         }
         const body = [
           Ast.directive('use strict')
         ];
         for (const rule of rules) {
+          const condition = Conditions.compile(rule.condition);
+          if (condition == null || typeof rule.profileName !== 'string') {
+            continue;
+          }
           body.push(Ast.ifStmt(
-            Conditions.compile(rule.condition),
+            condition,
             Ast.returnStmt(this.profileResult(rule.profileName))
           ));
         }
-        body.push(Ast.returnStmt(this.profileResult(profile.defaultProfileName)));
+        body.push(Ast.returnStmt(this.profileResult(profile.defaultProfileName || 'direct')));
         return Ast.fn(['url', 'host', 'port', 'scheme'], body);
       }
     },
@@ -611,7 +643,7 @@ const ProfilesApi: ProfilesApiType = {
       directReferenceSet(profile) {
         let refs;
         if (profile.ruleList != null) {
-          const formatHandler = RuleListFormats[profile.format];
+          const formatHandler = RuleListFormats[profile.format || ''];
           refs = formatHandler != null && typeof formatHandler.directReferenceSet === "function" ? formatHandler.directReferenceSet(profile) : void 0;
           if (refs) {
             return refs;
@@ -619,7 +651,9 @@ const ProfilesApi: ProfilesApiType = {
         }
         refs = {} as ReferenceSet;
         for (const name of [profile.matchProfileName, profile.defaultProfileName]) {
-          refs[ProfilesApi.nameAsKey(name)] = name;
+          if (typeof name === 'string') {
+            refs[ProfilesApi.nameAsKey(name)] = name;
+          }
         }
         return refs;
       },
@@ -636,7 +670,7 @@ const ProfilesApi: ProfilesApiType = {
         return changed;
       },
       analyze(profile) {
-        const format = profile.format != null ? profile.format : ProfilesApi.formatByType[profile.profileType];
+        const format = profile.format != null ? profile.format : ProfilesApi.formatByType[profile.profileType || ''];
         const formatHandler = RuleListFormats[format];
         if (!formatHandler) {
           throw new Error("Unsupported rule list format " + format + "!");
@@ -645,7 +679,7 @@ const ProfilesApi: ProfilesApiType = {
         if (formatHandler.preprocess != null) {
           ruleList = formatHandler.preprocess(ruleList);
         }
-        return formatHandler.parse(ruleList, profile.matchProfileName, profile.defaultProfileName);
+        return formatHandler.parse(ruleList, profile.matchProfileName || 'direct', profile.defaultProfileName || 'direct');
       },
       match(profile, request) {
         return ProfilesApi.match(profile, request, 'SwitchProfile');
@@ -661,16 +695,17 @@ const ProfilesApi: ProfilesApiType = {
       },
       update(profile, data) {
         data = data.trim();
-        const original = profile.format != null ? profile.format : ProfilesApi.formatByType[profile.profileType];
+        const original = profile.format != null ? profile.format : ProfilesApi.formatByType[profile.profileType || ''];
         profile.profileType = 'RuleListProfile';
-        let format = original;
+        let format: string | null | undefined = original;
         let formatHandler = RuleListFormats[format];
-        if ((typeof formatHandler.detect === "function" ? formatHandler.detect(data) : void 0) === false) {
+        if (formatHandler != null && (typeof formatHandler.detect === "function" ? formatHandler.detect(data) : void 0) === false) {
           format = null;
         }
         for (const formatName in RuleListFormats) {
           if (!hasProp.call(RuleListFormats, formatName)) continue;
           const candidate = RuleListFormats[formatName];
+          if (!candidate) continue;
           const result = typeof candidate.detect === "function" ? candidate.detect(data) : void 0;
           if (result === true || (result !== false && (format == null))) {
             profile.format = format = formatName;
@@ -680,7 +715,7 @@ const ProfilesApi: ProfilesApiType = {
           format = original;
         }
         formatHandler = RuleListFormats[format];
-        if (formatHandler.preprocess != null) {
+        if (formatHandler != null && formatHandler.preprocess != null) {
           data = formatHandler.preprocess(data);
         }
         if (profile.ruleList === data) {

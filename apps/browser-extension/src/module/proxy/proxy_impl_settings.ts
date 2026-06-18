@@ -53,7 +53,7 @@ function profileScopeAssignments(options?: unknown): ProfileScopeAssignments {
 }
 
 class SettingsProxyImpl extends ProxyImpl {
-  private _proxyChangeListener: (details: ProxyChangeDetails) => unknown[];
+  private _proxyChangeListener: (details: unknown) => unknown[];
   private _proxyChangeWatchers: ProxyChangeWatcher[] | null;
 
   constructor(log: ProxyLog) {
@@ -234,9 +234,10 @@ class SettingsProxyImpl extends ProxyImpl {
     return str.slice(index + 1);
   }
 
-  private _handleProxyChange(details: ProxyChangeDetails) {
+  private _handleProxyChange(details: unknown) {
+    const proxyDetails = isRecordValue(details) ? details as ProxyChangeDetails : {};
     const watchers = this._proxyChangeWatchers || [];
-    return watchers.map((watcher) => watcher(details));
+    return watchers.map((watcher) => watcher(proxyDetails));
   }
 
   watchProxyChange(callback: ProxyChangeWatcher) {

@@ -326,17 +326,18 @@ class WebRequestMonitor {
       return delete this.tabInfo[removed];
     });
     chrome.tabs.onUpdated.addListener((_tabId: number, changeInfo: TabChangeInfo, tab: RequestTab) => {
-      if (tab.id == null) {
+      const tabId = tab.id;
+      if (tabId == null) {
         return;
       }
-      const info = this.tabInfo[tab.id] != null
-        ? this.tabInfo[tab.id]
-        : this.tabInfo[tab.id] = this._newTabInfo();
+      const info = this.tabInfo[tabId] != null
+        ? this.tabInfo[tabId]
+        : this.tabInfo[tabId] = this._newTabInfo();
       if (shouldResetTabInfoForUpdatedUrl(changeInfo.url)) {
         this.resetTabInfo(info, this._newTabInfo());
       }
       return this._tabCallbacks.map((tabCallback) => {
-        return tabCallback(tab.id, info, null, 'updated');
+        return tabCallback(tabId, info, null, 'updated');
       });
     });
     return chrome.tabs.query({}, (tabs: RequestTab[]) => {

@@ -94,7 +94,7 @@ export const Switchy = {
     },
     directReferenceSet(arg: Profile): ReferenceSet | undefined {
       const {ruleList, defaultProfileName} = arg;
-      const text = ruleList.trim();
+      const text = (ruleList || '').trim();
       const switchy = Switchy;
       const parser = switchy.getParser(text);
       if (parser !== 'parseOmega') {

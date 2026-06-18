@@ -305,7 +305,7 @@ function defaultUiLocaleFromBrowser(language?: string) {
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 class ChromeOptions extends OmegaTarget.Options {
-  externalApi: ExternalApiLike;
+  externalApi!: ExternalApiLike;
   fetchUrl: typeof fetchUrl;
   declare proxyImpl: ProxyImplInstance;
   private _alarms: Record<string, () => void> | null;
@@ -819,8 +819,8 @@ class ChromeOptions extends OmegaTarget.Options {
         }
       };
     }
-    if (quickSwitch || actionApi().setPopup == null) {
-      const api = actionApi();
+    const api = actionApi();
+    if (quickSwitch || api.setPopup == null) {
       if (typeof api.setPopup === 'function') {
         api.setPopup({
           popup: ''
@@ -837,9 +837,16 @@ class ChromeOptions extends OmegaTarget.Options {
             return;
           }
           const profiles = this._options['-quickSwitchProfiles'];
+          if (!Array.isArray(profiles) || profiles.length === 0) {
+            return;
+          }
           let index = profiles.indexOf(this._currentProfileName);
           index = (index + 1) % profiles.length;
-          return this.applyProfile(profiles[index]).then(() => {
+          const nextProfile = profiles[index];
+          if (typeof nextProfile !== 'string') {
+            return;
+          }
+          return this.applyProfile(nextProfile).then(() => {
             if (this._options['-refreshOnProfileChange']) {
               const url = tabUrl(tab);
               if (!url) {
@@ -862,7 +869,7 @@ class ChromeOptions extends OmegaTarget.Options {
         });
       }
     } else {
-      actionApi().setPopup({
+      api.setPopup({
         popup: 'popup/index.html'
       });
     }
@@ -890,8 +897,9 @@ class ChromeOptions extends OmegaTarget.Options {
       const wildcardForReq = (req: {url: string}) => {
         return OmegaPac.wildcardForUrl(req.url);
       };
-      this._requestMonitor = new WebRequestMonitor(wildcardForReq);
-      this._requestMonitor.watchTabs((tabId: number, info: TabRequestInfo) => {
+      const requestMonitor = new WebRequestMonitor(wildcardForReq);
+      this._requestMonitor = requestMonitor;
+      requestMonitor.watchTabs((tabId: number, info: TabRequestInfo) => {
         if (!this._monitorWebRequests) {
           return;
         }
@@ -930,12 +938,15 @@ class ChromeOptions extends OmegaTarget.Options {
         }
         let tabId: number | null = null;
         const port = new ChromePort(rawPort);
-        port.onMessage.addListener((msg: {tabId: number}) => {
+        port.onMessage.addListener((msg: unknown) => {
+          if (!isRecordValue(msg) || typeof msg.tabId !== 'number') {
+            return;
+          }
           tabId = msg.tabId;
           if (this._tabRequestInfoPorts) {
             this._tabRequestInfoPorts[tabId] = port;
           }
-          const info = this._requestMonitor.tabInfo[tabId];
+          const info = requestMonitor.tabInfo[tabId];
           if (info) {
             return port.postMessage({
               errorCount: info.errorCount,
@@ -1014,7 +1025,8 @@ class ChromeOptions extends OmegaTarget.Options {
     if (options == null || Object.keys(options).length === 0 || options.schemaVersion == null) {
       return OmegaPromise.reject(new OmegaTarget.Options.NoOptionsError());
     }
-    return super.upgrade(options, changes).then(([upgradedOptions, upgradedChanges]: [Record<string, unknown>, Record<string, unknown>]) => {
+    return super.upgrade(options, changes).then((upgradeResult: unknown) => {
+      const [upgradedOptions, upgradedChanges] = upgradeResult as [Record<string, unknown>, Record<string, unknown>];
       if (this.proxyImpl.proxyDnsCapabilities.socks5) {
         return [upgradedOptions, upgradedChanges];
       }
@@ -1053,11 +1065,12 @@ class ChromeOptions extends OmegaTarget.Options {
       summary
     } : null;
     const getBadge = new OmegaPromise((resolve: (value: string) => void) => {
-      if (actionApi().getBadgeText == null) {
+      const api = actionApi();
+      if (typeof api.getBadgeText !== 'function') {
         resolve('');
         return;
       }
-      return actionApi().getBadgeText({
+      return api.getBadgeText({
         tabId
       }, (badgeText: string) => {
         return resolve(badgeText);

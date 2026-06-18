@@ -231,14 +231,21 @@ type AvailableProfile = {
 
 type TempRule = {
   condition: {
-    conditionType: string;
-    pattern: string;
+    conditionType?: string;
+    pattern?: string;
     [key: string]: unknown;
   };
   isTempRule?: boolean;
   profileName?: string | null;
   [key: string]: unknown;
 };
+
+function ensureProfileRules(profile: ProfileLike): TempRule[] {
+  if (!Array.isArray(profile.rules)) {
+    profile.rules = [];
+  }
+  return profile.rules as TempRule[];
+}
 
 type ExplainRequestArgs = {
   includeTempRules?: boolean;
@@ -295,9 +302,9 @@ class Options {
   static ProfileNotExistError = ProfileNotExistError;
   static NoOptionsError = NoOptionsError;
 
-  _options: OptionsData | null = null;
-  _storage: StorageLike | null = null;
-  _state: StorageLike | null = null;
+  _options: OptionsData = {};
+  _storage: StorageLike;
+  _state: StorageLike;
   _currentProfileName: string | null = null;
   _revertToProfileName: string | null = null;
   _watchingProfiles: Record<string, string> = {};
@@ -354,23 +361,14 @@ class Options {
     sync?: OptionsSyncLike | null,
     proxyImpl?: ProxyImplLike | null
   ) {
-    this._storage = _storage;
-    this._state = _state;
-    this.log = log;
-    this.sync = sync;
-    this.proxyImpl = proxyImpl;
+    this._storage = _storage ?? new Storage();
+    this._state = _state ?? new Storage();
+    this.log = log ?? Log;
+    this.sync = sync ?? null;
+    this.proxyImpl = proxyImpl ?? null;
     this._options = {};
     this._tempProfileRules = {};
     this._tempProfileRulesByProfile = {};
-    if (this._storage == null) {
-      this._storage = new Storage();
-    }
-    if (this._state == null) {
-      this._state = new Storage();
-    }
-    if (this.log == null) {
-      this.log = Log;
-    }
     if (options == null) {
       this.init();
     } else {
@@ -410,11 +408,15 @@ class Options {
       }
       loadRaw = this._storage.get(null);
     } else {
+      const sync = this.sync;
+      if (sync == null) {
+        loadRaw = this._storage.get(null);
+      } else {
       this._state.set({
         'syncOptions': 'sync'
       });
-      this._syncWatchStop = this.sync.watchAndPull(this._storage);
-      loadRaw = this.sync.copyTo(this._storage)
+      this._syncWatchStop = sync.watchAndPull(this._storage);
+      loadRaw = sync.copyTo(this._storage)
         .catch((error: unknown) => {
           if (!(error instanceof Storage.StorageUnavailableError)) {
             return Promise.reject(error);
@@ -430,6 +432,7 @@ class Options {
           });
         })
         .then(() => this._storage.get(null));
+      }
     }
     return this.optionsLoaded = loadRaw.then((loadedOptions: OptionsData) => {
       return this.upgrade(loadedOptions);
@@ -449,10 +452,14 @@ class Options {
           if (syncOptions) {
             return;
           }
+          const sync = this.sync;
+          if (sync == null) {
+            return loadedOptions;
+          }
           this._state.set({
             'syncOptions': 'conflict'
           });
-          return this.sync.storage.get('schemaVersion').then((arg2) => {
+          return sync.storage.get('schemaVersion').then((arg2) => {
             const schemaVersion = arg2.schemaVersion;
             if (!schemaVersion) {
               return this._state.set({
@@ -473,7 +480,8 @@ class Options {
             }).then((items) => {
               return this._state.set(items);
             });
-            if (this.sync == null) {
+            const sync = this.sync;
+            if (sync == null) {
               return null;
             }
             return this._state.get({
@@ -483,7 +491,7 @@ class Options {
               if (syncOptions === 'conflict') {
                 return;
               }
-              return this.sync.storage.get(null).then((options) => {
+              return sync.storage.get(null).then((options) => {
                 if (!options['schemaVersion']) {
                   this._state.set({
                     'syncOptions': 'pristine'
@@ -493,7 +501,7 @@ class Options {
                   this._state.set({
                     'syncOptions': 'sync'
                   });
-                  this.sync.enabled = true;
+                  sync.enabled = true;
                   this.log.log('Options#loadOptions::fromSync', options);
                   return options;
                 }
@@ -507,7 +515,7 @@ class Options {
             return null;
           }
         });
-        return getFallbackOptions.then((fallbackOptions: OptionsData | null) => {
+        return getFallbackOptions.then((fallbackOptions) => {
           let prevEnabled: boolean | undefined;
           if (fallbackOptions == null) {
             fallbackOptions = this.parseOptions(this.getDefaultOptions());
@@ -519,7 +527,7 @@ class Options {
           return this._storage.remove().then(() => {
             return this._storage.set(fallbackOptions);
           }).then(() => {
-            if (this.sync != null) {
+            if (this.sync != null && prevEnabled != null) {
               this.sync.enabled = prevEnabled;
             }
             return this.loadOptions({
@@ -618,6 +626,9 @@ class Options {
   upgrade(options: OptionsData | null | undefined, changes?: StorageChanges): RuntimePromise<[OptionsData, StorageChanges]> {
     if (changes == null) {
       changes = {};
+    }
+    if (options == null) {
+      return Promise.reject(new NoOptionsError());
     }
     let version = options != null ? options['schemaVersion'] : void 0;
     if (version === 1) {
@@ -835,7 +846,7 @@ class Options {
     return this._setOptions(changes);
   }
 
-  _setOptions = (changes: StorageChanges, args?: SetOptionsArgs): RuntimePromise<unknown> | undefined => {
+  _setOptions = (changes: StorageChanges, args?: SetOptionsArgs): RuntimePromise<unknown> => {
     const removed: string[] = [];
     const checkRev = (args != null && args.checkRevision != null) ? args.checkRevision : false;
     let profilesChanged = false;
@@ -897,6 +908,7 @@ class Options {
         return this._options;
       });
     }
+    return Promise.resolve(this._options);
   };
 
   _watch(): StopWatching {
@@ -1026,14 +1038,14 @@ class Options {
    */
 
   reloadQuickSwitch() {
-    let profiles = this._options['-quickSwitchProfiles'] as string[];
-    if (profiles.length < 2) {
-      profiles = null;
-    }
+    const profiles = Array.isArray(this._options['-quickSwitchProfiles'])
+      ? this._options['-quickSwitchProfiles'] as string[]
+      : [];
+    const quickSwitchProfiles = profiles.length >= 2 ? profiles : null;
     if (this._options['-enableQuickSwitch']) {
-      return this.setQuickSwitch(profiles, !!profiles);
+      return this.setQuickSwitch(quickSwitchProfiles, !!quickSwitchProfiles);
     } else {
-      return this.setQuickSwitch(null, !!profiles);
+      return this.setQuickSwitch(null, !!quickSwitchProfiles);
     }
   }
 
@@ -1114,7 +1126,7 @@ class Options {
     const profiles: Record<string, AvailableProfile> = {};
     const currentIncludable = profile && OmegaPac.Profiles.isIncludable(profile);
     let allReferenceSet: Record<string, string> | null = null;
-    let results: Array<string | undefined> | null;
+    let results: string[] | null = null;
     if (!profile || !OmegaPac.Profiles.isInclusive(profile)) {
       results = [];
     }
@@ -1141,14 +1153,14 @@ class Options {
           }
         }
         if (currentIncludable && OmegaPac.Profiles.isIncludable(p)) {
-          return results != null ? results.push(p.name) : void 0;
+          return results != null && p.name ? results.push(p.name) : void 0;
         }
     });
     if (profile && OmegaPac.Profiles.isInclusive(profile)) {
       const resultProfiles = OmegaPac.Profiles.validResultProfilesFor(profile, this._options);
-      results = resultProfiles.map((profile) => {
-        return profile.name;
-      });
+      results = resultProfiles
+        .map((profile) => profile.name)
+        .filter((name): name is string => typeof name === 'string');
     }
     return this._state.set({
       'availableProfiles': profiles,
@@ -1171,11 +1183,12 @@ class Options {
 
   applyProfile(name: string | null | undefined, options?: ApplyProfileOptions): RuntimePromise<unknown> {
     this.log.method('Options#applyProfile', this, arguments);
-    const profile = OmegaPac.Profiles.byName(name, this._options);
+    const profileName = name || this.fallbackProfileName;
+    const profile = OmegaPac.Profiles.byName(profileName, this._options);
     if (!profile) {
-      return Promise.reject(new ProfileNotExistError(name));
+      return Promise.reject(new ProfileNotExistError(profileName));
     }
-    this._currentProfileName = profile.name;
+    this._currentProfileName = profile.name || profileName;
     this._isSystem = (options != null ? options.system : void 0) || (profile.profileType === 'SystemProfile');
     this._watchingProfiles = OmegaPac.Profiles.allReferenceSet(profile, this._options, {
       profileNotFound: this._profileNotFound.bind(this)
@@ -1190,15 +1203,21 @@ class Options {
     if ((options != null) && options.proxy === false) {
       return Promise.resolve();
     }
+    const proxyImpl = this.proxyImpl;
+    if (proxyImpl == null) {
+      return Promise.resolve();
+    }
     this._tempProfileActive = false;
-    let applyProxy;
+    let applyProxy: RuntimePromise<unknown>;
     if ((this._tempProfile != null) && OmegaPac.Profiles.isIncludable(profile)) {
+      const tempProfile = this._tempProfile;
       this._tempProfileActive = true;
-      if (this._tempProfile.defaultProfileName !== profile.name) {
-        this._tempProfile.defaultProfileName = profile.name;
-        this._tempProfile.color = profile.color;
-        OmegaPac.Profiles.updateRevision(this._tempProfile);
+      if (tempProfile.defaultProfileName !== profile.name) {
+        tempProfile.defaultProfileName = profile.name;
+        tempProfile.color = profile.color;
+        OmegaPac.Profiles.updateRevision(tempProfile);
       }
+      const tempProfileRules = ensureProfileRules(tempProfile);
       const removedKeys: string[] = [];
       const ref = this._tempProfileRulesByProfile;
       for (const key in ref) {
@@ -1208,7 +1227,7 @@ class Options {
           removedKeys.push(key);
           for (const rule of list) {
             rule.profileName = null;
-            this._tempProfile.rules.splice(this._tempProfile.rules.indexOf(rule), 1);
+            tempProfileRules.splice(tempProfileRules.indexOf(rule), 1);
           }
         }
       }
@@ -1216,14 +1235,14 @@ class Options {
         for (const key of removedKeys) {
           delete this._tempProfileRulesByProfile[key];
         }
-        OmegaPac.Profiles.updateRevision(this._tempProfile);
+        OmegaPac.Profiles.updateRevision(tempProfile);
       }
-      this._watchingProfiles = OmegaPac.Profiles.allReferenceSet(this._tempProfile, this._options, {
+      this._watchingProfiles = OmegaPac.Profiles.allReferenceSet(tempProfile, this._options, {
         profileNotFound: this._profileNotFound.bind(this)
       });
-      applyProxy = this.proxyImpl.applyProfile(this._tempProfile, profile, this._options);
+      applyProxy = proxyImpl.applyProfile(tempProfile, profile, this._options);
     } else {
-      applyProxy = this.proxyImpl.applyProfile(profile, profile, this._options);
+      applyProxy = proxyImpl.applyProfile(profile, profile, this._options);
     }
     if ((options != null) && options.update === false) {
       return applyProxy;
@@ -1325,6 +1344,9 @@ class Options {
       return false;
     }
     const currentProfile = this.currentProfile();
+    if (!currentProfile) {
+      return true;
+    }
     if (OmegaPac.Profiles.isInclusive(currentProfile)) {
       return false;
     }
@@ -1349,7 +1371,7 @@ class Options {
     OmegaPac.Profiles.each(this._options, (key, profile) => {
         if (name != null) {
           if (Array.isArray(name)) {
-            if (!(name.indexOf(profile.name) >= 0)) {
+            if (!profile.name || !(name.indexOf(profile.name) >= 0)) {
               return;
             }
           } else {
@@ -1366,15 +1388,18 @@ class Options {
             if (!data) {
               return profile;
             }
-            profile = OmegaPac.Profiles.byKey(key, this._options);
-            profile.lastUpdate = new Date().toISOString();
-            if (OmegaPac.Profiles.update(profile, data)) {
-              OmegaPac.Profiles.dropCache(profile);
-              const changes: StorageChanges = {};
-              changes[key] = profile;
-              return this._setOptions(changes)!.then(() => profile);
-            } else {
+            const updatedProfile = OmegaPac.Profiles.byKey(key, this._options);
+            if (!updatedProfile) {
               return profile;
+            }
+            updatedProfile.lastUpdate = new Date().toISOString();
+            if (OmegaPac.Profiles.update(updatedProfile, data)) {
+              OmegaPac.Profiles.dropCache(updatedProfile);
+              const changes: StorageChanges = {};
+              changes[key] = updatedProfile;
+              return this._setOptions(changes).then(() => updatedProfile);
+            } else {
+              return updatedProfile;
             }
           }).catch((reason: unknown) => {
             if (reason instanceof Error) {
@@ -1433,8 +1458,10 @@ class Options {
     if (nextProfileScopeAssignments) {
       changes['-profileScopeAssignments'] = nextProfileScopeAssignments;
     }
-    const quickSwitch = this._options['-quickSwitchProfiles'] as string[];
-    if (quickSwitch.indexOf(toName) < 0) {
+    const quickSwitch = Array.isArray(this._options['-quickSwitchProfiles'])
+      ? this._options['-quickSwitchProfiles'] as string[]
+      : [];
+    if (quickSwitch.length > 0 && quickSwitch.indexOf(toName) < 0) {
       for (let i = 0; i < quickSwitch.length; i++) {
         if (quickSwitch[i] === fromName) {
           quickSwitch[i] = toName;
@@ -1533,9 +1560,14 @@ class Options {
     if (this._tempProfile == null) {
       this._tempProfile = OmegaPac.Profiles.create('', 'SwitchProfile');
       const currentProfile = this.currentProfile();
+      if (!currentProfile) {
+        return Promise.reject(new ProfileNotExistError(this._currentProfileName));
+      }
       this._tempProfile.color = currentProfile.color;
       this._tempProfile.defaultProfileName = currentProfile.name;
     }
+    const tempProfile = this._tempProfile;
+    const tempProfileRules = ensureProfileRules(tempProfile);
     let changed = false;
     let rule = this._tempProfileRules[domain];
     if (rule && rule.profileName) {
@@ -1546,8 +1578,8 @@ class Options {
         rule.profileName = profileName;
         changed = true;
       }
-    } else {
-      rule = {
+      } else {
+        rule = {
         condition: {
           conditionType: 'HostWildcardCondition',
           pattern: '*.' + domain
@@ -1555,7 +1587,7 @@ class Options {
         profileName: profileName,
         isTempRule: true
       };
-      this._tempProfile.rules.push(rule);
+      tempProfileRules.push(rule);
       this._tempProfileRules[domain] = rule;
       changed = true;
     }
@@ -1566,7 +1598,7 @@ class Options {
     }
     rulesByProfile.push(rule);
     if (changed) {
-      OmegaPac.Profiles.updateRevision(this._tempProfile);
+      OmegaPac.Profiles.updateRevision(tempProfile);
       return this.applyProfile(this._currentProfileName);
     } else {
       return Promise.resolve();
@@ -1607,9 +1639,10 @@ class Options {
       return Promise.resolve();
     }
     const profile = OmegaPac.Profiles.byName(this._currentProfileName, this._options);
-    if ((profile != null ? profile.rules : void 0) == null) {
+    if (!profile || profile.rules == null) {
       return Promise.reject(new Error("Cannot add condition to Profile " + (profile != null ? profile.name : this._currentProfileName) + " (" + (profile != null ? profile.profileType : 'UnknownProfile') + ")"));
     }
+    const rules = ensureProfileRules(profile);
     const target = OmegaPac.Profiles.byName(profileName, this._options);
     if (target == null) {
       return Promise.reject(new ProfileNotExistError(profileName));
@@ -1619,20 +1652,20 @@ class Options {
     }
     for (const cond of condition) {
       const tag = OmegaPac.Conditions.tag(cond);
-      for (let i = 0; i < profile.rules.length; i++) {
-        const existingCondition = profile.rules[i].condition as Record<string, unknown>;
+      for (let i = 0; i < rules.length; i++) {
+        const existingCondition = rules[i].condition as Record<string, unknown>;
         if (OmegaPac.Conditions.tag(existingCondition) === tag) {
-          profile.rules.splice(i, 1);
+          rules.splice(i, 1);
           break;
         }
       }
       if (addToBottom || this._options['-addConditionsToBottom']) {
-        profile.rules.push({
+        rules.push({
           condition: cond,
           profileName: profileName
         });
       } else {
-        profile.rules.unshift({
+        rules.unshift({
           condition: cond,
           profileName: profileName
         });
@@ -1680,6 +1713,9 @@ class Options {
 
   addProfile(profile: ProfileLike): RuntimePromise<unknown> {
     this.log.method('Options#addProfile', this, arguments);
+    if (!profile.name) {
+      return Promise.reject(new Error('Profile name is required!'));
+    }
     if (OmegaPac.Profiles.byName(profile.name, this._options)) {
       return Promise.reject(new Error("Target name " + profile.name + " already taken!"));
     } else {
@@ -2008,14 +2044,16 @@ class Options {
         }
       }
     }
-    const p = OmegaPac.Profiles.byName(profile.name, this._options);
+    const profileName = typeof profile.name === 'string' ? profile.name : '';
+    const p = profileName ? OmegaPac.Profiles.byName(profileName, this._options) : null;
     if (p) {
+      const existingProfileName = p.name || profileName;
       if (args != null ? args.internal : void 0) {
-        return this.applyProfile(p.name, {
+        return this.applyProfile(existingProfileName, {
           proxy: false
         });
       } else {
-        return this.applyProfile(p.name, {
+        return this.applyProfile(existingProfileName, {
           proxy: false,
           system: this._isSystem,
           reason: 'external'
@@ -2051,6 +2089,7 @@ class Options {
     if (this.sync == null) {
       return Promise.reject(new Error('Options syncing is unsupported.'));
     }
+    const sync = this.sync;
     return this._state.get({
       'syncOptions': ''
     }).then((arg) => {
@@ -2061,7 +2100,7 @@ class Options {
               'syncOptions': 'conflict'
             });
           }
-          this.sync.enabled = false;
+          sync.enabled = false;
           if (typeof this._syncWatchStop === "function") {
             this._syncWatchStop();
           }
@@ -2080,18 +2119,18 @@ class Options {
           'syncOptions': 'sync'
         }).then(() => {
           if (syncOptions === 'conflict') {
-            this.sync.enabled = false;
+            sync.enabled = false;
             return this._storage.remove().then(() => {
-              this.sync.enabled = true;
+              sync.enabled = true;
               return this.init();
             });
           } else {
-            this.sync.enabled = true;
+            sync.enabled = true;
             if (typeof this._syncWatchStop === "function") {
               this._syncWatchStop();
             }
-            this.sync.requestPush(this._options);
-            this._syncWatchStop = this.sync.watchAndPull(this._storage);
+            sync.requestPush(this._options);
+            this._syncWatchStop = sync.watchAndPull(this._storage);
           }
         });
     });

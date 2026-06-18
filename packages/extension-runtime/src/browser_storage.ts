@@ -52,7 +52,8 @@ class BrowserStorage extends Storage {
         if (!Object.prototype.hasOwnProperty.call(map, key)) continue;
         let value;
         try {
-          value = JSON.parse(this.proto.getItem.call(this.storage, this.prefix + key));
+          const rawValue = this.proto.getItem.call(this.storage, this.prefix + key);
+          value = rawValue != null ? JSON.parse(rawValue) : undefined;
         } catch (error) {}
         if (value != null) {
           map[key] = value;
@@ -69,9 +70,10 @@ class BrowserStorage extends Storage {
     return this.ready().then(() => {
       for (const key in items) {
         if (!Object.prototype.hasOwnProperty.call(items, key)) continue;
-        let value = items[key];
-        value = JSON.stringify(value);
-        this.proto.setItem.call(this.storage, this.prefix + key, value);
+        const value = JSON.stringify(items[key]);
+        if (typeof value === 'string') {
+          this.proto.setItem.call(this.storage, this.prefix + key, value);
+        }
       }
       return items;
     });

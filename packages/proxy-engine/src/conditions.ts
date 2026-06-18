@@ -51,7 +51,7 @@ type NormalizedDomainPattern = {
 type ConditionHandler = {
   abbrs: string[];
   analyze(this: ConditionsApiType, condition: Condition): any;
-  compile?(this: ConditionsApiType, condition: Condition, cache: ConditionCache): PacAstNode;
+  compile?(this: ConditionsApiType, condition: Condition, cache: ConditionCache): PacAstNode | undefined;
   fromStr?(this: ConditionsApiType, str: string, condition: Condition): Condition;
   match?(this: ConditionsApiType, condition: Condition, request: PacRequest, cache: ConditionCache): boolean;
   str?(this: ConditionsApiType, condition: Condition): string;
@@ -78,7 +78,7 @@ type ConditionsApiType = {
   between(val: PacAstNode, min: any, max: any, comment?: string): PacAstNode;
   colonCharCode: number;
   comment(comment: string | null | undefined, node: PacAstNode): PacAstNode;
-  compile(condition: Condition): PacAstNode;
+  compile(condition: Condition): PacAstNode | undefined;
   fromStr(str: string): Condition | null;
   getWeekdayList(condition: Condition): boolean[];
   ipv6Max: string;
@@ -130,7 +130,7 @@ const ConditionsApi: ConditionsApiType = {
     const match = ConditionsApi._handler(condition.conditionType).match;
     return match != null ? match.call(ConditionsApi, condition, request, cache) : false;
   },
-  compile(condition: Condition): PacAstNode {
+  compile(condition: Condition): PacAstNode | undefined {
     const cache = ConditionsApi.analyze(condition) as ConditionCache;
     if (cache.compiled) {
       return cache.compiled;
@@ -147,7 +147,7 @@ const ConditionsApi: ConditionsApiType = {
     }).abbr;
     const handler = ConditionsApi._handler(condition.conditionType);
     const str = handler.str;
-    const part = str ? str.call(ConditionsApi, condition) : condition.pattern;
+    const part = (str ? str.call(ConditionsApi, condition) : condition.pattern) || '';
     if (handler.abbrs[0].length === 0) {
       const endCode = part.charCodeAt(part.length - 1);
       if (endCode !== ConditionsApi.colonCharCode && part.indexOf(' ') < 0) {
@@ -532,9 +532,11 @@ const ConditionsApi: ConditionsApiType = {
       }
       return results;
     } else {
+      const startDay = condition.startDay ?? 0;
+      const endDay = condition.endDay ?? 0;
       const results1 = [];
       for (let i = 0; i < 7; i++) {
-        results1.push((condition.startDay <= i && i <= condition.endDay));
+        results1.push((startDay <= i && i <= endDay));
       }
       return results1;
     }
@@ -603,7 +605,7 @@ const ConditionsApi: ConditionsApiType = {
     'UrlRegexCondition': {
       abbrs: ['UR', 'URegex', 'UrlR', 'UrlRegex'],
       analyze(condition) {
-        return this.safeRegex(escapeSlash(condition.pattern));
+        return this.safeRegex(escapeSlash(condition.pattern || ''));
       },
       match(condition, request, cache) {
         return cache.analyzed.test(request.url);
@@ -616,7 +618,7 @@ const ConditionsApi: ConditionsApiType = {
       abbrs: ['U', 'UW', 'Url', 'UrlW', 'UWild', 'UWildcard', 'UrlWild', 'UrlWildcard'],
       analyze(condition) {
         const parts = [];
-        for (const pattern of condition.pattern.split('|')) {
+        for (const pattern of (condition.pattern || '').split('|')) {
           if (pattern) {
             parts.push(shExp2RegExp(pattern, {
               trimAsterisk: true
@@ -635,7 +637,7 @@ const ConditionsApi: ConditionsApiType = {
     'HostRegexCondition': {
       abbrs: ['R', 'HR', 'Regex', 'HostR', 'HRegex', 'HostRegex'],
       analyze(condition) {
-        return this.safeRegex(escapeSlash(condition.pattern));
+        return this.safeRegex(escapeSlash(condition.pattern || ''));
       },
       match(condition, request, cache) {
         return cache.analyzed.test(request.host);
@@ -648,7 +650,7 @@ const ConditionsApi: ConditionsApiType = {
       abbrs: ['', 'H', 'W', 'HW', 'Wild', 'Wildcard', 'Host', 'HostW', 'HWild', 'HWildcard', 'HostWild', 'HostWildcard'],
       analyze(condition) {
         const parts = [];
-        for (let pattern of condition.pattern.split('|')) {
+        for (let pattern of (condition.pattern || '').split('|')) {
           if (!(pattern)) {
             continue;
           }
@@ -691,7 +693,7 @@ const ConditionsApi: ConditionsApiType = {
       },
       str(condition) {
         const patterns = [];
-        for (const pattern of condition.pattern.split('|')) {
+        for (const pattern of (condition.pattern || '').split('|')) {
           if (!pattern) {
             continue;
           }
@@ -778,13 +780,18 @@ const ConditionsApi: ConditionsApiType = {
           }
         } else {
           const ipWildcard = this._normalizeIpWildcardPattern(pattern.host);
-          const normalized = ipWildcard == null ? this._normalizeDomainPattern(pattern.host) : null;
-          if (ipWildcard == null && !normalized.valid) {
-            cache.kind = 'invalid';
-            cache.normalizedPattern = '';
-            return cache;
+          let host: string;
+          if (ipWildcard != null) {
+            host = ipWildcard;
+          } else {
+            const normalized = this._normalizeDomainPattern(pattern.host);
+            if (!normalized.valid) {
+              cache.kind = 'invalid';
+              cache.normalizedPattern = '';
+              return cache;
+            }
+            host = normalized.pattern;
           }
-          const host = ipWildcard != null ? ipWildcard : normalized.pattern;
           cache.kind = host.indexOf('*') >= 0 || host.indexOf('?') >= 0 ? 'domainWildcard' : 'domainExact';
           cache.hostRegex = this._hostRegex(host);
           cache.normalizedPattern += host;
@@ -824,7 +831,7 @@ const ConditionsApi: ConditionsApiType = {
         if (cache.normalizedPattern) {
           return cache.normalizedPattern;
         } else {
-          return condition.pattern;
+          return condition.pattern || '';
         }
       },
       compile(condition, cache) {
@@ -850,7 +857,12 @@ const ConditionsApi: ConditionsApiType = {
             break;
           case 'ipv4Cidr':
           case 'ipv6Cidr':
-            conditions.push(this.compile(cache.ip));
+            {
+              const ipCondition = this.compile(cache.ip);
+              if (ipCondition) {
+                conditions.push(ipCondition);
+              }
+            }
             break;
           case 'domainExact':
           case 'domainWildcard':
@@ -873,14 +885,14 @@ const ConditionsApi: ConditionsApiType = {
         return null;
       },
       match(condition, request) {
-        return request.scheme === 'http' && request.url.indexOf(condition.pattern) >= 0;
+        return request.scheme === 'http' && request.url.indexOf(condition.pattern || '') >= 0;
       },
       compile(condition) {
         return Ast.binary(
           Ast.binary(Ast.symbol('scheme'), '===', Ast.str('http')),
           '&&',
           Ast.binary(
-            Ast.call(Ast.dot(Ast.symbol('url'), 'indexOf'), [Ast.str(condition.pattern)]),
+            Ast.call(Ast.dot(Ast.symbol('url'), 'indexOf'), [Ast.str(condition.pattern || '')]),
             '>=',
             Ast.num(0)
           )
@@ -996,24 +1008,28 @@ const ConditionsApi: ConditionsApiType = {
         return '.'.charCodeAt(0);
       },
       match(condition, request, cache) {
+        const maxValue = condition.maxValue ?? 0;
+        const minValue = condition.minValue ?? 0;
         const dotCharCode = cache.analyzed;
         let dotCount = 0;
         for (let i = 0; i < request.host.length; i++) {
           if (request.host.charCodeAt(i) === dotCharCode) {
             dotCount++;
-            if (dotCount > condition.maxValue) {
+            if (dotCount > maxValue) {
               return false;
             }
           }
         }
-        return dotCount >= condition.minValue;
+        return dotCount >= minValue;
       },
       compile(condition) {
+        const minValue = condition.minValue ?? 0;
+        const maxValue = condition.maxValue ?? 0;
         const val = Ast.dot(
           Ast.call(Ast.dot(Ast.symbol('host'), 'split'), [Ast.str('.')]),
           'length'
         );
-        return this.between(val, condition.minValue + 1, condition.maxValue + 1, condition.minValue + " <= hostLevels <= " + condition.maxValue);
+        return this.between(val, minValue + 1, maxValue + 1, minValue + " <= hostLevels <= " + maxValue);
       },
       str(condition) {
         return condition.minValue + '~' + condition.maxValue;
@@ -1041,7 +1057,9 @@ const ConditionsApi: ConditionsApiType = {
         if (condition.days) {
           return condition.days.charCodeAt(day) > 64;
         }
-        return condition.startDay <= day && day <= condition.endDay;
+        const startDay = condition.startDay ?? 0;
+        const endDay = condition.endDay ?? 0;
+        return startDay <= day && day <= endDay;
       },
       compile(condition) {
         const getDay = Ast.call(Ast.dot(Ast.newExpr(Ast.symbol('Date')), 'getDay'));
@@ -1052,7 +1070,7 @@ const ConditionsApi: ConditionsApiType = {
             Ast.num(64)
           );
         } else {
-          return this.between(getDay, condition.startDay, condition.endDay);
+          return this.between(getDay, condition.startDay ?? 0, condition.endDay ?? 0);
         }
       },
       str(condition) {
@@ -1086,11 +1104,13 @@ const ConditionsApi: ConditionsApiType = {
       },
       match(condition, request) {
         const hour = new Date().getHours();
-        return condition.startHour <= hour && hour <= condition.endHour;
+        const startHour = condition.startHour ?? 0;
+        const endHour = condition.endHour ?? 0;
+        return startHour <= hour && hour <= endHour;
       },
       compile(condition) {
         const val = Ast.call(Ast.dot(Ast.newExpr(Ast.symbol('Date')), 'getHours'));
-        return this.between(val, condition.startHour, condition.endHour);
+        return this.between(val, condition.startHour ?? 0, condition.endHour ?? 0);
       },
       str(condition) {
         return condition.startHour + '~' + condition.endHour;

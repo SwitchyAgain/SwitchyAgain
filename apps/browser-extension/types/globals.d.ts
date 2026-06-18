@@ -8,6 +8,28 @@ interface DynamicGlobalValue {
 
 type ChromeListener = (...args: unknown[]) => unknown;
 
+type ChromeContextMenuClickInfo = Record<string, unknown> & {
+  checked?: boolean;
+  menuItemId: string;
+};
+
+type ChromeWebRequestDetails = Record<string, unknown> & {
+  error?: string;
+  redirectUrl?: string;
+  requestId: string;
+  tabId: number;
+  type?: string;
+  url: string;
+};
+
+type ChromeWebRequestAuthDetails = ChromeWebRequestDetails & {
+  challenger: {
+    host: string;
+    port: number | string;
+  };
+  isProxy?: boolean;
+};
+
 interface ChromeEvent<T extends ChromeListener = ChromeListener> {
   addListener(callback: T, ...extra: unknown[]): void;
   removeListener(callback: T): void;
@@ -105,7 +127,7 @@ interface ChromeTabsApi {
   update(tabId: number | undefined, properties: Record<string, unknown>, callback?: (...args: unknown[]) => void): void;
   onActivated: ChromeEvent<(info: {tabId: number}) => void>;
   onCreated: ChromeEvent<(tab: ChromeTab) => void>;
-  onRemoved: ChromeEvent;
+  onRemoved: ChromeEvent<(tabId: number, removeInfo?: unknown) => void>;
   onReplaced?: ChromeEvent<(addedTabId: number, removedTabId: number) => void>;
   onUpdated: ChromeEvent<(tabId: number, changeInfo: Record<string, unknown>, tab: ChromeTab) => void>;
   [key: string]: unknown;
@@ -114,8 +136,8 @@ interface ChromeTabsApi {
 interface ChromeActionApi {
   onClicked: ChromeEvent<(tab: ChromeTab) => void>;
   getBadgeText?(details: Record<string, unknown>, callback: (text: string) => void): void;
-  setBadgeBackgroundColor?(details: Record<string, unknown>, callback?: (...args: unknown[]) => void): void;
-  setBadgeText?(details: Record<string, unknown>, callback?: (...args: unknown[]) => void): void;
+  setBadgeBackgroundColor(details: Record<string, unknown>, callback?: (...args: unknown[]) => void): void;
+  setBadgeText(details: Record<string, unknown>, callback?: (...args: unknown[]) => void): void;
   setIcon?(details: Record<string, unknown>, callback?: (...args: unknown[]) => void): void;
   setPopup?(details: Record<string, unknown>, callback?: (...args: unknown[]) => void): void;
   setTitle(details: Record<string, unknown>, callback?: (...args: unknown[]) => void): void;
@@ -127,7 +149,7 @@ interface ChromeContextMenusApi {
   remove(menuItemId: string, callback?: (...args: unknown[]) => void): void;
   removeAll?(callback?: (...args: unknown[]) => void): void;
   update(menuItemId: string, updateProperties: Record<string, unknown>, callback?: (...args: unknown[]) => void): void;
-  onClicked: ChromeEvent<(info: Record<string, unknown>, tab: ChromeTab) => void>;
+  onClicked: ChromeEvent<(info: ChromeContextMenuClickInfo, tab: ChromeTab) => void>;
   [key: string]: unknown;
 }
 
@@ -170,12 +192,15 @@ interface BrowserStorageApi {
 }
 
 interface ChromeWebRequestApi {
-  onAuthRequired?: ChromeEvent;
-  onBeforeRedirect: ChromeEvent;
-  onBeforeRequest: ChromeEvent;
-  onCompleted: ChromeEvent;
-  onErrorOccurred: ChromeEvent;
-  onHeadersReceived: ChromeEvent;
+  onAuthRequired?: ChromeEvent<(
+    details: ChromeWebRequestAuthDetails,
+    callback?: (response: {authCredentials?: {password?: string; username?: string}}) => void
+  ) => unknown>;
+  onBeforeRedirect: ChromeEvent<(details: ChromeWebRequestDetails) => unknown>;
+  onBeforeRequest: ChromeEvent<(details: ChromeWebRequestDetails) => unknown>;
+  onCompleted: ChromeEvent<(details: ChromeWebRequestDetails) => unknown>;
+  onErrorOccurred: ChromeEvent<(details: ChromeWebRequestDetails) => unknown>;
+  onHeadersReceived: ChromeEvent<(details: ChromeWebRequestDetails) => unknown>;
   [key: string]: unknown;
 }
 
@@ -575,7 +600,7 @@ declare module 'buffer' {
 
 interface Window {
   FindProxyForURL: ProxyFindFunction;
-  OmegaContextMenuClickHandlers: Record<string, (info: unknown, tab: ChromeTab) => unknown>;
+  OmegaContextMenuClickHandlers: Record<string, (info: ChromeContextMenuClickInfo, tab: ChromeTab) => unknown>;
   OmegaContextMenuQuickSwitchHandler: (info: {checked: boolean}) => unknown;
   OmegaTargetPopup: OmegaTargetPopupApi;
 }

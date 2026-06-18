@@ -152,7 +152,7 @@ function addUnhandledRejectionListener(
 }
 
 const Promise = function<T = unknown>(this: unknown, executor: PromiseExecutor<T>): RuntimePromise<T> {
-  return augment(new NativePromiseImpl(executor));
+  return augment(new NativePromiseImpl<T>(executor));
 } as unknown as RuntimePromiseStatic;
 
 Promise.all = function<T>(values: Array<T | PromiseLike<T>>): RuntimePromise<T[]> {
@@ -224,7 +224,7 @@ Promise.reject = function<T = never>(reason?: unknown): RuntimePromise<T> {
 };
 
 Promise.resolve = function<T = void>(value?: T | PromiseLike<T>): RuntimePromise<T> {
-  return augment(NativePromiseImpl.resolve(value));
+  return augment(NativePromiseImpl.resolve<T>(value as T | PromiseLike<T>));
 };
 
 Promise.try = function<T = unknown>(fn: () => T | PromiseLike<T>): RuntimePromise<T> {

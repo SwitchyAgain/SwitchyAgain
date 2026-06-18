@@ -55,7 +55,7 @@ class OptionsSync {
   static TokenBucket = TokenBucket;
 
   _timeout: TimerHandle | null = null;
-  _bucket: TokenBucketLike | null = null;
+  _bucket: TokenBucketLike;
   _waiting: boolean = false;
   _pending: StorageChanges;
 
@@ -75,7 +75,7 @@ class OptionsSync {
    * The remote storage of syncing.
    * @type Storage
    */
-  storage: StorageLike | null = null;
+  storage: StorageLike;
 
   /**
    * Whether syncing is enabled or not. See requestPush for the effect.
@@ -83,17 +83,14 @@ class OptionsSync {
    */
   enabled: boolean = true;
 
-  constructor(storage: StorageLike, _bucket?: TokenBucketLike) {
-    this.storage = storage;
-    this._bucket = _bucket;
+  constructor(storage?: StorageLike | null, _bucket?: TokenBucketLike) {
+    this.storage = storage ?? new StorageClass();
+    this._bucket = _bucket ?? new TokenBucket({
+      bucketSize: 10,
+      tokensPerInterval: 10,
+      interval: 'minute'
+    }) as TokenBucketLike;
     this._pending = {};
-    if (this._bucket == null) {
-      this._bucket = new TokenBucket({
-        bucketSize: 10,
-        tokensPerInterval: 10,
-        interval: 'minute'
-      }) as TokenBucketLike;
-    }
     if (this._bucket.clear == null) {
       this._bucket.clear = () => {
         return this._bucket.tryRemoveTokens(this._bucket.content);
@@ -133,9 +130,10 @@ class OptionsSync {
         (newProfile != null ? newProfile.syncOptions : void 0) === 'disabled') {
       return oldVal;
     }
-    if ((oldProfile != null ? oldProfile.revision : void 0) != null &&
-        (newProfile != null ? newProfile.revision : void 0) != null) {
-      result = Revision.compare(oldProfile.revision, newProfile.revision);
+    const oldRevision = oldProfile?.revision;
+    const newRevision = newProfile?.revision;
+    if (oldRevision != null && newRevision != null) {
+      result = Revision.compare(oldRevision, newRevision);
       if (result >= 0) {
         return oldVal;
       }
@@ -187,7 +185,7 @@ class OptionsSync {
     }
     this._waiting = true;
     return Promise.resolve(this._bucket!.removeTokens(1)).then(() => {
-      return this.storage!.get(null).then((base: StorageItems) => {
+        return this.storage.get(null).then((base: StorageItems) => {
         const changes = this._pending;
         this._pending = {};
         this._waiting = false;
@@ -198,13 +196,13 @@ class OptionsSync {
       }).then(({set, remove}: StorageOperations) => {
         const doSet = Object.keys(set).length === 0
           ? Promise.resolve(0)
-          : (Log.log('OptionsSync::set', set), this.storage!.set(set).then(() => 1));
+          : (Log.log('OptionsSync::set', set), this.storage.set(set).then(() => 1));
         return doSet.then((cost: number) => {
           set = {};
           if (remove.length > 0) {
             if (this._bucket!.tryRemoveTokens(cost)) {
               Log.log('OptionsSync::remove', remove);
-              return this.storage!.remove(remove);
+              return this.storage.remove(remove);
             }
             return Promise.reject('bucket');
           }
@@ -226,7 +224,7 @@ class OptionsSync {
             return this._doPush();
           } else if (e instanceof Storage.RateLimitExceededError) {
             Log.log('OptionsSync::rateLimitExceeded');
-            this._bucket.clear();
+            this._bucket.clear?.();
             this.requestPush({});
           } else if (e instanceof Storage.QuotaExceededError) {
             valuesAffected = 0;
@@ -254,12 +252,14 @@ class OptionsSync {
     });
   }
 
-  _logOperations(text: string, operations: StorageOperations): void {
-    if (Object.keys(operations.set).length) {
-      Log.log(text + '::set', operations.set);
+  _logOperations(text: string, operations: StorageApplyOperations): void {
+    const set = operations.set || {};
+    const remove = operations.remove || [];
+    if (Object.keys(set).length) {
+      Log.log(text + '::set', set);
     }
-    if (operations.remove.length) {
-      Log.log(text + '::remove', operations.remove);
+    if (remove.length) {
+      Log.log(text + '::remove', remove);
     }
   }
 
@@ -271,8 +271,10 @@ class OptionsSync {
   copyTo(local: StorageLike): RuntimePromise<unknown> {
     return Promise.all([
       local.get(null),
-      this.storage!.get(null)
-    ]).then(([base, changes]: [StorageItems, StorageChanges]) => {
+      this.storage.get(null)
+    ]).then((values) => {
+      const base = values[0] as StorageItems;
+      const changes = values[1] as StorageChanges;
       for (const key in base) {
         if (!Object.prototype.hasOwnProperty.call(base, key)) continue;
         if (!(key in changes)) {
@@ -286,7 +288,7 @@ class OptionsSync {
         changes: changes,
         base: base,
         merge: this.merge
-      }).then((operations: StorageOperations) => {
+      }).then((operations: StorageApplyOperations) => {
         return this._logOperations('OptionsSync::copyTo', operations);
       });
     });
@@ -315,7 +317,7 @@ class OptionsSync {
         return local.apply(operations);
       });
     };
-    return this.storage!.watch(null, (changes: StorageChanges) => {
+    return this.storage.watch(null, (changes: StorageChanges) => {
       for (const key in changes) {
         if (!Object.prototype.hasOwnProperty.call(changes, key)) continue;
         const value = changes[key];

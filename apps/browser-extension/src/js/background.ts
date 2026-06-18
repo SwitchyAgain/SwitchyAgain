@@ -366,20 +366,24 @@ type BackgroundOmegaTarget = {
           throw new Error('Canvas is unavailable in this background context.');
         }
       }
+      const ctx = drawContext;
+      if (ctx == null) {
+        throw new Error('Canvas drawing context is unavailable.');
+      }
       icon = {};
       for (const size of [16, 19, 24, 32, 38]) {
-        drawContext.scale(size, size);
-        drawContext.clearRect(0, 0, 1, 1);
+        ctx.scale(size, size);
+        ctx.clearRect(0, 0, 1, 1);
         if (resultColor != null) {
-          drawOmega(drawContext, resultColor, profileColor);
+          drawOmega(ctx, resultColor, profileColor);
         } else {
-          drawOmega(drawContext, profileColor);
+          drawOmega(ctx, profileColor || '#777');
         }
         if (scopeMarker) {
-          drawProfileScopeMarker(drawContext, scopeMarker);
+          drawProfileScopeMarker(ctx, scopeMarker);
         }
-        drawContext.setTransform(1, 0, 0, 1, 0, 0);
-        icon[size] = drawContext.getImageData(0, 0, size, size);
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        icon[size] = ctx.getImageData(0, 0, size, size);
         if (icon[size].data[3] === 255) {
           throw new Error('Icon drawing blocked by privacy.resistFingerprinting.');
         }
@@ -633,8 +637,9 @@ type BackgroundOmegaTarget = {
         return;
       }
       const parsedUrl = OmegaTargetCurrent.Url.parse(url);
+      const tabPageUrl = tab.url;
       let urlDisp: string | undefined;
-      if (parsedUrl.hostname === OmegaTargetCurrent.Url.parse(tab.url).hostname) {
+      if (tabPageUrl && parsedUrl.hostname === OmegaTargetCurrent.Url.parse(tabPageUrl).hostname) {
         urlDisp = stringOrUndefined(parsedUrl.path);
       } else {
         urlDisp = stringOrUndefined(parsedUrl.hostname);
@@ -647,7 +652,7 @@ type BackgroundOmegaTarget = {
       });
       return tabs.setTabBadge(tab, {
         text: '#',
-        color: action.resultColor
+        color: action.resultColor || action.profileColor || '#777'
       });
     });
   });

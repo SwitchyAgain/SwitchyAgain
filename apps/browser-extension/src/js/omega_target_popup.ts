@@ -127,7 +127,7 @@ function callBackgroundWithRefresh<M extends PopupBackgroundMethod>(
 }
 
 const isManifestV3 = chrome.runtime.getManifest &&
-  chrome.runtime.getManifest().manifest_version >= 3;
+  (chrome.runtime.getManifest().manifest_version ?? 2) >= 3;
 const localStatePrefix = 'omega.local.';
 
 function cacheActivePageInfo(info?: PopupApiPageInfo | null) {

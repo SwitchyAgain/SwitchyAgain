@@ -6,7 +6,7 @@ type ContextMenuOptions = Record<string, unknown> & {
   type?: string;
 };
 
-type ContextMenuClickHandler = (info: unknown, tab: ChromeTab) => unknown;
+type ContextMenuClickHandler = (info: ChromeContextMenuClickInfo, tab: ChromeTab) => unknown;
 
 (function() {
   localStorage['log'] = '';
@@ -24,6 +24,10 @@ type ContextMenuClickHandler = (info: unknown, tab: ChromeTab) => unknown;
   const actionContext = chrome.action != null ? "action" : "browser_action";
 
   const addContextMenu = (options: ContextMenuOptions, onclick?: ContextMenuClickHandler) => {
+    const contextMenus = chrome.contextMenus;
+    if (contextMenus == null) {
+      return;
+    }
     if (onclick) {
       if (options.id) {
         window.OmegaContextMenuClickHandlers[options.id] = onclick;
@@ -32,11 +36,11 @@ type ContextMenuClickHandler = (info: unknown, tab: ChromeTab) => unknown;
         window.OmegaContextMenuClickHandlers[options.id!] = onclick;
       }
     }
-    return chrome.contextMenus.create(options);
+    return contextMenus.create(options);
   };
 
   if (chrome.contextMenus?.onClicked != null) {
-    chrome.contextMenus.onClicked.addListener((info: {menuItemId: string}, tab: ChromeTab) => {
+    chrome.contextMenus.onClicked.addListener((info: ChromeContextMenuClickInfo, tab: ChromeTab) => {
       const handler = window.OmegaContextMenuClickHandlers[info.menuItemId];
       return typeof handler === "function" ? handler(info, tab) : void 0;
     });
@@ -51,8 +55,8 @@ type ContextMenuClickHandler = (info: unknown, tab: ChromeTab) => unknown;
           type: 'checkbox',
           checked: false,
           contexts: [actionContext]
-        }, (info: {checked: boolean}) => {
-          return window.OmegaContextMenuQuickSwitchHandler(info);
+        }, (info: ChromeContextMenuClickInfo) => {
+          return window.OmegaContextMenuQuickSwitchHandler({checked: info.checked === true});
         });
       }
     };

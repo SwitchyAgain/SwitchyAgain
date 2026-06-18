@@ -10,7 +10,7 @@
     "outDir": "build-ts",
     "skipLibCheck": true,
     "sourceMap": false,
-    "strict": false,
+    "strict": true,
     "target": "es2022"
   },
   "include": [
