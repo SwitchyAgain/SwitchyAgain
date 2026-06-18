@@ -9,6 +9,8 @@ SwitchyAgain
 <br>
 ![Languages](https://img.shields.io/badge/Languages-English%20%E4%B8%AD%E6%96%87%20Espa%C3%B1ol%20%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B8%D0%B9%20%C4%8Ce%C5%A1tina%20%D9%81%D8%A7%D8%B1%D8%B3%DB%8C-6F42C1)
 
+**Repository moved to https://github.com/SwitchyAgain/SwitchyAgain.**
+
 SwitchyAgain is a fork of [SwitchyOmega](https://github.com/FelisCatus/SwitchyOmega) focused on keeping the proxy switching
 workflow available on modern browsers.
 
