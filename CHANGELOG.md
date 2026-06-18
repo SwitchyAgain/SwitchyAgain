@@ -1,5 +1,23 @@
 # Changelog
 
+## v1.2.1
+
+Proxy settings cleanup, profile editor fixes, and project identity updates.
+
+- Removed obsolete FTP proxy support and legacy proxy script plumbing from the
+  browser extension proxy implementation.
+- Added rule-list export cache controls and duplicate profile creation.
+- Restored the first-run options guide and added PO catalog validation to the
+  project checks.
+- Added a General settings current-profile selector, a visibility option for
+  that selector, and Firefox SOCKS5 local DNS configuration where supported.
+- Improved profile editing behavior for unchanged edits, direct profile source
+  validation, removed-profile navigation, and loaded switch rules after
+  deletion.
+- Refined proxy authentication capability handling and availability UI.
+- Updated the main extension icon, extension description, About page links, and
+  Firefox extension ID for the new SwitchyAgain organization identity.
+
 ## v1.2.0
 
 Profile scope controls, theme support, and popup customization.
