@@ -5,14 +5,6 @@ import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {OptionsAlert, OptionsShell} from '../src/react/options_shell';
 import type {Options} from '../src/react/options_client';
 
-function installChromeMock() {
-  (globalThis as any).chrome = {
-    i18n: {
-      getMessage: () => ''
-    }
-  };
-}
-
 function optionsFixture(): Options {
   return {
     '+auto': {
@@ -28,10 +20,6 @@ function optionsFixture(): Options {
 
 afterEach(() => {
   cleanup();
-});
-
-beforeEach(() => {
-  installChromeMock();
 });
 
 describe('options shell components', () => {

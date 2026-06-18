@@ -6,6 +6,7 @@ export default defineConfig({
     environment: 'node',
     fileParallelism: false,
     globals: true,
-    include: ['test/*.ts', 'test/*.tsx']
+    include: ['test/*.ts', 'test/*.tsx'],
+    setupFiles: ['test/support/setup.ts']
   }
 });

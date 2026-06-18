@@ -12,14 +12,6 @@ import {
 } from '../src/react/profile_content';
 import type {NamedFixedProfileModel, NamedPacProfileModel, NamedRuleListProfileModel} from '../src/react/profile_types';
 
-function installChromeMock() {
-  (globalThis as any).chrome = {
-    i18n: {
-      getMessage: () => ''
-    }
-  };
-}
-
 function installOmegaPacMock() {
   (globalThis as any).OmegaPac = {
     Conditions: {
@@ -41,7 +33,6 @@ afterEach(() => {
 });
 
 beforeEach(() => {
-  installChromeMock();
   installOmegaPacMock();
 });
 

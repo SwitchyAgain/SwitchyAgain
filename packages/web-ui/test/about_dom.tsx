@@ -4,25 +4,8 @@ import React from 'react';
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {About} from '../src/react/about';
 
-function installChromeMock() {
-  (globalThis as any).chrome = {
-    i18n: {
-      getMessage: () => ''
-    },
-    runtime: {
-      getManifest: () => ({
-        version: '0.0.0'
-      })
-    }
-  };
-}
-
 afterEach(() => {
   cleanup();
-});
-
-beforeEach(() => {
-  installChromeMock();
 });
 
 describe('about component', () => {

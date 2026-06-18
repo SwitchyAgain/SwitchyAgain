@@ -4,14 +4,6 @@ import React from 'react';
 import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {OptionsGuide} from '../src/react/options_guide';
 
-function installChromeMock() {
-  (globalThis as any).chrome = {
-    i18n: {
-      getMessage: () => ''
-    }
-  };
-}
-
 function installTarget(selectorClass: string, attrs: Record<string, string> = {}) {
   const target = document.createElement('div');
   target.className = selectorClass;
@@ -43,7 +35,6 @@ afterEach(() => {
 });
 
 beforeEach(() => {
-  installChromeMock();
   window.requestAnimationFrame = (callback: FrameRequestCallback) => window.setTimeout(callback, 0);
 });
 

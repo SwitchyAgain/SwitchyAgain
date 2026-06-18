@@ -6,14 +6,6 @@ import {ConfirmModal} from '../src/react/confirm_modals';
 import type {Options} from '../src/react/options_client';
 import type {Profile} from '../src/react/profile_widgets';
 
-function installChromeMock() {
-  (globalThis as any).chrome = {
-    i18n: {
-      getMessage: () => ''
-    }
-  };
-}
-
 function profile(name: string, profileType = 'FixedProfile'): Profile {
   return {
     name,
@@ -36,10 +28,6 @@ function optionsFixture(): Options {
 
 afterEach(() => {
   cleanup();
-});
-
-beforeEach(() => {
-  installChromeMock();
 });
 
 describe('confirm modal components', () => {

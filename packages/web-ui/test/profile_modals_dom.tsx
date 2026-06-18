@@ -5,20 +5,8 @@ import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {NewProfileModal, ProxyAuthModal, RenameProfileModal} from '../src/react/profile_modals';
 import type {Profile} from '../src/react/profile_widgets';
 
-function installChromeMock() {
-  (globalThis as any).chrome = {
-    i18n: {
-      getMessage: () => ''
-    }
-  };
-}
-
 afterEach(() => {
   cleanup();
-});
-
-beforeEach(() => {
-  installChromeMock();
 });
 
 describe('profile modal components', () => {

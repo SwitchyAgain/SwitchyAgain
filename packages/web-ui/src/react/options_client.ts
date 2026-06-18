@@ -1,5 +1,26 @@
 import type {OptionsData} from './profile_types';
 import {applyUiTheme, uiThemeForOptions} from './ui_theme';
+import {
+  applyRootLocale,
+  createTab,
+  downloadBlobFile,
+  extensionBrowser,
+  extensionId,
+  extensionManifestVersion,
+  extensionManifestVersionNumber,
+  extensionMessage,
+  extensionUiLanguage,
+  extensionUrl,
+  getJsonLocalStorage,
+  queryTabsByUrl,
+  runtimeAvailable as extensionRuntimeAvailable,
+  runtimeLastErrorMessage,
+  sendRuntimeMessage,
+  setJsonLocalStorage,
+  setLocationHref,
+  shouldAutoMountScript,
+  updateTab
+} from './browser_env';
 
 export type Options = OptionsData;
 export type OptionsPatch = Record<string, unknown>;
@@ -124,36 +145,6 @@ export type BackgroundMessage<M extends BackgroundMethod = BackgroundMethod> = {
   refreshActivePage?: boolean;
 };
 
-declare const chrome: {
-  i18n?: {
-    getMessage?: (key: string, substitutions?: string | string[]) => string;
-    getUILanguage?: () => string;
-  };
-  runtime?: {
-    getManifest?: () => {manifest_version?: number; version?: string};
-    getURL?: (path: string) => string;
-    id?: string;
-    lastError?: {message?: string};
-    sendMessage?: <M extends BackgroundMethod>(
-      message: BackgroundMessage<M>,
-      callback: (response?: BackgroundResponse<BackgroundMethodResult[M]>) => void
-    ) => void;
-  };
-  tabs?: {
-    create?: (props: {url: string}, callback?: () => void) => void;
-    query?: (queryInfo: {url?: string}, callback: (tabs: Array<{id?: number; url?: string}>) => void) => void;
-    update?: (tabId: number | undefined, props: {active?: boolean; url?: string}, callback?: () => void) => void;
-  };
-};
-
-declare const browser:
-  | {
-      commands?: {
-        openShortcutSettings?: () => Promise<void> | void;
-      };
-    }
-  | undefined;
-
 export type UiLocale = 'en' | 'zh-Hans' | 'zh-Hant' | 'es' | 'ru' | 'cs' | 'fa';
 
 export type UiLocaleOption = {
@@ -204,7 +195,7 @@ export function normalizeUiLocale(value: unknown): UiLocale | null {
   return extensionLocale?.value || null;
 }
 
-export function browserUiLocale(language = chrome?.i18n?.getUILanguage?.() || ''): UiLocale {
+export function browserUiLocale(language = extensionUiLanguage()): UiLocale {
   const normalized = language.replace(/_/g, '-').toLowerCase();
   if (normalized === 'zh' || normalized.startsWith('zh-hans') || normalized.startsWith('zh-cn') || normalized.startsWith('zh-sg')) {
     return 'zh-Hans';
@@ -280,7 +271,7 @@ async function fetchLocaleCatalog(locale: UiLocale) {
     return localeCatalogs.get(locale) || null;
   }
   const option = UI_LOCALE_BY_VALUE.get(locale);
-  const url = option && chrome?.runtime?.getURL?.(`_locales/${option.extensionLocale}/messages.json`);
+  const url = option && extensionUrl(`_locales/${option.extensionLocale}/messages.json`, '');
   if (!url) {
     localeCatalogs.set(locale, null);
     return null;
@@ -305,8 +296,7 @@ async function fetchLocaleCatalog(locale: UiLocale) {
 
 function applyDocumentLocale(locale: UiLocale) {
   const option = UI_LOCALE_BY_VALUE.get(locale);
-  document.documentElement.lang = locale;
-  document.documentElement.dir = option?.dir || 'ltr';
+  applyRootLocale(locale, option?.dir || 'ltr');
 }
 
 export async function setUiLocale(locale: unknown) {
@@ -326,32 +316,24 @@ async function applyOptionsUi(options: Options) {
 
 export function message(key: string, fallback = key, substitutions?: string | string[]) {
   const catalogMessage = formatMessage(currentCatalog?.[key] || englishCatalog?.[key], substitutions);
-  return catalogMessage || chrome?.i18n?.getMessage?.(key, substitutions) || fallback;
+  return catalogMessage || extensionMessage(key, fallback, substitutions);
 }
 
 export function manifestVersion() {
-  return chrome?.runtime?.getManifest?.()?.version || 'unknown';
+  return extensionManifestVersion();
 }
 
 export function runtimeAvailable() {
-  return Boolean(chrome?.runtime?.sendMessage);
+  return extensionRuntimeAvailable();
 }
 
 export function shouldAutoMount(scriptName: string) {
-  const script = document.currentScript as HTMLScriptElement | null;
-  const src = script?.src || '';
-  if (src.endsWith(`/${scriptName}`) || src.endsWith(scriptName)) {
-    return true;
-  }
-  return Array.from(document.scripts).some((candidate) => {
-    const candidateSrc = candidate.src || candidate.getAttribute('src') || '';
-    return candidate.type === 'module' && (candidateSrc.endsWith(`/${scriptName}`) || candidateSrc.endsWith(scriptName));
-  });
+  return shouldAutoMountScript(scriptName);
 }
 
 function isManifestV3() {
-  const manifest = chrome?.runtime?.getManifest?.();
-  return Boolean(manifest?.manifest_version && manifest.manifest_version >= 3);
+  const manifestVersion = extensionManifestVersionNumber();
+  return Boolean(manifestVersion && manifestVersion >= 3);
 }
 
 export function callBackground<M extends BackgroundMethod>(
@@ -359,21 +341,22 @@ export function callBackground<M extends BackgroundMethod>(
   ...args: BackgroundMethodArgs[M]
 ): Promise<BackgroundMethodResult[M]> {
   return new Promise((resolve, reject) => {
-    if (!chrome?.runtime?.sendMessage) {
-      reject(new Error('Extension runtime is unavailable.'));
-      return;
-    }
-    chrome.runtime.sendMessage({method, args}, (response) => {
-      if (chrome.runtime?.lastError) {
-        reject(new Error(chrome.runtime.lastError.message || 'Unknown runtime error.'));
+    const sent = sendRuntimeMessage({method, args}, (response) => {
+      const typedResponse = response as BackgroundResponse<BackgroundMethodResult[M]> | undefined;
+      const lastErrorMessage = runtimeLastErrorMessage();
+      if (lastErrorMessage) {
+        reject(new Error(lastErrorMessage));
         return;
       }
-      if (response?.error) {
-        reject(decodeBackgroundError(response.error));
+      if (typedResponse?.error) {
+        reject(decodeBackgroundError(typedResponse.error));
         return;
       }
-      resolve(response?.result as BackgroundMethodResult[M]);
+      resolve(typedResponse?.result as BackgroundMethodResult[M]);
     });
+    if (!sent) {
+      reject(new Error('Extension runtime is unavailable.'));
+    }
   });
 }
 
@@ -382,33 +365,34 @@ export function callBackgroundWithRefresh<M extends BackgroundMethod>(
   ...args: BackgroundMethodArgs[M]
 ): Promise<BackgroundMethodResult[M]> {
   return new Promise((resolve, reject) => {
-    if (!chrome?.runtime?.sendMessage) {
-      reject(new Error('Extension runtime is unavailable.'));
-      return;
-    }
-    chrome.runtime.sendMessage({method, args, refreshActivePage: true}, (response) => {
-      if (chrome.runtime?.lastError) {
-        reject(new Error(chrome.runtime.lastError.message || 'Unknown runtime error.'));
+    const sent = sendRuntimeMessage({method, args, refreshActivePage: true}, (response) => {
+      const typedResponse = response as BackgroundResponse<BackgroundMethodResult[M]> | undefined;
+      const lastErrorMessage = runtimeLastErrorMessage();
+      if (lastErrorMessage) {
+        reject(new Error(lastErrorMessage));
         return;
       }
-      if (response?.error) {
-        reject(decodeBackgroundError(response.error));
+      if (typedResponse?.error) {
+        reject(decodeBackgroundError(typedResponse.error));
         return;
       }
-      resolve(response?.result as BackgroundMethodResult[M]);
+      resolve(typedResponse?.result as BackgroundMethodResult[M]);
     });
+    if (!sent) {
+      reject(new Error('Extension runtime is unavailable.'));
+    }
   });
 }
 
 export function callBackgroundNoReply<M extends BackgroundMethod>(method: M, ...args: BackgroundMethodArgs[M]) {
-  chrome?.runtime?.sendMessage?.(
+  sendRuntimeMessage(
     {
       method,
       args,
       noReply: true
     },
     () => {
-      chrome?.runtime?.lastError;
+      runtimeLastErrorMessage();
     }
   );
 }
@@ -477,16 +461,11 @@ function stateKey(name: string) {
 }
 
 export function getLocalState<T = unknown>(name: string) {
-  try {
-    const value = window.localStorage.getItem(stateKey(name));
-    return value == null ? undefined : (JSON.parse(value) as T);
-  } catch (_err) {
-    return undefined;
-  }
+  return getJsonLocalStorage<T>(stateKey(name));
 }
 
 export function setLocalState<T>(name: string, value: T) {
-  window.localStorage.setItem(stateKey(name), JSON.stringify(value));
+  setJsonLocalStorage(stateKey(name), value);
 }
 
 export function getState<T = unknown>(name: string): Promise<T | undefined>;
@@ -550,33 +529,23 @@ export function updateProfile(name?: string, bypassCache = 'bypass_cache') {
 }
 
 export function openShortcutConfig() {
-  if (typeof browser !== 'undefined' && typeof browser.commands?.openShortcutSettings === 'function') {
+  const browser = extensionBrowser();
+  if (typeof browser?.commands?.openShortcutSettings === 'function') {
     void Promise.resolve(browser.commands.openShortcutSettings()).catch(() => {
-      chrome?.tabs?.create?.({
-        url: 'about:addons'
-      });
+      createTab('about:addons');
     });
     return;
   }
-  chrome?.tabs?.create?.({
-    url: typeof browser !== 'undefined' ? 'about:addons' : 'chrome://extensions/configureCommands'
-  });
+  createTab(browser ? 'about:addons' : 'chrome://extensions/configureCommands');
 }
 
 export function openManage() {
-  const id = chrome?.runtime?.id || '';
-  chrome?.tabs?.create?.({
-    url: `chrome://extensions/?id=${id}`
-  });
+  createTab(`chrome://extensions/?id=${extensionId()}`);
 }
 
 export function openOptions(hash?: string) {
-  const optionsUrl = chrome?.runtime?.getURL?.('options.html') || 'options.html';
-  if (!chrome?.tabs?.query) {
-    window.location.href = hash ? `${optionsUrl}${hash}` : optionsUrl;
-    return;
-  }
-  chrome.tabs.query({url: optionsUrl}, (tabs) => {
+  const optionsUrl = extensionUrl('options.html');
+  if (!queryTabsByUrl(optionsUrl, (tabs) => {
     let targetUrl = optionsUrl;
     if (hash) {
       try {
@@ -588,16 +557,17 @@ export function openOptions(hash?: string) {
       }
     }
     if (tabs?.length > 0) {
-      chrome.tabs?.update?.(tabs[0].id, {
+      updateTab(tabs[0].id, {
         active: true,
         ...(hash ? {url: targetUrl} : {})
       });
       return;
     }
-    chrome.tabs?.create?.({
-      url: targetUrl
-    });
-  });
+    createTab(targetUrl);
+  })) {
+    setLocationHref(hash ? `${optionsUrl}${hash}` : optionsUrl);
+    return;
+  }
 }
 
 export function optionPatch(before: Options, after: Options, keys: string[]) {
@@ -611,13 +581,5 @@ export function optionPatch(before: Options, after: Options, keys: string[]) {
 }
 
 export function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.rel = 'noopener';
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  downloadBlobFile(blob, filename);
 }

@@ -1,6 +1,7 @@
 import {message} from './options_client';
 import type {RequestExplanation} from './options_client';
 import type {NamedProfile, ProfileKey} from './profile_types';
+import {closeWindow, getGlobalValue, reloadHistory, setBodyOpacity} from './browser_env';
 
 export type {ProfileKey};
 
@@ -129,35 +130,29 @@ export type PopupTarget = {
   setState?: <TKey extends PopupWritableStateKey>(name: TKey, value: PopupState[TKey], callback?: PopupCallback) => void;
 };
 
-declare global {
-  interface Window {
-    OmegaTargetPopup?: PopupTarget;
-  }
-}
-
 export function closePopup() {
-  window.close();
-  document.body.style.opacity = '0';
-  window.setTimeout(() => history.go(0), 300);
+  closeWindow();
+  setBodyOpacity('0');
+  setTimeout(() => reloadHistory(), 300);
 }
 
 export function popupTarget() {
-  return window.OmegaTargetPopup || {};
+  return getGlobalValue<PopupTarget>('OmegaTargetPopup') || {};
 }
 
 export function waitForPopupTarget() {
-  if (window.OmegaTargetPopup) {
+  if (getGlobalValue<PopupTarget>('OmegaTargetPopup')) {
     return Promise.resolve();
   }
   return new Promise<void>((resolve, reject) => {
     let tries = 0;
-    const timer = window.setInterval(() => {
+    const timer = setInterval(() => {
       tries++;
-      if (window.OmegaTargetPopup) {
-        window.clearInterval(timer);
+      if (getGlobalValue<PopupTarget>('OmegaTargetPopup')) {
+        clearInterval(timer);
         resolve();
       } else if (tries > 100) {
-        window.clearInterval(timer);
+        clearInterval(timer);
         reject(new Error('Popup target API is unavailable.'));
       }
     }, 20);
@@ -177,7 +172,7 @@ export function callbackPromise<T>(invoke: (callback: PopupCallback<T>) => void)
     };
     invoke(callback);
     if (!settled) {
-      window.setTimeout(() => {
+      setTimeout(() => {
         if (!settled) {
           reject(new Error('Popup target method did not respond.'));
         }

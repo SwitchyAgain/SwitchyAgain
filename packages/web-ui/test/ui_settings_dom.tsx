@@ -5,15 +5,6 @@ import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {UiSettings} from '../src/react/ui_settings';
 import type {Options} from '../src/react/options_client';
 
-function installChromeMock() {
-  (globalThis as any).chrome = {
-    i18n: {
-      getMessage: () => '',
-      getUILanguage: () => 'en'
-    }
-  };
-}
-
 function optionsFixture(): Options {
   return {
     '+pac': {
@@ -52,10 +43,6 @@ afterEach(() => {
   document.documentElement.classList.remove('theme-dark', 'theme-light');
   delete document.documentElement.dataset.effectiveTheme;
   delete document.documentElement.dataset.uiTheme;
-});
-
-beforeEach(() => {
-  installChromeMock();
 });
 
 describe('ui settings component', () => {

@@ -5,15 +5,6 @@ import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/reac
 import {GeneralSettings} from '../src/react/general_settings';
 import type {Options} from '../src/react/options_client';
 
-function installChromeMock() {
-  (globalThis as any).chrome = {
-    i18n: {
-      getMessage: () => '',
-      getUILanguage: () => 'en'
-    }
-  };
-}
-
 function optionsFixture(): Options {
   return {
     '-downloadInterval': 60,
@@ -28,10 +19,6 @@ function optionsFixture(): Options {
 
 afterEach(() => {
   cleanup();
-});
-
-beforeEach(() => {
-  installChromeMock();
 });
 
 describe('general settings component', () => {

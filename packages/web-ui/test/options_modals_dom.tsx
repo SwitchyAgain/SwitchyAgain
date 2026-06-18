@@ -4,20 +4,8 @@ import React from 'react';
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {WelcomeModal} from '../src/react/options_modals';
 
-function installChromeMock() {
-  (globalThis as any).chrome = {
-    i18n: {
-      getMessage: () => ''
-    }
-  };
-}
-
 afterEach(() => {
   cleanup();
-});
-
-beforeEach(() => {
-  installChromeMock();
 });
 
 describe('options modal components', () => {
