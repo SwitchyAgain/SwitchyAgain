@@ -54,6 +54,11 @@ function optionsFixture(): Options {
       name: 'proxy',
       profileType: 'FixedProfile'
     },
+    '+pac': {
+      name: 'pac',
+      pacScript: '',
+      profileType: 'PacProfile'
+    },
     '+rulelist': {
       defaultProfileName: 'direct',
       format: 'AutoProxy',
@@ -80,6 +85,28 @@ function optionsFixture(): Options {
     '-uiLocale': 'en',
     '-uiTheme': 'light'
   };
+}
+
+function patchRequests(requests: unknown[]) {
+  return requests.filter((request) => (request as {method?: string}).method === 'patch') as Array<{args?: unknown[]; method: string}>;
+}
+
+function requestMethods(requests: unknown[]) {
+  return requests.map((request) => (request as {method?: string}).method);
+}
+
+function firstPatch(requests: unknown[]) {
+  return patchRequests(requests)[0]?.args?.[0] as Record<string, unknown> | undefined;
+}
+
+function profilePatchValue(patch: Record<string, unknown> | undefined, key: string) {
+  return (patch?.[key] as unknown[] | undefined)?.[1] as Record<string, unknown> | undefined;
+}
+
+function changeProfileSelect(label: string, name: string) {
+  const group = screen.getByText(label).closest('.form-group') as HTMLElement;
+  fireEvent.click(within(group).getByRole('listbox'));
+  fireEvent.click(within(group).getByRole('option', {name}).querySelector('a') as HTMLAnchorElement);
 }
 
 function installBackground({
@@ -286,6 +313,214 @@ describe('options app', () => {
         }
       ],
       method: 'patch'
+    });
+  });
+
+  it('saves fixed profile proxy edits through the top-level apply flow', async () => {
+    const loadedOptions = optionsFixture();
+    const patchedOptions: Options = {
+      ...loadedOptions,
+      '+proxy': {
+        ...(loadedOptions['+proxy'] as Record<string, unknown>),
+        fallbackProxy: {
+          host: 'proxy.example.com',
+          port: 8080,
+          scheme: 'http'
+        }
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions,
+      patchedOptions
+    });
+    window.location.hash = '#/profile/proxy';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: proxy/});
+    const proxyServers = screen.getByRole('heading', {name: 'Proxy Servers'}).closest('section') as HTMLElement;
+
+    fireEvent.change(within(proxyServers).getAllByRole('combobox')[0], {
+      target: {
+        value: 'http'
+      }
+    });
+    fireEvent.change(within(proxyServers).getByDisplayValue('example.com'), {
+      target: {
+        value: 'proxy.example.com'
+      }
+    });
+    fireEvent.change(within(proxyServers).getByDisplayValue('80'), {
+      target: {
+        value: '8080'
+      }
+    });
+    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.');
+
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(profilePatchValue(firstPatch(requests), '+proxy')).toMatchObject({
+      fallbackProxy: {
+        host: 'proxy.example.com',
+        port: 8080,
+        scheme: 'http'
+      }
+    });
+  });
+
+  it('saves PAC profile script edits through the top-level apply flow', async () => {
+    const loadedOptions = optionsFixture();
+    const pacScript = 'function FindProxyForURL() { return "DIRECT"; }';
+    const patchedOptions: Options = {
+      ...loadedOptions,
+      '+pac': {
+        ...(loadedOptions['+pac'] as Record<string, unknown>),
+        pacScript
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions,
+      patchedOptions
+    });
+    window.location.hash = '#/profile/pac';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: pac/});
+    fireEvent.change(document.querySelector('textarea') as HTMLTextAreaElement, {
+      target: {
+        value: pacScript
+      }
+    });
+
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(profilePatchValue(firstPatch(requests), '+pac')).toMatchObject({
+      pacScript
+    });
+  });
+
+  it('saves rule list source edits through the top-level apply flow', async () => {
+    const loadedOptions = optionsFixture();
+    const nextSourceUrl = 'https://cdn.example.com/rules.txt';
+    const patchedOptions: Options = {
+      ...loadedOptions,
+      '+rulelist': {
+        ...(loadedOptions['+rulelist'] as Record<string, unknown>),
+        sourceUrl: nextSourceUrl
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions,
+      patchedOptions
+    });
+    window.location.hash = '#/profile/rulelist';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: rulelist/});
+    fireEvent.change(screen.getByDisplayValue('https://example.com/rules.txt'), {
+      target: {
+        value: nextSourceUrl
+      }
+    });
+
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(profilePatchValue(firstPatch(requests), '+rulelist')).toMatchObject({
+      sourceUrl: nextSourceUrl
+    });
+  });
+
+  it('saves virtual profile target edits through the top-level apply flow', async () => {
+    const loadedOptions = optionsFixture();
+    const patchedOptions: Options = {
+      ...loadedOptions,
+      '+virtual': {
+        ...(loadedOptions['+virtual'] as Record<string, unknown>),
+        defaultProfileName: 'direct'
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions,
+      patchedOptions
+    });
+    window.location.hash = '#/profile/virtual';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: virtual/});
+    changeProfileSelect('Target', 'direct');
+
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(profilePatchValue(firstPatch(requests), '+virtual')).toMatchObject({
+      defaultProfileName: 'direct'
+    });
+  });
+
+  it('applies dirty profile edits before opening profile rename actions', async () => {
+    const loadedOptions = optionsFixture();
+    const pacScript = 'function FindProxyForURL() { return "PROXY 127.0.0.1:8080"; }';
+    const patchedOptions: Options = {
+      ...loadedOptions,
+      '+pac': {
+        ...(loadedOptions['+pac'] as Record<string, unknown>),
+        pacScript
+      }
+    };
+    const renamedOptions: Options = {
+      ...patchedOptions,
+      '+pac2': {
+        ...(patchedOptions['+pac'] as Record<string, unknown>),
+        name: 'pac2'
+      }
+    };
+    delete (renamedOptions as Record<string, unknown>)['+pac'];
+    const {requests} = installBackground({
+      options: loadedOptions,
+      patchedOptions,
+      renamedOptions
+    });
+    window.location.hash = '#/profile/pac';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: pac/});
+    fireEvent.change(document.querySelector('textarea') as HTMLTextAreaElement, {
+      target: {
+        value: pacScript
+      }
+    });
+    fireEvent.click(screen.getByRole('button', {name: 'Rename'}));
+
+    let dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Apply changes'}));
+
+    dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Rename Profile'})).toBeTruthy();
+    fireEvent.change(within(dialog).getByLabelText('New profile name'), {
+      target: {
+        value: 'pac2'
+      }
+    });
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Rename'}));
+
+    await screen.findByRole('heading', {name: /Profile :: pac2/});
+    const methods = requestMethods(requests);
+    expect(methods.indexOf('patch')).toBeGreaterThan(-1);
+    expect(methods.indexOf('renameProfile')).toBeGreaterThan(methods.indexOf('patch'));
+    expect(profilePatchValue(firstPatch(requests), '+pac')).toMatchObject({
+      pacScript
+    });
+    expect(requests).toContainEqual({
+      args: ['pac', 'pac2'],
+      method: 'renameProfile'
     });
   });
 
