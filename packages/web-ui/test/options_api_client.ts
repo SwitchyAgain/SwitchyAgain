@@ -1,6 +1,18 @@
 // @vitest-environment jsdom
 
-import {loadOptions, patchOptions, resetOptions, updateProfile} from '../src/react/options_api_client';
+import {
+  applyProfile,
+  explainRequest,
+  loadOptions,
+  patchAndLoadOptions,
+  patchOptions,
+  renameProfile,
+  replaceRef,
+  resetOptions,
+  resetOptionsSync,
+  setOptionsSync,
+  updateProfile
+} from '../src/react/options_api_client';
 import type {ExtensionChromeApi, ExtensionRuntimeApi} from '../src/react/browser_env';
 import type {Options, OptionsPatch} from '../src/react/options_client_types';
 
@@ -107,6 +119,34 @@ describe('options API client', () => {
     expectAppliedUi('dark', 'dark', 'en', 'ltr');
   });
 
+  it('patches options and reloads options afterwards', async () => {
+    const patch = optionsWithUi('dark', 'fa');
+    const patchedOptions = optionsWithUi('dark', 'fa');
+    const loadedOptions = optionsWithUi('light', 'en');
+    const {messages} = installBackgroundResponses([
+      {
+        result: patchedOptions
+      },
+      {
+        result: loadedOptions
+      }
+    ]);
+
+    await expect(patchAndLoadOptions(patch)).resolves.toBe(loadedOptions);
+
+    expect(messages).toEqual([
+      {
+        args: [patch],
+        method: 'patch'
+      },
+      {
+        args: [],
+        method: 'getAll'
+      }
+    ]);
+    expectAppliedUi('light', 'light', 'en', 'ltr');
+  });
+
   it('resets options with optional input and applies the returned UI settings', async () => {
     const options = optionsWithUi('light', 'zh-Hans');
     const {messages} = installBackgroundResponses([
@@ -121,6 +161,150 @@ describe('options API client', () => {
       {
         args: ['defaults'],
         method: 'reset'
+      }
+    ]);
+    expectAppliedUi('light', 'light', 'zh-Hans', 'ltr');
+  });
+
+  it('applies a profile with active-page refresh enabled', async () => {
+    const result = {
+      applied: true
+    };
+    const {messages} = installBackgroundResponses([
+      {
+        result
+      }
+    ]);
+
+    await expect(applyProfile('proxy')).resolves.toBe(result);
+
+    expect(messages).toEqual([
+      {
+        args: ['proxy'],
+        method: 'applyProfile',
+        refreshActivePage: true
+      }
+    ]);
+  });
+
+  it('wraps options sync background calls', async () => {
+    const {messages} = installBackgroundResponses([
+      {
+        result: undefined
+      },
+      {
+        result: undefined
+      }
+    ]);
+
+    await expect(setOptionsSync(true, {remote: 'sync'})).resolves.toBeUndefined();
+    await expect(resetOptionsSync()).resolves.toBeUndefined();
+
+    expect(messages).toEqual([
+      {
+        args: [true, {remote: 'sync'}],
+        method: 'setOptionsSync'
+      },
+      {
+        args: [],
+        method: 'resetOptionsSync'
+      }
+    ]);
+  });
+
+  it('requests background explanations for matching requests', async () => {
+    const explanation = {
+      final: {
+        kind: 'profile',
+        profile: {
+          name: 'proxy'
+        }
+      },
+      request: {
+        host: 'example.com',
+        url: 'https://example.com/'
+      },
+      steps: [
+        {
+          kind: 'profile',
+          profile: {
+            name: 'proxy'
+          }
+        }
+      ],
+      tempRulesActive: false,
+      warnings: []
+    };
+    const args = {
+      includeTempRules: true,
+      profileName: 'auto switch',
+      url: 'https://example.com/'
+    };
+    const {messages} = installBackgroundResponses([
+      {
+        result: explanation
+      }
+    ]);
+
+    await expect(explainRequest(args)).resolves.toBe(explanation);
+
+    expect(messages).toEqual([
+      {
+        args: [args],
+        method: 'explainRequest'
+      }
+    ]);
+  });
+
+  it('renames profiles and reloads options afterwards', async () => {
+    const renamedOptions = optionsWithUi('dark', 'fa');
+    const loadedOptions = optionsWithUi('light', 'en');
+    const {messages} = installBackgroundResponses([
+      {
+        result: renamedOptions
+      },
+      {
+        result: loadedOptions
+      }
+    ]);
+
+    await expect(renameProfile('old', 'new')).resolves.toBe(loadedOptions);
+
+    expect(messages).toEqual([
+      {
+        args: ['old', 'new'],
+        method: 'renameProfile'
+      },
+      {
+        args: [],
+        method: 'getAll'
+      }
+    ]);
+    expectAppliedUi('light', 'light', 'en', 'ltr');
+  });
+
+  it('replaces profile references and reloads options afterwards', async () => {
+    const replacedOptions = optionsWithUi('dark', 'fa');
+    const loadedOptions = optionsWithUi('light', 'zh-Hans');
+    const {messages} = installBackgroundResponses([
+      {
+        result: replacedOptions
+      },
+      {
+        result: loadedOptions
+      }
+    ]);
+
+    await expect(replaceRef('old', 'new')).resolves.toBe(loadedOptions);
+
+    expect(messages).toEqual([
+      {
+        args: ['old', 'new'],
+        method: 'replaceRef'
+      },
+      {
+        args: [],
+        method: 'getAll'
       }
     ]);
     expectAppliedUi('light', 'light', 'zh-Hans', 'ltr');
