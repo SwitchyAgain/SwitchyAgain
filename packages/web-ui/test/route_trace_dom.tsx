@@ -80,6 +80,13 @@ beforeEach(() => {
 });
 
 describe('route trace component', () => {
+  it('uses a provided current profile without loading state again', () => {
+    render(<RouteTrace currentProfileName="proxy" embedded options={optionsFixture()} />);
+
+    expect(screen.getByText('proxy')).toBeTruthy();
+    expect(optionsClientMock.getState).not.toHaveBeenCalled();
+  });
+
   it('submits trace requests and renders returned explanations', async () => {
     optionsClientMock.explainRequest.mockResolvedValue(explanationFixture('https://example.com/path?x=1'));
 

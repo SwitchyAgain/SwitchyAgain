@@ -59,7 +59,9 @@ function installBackground({
     if (typedRequest.method === 'getState') {
       const key = typedRequest.args?.[0];
       const state: Record<string, unknown> = {
+        currentProfileName: 'proxy',
         firstRun: '',
+        isSystemProfile: false,
         profileScopeCapabilities: {
           container: false,
           tab: false,
@@ -135,7 +137,17 @@ describe('options app', () => {
     await screen.findByRole('heading', {name: 'About'});
     expect(screen.getByRole('link', {name: /proxy/})).toBeTruthy();
     expect(requests).toContainEqual({
-      args: [['profileScopeCapabilities', 'proxyAuthCapabilities', 'proxyDnsCapabilities', 'profileScopeContainers', 'firstRun']],
+      args: [
+        [
+          'currentProfileName',
+          'isSystemProfile',
+          'profileScopeCapabilities',
+          'proxyAuthCapabilities',
+          'proxyDnsCapabilities',
+          'profileScopeContainers',
+          'firstRun'
+        ]
+      ],
       method: 'getState'
     });
 
@@ -183,6 +195,7 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: 'Interface'});
+    expect(requests.filter((request) => (request as {method?: string}).method === 'getState')).toHaveLength(1);
 
     fireEvent.click(screen.getByLabelText('Confirm before deleting profiles and rules.'));
     expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.');

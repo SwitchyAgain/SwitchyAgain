@@ -17,8 +17,10 @@ const DOWNLOAD_INTERVALS = [15, 60, 180, 360, 720, 1440, -1];
 const ACTIVE_PROFILE_STATE_KEYS = ['currentProfileName', 'isSystemProfile'];
 
 export type GeneralSettingsProps = {
+  activeProfileName?: string;
   embedded?: boolean;
   options?: Options | null;
+  onActiveProfileNameChange?: (name: string) => void;
   onOptionsChange?: (options: Options) => void;
 };
 
@@ -50,11 +52,17 @@ function loadActiveProfileName() {
   return getState<string | boolean>(ACTIVE_PROFILE_STATE_KEYS).then(([name, isSystem]) => activeProfileNameFromState(name, isSystem));
 }
 
-export function GeneralSettings({embedded = false, options, onOptionsChange}: GeneralSettingsProps) {
+export function GeneralSettings({
+  activeProfileName: initialActiveProfileName,
+  embedded = false,
+  options,
+  onActiveProfileNameChange,
+  onOptionsChange
+}: GeneralSettingsProps) {
   const [savedOptions, setSavedOptions] = useState<Options | null>(() => (embedded && options ? cloneOptions(options) : null));
   const [draftOptions, setDraftOptions] = useState<Options | null>(() => (embedded && options ? cloneOptions(options) : null));
   const [profileOptions, setProfileOptions] = useState<Options | null>(() => (embedded && options ? cloneOptions(options) : null));
-  const [activeProfileName, setActiveProfileName] = useState('direct');
+  const [activeProfileName, setActiveProfileName] = useState(initialActiveProfileName || 'direct');
   const [profileStatus, setProfileStatus] = useState<'idle' | 'applying' | 'applied' | 'error'>('idle');
   const [profileError, setProfileError] = useState('');
   const [status, setStatus] = useState<'loading' | 'ready' | 'saving' | 'saved' | 'error'>(() =>
@@ -86,7 +94,18 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
       });
   }, [embedded, options]);
 
+  const showCurrentProfile = draftOptions?.['-showCurrentProfileInGeneral'] === true;
+
   useEffect(() => {
+    if (initialActiveProfileName) {
+      setActiveProfileName(initialActiveProfileName);
+    }
+  }, [initialActiveProfileName]);
+
+  useEffect(() => {
+    if (!showCurrentProfile || initialActiveProfileName) {
+      return;
+    }
     let mounted = true;
     loadActiveProfileName()
       .then((name) => {
@@ -98,7 +117,7 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [initialActiveProfileName, showCurrentProfile]);
 
   useEffect(() => {
     if (profileStatus !== 'applied') {
@@ -116,8 +135,6 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
     }
     return GENERAL_KEYS.some((key) => savedOptions[key] !== draftOptions[key]);
   }, [savedOptions, draftOptions]);
-  const showCurrentProfile = draftOptions?.['-showCurrentProfileInGeneral'] === true;
-
   function updateOption(key: string, value: unknown) {
     setDraftOptions((current) => {
       if (!current) {
@@ -165,6 +182,7 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
   function refreshActiveProfileName() {
     return loadActiveProfileName().then((name) => {
       setActiveProfileName(name);
+      onActiveProfileNameChange?.(name);
     });
   }
 

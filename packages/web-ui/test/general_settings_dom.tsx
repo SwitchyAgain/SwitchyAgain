@@ -128,7 +128,10 @@ describe('general settings component', () => {
   });
 
   it('loads standalone options and saves general option patches', async () => {
-    const loadedOptions = optionsFixture();
+    const loadedOptions = {
+      ...optionsFixture(),
+      '-showCurrentProfileInGeneral': true
+    };
     const savedOptions = {
       ...loadedOptions,
       '-monitorWebRequests': true
@@ -158,10 +161,12 @@ describe('general settings component', () => {
     render(<GeneralSettings />);
 
     await screen.findByRole('heading', {name: 'General'});
-    expect(requests).toContainEqual({
-      args: [['currentProfileName', 'isSystemProfile']],
-      method: 'getState'
-    });
+    await waitFor(() =>
+      expect(requests).toContainEqual({
+        args: [['currentProfileName', 'isSystemProfile']],
+        method: 'getState'
+      })
+    );
 
     fireEvent.click(screen.getByLabelText('Show count of failed web requests for resources in the current tab.'));
     fireEvent.click(screen.getByRole('button', {name: /Apply changes/}));

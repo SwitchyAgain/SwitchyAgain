@@ -193,6 +193,8 @@ const FIXED_PROXY_AUTH_KEYS: Record<FixedProfileScheme, FixedProfileProxyField> 
   https: 'proxyForHttps'
 };
 const OPTIONS_APP_STATE_KEYS = [
+  'currentProfileName',
+  'isSystemProfile',
   'profileScopeCapabilities',
   'proxyAuthCapabilities',
   'proxyDnsCapabilities',
@@ -201,6 +203,7 @@ const OPTIONS_APP_STATE_KEYS = [
 ];
 
 type OptionsAppInitialState = {
+  activeProfileName: string;
   firstRun: string;
   profileScopeCapabilities: ProfileScopeCapabilities;
   profileScopeContainers: ProfileScopeContainerInfo[];
@@ -210,6 +213,7 @@ type OptionsAppInitialState = {
 
 function defaultOptionsAppInitialState(): OptionsAppInitialState {
   return {
+    activeProfileName: 'direct',
     firstRun: '',
     profileScopeCapabilities: DEFAULT_PROFILE_SCOPE_CAPABILITIES,
     profileScopeContainers: [],
@@ -218,11 +222,16 @@ function defaultOptionsAppInitialState(): OptionsAppInitialState {
   };
 }
 
+function activeProfileNameFromState(name: unknown, isSystem: unknown) {
+  return isSystem === true ? 'system' : typeof name === 'string' && name ? name : 'direct';
+}
+
 function loadOptionsAppInitialState(): Promise<OptionsAppInitialState> {
-  return getState<ProfileScopeCapabilities | ProxyAuthCapabilities | ProxyDnsCapabilities | ProfileScopeContainerInfo[] | string>(
+  return getState<ProfileScopeCapabilities | ProxyAuthCapabilities | ProxyDnsCapabilities | ProfileScopeContainerInfo[] | string | boolean>(
     OPTIONS_APP_STATE_KEYS
   )
-    .then(([capabilities, authCapabilities, dnsCapabilities, containers, firstRun]) => ({
+    .then(([currentProfileName, isSystemProfile, capabilities, authCapabilities, dnsCapabilities, containers, firstRun]) => ({
+      activeProfileName: activeProfileNameFromState(currentProfileName, isSystemProfile),
       firstRun: typeof firstRun === 'string' ? firstRun : '',
       profileScopeCapabilities: (capabilities as ProfileScopeCapabilities | undefined) || DEFAULT_PROFILE_SCOPE_CAPABILITIES,
       profileScopeContainers: Array.isArray(containers) ? (containers as ProfileScopeContainerInfo[]) : [],
@@ -475,6 +484,7 @@ export function OptionsApp() {
   const [proxyAuthCapabilities, setProxyAuthCapabilities] = useState<ProxyAuthCapabilities>(DEFAULT_PROXY_AUTH_CAPABILITIES);
   const [proxyDnsCapabilities, setProxyDnsCapabilities] = useState<ProxyDnsCapabilities>(DEFAULT_PROXY_DNS_CAPABILITIES);
   const [profileScopeContainers, setProfileScopeContainers] = useState<ProfileScopeContainerInfo[]>([]);
+  const [activeProfileName, setActiveProfileName] = useState('direct');
   const isExperimental = useMemo(hasProxyScriptApi, []);
   const pacProfilesUnsupported = isExperimental;
 
@@ -488,6 +498,7 @@ export function OptionsApp() {
         setProxyAuthCapabilities(initialState.proxyAuthCapabilities);
         setProxyDnsCapabilities(initialState.proxyDnsCapabilities);
         setProfileScopeContainers(initialState.profileScopeContainers);
+        setActiveProfileName(initialState.activeProfileName);
         setStatus('ready');
         showFirstRun(cloned, initialState.firstRun);
       })
@@ -1139,14 +1150,27 @@ export function OptionsApp() {
     if (route.name === 'ui') {
       return (
         <div className="react-settings-host-ui">
-          <UiSettings embedded options={options} onOpenShortcutConfig={openShortcutConfig} onOptionsChange={updateOptions} />
+          <UiSettings
+            embedded
+            options={options}
+            profileScopeCapabilities={profileScopeCapabilities}
+            proxyDnsCapabilities={proxyDnsCapabilities}
+            onOpenShortcutConfig={openShortcutConfig}
+            onOptionsChange={updateOptions}
+          />
         </div>
       );
     }
     if (route.name === 'general') {
       return (
         <div className="react-settings-host-general">
-          <GeneralSettings embedded options={options} onOptionsChange={updateOptions} />
+          <GeneralSettings
+            activeProfileName={activeProfileName}
+            embedded
+            options={options}
+            onActiveProfileNameChange={setActiveProfileName}
+            onOptionsChange={updateOptions}
+          />
         </div>
       );
     }
@@ -1167,7 +1191,7 @@ export function OptionsApp() {
     if (route.name === 'routeTrace') {
       return (
         <div className="react-settings-host-route-trace">
-          <RouteTrace embedded options={options} />
+          <RouteTrace currentProfileName={activeProfileName} embedded options={options} />
         </div>
       );
     }

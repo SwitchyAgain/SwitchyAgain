@@ -26,6 +26,8 @@ export type UiSettingsProps = {
   options?: Options | null;
   onOptionsChange?: (options: Options) => void;
   onOpenShortcutConfig?: () => void;
+  profileScopeCapabilities?: ProfileScopeCapabilities;
+  proxyDnsCapabilities?: ProxyDnsCapabilities;
 };
 
 type ProfileScopeCapabilities = {
@@ -158,23 +160,55 @@ function UiThemeSelect({value, onChange}: {value: UiTheme; onChange: (value: UiT
   );
 }
 
-export function UiSettings({embedded = false, options, onOptionsChange, onOpenShortcutConfig}: UiSettingsProps) {
+export function UiSettings({
+  embedded = false,
+  options,
+  onOptionsChange,
+  onOpenShortcutConfig,
+  profileScopeCapabilities: initialProfileScopeCapabilities,
+  proxyDnsCapabilities: initialProxyDnsCapabilities
+}: UiSettingsProps) {
   const [savedOptions, setSavedOptions] = useState<Options | null>(() => (embedded && options ? cloneOptions(options) : null));
   const [draftOptions, setDraftOptions] = useState<Options | null>(() => (embedded && options ? cloneOptions(options) : null));
   const [status, setStatus] = useState<'loading' | 'ready' | 'saving' | 'saved' | 'error'>(() =>
     embedded && options ? 'ready' : 'loading'
   );
   const [error, setError] = useState('');
-  const [profileScopeCapabilities, setProfileScopeCapabilities] = useState<ProfileScopeCapabilities>(DEFAULT_PROFILE_SCOPE_CAPABILITIES);
-  const [proxyDnsCapabilities, setProxyDnsCapabilities] = useState<ProxyDnsCapabilities>(DEFAULT_PROXY_DNS_CAPABILITIES);
+  const [profileScopeCapabilities, setProfileScopeCapabilities] = useState<ProfileScopeCapabilities>(
+    initialProfileScopeCapabilities || DEFAULT_PROFILE_SCOPE_CAPABILITIES
+  );
+  const [proxyDnsCapabilities, setProxyDnsCapabilities] = useState<ProxyDnsCapabilities>(
+    initialProxyDnsCapabilities || DEFAULT_PROXY_DNS_CAPABILITIES
+  );
   const capabilityStatePromiseRef = useRef<Promise<UiCapabilityState> | null>(null);
+  const providedCapabilityState = useMemo(
+    () =>
+      initialProfileScopeCapabilities && initialProxyDnsCapabilities
+        ? {
+            profileScopeCapabilities: initialProfileScopeCapabilities,
+            proxyDnsCapabilities: initialProxyDnsCapabilities
+          }
+        : null,
+    [initialProfileScopeCapabilities, initialProxyDnsCapabilities]
+  );
 
   const loadCapabilityStateOnce = useCallback(() => {
+    if (providedCapabilityState) {
+      return Promise.resolve(providedCapabilityState);
+    }
     if (!capabilityStatePromiseRef.current) {
       capabilityStatePromiseRef.current = loadUiCapabilityState();
     }
     return capabilityStatePromiseRef.current;
-  }, []);
+  }, [providedCapabilityState]);
+
+  useEffect(() => {
+    if (!providedCapabilityState) {
+      return;
+    }
+    setProfileScopeCapabilities(providedCapabilityState.profileScopeCapabilities);
+    setProxyDnsCapabilities(providedCapabilityState.proxyDnsCapabilities);
+  }, [providedCapabilityState]);
 
   useEffect(() => {
     let mounted = true;

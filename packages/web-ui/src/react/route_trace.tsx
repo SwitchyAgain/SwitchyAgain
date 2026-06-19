@@ -7,6 +7,7 @@ import {ProfileInline, ProfileSelect, allProfilesFromOptions, profileByName} fro
 import {formatRequestUrl, profileFromExplanation, routeTraceStepCondition, routeTraceSteps} from './route_trace_logic';
 
 export type RouteTraceProps = {
+  currentProfileName?: string;
   embedded?: boolean;
   options?: Options | null;
 };
@@ -135,10 +136,10 @@ function ExplanationResult({explanation, options}: {explanation: RequestExplanat
   );
 }
 
-export function RouteTrace({embedded = false, options}: RouteTraceProps) {
+export function RouteTrace({currentProfileName: initialCurrentProfileName, embedded = false, options}: RouteTraceProps) {
   const [url, setUrl] = useState('https://example.com/');
   const [profileName, setProfileName] = useState('');
-  const [currentProfileName, setCurrentProfileName] = useState('');
+  const [currentProfileName, setCurrentProfileName] = useState(initialCurrentProfileName || '');
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [error, setError] = useState('');
   const [explanation, setExplanation] = useState<RequestExplanation | null>(null);
@@ -146,10 +147,19 @@ export function RouteTrace({embedded = false, options}: RouteTraceProps) {
   const currentProfile = profileByName(options, currentProfileName);
 
   useEffect(() => {
+    if (initialCurrentProfileName) {
+      setCurrentProfileName(initialCurrentProfileName);
+    }
+  }, [initialCurrentProfileName]);
+
+  useEffect(() => {
+    if (initialCurrentProfileName) {
+      return;
+    }
     getState<string>('currentProfileName')
       .then((name) => setCurrentProfileName(name || ''))
       .catch(() => {});
-  }, []);
+  }, [initialCurrentProfileName]);
 
   function explain(event: React.FormEvent) {
     event.preventDefault();
