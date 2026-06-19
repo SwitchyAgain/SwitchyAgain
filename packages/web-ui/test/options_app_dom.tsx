@@ -23,6 +23,23 @@ function installOmegaPacMock() {
         return [];
       }
     },
+    PacGenerator: {
+      ascii(value: string) {
+        return value;
+      },
+      script(options: Options, profileName: string, handlers?: {profileNotFound?: (name: string) => string}) {
+        const profile = options[`+${profileName}`] as Record<string, unknown> | undefined;
+        const referencedName = typeof profile?.defaultProfileName === 'string' ? profile.defaultProfileName : '';
+        if (referencedName && referencedName !== 'direct' && referencedName !== 'system' && !options[`+${referencedName}`]) {
+          handlers?.profileNotFound?.(referencedName);
+        }
+        return {
+          print_to_string() {
+            return `pac:${profileName}:${String(profile?.pacScript || '')}:default=${referencedName}`;
+          }
+        };
+      }
+    },
     Profiles: {
       create(spec: Record<string, unknown>) {
         return {...spec};
@@ -43,6 +60,24 @@ function installOmegaPacMock() {
               profileType: 'DirectProfile'
             }
           ]);
+      }
+    },
+    RuleList: {
+      Switchy: {
+        compose({
+          defaultProfileName,
+          rules
+        }: {
+          defaultProfileName: string;
+          rules: Array<{condition?: {conditionType?: string; pattern?: string}; profileName?: string}>;
+        }) {
+          return [
+            `default:${defaultProfileName}`,
+            ...(rules || []).map(
+              (rule) => `${rule.profileName || ''}:${rule.condition?.conditionType || ''}:${rule.condition?.pattern || ''}`
+            )
+          ].join('\n');
+        }
       }
     }
   };
@@ -167,7 +202,7 @@ function createDataTransfer() {
 
 function stubDownloads() {
   const anchorClicks: Array<{download: string; href: string}> = [];
-  const createObjectURL = vi.fn(() => 'blob:options-download');
+  const createObjectURL = vi.fn((_blob: Blob) => 'blob:options-download');
   Object.defineProperty(URL, 'createObjectURL', {
     configurable: true,
     value: createObjectURL
@@ -1301,6 +1336,226 @@ describe('options app', () => {
     const methods = requestMethods(requests);
     expect(methods.indexOf('patch')).toBeLessThan(methods.indexOf('resetOptionsSync'));
     expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('applies dirty PAC profile edits before exporting PAC from applied options', async () => {
+    const baseOptions = optionsFixture();
+    const loadedOptions: Options = {
+      ...baseOptions,
+      '+pac': {
+        ...(baseOptions['+pac'] as Record<string, unknown>),
+        pacScript: 'saved-pac-script'
+      }
+    };
+    const draftPacScript = 'draft-pac-script';
+    const appliedPacScript = 'applied-pac-script';
+    const patchedOptions: Options = {
+      ...loadedOptions,
+      '+pac': {
+        ...(loadedOptions['+pac'] as Record<string, unknown>),
+        pacScript: appliedPacScript
+      }
+    };
+    const {anchorClicks, createObjectURL} = stubDownloads();
+    const {requests} = installBackground({
+      options: loadedOptions,
+      patchedOptions
+    });
+    window.location.hash = '#/profile/pac';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: pac/});
+    fireEvent.change(document.querySelector('textarea') as HTMLTextAreaElement, {
+      target: {
+        value: draftPacScript
+      }
+    });
+    fireEvent.click(screen.getByRole('button', {name: 'Export PAC'}));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
+    expect(anchorClicks).toHaveLength(0);
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(anchorClicks).toHaveLength(1));
+    const text = await (createObjectURL.mock.calls[0]?.[0] as Blob).text();
+    expect(text).toContain(appliedPacScript);
+    expect(text).not.toContain(draftPacScript);
+    expect(anchorClicks[0]).toMatchObject({
+      download: 'OmegaProfile_pac.pac'
+    });
+    expect(profilePatchValue(firstPatch(requests), '+pac')).toMatchObject({
+      pacScript: draftPacScript
+    });
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('applies dirty switch profile edits before exporting Omega rule lists from applied options', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: 'direct',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: [
+          {
+            condition: {
+              conditionType: 'HostWildcardCondition',
+              pattern: '*.example.com'
+            },
+            profileName: 'proxy'
+          }
+        ]
+      }
+    };
+    const patchedOptions: Options = {
+      ...loadedOptions,
+      '+auto': {
+        ...(loadedOptions['+auto'] as Record<string, unknown>),
+        defaultProfileName: 'virtual'
+      }
+    };
+    const {anchorClicks, createObjectURL} = stubDownloads();
+    const {requests} = installBackground({
+      options: loadedOptions,
+      patchedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    changeTableProfileSelect(screen.getByRole('table'), 'Default Profile', 'proxy');
+    fireEvent.click(screen.getByRole('button', {name: 'Export Rule List'}));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
+    expect(anchorClicks).toHaveLength(0);
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(anchorClicks).toHaveLength(1));
+    const text = await (createObjectURL.mock.calls[0]?.[0] as Blob).text();
+    expect(text).toContain('default:virtual');
+    expect(text).not.toContain('default:proxy');
+    expect(anchorClicks[0]).toMatchObject({
+      download: 'OmegaRules_auto.sorl'
+    });
+    expect(profilePatchValue(firstPatch(requests), '+auto')).toMatchObject({
+      defaultProfileName: 'proxy'
+    });
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('applies dirty switch profile edits before exporting legacy rule lists from applied options', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: 'direct',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: [
+          {
+            condition: {
+              conditionType: 'HostWildcardCondition',
+              pattern: '*.example.com'
+            },
+            profileName: 'virtual'
+          }
+        ]
+      },
+      '-exportLegacyRuleList': true
+    };
+    const patchedOptions: Options = {
+      ...loadedOptions,
+      '+auto': {
+        ...(loadedOptions['+auto'] as Record<string, unknown>),
+        defaultProfileName: 'virtual'
+      }
+    };
+    const {anchorClicks, createObjectURL} = stubDownloads();
+    const {requests} = installBackground({
+      options: loadedOptions,
+      patchedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    changeTableProfileSelect(screen.getByRole('table'), 'Default Profile', 'proxy');
+    fireEvent.click(screen.getByRole('button', {name: 'Export Rule List'}));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
+    expect(anchorClicks).toHaveLength(0);
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(anchorClicks).toHaveLength(1));
+    const text = await (createObjectURL.mock.calls[0]?.[0] as Blob).text();
+    expect(text).toContain('!@*://*.example.com/*');
+    expect(text).not.toContain('\n@*://*.example.com/*');
+    expect(anchorClicks[0]).toMatchObject({
+      download: 'SwitchyRules_auto.ssrl'
+    });
+    expect(profilePatchValue(firstPatch(requests), '+auto')).toMatchObject({
+      defaultProfileName: 'proxy'
+    });
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('shows missing profile errors when exported PAC generation references a missing profile', async () => {
+    const baseOptions = optionsFixture();
+    const loadedOptions: Options = {
+      ...baseOptions,
+      '+pac': {
+        ...(baseOptions['+pac'] as Record<string, unknown>),
+        defaultProfileName: 'missing-profile',
+        pacScript: 'saved-pac-script'
+      }
+    };
+    const {anchorClicks} = stubDownloads();
+    installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/pac';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: pac/});
+    fireEvent.click(screen.getByRole('button', {name: 'Export PAC'}));
+
+    await waitFor(() => expect(anchorClicks).toHaveLength(1));
+    expect(await screen.findByText(/Profile not found/)).toBeTruthy();
+  });
+
+  it('shows an error instead of exporting when a switch profile attached rule list is missing', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: '__ruleListOf_auto',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      }
+    };
+    const {anchorClicks} = stubDownloads();
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    fireEvent.click(screen.getByRole('button', {name: 'Export Rule List'}));
+
+    expect(await screen.findByText(/Profile not found/)).toBeTruthy();
+    expect(anchorClicks).toHaveLength(0);
+    expect(patchRequests(requests)).toHaveLength(0);
   });
 
   it('renames profiles using the returned options without reloading all options', async () => {

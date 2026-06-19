@@ -86,7 +86,6 @@ import {
   type ProfileScopeContainerInfo
 } from './profile_scope_settings';
 import {
-  AttachedOptions,
   NamedSwitchProfileModel,
   SwitchProfileModel,
   SwitchRuleSourceState,
@@ -185,6 +184,8 @@ type ModalState =
       upgrade: boolean;
     }
   | null;
+
+type AppliedOptionsAction = (appliedOptions: Options) => void | Promise<void>;
 
 const PROFILE_COLORS = ['#9ce', '#9d9', '#fa8', '#fe9', '#d497ee', '#47b', '#5b5', '#d63', '#ca0'];
 const FIXED_PROXY_AUTH_KEYS: Record<FixedProfileScheme, FixedProfileProxyField> = {
@@ -484,7 +485,7 @@ export function OptionsApp() {
   const [modal, setModal] = useState<ModalState>(null);
   const [guide, setGuide] = useState<OptionsGuideState | null>(null);
   const [pendingOptionsGuideProfileName, setPendingOptionsGuideProfileName] = useState('');
-  const [pendingApplyAction, setPendingApplyAction] = useState<(() => void | Promise<void>) | null>(null);
+  const [pendingApplyAction, setPendingApplyAction] = useState<AppliedOptionsAction | null>(null);
   const [alert, setAlert] = useState<AlertState>(null);
   const [alertShown, setAlertShown] = useState(false);
   const [profileScopeCapabilities, setProfileScopeCapabilities] = useState<ProfileScopeCapabilities>(DEFAULT_PROFILE_SCOPE_CAPABILITIES);
@@ -622,6 +623,13 @@ export function OptionsApp() {
     if (nextAlert) {
       window.setTimeout(() => setAlertShown(false), 3000);
     }
+  }
+
+  function showProfileNotFound(profileName: string) {
+    showAlert({
+      type: 'error',
+      message: message('options_profileNotFound', `Profile not found: ${profileName}`, profileName)
+    });
   }
 
   function replaceOptions(nextOptions: Options, opts?: {dirty?: boolean}) {
@@ -780,9 +788,12 @@ export function OptionsApp() {
     }
   }
 
-  function requireAppliedOptions(action: () => void | Promise<void>) {
+  function requireAppliedOptions(action: AppliedOptionsAction) {
+    if (!options) {
+      return Promise.resolve();
+    }
     if (!dirty) {
-      return Promise.resolve(action());
+      return Promise.resolve(action(options));
     }
     setPendingApplyAction(() => action);
     setModal({
@@ -795,7 +806,13 @@ export function OptionsApp() {
     const action = pendingApplyAction;
     setModal(null);
     setPendingApplyAction(null);
-    return applyOptions({silent: true}).then(() => Promise.resolve(action?.()));
+    return applyOptions({silent: true}).then((loadedOptions) => {
+      const appliedOptions = loadedOptions || options;
+      if (!appliedOptions || !action) {
+        return;
+      }
+      return Promise.resolve(action(appliedOptions));
+    });
   }
 
   function setProfileUpdating(profileName: string, updating: boolean) {
@@ -999,8 +1016,33 @@ export function OptionsApp() {
     navigate('ui');
   }
 
-  function exportRuleList(profile: NamedSwitchProfileModel, attachedOptions: AttachedOptions, legacy: boolean) {
+  function exportRuleList(profileName: string) {
+    if (!profileName) {
+      return Promise.resolve();
+    }
+    return requireAppliedOptions((appliedOptions) => exportRuleListNow(appliedOptions, profileName));
+  }
+
+  function exportRuleListNow(sourceOptions: Options, profileName: string) {
+    const profile = profileByName(sourceOptions, profileName);
+    if (!isSwitchProfile(profile)) {
+      showProfileNotFound(profileName);
+      return;
+    }
+    const identity = attachedIdentity(profile.name);
+    const attached = attachedProfileOption(sourceOptions, identity) || null;
+    if (profile.defaultProfileName === identity.attachedName && !attached) {
+      showProfileNotFound(identity.attachedName);
+      return;
+    }
+    const attachedOptions = createAttachedOptions(profile, attached);
     const defaultProfileName = attachedOptions.defaultProfileName || 'direct';
+    if (!profileByName(sourceOptions, defaultProfileName)) {
+      showProfileNotFound(defaultProfileName);
+      return;
+    }
+    const showConditionTypes = numberOption(sourceOptions['-showConditionTypes'], detectAdvancedConditionTypes(profile));
+    const {legacy} = exportRuleListOptions(sourceOptions, showConditionTypes);
     const text = legacy
       ? composeLegacyRuleList(profile.rules || [], defaultProfileName)
       : composeOmegaRuleList(profile.rules || [], defaultProfileName);
@@ -1012,20 +1054,25 @@ export function OptionsApp() {
   }
 
   function exportScript(profileName: string) {
-    if (!options || !profileName) {
+    if (!profileName) {
+      return Promise.resolve();
+    }
+    return requireAppliedOptions((appliedOptions) => exportScriptNow(appliedOptions, profileName));
+  }
+
+  function exportScriptNow(sourceOptions: Options, profileName: string) {
+    const profile = profileByName(sourceOptions, profileName);
+    if (!profile) {
+      showProfileNotFound(profileName);
       return;
     }
-    const profile = profileByName(options, profileName);
-    if (!profile || isBuiltinProfile(profile)) {
+    if (isBuiltinProfile(profile)) {
       return;
     }
-    const exported = createPacExport(options, profileName);
+    const exported = createPacExport(sourceOptions, profileName);
     downloadBlob(exported.blob, exported.fileName);
     if (exported.missingProfile) {
-      showAlert({
-        type: 'error',
-        message: message('options_profileNotFound', 'Profile not found: $1', exported.missingProfile)
-      });
+      showProfileNotFound(exported.missingProfile);
     }
   }
 
@@ -1319,9 +1366,6 @@ export function OptionsApp() {
         return <UnsupportedProfile profile={profile} />;
       })();
       const switchProfile = isSwitchProfile(profile) ? profile : null;
-      const identity = switchProfile ? attachedIdentity(switchProfile.name) : null;
-      const attached = identity ? attachedProfileOption(options, identity) : null;
-      const attachedOptions = switchProfile ? createAttachedOptions(switchProfile, attached) : null;
       const showConditionTypes = switchProfile
         ? numberOption(options['-showConditionTypes'], detectAdvancedConditionTypes(switchProfile))
         : 0;
@@ -1342,9 +1386,7 @@ export function OptionsApp() {
                 })
               }
               onDelete={() => requestDeleteProfile(profile)}
-              onExportRuleList={() =>
-                switchProfile && attachedOptions && exportRuleList(switchProfile, attachedOptions, ruleListOptions.legacy)
-              }
+              onExportRuleList={() => switchProfile && exportRuleList(switchProfile.name)}
               onExportScript={() => exportScript(profile.name)}
               onPopupHiddenChange={(hidden) =>
                 updateProfile(profile.name, (nextProfile) => {
