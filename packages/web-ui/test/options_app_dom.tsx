@@ -77,7 +77,11 @@ function installBackground({
         }
       };
       callback({
-        result: typeof key === 'string' ? {[key]: state[key]} : {}
+        result: Array.isArray(key)
+          ? Object.fromEntries(key.map((stateKey) => [stateKey, state[stateKey]]))
+          : typeof key === 'string'
+            ? {[key]: state[key]}
+            : {}
       });
       return;
     }
@@ -130,6 +134,10 @@ describe('options app', () => {
 
     await screen.findByRole('heading', {name: 'About'});
     expect(screen.getByRole('link', {name: /proxy/})).toBeTruthy();
+    expect(requests).toContainEqual({
+      args: [['profileScopeCapabilities', 'proxyAuthCapabilities', 'proxyDnsCapabilities', 'profileScopeContainers', 'firstRun']],
+      method: 'getState'
+    });
 
     fireEvent.click(screen.getByRole('link', {name: 'General'}));
 

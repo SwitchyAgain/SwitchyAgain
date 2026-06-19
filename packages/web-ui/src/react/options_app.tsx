@@ -192,6 +192,45 @@ const FIXED_PROXY_AUTH_KEYS: Record<FixedProfileScheme, FixedProfileProxyField> 
   http: 'proxyForHttp',
   https: 'proxyForHttps'
 };
+const OPTIONS_APP_STATE_KEYS = [
+  'profileScopeCapabilities',
+  'proxyAuthCapabilities',
+  'proxyDnsCapabilities',
+  'profileScopeContainers',
+  'firstRun'
+];
+
+type OptionsAppInitialState = {
+  firstRun: string;
+  profileScopeCapabilities: ProfileScopeCapabilities;
+  profileScopeContainers: ProfileScopeContainerInfo[];
+  proxyAuthCapabilities: ProxyAuthCapabilities;
+  proxyDnsCapabilities: ProxyDnsCapabilities;
+};
+
+function defaultOptionsAppInitialState(): OptionsAppInitialState {
+  return {
+    firstRun: '',
+    profileScopeCapabilities: DEFAULT_PROFILE_SCOPE_CAPABILITIES,
+    profileScopeContainers: [],
+    proxyAuthCapabilities: DEFAULT_PROXY_AUTH_CAPABILITIES,
+    proxyDnsCapabilities: DEFAULT_PROXY_DNS_CAPABILITIES
+  };
+}
+
+function loadOptionsAppInitialState(): Promise<OptionsAppInitialState> {
+  return getState<ProfileScopeCapabilities | ProxyAuthCapabilities | ProxyDnsCapabilities | ProfileScopeContainerInfo[] | string>(
+    OPTIONS_APP_STATE_KEYS
+  )
+    .then(([capabilities, authCapabilities, dnsCapabilities, containers, firstRun]) => ({
+      firstRun: typeof firstRun === 'string' ? firstRun : '',
+      profileScopeCapabilities: (capabilities as ProfileScopeCapabilities | undefined) || DEFAULT_PROFILE_SCOPE_CAPABILITIES,
+      profileScopeContainers: Array.isArray(containers) ? (containers as ProfileScopeContainerInfo[]) : [],
+      proxyAuthCapabilities: (authCapabilities as ProxyAuthCapabilities | undefined) || DEFAULT_PROXY_AUTH_CAPABILITIES,
+      proxyDnsCapabilities: (dnsCapabilities as ProxyDnsCapabilities | undefined) || DEFAULT_PROXY_DNS_CAPABILITIES
+    }))
+    .catch(() => defaultOptionsAppInitialState());
+}
 
 function guideStepCount(guide: OptionsGuideState) {
   return guide.kind === 'switch' ? SWITCH_PROFILE_GUIDE_STEPS.length : OPTIONS_GUIDE_STEPS.length;
@@ -440,23 +479,17 @@ export function OptionsApp() {
   const pacProfilesUnsupported = isExperimental;
 
   useEffect(() => {
-    Promise.all([
-      loadOptions(),
-      getState<ProfileScopeCapabilities>('profileScopeCapabilities').catch(() => DEFAULT_PROFILE_SCOPE_CAPABILITIES),
-      getState<ProxyAuthCapabilities>('proxyAuthCapabilities').catch(() => DEFAULT_PROXY_AUTH_CAPABILITIES),
-      getState<ProxyDnsCapabilities>('proxyDnsCapabilities').catch(() => DEFAULT_PROXY_DNS_CAPABILITIES),
-      getState<ProfileScopeContainerInfo[]>('profileScopeContainers').catch(() => [])
-    ])
-      .then(([loadedOptions, capabilities, authCapabilities, dnsCapabilities, containers]) => {
+    Promise.all([loadOptions(), loadOptionsAppInitialState()])
+      .then(([loadedOptions, initialState]) => {
         const cloned = cloneOptions(loadedOptions);
         setSavedOptions(cloned);
         setOptions(cloneOptions(cloned));
-        setProfileScopeCapabilities(capabilities || DEFAULT_PROFILE_SCOPE_CAPABILITIES);
-        setProxyAuthCapabilities(authCapabilities || DEFAULT_PROXY_AUTH_CAPABILITIES);
-        setProxyDnsCapabilities(dnsCapabilities || DEFAULT_PROXY_DNS_CAPABILITIES);
-        setProfileScopeContainers(Array.isArray(containers) ? containers : []);
+        setProfileScopeCapabilities(initialState.profileScopeCapabilities);
+        setProxyAuthCapabilities(initialState.proxyAuthCapabilities);
+        setProxyDnsCapabilities(initialState.proxyDnsCapabilities);
+        setProfileScopeContainers(initialState.profileScopeContainers);
         setStatus('ready');
-        showFirstRun(cloned);
+        showFirstRun(cloned, initialState.firstRun);
       })
       .catch((err) => {
         setAlert({
@@ -549,24 +582,20 @@ export function OptionsApp() {
     };
   }, [dirty]);
 
-  function showFirstRun(loadedOptions: Options) {
-    getState<string>('firstRun')
-      .then((firstRun) => {
-        if (!firstRun) {
-          return;
-        }
-        setState('firstRun', '');
-        const profileName = firstFixedProfileName(loadedOptions);
-        if (!profileName) {
-          return;
-        }
-        setModal({
-          kind: 'welcome',
-          profileName,
-          upgrade: firstRun === 'upgrade'
-        });
-      })
-      .catch(() => {});
+  function showFirstRun(loadedOptions: Options, firstRun: string) {
+    if (!firstRun) {
+      return;
+    }
+    setState('firstRun', '');
+    const profileName = firstFixedProfileName(loadedOptions);
+    if (!profileName) {
+      return;
+    }
+    setModal({
+      kind: 'welcome',
+      profileName,
+      upgrade: firstRun === 'upgrade'
+    });
   }
 
   function showAlert(nextAlert: AlertState) {
@@ -1393,11 +1422,7 @@ export function OptionsApp() {
       )}
       {modal?.kind === 'proxyAuth' && (
         <ModalFrame onDismiss={() => setModal(null)}>
-          <ProxyAuthModal
-            auth={modal.auth}
-            onClose={(auth) => saveProxyAuth(auth, modal)}
-            onDismiss={() => setModal(null)}
-          />
+          <ProxyAuthModal auth={modal.auth} onClose={(auth) => saveProxyAuth(auth, modal)} onDismiss={() => setModal(null)} />
         </ModalFrame>
       )}
       {modal?.kind === 'replaceProfile' && options && (

@@ -14,6 +14,7 @@ import {richMessage} from './rich_message';
 const GENERAL_KEYS = ['-monitorWebRequests', '-downloadInterval', '-showExternalProfile'];
 
 const DOWNLOAD_INTERVALS = [15, 60, 180, 360, 720, 1440, -1];
+const ACTIVE_PROFILE_STATE_KEYS = ['currentProfileName', 'isSystemProfile'];
 
 export type GeneralSettingsProps = {
   embedded?: boolean;
@@ -41,6 +42,14 @@ function messageWithBadges(key: string, fallback: string, substitutions: string[
     .map((part, index) => (badges[part] ? <React.Fragment key={`${part}-${index}`}>{badges[part]}</React.Fragment> : part));
 }
 
+function activeProfileNameFromState(name: unknown, isSystem: unknown) {
+  return isSystem === true ? 'system' : typeof name === 'string' && name ? name : 'direct';
+}
+
+function loadActiveProfileName() {
+  return getState<string | boolean>(ACTIVE_PROFILE_STATE_KEYS).then(([name, isSystem]) => activeProfileNameFromState(name, isSystem));
+}
+
 export function GeneralSettings({embedded = false, options, onOptionsChange}: GeneralSettingsProps) {
   const [savedOptions, setSavedOptions] = useState<Options | null>(() => (embedded && options ? cloneOptions(options) : null));
   const [draftOptions, setDraftOptions] = useState<Options | null>(() => (embedded && options ? cloneOptions(options) : null));
@@ -58,7 +67,7 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
       const cloned = cloneOptions(options);
       setSavedOptions(cloned);
       setDraftOptions(cloneOptions(cloned));
-      setProfileOptions((current) => current || cloneOptions(cloned));
+      setProfileOptions(cloneOptions(cloned));
       setStatus('ready');
       return;
     }
@@ -79,10 +88,10 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
 
   useEffect(() => {
     let mounted = true;
-    Promise.all([getState<string>('currentProfileName'), getState<boolean>('isSystemProfile')])
-      .then(([name, isSystem]) => {
+    loadActiveProfileName()
+      .then((name) => {
         if (mounted) {
-          setActiveProfileName(isSystem ? 'system' : name || 'direct');
+          setActiveProfileName(name);
         }
       })
       .catch(() => {});
@@ -90,23 +99,6 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
       mounted = false;
     };
   }, []);
-
-  useEffect(() => {
-    if (!embedded) {
-      return;
-    }
-    let mounted = true;
-    loadOptions()
-      .then((loadedOptions) => {
-        if (mounted) {
-          setProfileOptions(cloneOptions(loadedOptions));
-        }
-      })
-      .catch(() => {});
-    return () => {
-      mounted = false;
-    };
-  }, [embedded]);
 
   useEffect(() => {
     if (profileStatus !== 'applied') {
@@ -171,8 +163,8 @@ export function GeneralSettings({embedded = false, options, onOptionsChange}: Ge
   }
 
   function refreshActiveProfileName() {
-    return Promise.all([getState<string>('currentProfileName'), getState<boolean>('isSystemProfile')]).then(([name, isSystem]) => {
-      setActiveProfileName(isSystem ? 'system' : name || 'direct');
+    return loadActiveProfileName().then((name) => {
+      setActiveProfileName(name);
     });
   }
 

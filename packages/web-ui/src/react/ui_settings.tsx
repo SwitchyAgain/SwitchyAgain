@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 import {createRoot} from 'react-dom/client';
 import {UI_LOCALES, message, uiLocaleForOptions} from './i18n_client';
@@ -41,6 +41,24 @@ const DEFAULT_PROFILE_SCOPE_CAPABILITIES: ProfileScopeCapabilities = {
   tab: false,
   window: false
 };
+const UI_CAPABILITY_STATE_KEYS = ['profileScopeCapabilities', 'proxyDnsCapabilities'];
+
+type UiCapabilityState = {
+  profileScopeCapabilities: ProfileScopeCapabilities;
+  proxyDnsCapabilities: ProxyDnsCapabilities;
+};
+
+function loadUiCapabilityState(): Promise<UiCapabilityState> {
+  return getState<ProfileScopeCapabilities | ProxyDnsCapabilities>(UI_CAPABILITY_STATE_KEYS)
+    .then(([profileScopeCapabilities, proxyDnsCapabilities]) => ({
+      profileScopeCapabilities: (profileScopeCapabilities as ProfileScopeCapabilities | undefined) || DEFAULT_PROFILE_SCOPE_CAPABILITIES,
+      proxyDnsCapabilities: (proxyDnsCapabilities as ProxyDnsCapabilities | undefined) || DEFAULT_PROXY_DNS_CAPABILITIES
+    }))
+    .catch(() => ({
+      profileScopeCapabilities: DEFAULT_PROFILE_SCOPE_CAPABILITIES,
+      proxyDnsCapabilities: DEFAULT_PROXY_DNS_CAPABILITIES
+    }));
+}
 
 function displayProfileName(profile: Profile) {
   if (profile.builtin) {
@@ -149,42 +167,27 @@ export function UiSettings({embedded = false, options, onOptionsChange, onOpenSh
   const [error, setError] = useState('');
   const [profileScopeCapabilities, setProfileScopeCapabilities] = useState<ProfileScopeCapabilities>(DEFAULT_PROFILE_SCOPE_CAPABILITIES);
   const [proxyDnsCapabilities, setProxyDnsCapabilities] = useState<ProxyDnsCapabilities>(DEFAULT_PROXY_DNS_CAPABILITIES);
+  const capabilityStatePromiseRef = useRef<Promise<UiCapabilityState> | null>(null);
 
-  useEffect(() => {
-    let mounted = true;
-    getState<ProfileScopeCapabilities>('profileScopeCapabilities')
-      .then((capabilities) => {
-        if (mounted) {
-          setProfileScopeCapabilities(capabilities || DEFAULT_PROFILE_SCOPE_CAPABILITIES);
-        }
-      })
-      .catch(() => {
-        if (mounted) {
-          setProfileScopeCapabilities(DEFAULT_PROFILE_SCOPE_CAPABILITIES);
-        }
-      });
-    return () => {
-      mounted = false;
-    };
+  const loadCapabilityStateOnce = useCallback(() => {
+    if (!capabilityStatePromiseRef.current) {
+      capabilityStatePromiseRef.current = loadUiCapabilityState();
+    }
+    return capabilityStatePromiseRef.current;
   }, []);
 
   useEffect(() => {
     let mounted = true;
-    getState<ProxyDnsCapabilities>('proxyDnsCapabilities')
-      .then((capabilities) => {
-        if (mounted) {
-          setProxyDnsCapabilities(capabilities || DEFAULT_PROXY_DNS_CAPABILITIES);
-        }
-      })
-      .catch(() => {
-        if (mounted) {
-          setProxyDnsCapabilities(DEFAULT_PROXY_DNS_CAPABILITIES);
-        }
-      });
+    loadCapabilityStateOnce().then((capabilities) => {
+      if (mounted) {
+        setProfileScopeCapabilities(capabilities.profileScopeCapabilities);
+        setProxyDnsCapabilities(capabilities.proxyDnsCapabilities);
+      }
+    });
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [loadCapabilityStateOnce]);
 
   useEffect(() => {
     if (embedded && options) {
@@ -195,24 +198,20 @@ export function UiSettings({embedded = false, options, onOptionsChange, onOpenSh
       return;
     }
 
-    Promise.all([
-      loadOptions(),
-      getState<ProfileScopeCapabilities>('profileScopeCapabilities').catch(() => DEFAULT_PROFILE_SCOPE_CAPABILITIES),
-      getState<ProxyDnsCapabilities>('proxyDnsCapabilities').catch(() => DEFAULT_PROXY_DNS_CAPABILITIES)
-    ])
-      .then(([loadedOptions, capabilities, dnsCapabilities]) => {
+    Promise.all([loadOptions(), loadCapabilityStateOnce()])
+      .then(([loadedOptions, capabilities]) => {
         const cloned = cloneOptions(loadedOptions);
         setSavedOptions(cloned);
         setDraftOptions(cloneOptions(cloned));
-        setProfileScopeCapabilities(capabilities || DEFAULT_PROFILE_SCOPE_CAPABILITIES);
-        setProxyDnsCapabilities(dnsCapabilities || DEFAULT_PROXY_DNS_CAPABILITIES);
+        setProfileScopeCapabilities(capabilities.profileScopeCapabilities);
+        setProxyDnsCapabilities(capabilities.proxyDnsCapabilities);
         setStatus('ready');
       })
       .catch((err) => {
         setError(err?.message || String(err));
         setStatus('error');
       });
-  }, [embedded, options]);
+  }, [embedded, loadCapabilityStateOnce, options]);
 
   const dirty = useMemo(() => {
     if (!savedOptions || !draftOptions) {

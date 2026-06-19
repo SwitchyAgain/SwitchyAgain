@@ -162,21 +162,22 @@ describe('ui settings component', () => {
       }
       if (request.method === 'getState') {
         const stateName = request.args[0];
+        const stateValues = {
+          profileScopeCapabilities: {
+            container: true,
+            tab: true,
+            window: false
+          },
+          proxyDnsCapabilities: {
+            socks5: true
+          }
+        };
         callback({
-          result:
-            stateName === 'profileScopeCapabilities'
-              ? {
-                  profileScopeCapabilities: {
-                    container: true,
-                    tab: true,
-                    window: false
-                  }
-                }
-              : {
-                  proxyDnsCapabilities: {
-                    socks5: true
-                  }
-                }
+          result: Array.isArray(stateName)
+            ? Object.fromEntries(stateName.map((key) => [key, stateValues[key as keyof typeof stateValues]]))
+            : {
+                [stateName]: stateValues[stateName as keyof typeof stateValues]
+              }
         });
         return;
       }
@@ -189,6 +190,10 @@ describe('ui settings component', () => {
     render(<UiSettings />);
 
     await screen.findByRole('heading', {name: 'Interface'});
+    expect(requests).toContainEqual({
+      args: [['profileScopeCapabilities', 'proxyDnsCapabilities']],
+      method: 'getState'
+    });
 
     const tabProfiles = screen.getByLabelText('Tab profiles') as HTMLInputElement;
     const windowProfiles = screen.getByLabelText('Normal/private defaults') as HTMLInputElement;

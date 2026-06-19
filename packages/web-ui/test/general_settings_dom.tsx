@@ -104,12 +104,20 @@ describe('general settings component', () => {
     await waitFor(() => expect(screen.getByText('Applied.')).toBeTruthy());
     expect(sendMessage).toHaveBeenCalledWith(
       {
+        args: [['currentProfileName', 'isSystemProfile']],
+        method: 'getState'
+      },
+      expect.any(Function)
+    );
+    expect(sendMessage).toHaveBeenCalledWith(
+      {
         args: ['proxy'],
         method: 'applyProfile',
         refreshActivePage: true
       },
       expect.any(Function)
     );
+    expect(sendMessage.mock.calls.map(([request]) => request.method)).not.toContain('getAll');
   });
 
   it('hides current profile controls unless enabled', () => {
@@ -150,6 +158,10 @@ describe('general settings component', () => {
     render(<GeneralSettings />);
 
     await screen.findByRole('heading', {name: 'General'});
+    expect(requests).toContainEqual({
+      args: [['currentProfileName', 'isSystemProfile']],
+      method: 'getState'
+    });
 
     fireEvent.click(screen.getByLabelText('Show count of failed web requests for resources in the current tab.'));
     fireEvent.click(screen.getByRole('button', {name: /Apply changes/}));
