@@ -1098,6 +1098,125 @@ describe('options app', () => {
     expect(getAllRequests(requests)).toHaveLength(1);
   });
 
+  it('saves switch attached rule list source edits through the top-level apply flow', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: '__ruleListOf_auto',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      },
+      '+__ruleListOf_auto': {
+        defaultProfileName: 'direct',
+        format: 'AutoProxy',
+        name: '__ruleListOf_auto',
+        profileType: 'RuleListProfile',
+        sourceUrl: 'https://example.com/attached.txt'
+      }
+    };
+    const nextSourceUrl = 'https://cdn.example.com/attached.txt';
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    fireEvent.change(screen.getByDisplayValue('https://example.com/attached.txt'), {
+      target: {
+        value: nextSourceUrl
+      }
+    });
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(profilePatchValue(firstPatch(requests), '+__ruleListOf_auto')).toMatchObject({
+      sourceUrl: nextSourceUrl
+    });
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('saves enabled switch attached default profile edits on the attached rule list', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: '__ruleListOf_auto',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      },
+      '+__ruleListOf_auto': {
+        defaultProfileName: 'direct',
+        format: 'AutoProxy',
+        name: '__ruleListOf_auto',
+        profileType: 'RuleListProfile',
+        ruleList: '||example.com'
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    changeTableProfileSelect(screen.getByRole('table'), 'Default Profile', 'proxy');
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(profilePatchValue(firstPatch(requests), '+__ruleListOf_auto')).toMatchObject({
+      defaultProfileName: 'proxy'
+    });
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('removes switch attached rule lists and restores the switch default profile', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: '__ruleListOf_auto',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      },
+      '+__ruleListOf_auto': {
+        defaultProfileName: 'proxy',
+        format: 'AutoProxy',
+        name: '__ruleListOf_auto',
+        profileType: 'RuleListProfile',
+        ruleList: '||example.com'
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    fireEvent.click(screen.getByTitle('Delete attached profile'));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Remove Rule List'})).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Remove rule list'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    const patch = firstPatch(requests);
+    expect(profilePatchValue(patch, '+auto')).toMatchObject({
+      defaultProfileName: 'proxy'
+    });
+    expect(deletedPatchValue(patch, '+__ruleListOf_auto')).toMatchObject({
+      name: '__ruleListOf_auto',
+      ruleList: '||example.com'
+    });
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
   it('deletes profiles and cleans linked options through the top-level apply flow', async () => {
     const loadedOptions: Options = {
       ...optionsFixture(),
