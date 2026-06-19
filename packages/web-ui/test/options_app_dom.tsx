@@ -16,17 +16,62 @@ function testGlobal() {
   return globalThis as TestGlobal;
 }
 
+function installOmegaPacMock() {
+  (globalThis as any).OmegaPac = {
+    Conditions: {
+      getWeekdayList() {
+        return [];
+      }
+    },
+    Profiles: {
+      create(spec: Record<string, unknown>) {
+        return {...spec};
+      },
+      referencedBySet() {
+        return {};
+      },
+      ruleListFormats: ['Switchy', 'AutoProxy'],
+      updateRevision() {},
+      validResultProfilesFor(_profile: unknown, options: Options) {
+        return Object.keys(options)
+          .filter((key) => key.charAt(0) === '+')
+          .map((key) => options[key])
+          .concat([
+            {
+              builtin: true,
+              name: 'direct',
+              profileType: 'DirectProfile'
+            }
+          ]);
+      }
+    }
+  };
+}
+
 function optionsFixture(): Options {
   return {
     '+proxy': {
       name: 'proxy',
       profileType: 'FixedProfile'
     },
+    '+rulelist': {
+      defaultProfileName: 'direct',
+      format: 'AutoProxy',
+      matchProfileName: 'proxy',
+      name: 'rulelist',
+      profileType: 'RuleListProfile',
+      sourceUrl: 'https://example.com/rules.txt'
+    },
     '+auto': {
       defaultProfileName: 'direct',
       name: 'auto',
       profileType: 'SwitchProfile',
       rules: []
+    },
+    '+virtual': {
+      defaultProfileName: 'proxy',
+      name: 'virtual',
+      profileType: 'VirtualProfile'
     },
     '-confirmDeletion': true,
     '-enableQuickSwitch': true,
@@ -41,19 +86,28 @@ function installBackground({
   getAllError,
   options = optionsFixture(),
   patchedOptions = options,
-  resetOptions = options
+  renamedOptions,
+  replacedOptions,
+  resetOptions = options,
+  updateProfileOptions,
+  updateProfileResults = {}
 }: {
   getAllError?: unknown;
   options?: Options;
   patchedOptions?: Options;
+  renamedOptions?: Options;
+  replacedOptions?: Options;
   resetOptions?: Options;
+  updateProfileOptions?: Options;
+  updateProfileResults?: Record<string, unknown>;
 } = {}) {
   const requests: unknown[] = [];
+  let currentOptions = options;
   const sendMessage: RuntimeSendMessage = vi.fn((request, callback) => {
     const typedRequest = request as {args?: unknown[]; method?: string};
     requests.push(request);
     if (typedRequest.method === 'getAll') {
-      callback(getAllError ? {error: getAllError} : {result: options});
+      callback(getAllError ? {error: getAllError} : {result: currentOptions});
       return;
     }
     if (typedRequest.method === 'getState') {
@@ -88,11 +142,28 @@ function installBackground({
       return;
     }
     if (typedRequest.method === 'patch') {
-      callback({result: patchedOptions});
+      currentOptions = patchedOptions;
+      callback({result: currentOptions});
+      return;
+    }
+    if (typedRequest.method === 'renameProfile') {
+      currentOptions = renamedOptions || currentOptions;
+      callback({result: currentOptions});
+      return;
+    }
+    if (typedRequest.method === 'replaceRef') {
+      currentOptions = replacedOptions || currentOptions;
+      callback({result: currentOptions});
       return;
     }
     if (typedRequest.method === 'reset') {
-      callback({result: resetOptions});
+      currentOptions = resetOptions;
+      callback({result: currentOptions});
+      return;
+    }
+    if (typedRequest.method === 'updateProfile') {
+      currentOptions = updateProfileOptions || currentOptions;
+      callback({result: updateProfileResults});
       return;
     }
     if (typedRequest.method === 'setState') {
@@ -125,6 +196,11 @@ afterEach(() => {
   cleanup();
   window.location.hash = '';
   window.onbeforeunload = null;
+  delete (globalThis as any).OmegaPac;
+});
+
+beforeEach(() => {
+  installOmegaPacMock();
 });
 
 describe('options app', () => {
@@ -243,5 +319,112 @@ describe('options app', () => {
     );
     await waitFor(() => expect(screen.getByText('options_resetSuccess')).toBeTruthy());
     expect(window.location.hash).toBe('#/about');
+  });
+
+  it('renames profiles using the returned options without reloading all options', async () => {
+    const loadedOptions = optionsFixture();
+    const renamedOptions: Options = {
+      ...loadedOptions,
+      '+renamed': {
+        ...(loadedOptions['+proxy'] as Record<string, unknown>),
+        name: 'renamed'
+      },
+      '-quickSwitchProfiles': ['direct', 'renamed']
+    };
+    delete (renamedOptions as Record<string, unknown>)['+proxy'];
+    const {requests} = installBackground({
+      options: loadedOptions,
+      renamedOptions
+    });
+    window.location.hash = '#/profile/proxy';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: proxy/});
+    fireEvent.click(screen.getByRole('button', {name: 'Rename'}));
+
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText('New profile name'), {
+      target: {
+        value: 'renamed'
+      }
+    });
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Rename'}));
+
+    await screen.findByRole('heading', {name: /Profile :: renamed/});
+    expect(window.location.hash).toBe('#/profile/renamed');
+    expect(requests).toContainEqual({
+      args: ['proxy', 'renamed'],
+      method: 'renameProfile'
+    });
+    expect(requests.filter((request) => (request as {method?: string}).method === 'getAll')).toHaveLength(1);
+  });
+
+  it('replaces profile references using the returned options without reloading all options', async () => {
+    const loadedOptions = optionsFixture();
+    const replacedOptions: Options = {
+      ...loadedOptions,
+      '+auto': {
+        ...(loadedOptions['+auto'] as Record<string, unknown>),
+        defaultProfileName: 'virtual'
+      },
+      '-quickSwitchProfiles': ['direct', 'virtual']
+    };
+    const {requests} = installBackground({
+      options: loadedOptions,
+      replacedOptions
+    });
+    window.location.hash = '#/profile/virtual';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: virtual/});
+    fireEvent.click(screen.getByRole('button', {name: 'Replace target profile'}));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Replace Profile'})).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Replace Profile'}));
+
+    await waitFor(() =>
+      expect(requests).toContainEqual({
+        args: ['proxy', 'virtual'],
+        method: 'replaceRef'
+      })
+    );
+    expect(requests.filter((request) => (request as {method?: string}).method === 'getAll')).toHaveLength(1);
+  });
+
+  it('downloads profile updates with only the required options reload', async () => {
+    const loadedOptions = optionsFixture();
+    const updatedOptions: Options = {
+      ...loadedOptions,
+      '+rulelist': {
+        ...(loadedOptions['+rulelist'] as Record<string, unknown>),
+        lastUpdate: '2026-06-19T00:00:00.000Z',
+        ruleList: '||example.com'
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions,
+      updateProfileOptions: updatedOptions,
+      updateProfileResults: {
+        '+rulelist': updatedOptions['+rulelist']
+      }
+    });
+    window.location.hash = '#/profile/rulelist';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: rulelist/});
+    fireEvent.click(screen.getByRole('button', {name: 'Download Profile Now'}));
+
+    await waitFor(() =>
+      expect(requests).toContainEqual({
+        args: ['rulelist', 'bypass_cache'],
+        method: 'updateProfile'
+      })
+    );
+    await waitFor(() => expect(screen.getByText('options_profileDownloadSuccess')).toBeTruthy());
+    expect(requests.filter((request) => (request as {method?: string}).method === 'getAll')).toHaveLength(2);
   });
 });

@@ -256,55 +256,39 @@ describe('options API client', () => {
     ]);
   });
 
-  it('renames profiles and reloads options afterwards', async () => {
+  it('renames profiles and applies the returned options', async () => {
     const renamedOptions = optionsWithUi('dark', 'fa');
-    const loadedOptions = optionsWithUi('light', 'en');
     const {messages} = installBackgroundResponses([
       {
         result: renamedOptions
-      },
-      {
-        result: loadedOptions
       }
     ]);
 
-    await expect(renameProfile('old', 'new')).resolves.toBe(loadedOptions);
+    await expect(renameProfile('old', 'new')).resolves.toBe(renamedOptions);
 
     expect(messages).toEqual([
       {
         args: ['old', 'new'],
         method: 'renameProfile'
-      },
-      {
-        args: [],
-        method: 'getAll'
       }
     ]);
-    expectAppliedUi('light', 'light', 'en', 'ltr');
+    expectAppliedUi('dark', 'dark', 'fa', 'rtl');
   });
 
-  it('replaces profile references and reloads options afterwards', async () => {
-    const replacedOptions = optionsWithUi('dark', 'fa');
-    const loadedOptions = optionsWithUi('light', 'zh-Hans');
+  it('replaces profile references and applies the returned options', async () => {
+    const replacedOptions = optionsWithUi('light', 'zh-Hans');
     const {messages} = installBackgroundResponses([
       {
         result: replacedOptions
-      },
-      {
-        result: loadedOptions
       }
     ]);
 
-    await expect(replaceRef('old', 'new')).resolves.toBe(loadedOptions);
+    await expect(replaceRef('old', 'new')).resolves.toBe(replacedOptions);
 
     expect(messages).toEqual([
       {
         args: ['old', 'new'],
         method: 'replaceRef'
-      },
-      {
-        args: [],
-        method: 'getAll'
       }
     ]);
     expectAppliedUi('light', 'light', 'zh-Hans', 'ltr');

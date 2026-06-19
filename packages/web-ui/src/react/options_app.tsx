@@ -887,7 +887,6 @@ export function OptionsApp() {
       : undefined;
 
     return Promise.resolve()
-      .then(loadOptions)
       .then(() => renameProfileFromBackground(fromName, toName))
       .then((loadedOptions) => {
         if (!hadAttached) {

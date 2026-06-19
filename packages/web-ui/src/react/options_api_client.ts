@@ -1,12 +1,7 @@
 import {applyUiTheme, uiThemeForOptions} from './ui_theme';
 import {callBackground, callBackgroundWithRefresh, decodeBackgroundError} from './background_client';
 import {setUiLocale, uiLocaleForOptions} from './i18n_client';
-import type {
-  Options,
-  OptionsPatch,
-  ProfileUpdateResults,
-  RequestExplainArgs
-} from './options_client_types';
+import type {Options, OptionsPatch, ProfileUpdateResults, RequestExplainArgs} from './options_client_types';
 
 async function applyOptionsUi(options: Options) {
   applyUiTheme(uiThemeForOptions(options));
@@ -47,11 +42,11 @@ export function explainRequest(args: RequestExplainArgs | string) {
 }
 
 export function renameProfile(fromName: string, toName: string) {
-  return callBackground('renameProfile', fromName, toName).then(loadOptions);
+  return callBackground('renameProfile', fromName, toName).then(applyOptionsUi);
 }
 
 export function replaceRef(fromName: string, toName: string) {
-  return callBackground('replaceRef', fromName, toName).then(loadOptions);
+  return callBackground('replaceRef', fromName, toName).then(applyOptionsUi);
 }
 
 export function updateProfile(name?: string, bypassCache = 'bypass_cache') {
@@ -70,4 +65,3 @@ export function updateProfile(name?: string, bypassCache = 'bypass_cache') {
       }))
     );
 }
-
