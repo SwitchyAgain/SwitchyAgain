@@ -966,17 +966,20 @@ export function OptionsApp() {
   }
 
   function requestDeleteProfile(profile: Profile | null | undefined) {
-    if (!options || !profile) {
+    if (!profile) {
       return;
     }
-    return requireAppliedOptions(() => showDeleteProfile(profile));
+    const profileName = profile.name;
+    return requireAppliedOptions((appliedOptions) => showDeleteProfile(appliedOptions, profileName));
   }
 
-  function showDeleteProfile(profile: Profile) {
-    if (!options) {
+  function showDeleteProfile(sourceOptions: Options, profileName: string) {
+    const profile = profileByName(sourceOptions, profileName);
+    if (!profile) {
+      showProfileNotFound(profileName);
       return;
     }
-    const refs = referencedProfiles(profile.name, options);
+    const refs = referencedProfiles(profile.name, sourceOptions);
     if (refs.length > 0) {
       setModal({
         kind: 'cannotDeleteProfile',

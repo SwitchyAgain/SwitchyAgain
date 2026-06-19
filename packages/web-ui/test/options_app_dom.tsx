@@ -1040,6 +1040,65 @@ describe('options app', () => {
     expect(patchRequests(requests)).toHaveLength(0);
   });
 
+  it('checks profile delete references against applied options after dirty edits', async () => {
+    (globalThis as any).OmegaPac.Profiles.referencedBySet = (profileName: string, sourceOptions: Options) => {
+      const auto = sourceOptions['+auto'] as Record<string, unknown> | undefined;
+      return profileName === 'proxy' && auto?.defaultProfileName === 'proxy'
+        ? {
+            '+auto': 'auto'
+          }
+        : {};
+    };
+    const baseOptions = optionsFixture();
+    const loadedOptions: Options = {
+      ...baseOptions,
+      '+auto': {
+        ...(baseOptions['+auto'] as Record<string, unknown>),
+        defaultProfileName: 'direct'
+      }
+    };
+    const patchedOptions: Options = {
+      ...loadedOptions,
+      '+auto': {
+        ...(loadedOptions['+auto'] as Record<string, unknown>),
+        defaultProfileName: 'proxy'
+      },
+      '+proxy': {
+        ...(loadedOptions['+proxy'] as Record<string, unknown>),
+        color: '#99dd99'
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions,
+      patchedOptions
+    });
+    window.location.hash = '#/profile/proxy';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: proxy/});
+    fireEvent.change(document.querySelector('input[type="color"]') as HTMLInputElement, {
+      target: {
+        value: '#99dd99'
+      }
+    });
+    fireEvent.click(screen.getByRole('button', {name: 'Delete Profile'}));
+
+    let dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => {
+      dialog = screen.getByRole('dialog');
+      expect(within(dialog).getByRole('heading', {name: 'Unable to Delete Profile'})).toBeTruthy();
+    });
+    expect(within(dialog).getByText('auto')).toBeTruthy();
+    expect(within(dialog).queryByRole('button', {name: 'Delete Profile'})).toBeNull();
+    expect(profilePatchValue(firstPatch(requests), '+proxy')).toMatchObject({
+      color: '#99dd99'
+    });
+  });
+
   it('applies dirty option edits before opening new and duplicate profile actions', async () => {
     const loadedOptions = optionsFixture();
     const {requests} = installBackground({
