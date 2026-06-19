@@ -6,6 +6,13 @@ import {
   runtimeAvailable,
   uiLocaleForOptions
 } from '../src/react/options_client';
+import * as backgroundClient from '../src/react/background_client';
+import * as i18nClient from '../src/react/i18n_client';
+import * as navigationClient from '../src/react/navigation_client';
+import * as optionsApiClient from '../src/react/options_api_client';
+import * as optionsClient from '../src/react/options_client';
+import * as optionPatchClient from '../src/react/option_patch';
+import * as stateClient from '../src/react/state_client';
 
 function installChromeMock(language = 'en-US') {
   (globalThis as any).chrome = {
@@ -21,6 +28,48 @@ function installChromeMock(language = 'en-US') {
 describe('options client helpers', () => {
   beforeEach(() => {
     installChromeMock();
+  });
+
+  it('keeps facade exports wired to split client modules', () => {
+    expect(optionsClient.UI_LOCALES).toBe(i18nClient.UI_LOCALES);
+    expect(optionsClient.browserUiLocale).toBe(i18nClient.browserUiLocale);
+    expect(optionsClient.message).toBe(i18nClient.message);
+    expect(optionsClient.normalizeUiLocale).toBe(i18nClient.normalizeUiLocale);
+    expect(optionsClient.setUiLocale).toBe(i18nClient.setUiLocale);
+    expect(optionsClient.uiLocaleForOptions).toBe(i18nClient.uiLocaleForOptions);
+
+    expect(optionsClient.callBackground).toBe(backgroundClient.callBackground);
+    expect(optionsClient.callBackgroundNoReply).toBe(backgroundClient.callBackgroundNoReply);
+    expect(optionsClient.callBackgroundWithRefresh).toBe(backgroundClient.callBackgroundWithRefresh);
+    expect(optionsClient.decodeBackgroundError).toBe(backgroundClient.decodeBackgroundError);
+    expect(optionsClient.runtimeAvailable).toBe(backgroundClient.runtimeAvailable);
+
+    expect(optionsClient.applyProfile).toBe(optionsApiClient.applyProfile);
+    expect(optionsClient.explainRequest).toBe(optionsApiClient.explainRequest);
+    expect(optionsClient.loadOptions).toBe(optionsApiClient.loadOptions);
+    expect(optionsClient.patchAndLoadOptions).toBe(optionsApiClient.patchAndLoadOptions);
+    expect(optionsClient.patchOptions).toBe(optionsApiClient.patchOptions);
+    expect(optionsClient.renameProfile).toBe(optionsApiClient.renameProfile);
+    expect(optionsClient.replaceRef).toBe(optionsApiClient.replaceRef);
+    expect(optionsClient.resetOptions).toBe(optionsApiClient.resetOptions);
+    expect(optionsClient.resetOptionsSync).toBe(optionsApiClient.resetOptionsSync);
+    expect(optionsClient.setOptionsSync).toBe(optionsApiClient.setOptionsSync);
+    expect(optionsClient.updateProfile).toBe(optionsApiClient.updateProfile);
+
+    expect(optionsClient.getLocalState).toBe(stateClient.getLocalState);
+    expect(optionsClient.getState).toBe(stateClient.getState);
+    expect(optionsClient.lastUrl).toBe(stateClient.lastUrl);
+    expect(optionsClient.setLocalState).toBe(stateClient.setLocalState);
+    expect(optionsClient.setState).toBe(stateClient.setState);
+
+    expect(optionsClient.downloadBlob).toBe(navigationClient.downloadBlob);
+    expect(optionsClient.manifestVersion).toBe(navigationClient.manifestVersion);
+    expect(optionsClient.openManage).toBe(navigationClient.openManage);
+    expect(optionsClient.openOptions).toBe(navigationClient.openOptions);
+    expect(optionsClient.openShortcutConfig).toBe(navigationClient.openShortcutConfig);
+    expect(optionsClient.shouldAutoMount).toBe(navigationClient.shouldAutoMount);
+
+    expect(optionsClient.optionPatch).toBe(optionPatchClient.optionPatch);
   });
 
   it('normalizes supported UI locale values and extension locale names', () => {
