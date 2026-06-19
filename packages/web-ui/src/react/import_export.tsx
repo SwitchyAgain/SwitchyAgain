@@ -1,15 +1,10 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 import {createRoot} from 'react-dom/client';
+import {reloadLocation} from './browser_env';
 import {message} from './i18n_client';
 import {downloadBlob, shouldAutoMount} from './navigation_client';
-import {
-  loadOptions,
-  patchOptions,
-  resetOptions,
-  resetOptionsSync,
-  setOptionsSync
-} from './options_api_client';
+import {loadOptions, patchOptions, resetOptions, resetOptionsSync, setOptionsSync} from './options_api_client';
 import type {Options} from './options_client_types';
 import {getLocalState, setLocalState} from './state_client';
 import {
@@ -203,7 +198,7 @@ export function ImportExport({
   }
 
   function reloadOptionsPage() {
-    window.location.reload();
+    reloadLocation();
   }
 
   function confirmCurrentOptions() {

@@ -12,6 +12,7 @@ const optionsClientMock = vi.hoisted(() => ({
   loadOptions: vi.fn(),
   message: vi.fn((_key: string, fallback = '') => fallback),
   patchOptions: vi.fn(),
+  reloadLocation: vi.fn(),
   resetOptions: vi.fn(),
   resetOptionsSync: vi.fn(),
   setLocalState: vi.fn(),
@@ -22,6 +23,10 @@ const optionsClientMock = vi.hoisted(() => ({
 vi.mock('../src/react/navigation_client', () => ({
   downloadBlob: optionsClientMock.downloadBlob,
   shouldAutoMount: optionsClientMock.shouldAutoMount
+}));
+
+vi.mock('../src/react/browser_env', () => ({
+  reloadLocation: optionsClientMock.reloadLocation
 }));
 
 vi.mock('../src/react/state_client', () => ({
@@ -63,6 +68,7 @@ beforeEach(() => {
   optionsClientMock.loadOptions.mockReset();
   optionsClientMock.message.mockClear();
   optionsClientMock.patchOptions.mockReset();
+  optionsClientMock.reloadLocation.mockReset();
   optionsClientMock.resetOptions.mockReset();
   optionsClientMock.resetOptionsSync.mockReset();
   optionsClientMock.setLocalState.mockReset();
@@ -126,6 +132,61 @@ describe('import export component', () => {
     });
     expect(onOptionsReplace).toHaveBeenCalledWith(restoredOptions, {dirty: false});
     expect(screen.getByText('Options imported.')).toBeTruthy();
+  });
+
+  it('shows restore download errors and leaves existing options unchanged', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 503,
+      statusText: 'Unavailable'
+    });
+    const onOptionsReplace = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<ImportExport embedded onOptionsReplace={onOptionsReplace} options={optionsFixture()} />);
+
+    fireEvent.change(screen.getByLabelText('Restore from online'), {
+      target: {
+        value: 'https://example.com/missing.bak'
+      }
+    });
+    fireEvent.click(screen.getByRole('button', {name: 'Restore'}));
+
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('503 Unavailable'));
+    expect(optionsClientMock.resetOptions).not.toHaveBeenCalled();
+    expect(onOptionsReplace).not.toHaveBeenCalled();
+    expect((screen.getByRole('button', {name: 'Restore'}) as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it('confirms and applies dirty options before enabling sync', async () => {
+    const onApplyOptions = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    optionsClientMock.setOptionsSync.mockResolvedValue(undefined);
+
+    render(<ImportExport embedded onApplyOptions={onApplyOptions} options={optionsFixture()} optionsDirty />);
+
+    fireEvent.click(screen.getByRole('button', {name: 'Enable sync'}));
+
+    await waitFor(() => expect(optionsClientMock.setOptionsSync).toHaveBeenCalledWith(true, undefined));
+    expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('Your changes to the options must be applied before you proceed.'));
+    expect(onApplyOptions).toHaveBeenCalled();
+    await waitFor(() => expect(optionsClientMock.reloadLocation).toHaveBeenCalled());
+  });
+
+  it('resets conflicted synced options and reloads after confirming current options', async () => {
+    const onApplyOptions = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    optionsClientMock.getLocalState.mockImplementation((key: string) => (key === 'syncOptions' ? 'conflict' : ''));
+    optionsClientMock.resetOptionsSync.mockResolvedValue(undefined);
+
+    render(<ImportExport embedded onApplyOptions={onApplyOptions} options={optionsFixture()} optionsDirty />);
+
+    fireEvent.click(screen.getByRole('button', {name: 'Reset sync'}));
+
+    await waitFor(() => expect(optionsClientMock.resetOptionsSync).toHaveBeenCalled());
+    expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('Your changes to the options must be applied before you proceed.'));
+    expect(onApplyOptions).toHaveBeenCalled();
+    await waitFor(() => expect(optionsClientMock.reloadLocation).toHaveBeenCalled());
   });
 
   it('saves legacy rule list export preference through an options patch', async () => {

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import React from 'react';
-import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import {OptionsApp} from '../src/react/options_app';
 import type {ExtensionChromeApi, ExtensionRuntimeApi} from '../src/react/browser_env';
 import type {Options} from '../src/react/options_client_types';
@@ -40,11 +40,13 @@ function optionsFixture(): Options {
 function installBackground({
   getAllError,
   options = optionsFixture(),
-  patchedOptions = options
+  patchedOptions = options,
+  resetOptions = options
 }: {
   getAllError?: unknown;
   options?: Options;
   patchedOptions?: Options;
+  resetOptions?: Options;
 } = {}) {
   const requests: unknown[] = [];
   const sendMessage: RuntimeSendMessage = vi.fn((request, callback) => {
@@ -81,6 +83,10 @@ function installBackground({
     }
     if (typedRequest.method === 'patch') {
       callback({result: patchedOptions});
+      return;
+    }
+    if (typedRequest.method === 'reset') {
+      callback({result: resetOptions});
       return;
     }
     if (typedRequest.method === 'setState') {
@@ -184,5 +190,37 @@ describe('options app', () => {
       ],
       method: 'patch'
     });
+  });
+
+  it('resets all options from the about maintenance flow', async () => {
+    const loadedOptions = optionsFixture();
+    const resetOptions = {
+      ...optionsFixture(),
+      '-confirmDeletion': false
+    };
+    const {requests} = installBackground({
+      options: loadedOptions,
+      resetOptions
+    });
+    window.location.hash = '#/about';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: 'About'});
+
+    fireEvent.click(screen.getByRole('button', {name: 'Reset'}));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Reset Options'})).toBeTruthy();
+
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Reset'}));
+
+    await waitFor(() =>
+      expect(requests).toContainEqual({
+        args: [undefined],
+        method: 'reset'
+      })
+    );
+    await waitFor(() => expect(screen.getByText('options_resetSuccess')).toBeTruthy());
+    expect(window.location.hash).toBe('#/about');
   });
 });
