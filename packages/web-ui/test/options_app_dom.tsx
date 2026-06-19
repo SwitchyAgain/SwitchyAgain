@@ -91,6 +91,10 @@ function patchRequests(requests: unknown[]) {
   return requests.filter((request) => (request as {method?: string}).method === 'patch') as Array<{args?: unknown[]; method: string}>;
 }
 
+function getAllRequests(requests: unknown[]) {
+  return requests.filter((request) => (request as {method?: string}).method === 'getAll');
+}
+
 function requestMethods(requests: unknown[]) {
   return requests.map((request) => (request as {method?: string}).method);
 }
@@ -103,16 +107,76 @@ function profilePatchValue(patch: Record<string, unknown> | undefined, key: stri
   return (patch?.[key] as unknown[] | undefined)?.[1] as Record<string, unknown> | undefined;
 }
 
+function addedPatchValue(patch: Record<string, unknown> | undefined, key: string) {
+  return (patch?.[key] as unknown[] | undefined)?.[0] as Record<string, unknown> | undefined;
+}
+
+function deletedPatchValue(patch: Record<string, unknown> | undefined, key: string) {
+  return (patch?.[key] as unknown[] | undefined)?.[0] as Record<string, unknown> | undefined;
+}
+
+function optionPatchValue<T>(patch: Record<string, unknown> | undefined, key: string) {
+  return (patch?.[key] as unknown[] | undefined)?.[1] as T | undefined;
+}
+
+function applyOptionsPatch(options: Options, patch: Record<string, unknown>) {
+  const nextOptions = JSON.parse(JSON.stringify(options)) as Options;
+  for (const [key, rawValue] of Object.entries(patch)) {
+    const value = rawValue as unknown[];
+    if (value.length === 3 && value[1] === 0 && value[2] === 0) {
+      delete nextOptions[key];
+      continue;
+    }
+    nextOptions[key] = value.length === 1 ? value[0] : value[1];
+  }
+  return nextOptions;
+}
+
 function changeProfileSelect(label: string, name: string) {
   const group = screen.getByText(label).closest('.form-group') as HTMLElement;
   fireEvent.click(within(group).getByRole('listbox'));
   fireEvent.click(within(group).getByRole('option', {name}).querySelector('a') as HTMLAnchorElement);
 }
 
+function selectModalProfile(dialog: HTMLElement, label: string, name: string) {
+  const group = within(dialog).getByText(label).closest('.profile-duplicate-source') as HTMLElement;
+  fireEvent.click(within(group).getByRole('listbox'));
+  fireEvent.click(within(group).getByRole('option', {name}).querySelector('a') as HTMLAnchorElement);
+}
+
+async function openNewProfileModal() {
+  fireEvent.click(screen.getByRole('button', {name: 'New profile'}));
+  const dialog = await screen.findByRole('dialog');
+  expect(within(dialog).getByRole('heading', {name: 'New Profile'})).toBeTruthy();
+  return dialog;
+}
+
+async function createFixedProfile(name: string) {
+  const dialog = await openNewProfileModal();
+  fireEvent.change(within(dialog).getByLabelText('Profile name'), {
+    target: {
+      value: name
+    }
+  });
+  fireEvent.click(within(dialog).getByRole('button', {name: 'Create'}));
+}
+
+async function duplicateProfile(sourceName: string, targetName: string) {
+  const dialog = await openNewProfileModal();
+  fireEvent.change(within(dialog).getByLabelText('Profile name'), {
+    target: {
+      value: targetName
+    }
+  });
+  fireEvent.click(within(dialog).getByRole('radio', {name: /Duplicate/}));
+  selectModalProfile(dialog, 'Profile', sourceName);
+  fireEvent.click(within(dialog).getByRole('button', {name: 'Create'}));
+}
+
 function installBackground({
   getAllError,
   options = optionsFixture(),
-  patchedOptions = options,
+  patchedOptions,
   renamedOptions,
   replacedOptions,
   resetOptions = options,
@@ -169,7 +233,8 @@ function installBackground({
       return;
     }
     if (typedRequest.method === 'patch') {
-      currentOptions = patchedOptions;
+      currentOptions =
+        patchedOptions || applyOptionsPatch(currentOptions, (typedRequest.args?.[0] as Record<string, unknown> | undefined) || {});
       callback({result: currentOptions});
       return;
     }
@@ -521,6 +586,251 @@ describe('options app', () => {
     expect(requests).toContainEqual({
       args: ['pac', 'pac2'],
       method: 'renameProfile'
+    });
+  });
+
+  it('creates new profiles through the top-level apply flow without reloading all options', async () => {
+    const {requests} = installBackground();
+    window.location.hash = '#/ui';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: 'Interface'});
+    await createFixedProfile('newproxy');
+
+    await screen.findByRole('heading', {name: /Profile :: newproxy/});
+    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.');
+
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(addedPatchValue(firstPatch(requests), '+newproxy')).toMatchObject({
+      name: 'newproxy',
+      profileType: 'FixedProfile'
+    });
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('duplicates switch profiles with attached rule lists through the top-level apply flow', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: '__ruleListOf_auto',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: [
+          {
+            condition: {
+              conditionType: 'HostWildcardCondition',
+              pattern: '*.example.com'
+            },
+            profileName: 'proxy'
+          }
+        ]
+      },
+      '+__ruleListOf_auto': {
+        defaultProfileName: 'direct',
+        format: 'AutoProxy',
+        name: '__ruleListOf_auto',
+        profileType: 'RuleListProfile',
+        ruleList: '||example.com'
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    await duplicateProfile('auto', 'autocopy');
+
+    await screen.findByRole('heading', {name: /Profile :: autocopy/});
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(addedPatchValue(firstPatch(requests), '+autocopy')).toMatchObject({
+      defaultProfileName: '__ruleListOf_autocopy',
+      name: 'autocopy',
+      profileType: 'SwitchProfile',
+      rules: [
+        {
+          condition: {
+            conditionType: 'HostWildcardCondition',
+            pattern: '*.example.com'
+          },
+          profileName: 'proxy'
+        }
+      ]
+    });
+    expect(addedPatchValue(firstPatch(requests), '+__ruleListOf_autocopy')).toMatchObject({
+      defaultProfileName: 'direct',
+      name: '__ruleListOf_autocopy',
+      profileType: 'RuleListProfile',
+      ruleList: '||example.com'
+    });
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('deletes profiles and cleans linked options through the top-level apply flow', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: '__ruleListOf_auto',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      },
+      '+__ruleListOf_auto': {
+        defaultProfileName: 'direct',
+        format: 'AutoProxy',
+        name: '__ruleListOf_auto',
+        profileType: 'RuleListProfile',
+        ruleList: '||example.com'
+      },
+      '-profileScopeAssignments': {
+        containers: {
+          'firefox-container-1': 'auto',
+          'firefox-container-2': 'proxy'
+        },
+        normalDefaultProfileName: 'auto',
+        privateDefaultProfileName: 'proxy'
+      },
+      '-quickSwitchProfiles': ['direct', 'auto', 'proxy'],
+      '-startupProfileName': 'auto'
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    fireEvent.click(screen.getByRole('button', {name: 'Delete Profile'}));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Delete Profile'})).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Delete Profile'}));
+
+    await screen.findByRole('heading', {name: 'Interface'});
+    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.');
+
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    const patch = firstPatch(requests);
+    expect(deletedPatchValue(patch, '+auto')).toMatchObject({
+      name: 'auto',
+      profileType: 'SwitchProfile'
+    });
+    expect(deletedPatchValue(patch, '+__ruleListOf_auto')).toMatchObject({
+      name: '__ruleListOf_auto',
+      profileType: 'RuleListProfile'
+    });
+    expect(optionPatchValue<string>(patch, '-startupProfileName')).toBe('');
+    expect(optionPatchValue<string[]>(patch, '-quickSwitchProfiles')).toEqual(['direct', 'proxy']);
+    expect(optionPatchValue<Record<string, unknown>>(patch, '-profileScopeAssignments')).toEqual({
+      containers: {
+        'firefox-container-2': 'proxy'
+      },
+      privateDefaultProfileName: 'proxy'
+    });
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('shows referring profiles instead of deleting referenced profiles', async () => {
+    (globalThis as any).OmegaPac.Profiles.referencedBySet = () => ({
+      '+auto': 'auto'
+    });
+    const {requests} = installBackground();
+    window.location.hash = '#/profile/proxy';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: proxy/});
+    fireEvent.click(screen.getByRole('button', {name: 'Delete Profile'}));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Unable to Delete Profile'})).toBeTruthy();
+    expect(within(dialog).getByText('auto')).toBeTruthy();
+    expect(within(dialog).queryByRole('button', {name: 'Delete Profile'})).toBeNull();
+    expect(patchRequests(requests)).toHaveLength(0);
+  });
+
+  it('applies dirty option edits before opening new and duplicate profile actions', async () => {
+    const loadedOptions = optionsFixture();
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/ui';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: 'Interface'});
+    fireEvent.click(screen.getByLabelText('Confirm before deleting profiles and rules.'));
+    fireEvent.click(screen.getByRole('button', {name: 'New profile'}));
+
+    let dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Apply changes'}));
+
+    dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'New Profile'})).toBeTruthy();
+    fireEvent.change(within(dialog).getByLabelText('Profile name'), {
+      target: {
+        value: 'proxycopy'
+      }
+    });
+    fireEvent.click(within(dialog).getByRole('radio', {name: /Duplicate/}));
+    selectModalProfile(dialog, 'Profile', 'proxy');
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Create'}));
+
+    await screen.findByRole('heading', {name: /Profile :: proxycopy/});
+    expect(firstPatch(requests)).toEqual({
+      '-confirmDeletion': [true, false]
+    });
+  });
+
+  it('applies dirty profile edits before opening profile delete actions', async () => {
+    const loadedOptions = optionsFixture();
+    const pacScript = 'function FindProxyForURL() { return "PROXY 127.0.0.1:8080"; }';
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/pac';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: pac/});
+    fireEvent.change(document.querySelector('textarea') as HTMLTextAreaElement, {
+      target: {
+        value: pacScript
+      }
+    });
+    fireEvent.click(screen.getByRole('button', {name: 'Delete Profile'}));
+
+    let dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Apply changes'}));
+
+    dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Delete Profile'})).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Delete Profile'}));
+
+    await screen.findByRole('heading', {name: 'Interface'});
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    const patches = patchRequests(requests);
+    expect(profilePatchValue(patches[0]?.args?.[0] as Record<string, unknown> | undefined, '+pac')).toMatchObject({
+      pacScript
+    });
+    expect(deletedPatchValue(patches[1]?.args?.[0] as Record<string, unknown> | undefined, '+pac')).toMatchObject({
+      name: 'pac',
+      pacScript,
+      profileType: 'PacProfile'
     });
   });
 

@@ -270,10 +270,17 @@ function ModalFrame({children, onDismiss}: {children: React.ReactNode; onDismiss
 
 function useHashRoute() {
   const [route, setRoute] = useState(() => parseRoute(window.location.hash));
-  function syncRoute() {
-    const nextRoute = parseRoute(window.location.hash);
+  function updateRoute(nextRoute = parseRoute(window.location.hash)) {
     setRoute(nextRoute);
     lastUrl(routeHref(nextRoute.name, nextRoute.profileName ? {name: nextRoute.profileName} : undefined).replace(/^#/, ''));
+  }
+  function syncRoute() {
+    updateRoute();
+  }
+  function navigateRoute(name: RouteName, params?: Record<string, string>) {
+    const href = routeHref(name, params);
+    window.location.hash = href;
+    updateRoute(parseRoute(href));
   }
   useWindowEvent('hashchange', syncRoute);
 
@@ -284,7 +291,7 @@ function useHashRoute() {
     }
     syncRoute();
   }, []);
-  return route;
+  return {navigateRoute, route};
 }
 
 function SwitchProfilePreview({
@@ -469,7 +476,7 @@ function SwitchProfilePreview({
 }
 
 export function OptionsApp() {
-  const route = useHashRoute();
+  const {navigateRoute, route} = useHashRoute();
   const [savedOptions, setSavedOptions] = useState<Options | null>(null);
   const [options, setOptions] = useState<Options | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'saving' | 'error'>('loading');
@@ -832,6 +839,12 @@ export function OptionsApp() {
       .finally(() => setProfileUpdating(profileName, false));
   }
 
+  function requestNewProfile() {
+    return requireAppliedOptions(() => {
+      setModal({kind: 'newProfile'});
+    });
+  }
+
   function createProfile(profileSpec: NewProfileSpec) {
     if ('duplicateProfileName' in profileSpec) {
       updateOptionsDraft((nextOptions) => {
@@ -937,6 +950,13 @@ export function OptionsApp() {
 
   function requestDeleteProfile(profile: Profile | null | undefined) {
     if (!options || !profile) {
+      return;
+    }
+    return requireAppliedOptions(() => showDeleteProfile(profile));
+  }
+
+  function showDeleteProfile(profile: Profile) {
+    if (!options) {
       return;
     }
     const refs = referencedProfiles(profile.name, options);
@@ -1133,7 +1153,7 @@ export function OptionsApp() {
   }
 
   function navigate(name: string, params?: Record<string, string>) {
-    window.location.hash = routeHref(name as RouteName, params);
+    navigateRoute(name as RouteName, params);
   }
 
   function renderContent() {
@@ -1359,7 +1379,7 @@ export function OptionsApp() {
             onApply={applyOptions}
             onDiscard={discardOptions}
             onNavigate={navigate}
-            onNewProfile={() => setModal({kind: 'newProfile'})}
+            onNewProfile={requestNewProfile}
             options={options}
             optionsDirty={dirty || status === 'saving'}
             profileHref={(profile) => routeHref('profile', {name: profile.name})}
