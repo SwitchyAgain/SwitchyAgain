@@ -107,8 +107,9 @@ export function ImportExport({
     }
     setStatus('exporting');
     confirmCurrentOptions()
-      .then(() => {
-        const blob = new Blob([backupOptionsText(options)], {
+      .then((currentOptions) => {
+        const exportOptions = currentOptions || options;
+        const blob = new Blob([backupOptionsText(exportOptions)], {
           type: 'text/plain;charset=utf-8'
         });
         downloadBlob(blob, 'OmegaOptions.bak');
@@ -203,7 +204,7 @@ export function ImportExport({
 
   function confirmCurrentOptions() {
     if (!optionsDirty) {
-      return Promise.resolve(true);
+      return Promise.resolve(options);
     }
     const confirmed = window.confirm(
       [
@@ -214,7 +215,9 @@ export function ImportExport({
     if (!confirmed) {
       return Promise.reject(new Error('cancelled'));
     }
-    return Promise.resolve(onApplyOptions?.());
+    return Promise.resolve(onApplyOptions?.()).then((appliedOptions) =>
+      appliedOptions && typeof appliedOptions === 'object' ? (appliedOptions as Options) : options
+    );
   }
 
   function enableOptionsSync(args?: {force?: boolean}) {
@@ -232,8 +235,8 @@ export function ImportExport({
 
   function saveExportLegacyRuleList(checked: boolean) {
     confirmCurrentOptions()
-      .then(() => {
-        const currentOptions = options || {};
+      .then((appliedOptions) => {
+        const currentOptions = appliedOptions || options || {};
         const {nextOptions, patch} = legacyRuleListPatch(currentOptions, checked);
         setOptions(nextOptions);
         return patchOptions(patch)

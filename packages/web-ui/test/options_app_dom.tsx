@@ -1375,6 +1375,44 @@ describe('options app', () => {
     expect(getAllRequests(requests)).toHaveLength(1);
   });
 
+  it('discards open switch source editor drafts without saving patches', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: 'direct',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.change(sourceEditor(), {
+      target: {
+        value: 'proxy:HostWildcardCondition:*.example.com\ndefault:virtual'
+      }
+    });
+    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.');
+
+    fireEvent.click(screen.getByRole('button', {name: 'Discard changes'}));
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+
+    fireEvent.click(screen.getByRole('link', {name: /auto/}));
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+
+    expect(sourceEditor().value).toBe('default:direct');
+    expect(patchRequests(requests)).toHaveLength(0);
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
   it('keeps open switch source editor drafts unsaved when top-level apply hits parse errors', async () => {
     const loadedOptions: Options = {
       ...optionsFixture(),
@@ -1405,6 +1443,59 @@ describe('options app', () => {
     expect(sourceEditor()).toBeTruthy();
     expect(window.onbeforeunload).toBeNull();
     expect(patchRequests(requests)).toHaveLength(0);
+  });
+
+  it('applies open switch source drafts after correcting parse errors', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: 'direct',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.change(sourceEditor(), {
+      target: {
+        value: 'default:missing'
+      }
+    });
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    expect(await screen.findByText('Unknown profile: missing')).toBeTruthy();
+    expect(patchRequests(requests)).toHaveLength(0);
+
+    fireEvent.change(sourceEditor(), {
+      target: {
+        value: 'proxy:HostWildcardCondition:*.example.com\ndefault:virtual'
+      }
+    });
+    expect(screen.queryByText('Unknown profile: missing')).toBeNull();
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(profilePatchValue(firstPatch(requests), '+auto')).toMatchObject({
+      defaultProfileName: 'virtual',
+      rules: [
+        {
+          condition: {
+            conditionType: 'HostWildcardCondition',
+            pattern: '*.example.com'
+          },
+          profileName: 'proxy'
+        }
+      ]
+    });
+    expect(getAllRequests(requests)).toHaveLength(1);
   });
 
   it('applies enabled switch source default edits to the attached rule list', async () => {
@@ -1852,6 +1943,88 @@ describe('options app', () => {
       '-confirmDeletion': [true, false]
     });
     expect(createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+    expect(anchorClicks[0]).toMatchObject({
+      download: 'OmegaOptions.bak'
+    });
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('applies open switch source drafts before exporting full backups from applied options', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: 'direct',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      }
+    };
+    const patchedOptions: Options = {
+      ...loadedOptions,
+      '+auto': {
+        ...(loadedOptions['+auto'] as Record<string, unknown>),
+        defaultProfileName: 'virtual',
+        rules: [
+          {
+            condition: {
+              conditionType: 'HostWildcardCondition',
+              pattern: '*.example.com'
+            },
+            profileName: 'proxy'
+          }
+        ]
+      }
+    };
+    const {anchorClicks, createObjectURL} = stubDownloads();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const {requests} = installBackground({
+      options: loadedOptions,
+      patchedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.change(sourceEditor(), {
+      target: {
+        value: 'proxy:HostWildcardCondition:*.example.com\ndefault:virtual'
+      }
+    });
+    fireEvent.click(screen.getByRole('link', {name: 'Import/Export'}));
+    await screen.findByRole('heading', {name: 'Import/Export'});
+
+    fireEvent.click(screen.getByRole('button', {name: /Make backup/}));
+
+    await waitFor(() => expect(anchorClicks).toHaveLength(1));
+    const backup = JSON.parse(await (createObjectURL.mock.calls[0]?.[0] as Blob).text()) as Options;
+    expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('Your changes to the options must be applied before you proceed.'));
+    expect(profilePatchValue(firstPatch(requests), '+auto')).toMatchObject({
+      defaultProfileName: 'virtual',
+      rules: [
+        {
+          condition: {
+            conditionType: 'HostWildcardCondition',
+            pattern: '*.example.com'
+          },
+          profileName: 'proxy'
+        }
+      ]
+    });
+    expect(backup['+auto']).toMatchObject({
+      defaultProfileName: 'virtual',
+      rules: [
+        {
+          condition: {
+            conditionType: 'HostWildcardCondition',
+            pattern: '*.example.com'
+          },
+          profileName: 'proxy'
+        }
+      ]
+    });
     expect(anchorClicks[0]).toMatchObject({
       download: 'OmegaOptions.bak'
     });

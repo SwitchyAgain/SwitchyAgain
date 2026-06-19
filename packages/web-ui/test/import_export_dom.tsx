@@ -56,6 +56,10 @@ function optionsFixture(): Options {
   };
 }
 
+async function downloadedOptions() {
+  return JSON.parse(await (optionsClientMock.downloadBlob.mock.calls[0][0] as Blob).text()) as Options;
+}
+
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
@@ -92,6 +96,25 @@ describe('import export component', () => {
     expect(window.confirm).toHaveBeenCalled();
     expect(onApplyOptions).toHaveBeenCalled();
     expect(await (optionsClientMock.downloadBlob.mock.calls[0][0] as Blob).text()).toBe(JSON.stringify(optionsFixture()));
+  });
+
+  it('exports full backups from applied dirty options', async () => {
+    const appliedOptions = {
+      ...optionsFixture(),
+      '+applied': {
+        name: 'applied',
+        profileType: 'FixedProfile'
+      }
+    };
+    const onApplyOptions = vi.fn().mockResolvedValue(appliedOptions);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    render(<ImportExport embedded onApplyOptions={onApplyOptions} options={optionsFixture()} optionsDirty />);
+
+    fireEvent.click(screen.getByRole('button', {name: /Make backup/}));
+
+    await waitFor(() => expect(optionsClientMock.downloadBlob).toHaveBeenCalledWith(expect.any(Blob), 'OmegaOptions.bak'));
+    expect(await downloadedOptions()).toEqual(appliedOptions);
   });
 
   it('restores options from an online backup URL', async () => {
@@ -211,5 +234,30 @@ describe('import export component', () => {
     await waitFor(() => {
       expect(onOptionsReplace).toHaveBeenCalledWith(updatedOptions, {dirty: false});
     });
+  });
+
+  it('saves legacy rule list export preference from applied dirty options', async () => {
+    const currentOptions = {
+      ...optionsFixture(),
+      '-exportLegacyRuleList': true
+    };
+    const patchedOptions = {
+      ...currentOptions,
+      '-exportLegacyRuleList': false
+    };
+    const onApplyOptions = vi.fn().mockResolvedValue(currentOptions);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    optionsClientMock.patchOptions.mockResolvedValue(patchedOptions);
+
+    render(<ImportExport embedded onApplyOptions={onApplyOptions} options={currentOptions} optionsDirty />);
+
+    fireEvent.click(screen.getByLabelText('Export legacy rule lists'));
+
+    await waitFor(() =>
+      expect(optionsClientMock.patchOptions).toHaveBeenCalledWith({
+        '-exportLegacyRuleList': [true, false]
+      })
+    );
+    expect(onApplyOptions).toHaveBeenCalled();
   });
 });
