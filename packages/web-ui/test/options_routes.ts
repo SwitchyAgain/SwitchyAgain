@@ -23,6 +23,22 @@ describe('options routes', () => {
     });
   });
 
+  it('preserves query params on non-profile routes', () => {
+    expect(parseRoute('#/routeTrace?url=https%3A%2F%2Fexample.com%2F&includeTempRules=1')).toEqual({
+      name: 'routeTrace',
+      params: {
+        includeTempRules: '1',
+        url: 'https://example.com/'
+      }
+    });
+    expect(parseRoute('#/profileScope?container=firefox-default')).toEqual({
+      name: 'profileScope',
+      params: {
+        container: 'firefox-default'
+      }
+    });
+  });
+
   it('parses profile routes with encoded names and query params', () => {
     expect(parseRoute('#/profile/proxy%2Fmain?help=condition&tab=rules')).toEqual({
       name: 'profile',

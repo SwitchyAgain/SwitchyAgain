@@ -82,6 +82,27 @@ describe('options shell components', () => {
     expect(container.querySelector('.disabled .text-danger')).toBe(discardButton);
   });
 
+  it('renders optional profile scope navigation and experimental status', () => {
+    const onNavigate = vi.fn();
+
+    render(
+      <OptionsShell
+        currentState="profileScope"
+        isExperimental
+        onNavigate={onNavigate}
+        options={optionsFixture()}
+        profileScopeHref="#/profileScope"
+        showProfileScope
+      />
+    );
+
+    expect(screen.getByText('Experimental')).toBeTruthy();
+    expect(screen.getByRole('link', {name: 'Profile Scope'}).getAttribute('href')).toBe('#/profileScope');
+
+    fireEvent.click(screen.getByRole('link', {name: 'Profile Scope'}));
+    expect(onNavigate).toHaveBeenCalledWith('profileScope');
+  });
+
   it('shows dismissible alerts with mapped alert classes', () => {
     const onClose = vi.fn();
 
