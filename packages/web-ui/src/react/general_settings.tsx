@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 import {createRoot} from 'react-dom/client';
 import {message} from './i18n_client';
@@ -61,6 +61,7 @@ export function GeneralSettings({
 }: GeneralSettingsProps) {
   const [savedOptions, setSavedOptions] = useState<Options | null>(() => (embedded && options ? cloneOptions(options) : null));
   const [draftOptions, setDraftOptions] = useState<Options | null>(() => (embedded && options ? cloneOptions(options) : null));
+  const draftOptionsRef = useRef<Options | null>(draftOptions);
   const [profileOptions, setProfileOptions] = useState<Options | null>(() => (embedded && options ? cloneOptions(options) : null));
   const [activeProfileName, setActiveProfileName] = useState(initialActiveProfileName || 'direct');
   const [profileStatus, setProfileStatus] = useState<'idle' | 'applying' | 'applied' | 'error'>('idle');
@@ -74,7 +75,9 @@ export function GeneralSettings({
     if (embedded && options) {
       const cloned = cloneOptions(options);
       setSavedOptions(cloned);
-      setDraftOptions(cloneOptions(cloned));
+      const draft = cloneOptions(cloned);
+      draftOptionsRef.current = draft;
+      setDraftOptions(draft);
       setProfileOptions(cloneOptions(cloned));
       setStatus('ready');
       return;
@@ -84,7 +87,9 @@ export function GeneralSettings({
       .then((loadedOptions) => {
         const cloned = cloneOptions(loadedOptions);
         setSavedOptions(cloned);
-        setDraftOptions(cloneOptions(cloned));
+        const draft = cloneOptions(cloned);
+        draftOptionsRef.current = draft;
+        setDraftOptions(draft);
         setProfileOptions(cloneOptions(cloned));
         setStatus('ready');
       })
@@ -136,16 +141,16 @@ export function GeneralSettings({
     return GENERAL_KEYS.some((key) => savedOptions[key] !== draftOptions[key]);
   }, [savedOptions, draftOptions]);
   function updateOption(key: string, value: unknown) {
-    setDraftOptions((current) => {
-      if (!current) {
-        return current;
-      }
-      const next = {...current, [key]: value};
-      if (embedded && onOptionsChange) {
-        onOptionsChange(next);
-      }
-      return next;
-    });
+    const current = draftOptionsRef.current || draftOptions;
+    if (!current) {
+      return;
+    }
+    const nextOptions = {...current, [key]: value};
+    draftOptionsRef.current = nextOptions;
+    setDraftOptions(nextOptions);
+    if (embedded && onOptionsChange) {
+      onOptionsChange(nextOptions);
+    }
     if (status === 'saved') {
       setStatus('ready');
     }
@@ -155,7 +160,9 @@ export function GeneralSettings({
     if (!savedOptions) {
       return;
     }
-    setDraftOptions(cloneOptions(savedOptions));
+    const draft = cloneOptions(savedOptions);
+    draftOptionsRef.current = draft;
+    setDraftOptions(draft);
     setStatus('ready');
   }
 
@@ -170,7 +177,9 @@ export function GeneralSettings({
       .then((loadedOptions) => {
         const cloned = cloneOptions(loadedOptions);
         setSavedOptions(cloned);
-        setDraftOptions(cloneOptions(cloned));
+        const draft = cloneOptions(cloned);
+        draftOptionsRef.current = draft;
+        setDraftOptions(draft);
         setStatus('saved');
       })
       .catch((err) => {

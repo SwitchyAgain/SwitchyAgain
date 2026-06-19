@@ -170,6 +170,7 @@ export function UiSettings({
 }: UiSettingsProps) {
   const [savedOptions, setSavedOptions] = useState<Options | null>(() => (embedded && options ? cloneOptions(options) : null));
   const [draftOptions, setDraftOptions] = useState<Options | null>(() => (embedded && options ? cloneOptions(options) : null));
+  const draftOptionsRef = useRef<Options | null>(draftOptions);
   const [status, setStatus] = useState<'loading' | 'ready' | 'saving' | 'saved' | 'error'>(() =>
     embedded && options ? 'ready' : 'loading'
   );
@@ -227,7 +228,9 @@ export function UiSettings({
     if (embedded && options) {
       const cloned = cloneOptions(options);
       setSavedOptions(cloned);
-      setDraftOptions(cloneOptions(cloned));
+      const draft = cloneOptions(cloned);
+      draftOptionsRef.current = draft;
+      setDraftOptions(draft);
       setStatus('ready');
       return;
     }
@@ -236,7 +239,9 @@ export function UiSettings({
       .then(([loadedOptions, capabilities]) => {
         const cloned = cloneOptions(loadedOptions);
         setSavedOptions(cloned);
-        setDraftOptions(cloneOptions(cloned));
+        const draft = cloneOptions(cloned);
+        draftOptionsRef.current = draft;
+        setDraftOptions(draft);
         setProfileScopeCapabilities(capabilities.profileScopeCapabilities);
         setProxyDnsCapabilities(capabilities.proxyDnsCapabilities);
         setStatus('ready');
@@ -255,16 +260,16 @@ export function UiSettings({
   }, [savedOptions, draftOptions]);
 
   function updateOptions(updater: (current: Options) => Options) {
-    setDraftOptions((current) => {
-      if (!current) {
-        return current;
-      }
-      const next = updater(current);
-      if (embedded && onOptionsChange) {
-        onOptionsChange(next);
-      }
-      return next;
-    });
+    const current = draftOptionsRef.current || draftOptions;
+    if (!current) {
+      return;
+    }
+    const nextOptions = updater(current);
+    draftOptionsRef.current = nextOptions;
+    setDraftOptions(nextOptions);
+    if (embedded && onOptionsChange) {
+      onOptionsChange(nextOptions);
+    }
     if (status === 'saved') {
       setStatus('ready');
     }
@@ -327,7 +332,9 @@ export function UiSettings({
     if (!savedOptions) {
       return;
     }
-    setDraftOptions(cloneOptions(savedOptions));
+    const draft = cloneOptions(savedOptions);
+    draftOptionsRef.current = draft;
+    setDraftOptions(draft);
     setStatus('ready');
   }
 
@@ -342,7 +349,9 @@ export function UiSettings({
       .then((loadedOptions) => {
         const cloned = cloneOptions(loadedOptions);
         setSavedOptions(cloned);
-        setDraftOptions(cloneOptions(cloned));
+        const draft = cloneOptions(cloned);
+        draftOptionsRef.current = draft;
+        setDraftOptions(draft);
         setStatus('saved');
       })
       .catch((err) => {

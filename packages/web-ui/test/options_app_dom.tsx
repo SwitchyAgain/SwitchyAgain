@@ -4,7 +4,7 @@ import React from 'react';
 import {cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import {OptionsApp} from '../src/react/options_app';
 import type {ExtensionChromeApi, ExtensionRuntimeApi} from '../src/react/browser_env';
-import type {Options} from '../src/react/options_client_types';
+import type {Options, ProfileScopeContainerInfo} from '../src/react/options_client_types';
 
 type TestGlobal = typeof globalThis & {
   chrome?: ExtensionChromeApi;
@@ -119,6 +119,11 @@ function optionPatchValue<T>(patch: Record<string, unknown> | undefined, key: st
   return (patch?.[key] as unknown[] | undefined)?.[1] as T | undefined;
 }
 
+function patchedOptionValue<T>(patch: Record<string, unknown> | undefined, key: string) {
+  const value = patch?.[key] as unknown[] | undefined;
+  return (value?.length === 1 ? value[0] : value?.[1]) as T | undefined;
+}
+
 function applyOptionsPatch(options: Options, patch: Record<string, unknown>) {
   const nextOptions = JSON.parse(JSON.stringify(options)) as Options;
   for (const [key, rawValue] of Object.entries(patch)) {
@@ -136,6 +141,28 @@ function changeProfileSelect(label: string, name: string) {
   const group = screen.getByText(label).closest('.form-group') as HTMLElement;
   fireEvent.click(within(group).getByRole('listbox'));
   fireEvent.click(within(group).getByRole('option', {name}).querySelector('a') as HTMLAnchorElement);
+}
+
+function changeScopedProfileSelect(scope: HTMLElement, label: string, name: string) {
+  const group = within(scope).getByText(label).closest('.form-group') as HTMLElement;
+  fireEvent.click(within(group).getByRole('listbox'));
+  fireEvent.click(within(group).getByRole('option', {name}).querySelector('a') as HTMLAnchorElement);
+}
+
+function changeTableProfileSelect(table: HTMLElement, rowText: string, name: string) {
+  const row = within(table).getByText(rowText).closest('tr') as HTMLElement;
+  fireEvent.click(within(row).getByRole('listbox'));
+  fireEvent.click(within(row).getByRole('option', {name}).querySelector('a') as HTMLAnchorElement);
+}
+
+function createDataTransfer() {
+  let data = '';
+  return {
+    getData: vi.fn(() => data),
+    setData: vi.fn((_type: string, value: string) => {
+      data = value;
+    })
+  } as unknown as DataTransfer;
 }
 
 function selectModalProfile(dialog: HTMLElement, label: string, name: string) {
@@ -177,8 +204,12 @@ function installBackground({
   getAllError,
   options = optionsFixture(),
   patchedOptions,
+  profileScopeCapabilities,
+  profileScopeContainers,
+  proxyDnsCapabilities,
   renamedOptions,
   replacedOptions,
+  refreshedProfileScopeContainers,
   resetOptions = options,
   updateProfileOptions,
   updateProfileResults = {}
@@ -186,8 +217,12 @@ function installBackground({
   getAllError?: unknown;
   options?: Options;
   patchedOptions?: Options;
+  profileScopeCapabilities?: Record<string, boolean>;
+  profileScopeContainers?: ProfileScopeContainerInfo[];
+  proxyDnsCapabilities?: Record<string, boolean>;
   renamedOptions?: Options;
   replacedOptions?: Options;
+  refreshedProfileScopeContainers?: ProfileScopeContainerInfo[];
   resetOptions?: Options;
   updateProfileOptions?: Options;
   updateProfileResults?: Record<string, unknown>;
@@ -207,19 +242,19 @@ function installBackground({
         currentProfileName: 'proxy',
         firstRun: '',
         isSystemProfile: false,
-        profileScopeCapabilities: {
+        profileScopeCapabilities: profileScopeCapabilities || {
           container: false,
           tab: false,
           window: false
         },
-        profileScopeContainers: [],
+        profileScopeContainers: profileScopeContainers || [],
         proxyAuthCapabilities: {
           http: true,
           https: true,
           socks4: false,
           socks5: false
         },
-        proxyDnsCapabilities: {
+        proxyDnsCapabilities: proxyDnsCapabilities || {
           socks5: false
         }
       };
@@ -251,6 +286,10 @@ function installBackground({
     if (typedRequest.method === 'reset') {
       currentOptions = resetOptions;
       callback({result: currentOptions});
+      return;
+    }
+    if (typedRequest.method === 'refreshProfileScopeContainerNames') {
+      callback({result: refreshedProfileScopeContainers || profileScopeContainers || []});
       return;
     }
     if (typedRequest.method === 'updateProfile') {
@@ -378,6 +417,179 @@ describe('options app', () => {
         }
       ],
       method: 'patch'
+    });
+  });
+
+  it('saves startup profile and quick switch edits through the top-level apply flow', async () => {
+    const loadedOptions = optionsFixture();
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/ui';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: 'Interface'});
+    changeProfileSelect('Startup Profile', 'pac');
+
+    const enabledList = document.querySelector('.cycle-profile-container.cycle-enabled') as HTMLUListElement;
+    const disabledList = document.querySelector('.cycle-profile-container:not(.cycle-enabled)') as HTMLUListElement;
+    const proxyItem = Array.from(enabledList.querySelectorAll('li')).find((item) => item.textContent?.includes('proxy')) as HTMLLIElement;
+    const dataTransfer = createDataTransfer();
+    fireEvent.dragStart(proxyItem, {dataTransfer});
+    fireEvent.drop(disabledList, {dataTransfer});
+    await waitFor(() => expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.'));
+
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(patchedOptionValue<string>(firstPatch(requests), '-startupProfileName')).toBe('pac');
+    expect(patchedOptionValue<string[]>(firstPatch(requests), '-quickSwitchProfiles')).toEqual(['direct']);
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('enables profile scope settings through the top-level apply flow', async () => {
+    const loadedOptions = optionsFixture();
+    const {requests} = installBackground({
+      options: loadedOptions,
+      profileScopeCapabilities: {
+        container: true,
+        tab: true,
+        window: true
+      }
+    });
+    window.location.hash = '#/ui';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: 'Interface'});
+    fireEvent.click(screen.getByLabelText('Tab profiles'));
+    fireEvent.click(screen.getByLabelText('Container profiles'));
+    fireEvent.click(screen.getByLabelText('Normal/private defaults'));
+    await waitFor(() => expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.'));
+
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(patchedOptionValue<Record<string, boolean>>(firstPatch(requests), '-profileScopes')).toEqual({
+      container: true,
+      tab: true,
+      window: true
+    });
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('saves profile scope assignments through the top-level apply flow', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '-profileScopeAssignments': {
+        containers: {
+          'firefox-container-2': 'proxy'
+        },
+        normalDefaultProfileName: 'direct'
+      },
+      '-profileScopes': {
+        container: true,
+        tab: true,
+        window: true
+      }
+    };
+    const profileScopeContainers: ProfileScopeContainerInfo[] = [
+      {
+        cookieStoreId: 'firefox-container-1',
+        name: 'Work'
+      },
+      {
+        cookieStoreId: 'firefox-container-2',
+        name: 'Personal'
+      }
+    ];
+    const {requests} = installBackground({
+      options: loadedOptions,
+      profileScopeCapabilities: {
+        container: true,
+        tab: true,
+        window: true
+      },
+      profileScopeContainers
+    });
+    window.location.hash = '#/profileScope';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: 'Profile Scope'});
+    changeScopedProfileSelect(
+      screen.getByRole('heading', {name: 'Normal / Private'}).closest('section') as HTMLElement,
+      'Normal windows',
+      'pac'
+    );
+    changeScopedProfileSelect(
+      screen.getByRole('heading', {name: 'Normal / Private'}).closest('section') as HTMLElement,
+      'Private windows',
+      'virtual'
+    );
+    fireEvent.click(screen.getByLabelText('Show containers using default profile'));
+    changeTableProfileSelect(screen.getByRole('table'), 'Work', 'auto');
+    changeTableProfileSelect(screen.getByRole('table'), 'Personal', 'Use Default');
+    await waitFor(() => expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.'));
+
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(optionPatchValue<Record<string, unknown>>(firstPatch(requests), '-profileScopeAssignments')).toEqual({
+      containers: {
+        'firefox-container-1': 'auto'
+      },
+      normalDefaultProfileName: 'pac',
+      privateDefaultProfileName: 'virtual'
+    });
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('applies dirty profile scope edits before opening profile actions', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '-profileScopeAssignments': {
+        containers: {},
+        normalDefaultProfileName: 'direct'
+      },
+      '-profileScopes': {
+        container: false,
+        tab: false,
+        window: true
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions,
+      profileScopeCapabilities: {
+        container: false,
+        tab: false,
+        window: true
+      }
+    });
+    window.location.hash = '#/profileScope';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: 'Profile Scope'});
+    changeScopedProfileSelect(
+      screen.getByRole('heading', {name: 'Normal / Private'}).closest('section') as HTMLElement,
+      'Normal windows',
+      'pac'
+    );
+    await waitFor(() => expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.'));
+
+    fireEvent.click(screen.getByRole('button', {name: 'New profile'}));
+
+    let dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Apply changes'}));
+
+    dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'New Profile'})).toBeTruthy();
+    expect(optionPatchValue<Record<string, unknown>>(firstPatch(requests), '-profileScopeAssignments')).toEqual({
+      containers: {},
+      normalDefaultProfileName: 'pac'
     });
   });
 
