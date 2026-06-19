@@ -303,6 +303,15 @@ function sourceEditor() {
   return document.querySelector('.rules-source textarea') as HTMLTextAreaElement;
 }
 
+function editSwitchSourceDraft(value: string) {
+  fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+  fireEvent.change(sourceEditor(), {
+    target: {
+      value
+    }
+  });
+}
+
 function stubDownloads() {
   const anchorClicks: Array<{download: string; href: string}> = [];
   const createObjectURL = vi.fn((_blob: Blob) => 'blob:options-download');
@@ -1108,6 +1117,122 @@ describe('options app', () => {
     expect(getAllRequests(requests)).toHaveLength(1);
   });
 
+  it('renames switch profile attached rule lists after applying open source drafts', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: 'direct',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    editSwitchSourceDraft('proxy:HostWildcardCondition:*.example.com\ndefault:virtual');
+    fireEvent.click(screen.getByRole('button', {name: 'Rename'}));
+
+    let dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Apply changes'}));
+
+    dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Rename Profile'})).toBeTruthy();
+    fireEvent.change(within(dialog).getByLabelText('New profile name'), {
+      target: {
+        value: 'autorenamed'
+      }
+    });
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Rename'}));
+
+    await screen.findByRole('heading', {name: /Profile :: autorenamed/});
+    expect(profilePatchValue(firstPatch(requests), '+auto')).toMatchObject({
+      defaultProfileName: 'virtual',
+      rules: [
+        {
+          condition: {
+            conditionType: 'HostWildcardCondition',
+            pattern: '*.example.com'
+          },
+          profileName: 'proxy'
+        }
+      ]
+    });
+    expect(requests).toContainEqual({
+      args: ['auto', 'autorenamed'],
+      method: 'renameProfile'
+    });
+    expect(requests).not.toContainEqual({
+      args: ['__ruleListOf_auto', '__ruleListOf_autorenamed'],
+      method: 'renameProfile'
+    });
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('renames attached rule lists enabled by open switch source drafts', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: 'direct',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      },
+      '+__ruleListOf_auto': {
+        defaultProfileName: 'proxy',
+        format: 'AutoProxy',
+        name: '__ruleListOf_auto',
+        profileType: 'RuleListProfile',
+        ruleList: '||source.example'
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    editSwitchSourceDraft('default:__ruleListOf_auto');
+    fireEvent.click(screen.getByRole('button', {name: 'Rename'}));
+
+    let dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Apply changes'}));
+
+    dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Rename Profile'})).toBeTruthy();
+    fireEvent.change(within(dialog).getByLabelText('New profile name'), {
+      target: {
+        value: 'autorenamed'
+      }
+    });
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Rename'}));
+
+    await screen.findByRole('heading', {name: /Profile :: autorenamed/});
+    expect(profilePatchValue(firstPatch(requests), '+auto')).toMatchObject({
+      defaultProfileName: '__ruleListOf_auto'
+    });
+    expect(requests).toContainEqual({
+      args: ['auto', 'autorenamed'],
+      method: 'renameProfile'
+    });
+    expect(requests).toContainEqual({
+      args: ['__ruleListOf_auto', '__ruleListOf_autorenamed'],
+      method: 'renameProfile'
+    });
+
+    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    expect(sourceEditor().value).toBe('default:proxy');
+  });
+
   it('renames switch profile attached rule lists over existing target attached profiles', async () => {
     const loadedOptions: Options = {
       ...optionsFixture(),
@@ -1717,6 +1842,83 @@ describe('options app', () => {
     });
   });
 
+  it('checks profile delete references after applying open switch source drafts', async () => {
+    (globalThis as any).OmegaPac.Profiles.referencedBySet = (profileName: string, sourceOptions: Options) => {
+      const auto = sourceOptions['+auto'] as Record<string, unknown> | undefined;
+      return profileName === 'proxy' && auto?.defaultProfileName === 'proxy'
+        ? {
+            '+auto': 'auto'
+          }
+        : {};
+    };
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: 'direct',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    editSwitchSourceDraft('default:proxy');
+    fireEvent.click(screen.getByRole('link', {name: /proxy/}));
+    await screen.findByRole('heading', {name: /Profile :: proxy/});
+    fireEvent.click(screen.getByRole('button', {name: 'Delete Profile'}));
+
+    let dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => {
+      dialog = screen.getByRole('dialog');
+      expect(within(dialog).getByRole('heading', {name: 'Unable to Delete Profile'})).toBeTruthy();
+    });
+    expect(within(dialog).getByText('auto')).toBeTruthy();
+    expect(within(dialog).queryByRole('button', {name: 'Delete Profile'})).toBeNull();
+    expect(profilePatchValue(firstPatch(requests), '+auto')).toMatchObject({
+      defaultProfileName: 'proxy'
+    });
+  });
+
+  it('keeps switch source parse errors from opening profile delete actions', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: 'direct',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    editSwitchSourceDraft('default:missing');
+    fireEvent.click(screen.getByRole('button', {name: 'Delete Profile'}));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Apply changes'}));
+
+    expect(await screen.findByText('Unknown profile: missing')).toBeTruthy();
+    expect(sourceEditor()).toBeTruthy();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(patchRequests(requests)).toHaveLength(0);
+  });
+
   it('applies dirty option edits before opening new and duplicate profile actions', async () => {
     const loadedOptions = optionsFixture();
     const {requests} = installBackground({
@@ -1748,6 +1950,75 @@ describe('options app', () => {
     await screen.findByRole('heading', {name: /Profile :: proxycopy/});
     expect(firstPatch(requests)).toEqual({
       '-confirmDeletion': [true, false]
+    });
+  });
+
+  it('applies open switch source drafts before duplicating profiles from applied options', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: 'direct',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    editSwitchSourceDraft('proxy:HostWildcardCondition:*.example.com\ndefault:virtual');
+    fireEvent.click(screen.getByRole('button', {name: 'New profile'}));
+
+    let dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Apply changes'}));
+
+    dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'New Profile'})).toBeTruthy();
+    fireEvent.change(within(dialog).getByLabelText('Profile name'), {
+      target: {
+        value: 'autocopy'
+      }
+    });
+    fireEvent.click(within(dialog).getByRole('radio', {name: /Duplicate/}));
+    selectModalProfile(dialog, 'Profile', 'auto');
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Create'}));
+
+    await screen.findByRole('heading', {name: /Profile :: autocopy/});
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    const patches = patchRequests(requests);
+    expect(profilePatchValue(patches[0]?.args?.[0] as Record<string, unknown> | undefined, '+auto')).toMatchObject({
+      defaultProfileName: 'virtual',
+      rules: [
+        {
+          condition: {
+            conditionType: 'HostWildcardCondition',
+            pattern: '*.example.com'
+          },
+          profileName: 'proxy'
+        }
+      ]
+    });
+    expect(addedPatchValue(patches[1]?.args?.[0] as Record<string, unknown> | undefined, '+autocopy')).toMatchObject({
+      defaultProfileName: 'virtual',
+      name: 'autocopy',
+      profileType: 'SwitchProfile',
+      rules: [
+        {
+          condition: {
+            conditionType: 'HostWildcardCondition',
+            pattern: '*.example.com'
+          },
+          profileName: 'proxy'
+        }
+      ]
     });
   });
 
@@ -2460,6 +2731,59 @@ describe('options app', () => {
       })
     );
     expect(requests.filter((request) => (request as {method?: string}).method === 'getAll')).toHaveLength(1);
+  });
+
+  it('applies open switch source drafts before opening replace profile actions', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: 'direct',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    editSwitchSourceDraft('proxy:HostWildcardCondition:*.example.com\ndefault:virtual');
+    fireEvent.click(screen.getByRole('link', {name: /virtual/}));
+    await screen.findByRole('heading', {name: /Profile :: virtual/});
+    fireEvent.click(screen.getByRole('button', {name: 'Replace target profile'}));
+
+    let dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Apply changes'}));
+
+    dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Replace Profile'})).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Replace Profile'}));
+
+    await waitFor(() =>
+      expect(requests).toContainEqual({
+        args: ['proxy', 'virtual'],
+        method: 'replaceRef'
+      })
+    );
+    const methods = requestMethods(requests);
+    expect(methods.indexOf('replaceRef')).toBeGreaterThan(methods.indexOf('patch'));
+    expect(profilePatchValue(firstPatch(requests), '+auto')).toMatchObject({
+      defaultProfileName: 'virtual',
+      rules: [
+        {
+          condition: {
+            conditionType: 'HostWildcardCondition',
+            pattern: '*.example.com'
+          },
+          profileName: 'proxy'
+        }
+      ]
+    });
   });
 
   it('downloads profile updates with only the required options reload', async () => {
