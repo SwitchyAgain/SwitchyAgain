@@ -17,6 +17,20 @@ function optionsFixture(): Options {
   };
 }
 
+function installBackground(sendMessage: (request: any, callback: (response?: unknown) => void) => void) {
+  (globalThis as any).chrome = {
+    i18n: {
+      getMessage: () => '',
+      getUILanguage: () => 'en'
+    },
+    runtime: {
+      getManifest: () => ({manifest_version: 3}),
+      getURL: (path: string) => path,
+      sendMessage
+    }
+  };
+}
+
 afterEach(() => {
   cleanup();
 });
@@ -78,16 +92,7 @@ describe('general settings component', () => {
         callback({result: null});
       }
     });
-    (globalThis as any).chrome = {
-      i18n: {
-        getMessage: () => '',
-        getUILanguage: () => 'en'
-      },
-      runtime: {
-        getManifest: () => ({manifest_version: 3}),
-        sendMessage
-      }
-    };
+    installBackground(sendMessage);
 
     render(<GeneralSettings embedded options={options} />);
 
@@ -112,5 +117,74 @@ describe('general settings component', () => {
 
     expect(screen.queryByRole('heading', {name: 'Current Profile'})).toBeNull();
     expect(screen.queryByRole('listbox', {name: 'Active Profile'})).toBeNull();
+  });
+
+  it('loads standalone options and saves general option patches', async () => {
+    const loadedOptions = optionsFixture();
+    const savedOptions = {
+      ...loadedOptions,
+      '-monitorWebRequests': true
+    };
+    const requests: any[] = [];
+    const sendMessage = vi.fn((request, callback) => {
+      requests.push(request);
+      if (request.method === 'getAll') {
+        callback({result: loadedOptions});
+        return;
+      }
+      if (request.method === 'getState') {
+        callback({
+          result: {
+            currentProfileName: 'direct',
+            isSystemProfile: false
+          }
+        });
+        return;
+      }
+      if (request.method === 'patch') {
+        callback({result: savedOptions});
+      }
+    });
+    installBackground(sendMessage);
+
+    render(<GeneralSettings />);
+
+    await screen.findByRole('heading', {name: 'General'});
+
+    fireEvent.click(screen.getByLabelText('Show count of failed web requests for resources in the current tab.'));
+    fireEvent.click(screen.getByRole('button', {name: /Apply changes/}));
+
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('Options saved.'));
+    expect(requests).toContainEqual({
+      args: [
+        {
+          '-monitorWebRequests': [false, true]
+        }
+      ],
+      method: 'patch'
+    });
+  });
+
+  it('shows standalone load errors without crashing state fallback', async () => {
+    const sendMessage = vi.fn((request, callback) => {
+      if (request.method === 'getAll') {
+        callback({
+          error: {
+            _error: 'error',
+            message: 'Options unavailable',
+            name: 'OptionsError'
+          }
+        });
+        return;
+      }
+      if (request.method === 'getState') {
+        callback({result: {}});
+      }
+    });
+    installBackground(sendMessage);
+
+    render(<GeneralSettings />);
+
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('Options unavailable'));
   });
 });

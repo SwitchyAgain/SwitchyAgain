@@ -332,6 +332,21 @@ export function UiSettings({embedded = false, options, onOptionsChange, onOpenSh
     </div>
   );
 
+  if (status === 'error' && !draftOptions) {
+    const errorContent = (
+      <>
+        {pageHeader}
+        <div className="alert alert-danger" role="alert">
+          <span className="glyphicon glyphicon-remove" /> {error}
+        </div>
+      </>
+    );
+    if (embedded) {
+      return errorContent;
+    }
+    return <main className="container-fluid react-options">{errorContent}</main>;
+  }
+
   if (status === 'loading' || !draftOptions) {
     if (embedded) {
       return (

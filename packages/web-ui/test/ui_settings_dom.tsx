@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import React from 'react';
-import {cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {UiSettings} from '../src/react/ui_settings';
 import type {Options} from '../src/react/options_client_types';
 
@@ -36,6 +36,20 @@ function createDataTransfer() {
       data = value;
     })
   } as unknown as DataTransfer;
+}
+
+function installBackground(sendMessage: (request: any, callback: (response?: unknown) => void) => void) {
+  (globalThis as any).chrome = {
+    i18n: {
+      getMessage: () => '',
+      getUILanguage: () => 'en'
+    },
+    runtime: {
+      getManifest: () => ({manifest_version: 3}),
+      getURL: (path: string) => path,
+      sendMessage
+    }
+  };
 }
 
 afterEach(() => {
@@ -126,5 +140,107 @@ describe('ui settings component', () => {
         '-quickSwitchProfiles': ['direct']
       })
     );
+  });
+
+  it('loads standalone options, capability state, and saves UI patches', async () => {
+    const loadedOptions = optionsFixture();
+    const savedOptions = {
+      ...loadedOptions,
+      '-profileScopes': {
+        container: false,
+        tab: true,
+        window: false
+      },
+      '-showSocks5LocalDnsOption': true
+    };
+    const requests: any[] = [];
+    const sendMessage = vi.fn((request, callback) => {
+      requests.push(request);
+      if (request.method === 'getAll') {
+        callback({result: loadedOptions});
+        return;
+      }
+      if (request.method === 'getState') {
+        const stateName = request.args[0];
+        callback({
+          result:
+            stateName === 'profileScopeCapabilities'
+              ? {
+                  profileScopeCapabilities: {
+                    container: true,
+                    tab: true,
+                    window: false
+                  }
+                }
+              : {
+                  proxyDnsCapabilities: {
+                    socks5: true
+                  }
+                }
+        });
+        return;
+      }
+      if (request.method === 'patch') {
+        callback({result: savedOptions});
+      }
+    });
+    installBackground(sendMessage);
+
+    render(<UiSettings />);
+
+    await screen.findByRole('heading', {name: 'Interface'});
+
+    const tabProfiles = screen.getByLabelText('Tab profiles') as HTMLInputElement;
+    const windowProfiles = screen.getByLabelText('Normal/private defaults') as HTMLInputElement;
+    const socks5LocalDns = screen.getByLabelText('Show SOCKS5 local DNS option. Firefox only.') as HTMLInputElement;
+    expect(tabProfiles.disabled).toBe(false);
+    expect(windowProfiles.disabled).toBe(true);
+    expect(socks5LocalDns.disabled).toBe(false);
+
+    fireEvent.click(tabProfiles);
+    fireEvent.click(socks5LocalDns);
+    fireEvent.click(screen.getByRole('button', {name: /Apply changes/}));
+
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('Options saved.'));
+    expect(requests).toContainEqual({
+      args: [
+        {
+          '-profileScopes': [
+            undefined,
+            {
+              container: false,
+              tab: true,
+              window: false
+            }
+          ],
+          '-showSocks5LocalDnsOption': [undefined, true]
+        }
+      ],
+      method: 'patch'
+    });
+  });
+
+  it('shows standalone load errors instead of staying on the loading state', async () => {
+    const sendMessage = vi.fn((request, callback) => {
+      if (request.method === 'getAll') {
+        callback({
+          error: {
+            _error: 'error',
+            message: 'UI options unavailable',
+            name: 'OptionsError'
+          }
+        });
+        return;
+      }
+      if (request.method === 'getState') {
+        callback({result: {}});
+      }
+    });
+    installBackground(sendMessage);
+
+    render(<UiSettings />);
+
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('UI options unavailable'));
+    expect(screen.queryByText('Loading options...')).toBeNull();
   });
 });
