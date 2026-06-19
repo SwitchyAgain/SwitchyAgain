@@ -170,6 +170,7 @@ describe('import export component', () => {
     await waitFor(() => expect(optionsClientMock.setOptionsSync).toHaveBeenCalledWith(true, undefined));
     expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('Your changes to the options must be applied before you proceed.'));
     expect(onApplyOptions).toHaveBeenCalled();
+    expect(onApplyOptions.mock.invocationCallOrder[0]).toBeLessThan(optionsClientMock.setOptionsSync.mock.invocationCallOrder[0]);
     await waitFor(() => expect(optionsClientMock.reloadLocation).toHaveBeenCalled());
   });
 
@@ -186,6 +187,7 @@ describe('import export component', () => {
     await waitFor(() => expect(optionsClientMock.resetOptionsSync).toHaveBeenCalled());
     expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('Your changes to the options must be applied before you proceed.'));
     expect(onApplyOptions).toHaveBeenCalled();
+    expect(onApplyOptions.mock.invocationCallOrder[0]).toBeLessThan(optionsClientMock.resetOptionsSync.mock.invocationCallOrder[0]);
     await waitFor(() => expect(optionsClientMock.reloadLocation).toHaveBeenCalled());
   });
 
@@ -201,9 +203,11 @@ describe('import export component', () => {
 
     fireEvent.click(screen.getByLabelText('Export legacy rule lists'));
 
-    expect(optionsClientMock.patchOptions).toHaveBeenCalledWith({
-      '-exportLegacyRuleList': [false, true]
-    });
+    await waitFor(() =>
+      expect(optionsClientMock.patchOptions).toHaveBeenCalledWith({
+        '-exportLegacyRuleList': [false, true]
+      })
+    );
     await waitFor(() => {
       expect(onOptionsReplace).toHaveBeenCalledWith(updatedOptions, {dirty: false});
     });

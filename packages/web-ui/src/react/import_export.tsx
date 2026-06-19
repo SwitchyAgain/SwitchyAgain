@@ -223,26 +223,30 @@ export function ImportExport({
   }
 
   function disableOptionsSync() {
-    return setOptionsSync(false).then(() => confirmCurrentOptions().then(reloadOptionsPage));
+    return confirmCurrentOptions().then(() => setOptionsSync(false).then(reloadOptionsPage));
   }
 
   function resetSyncedOptions() {
-    return resetOptionsSync().then(() => confirmCurrentOptions().then(reloadOptionsPage));
+    return confirmCurrentOptions().then(() => resetOptionsSync().then(reloadOptionsPage));
   }
 
   function saveExportLegacyRuleList(checked: boolean) {
-    const currentOptions = options || {};
-    const {nextOptions, patch} = legacyRuleListPatch(currentOptions, checked);
-    setOptions(nextOptions);
-    patchOptions(patch)
-      .then((loadedOptions) => {
-        setOptions(loadedOptions);
-        onOptionsReplace?.(loadedOptions, {dirty: false});
+    confirmCurrentOptions()
+      .then(() => {
+        const currentOptions = options || {};
+        const {nextOptions, patch} = legacyRuleListPatch(currentOptions, checked);
+        setOptions(nextOptions);
+        return patchOptions(patch)
+          .then((loadedOptions) => {
+            setOptions(loadedOptions);
+            onOptionsReplace?.(loadedOptions, {dirty: false});
+          })
+          .catch((err) => {
+            setOptions(currentOptions);
+            showError(err, 'options_saveError', 'Unable to save options.');
+          });
       })
-      .catch((err) => {
-        setOptions(currentOptions);
-        showError(err, 'options_saveError', 'Unable to save options.');
-      });
+      .catch(() => {});
   }
 
   const profileSection = (

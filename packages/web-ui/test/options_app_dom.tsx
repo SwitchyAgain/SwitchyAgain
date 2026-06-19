@@ -165,6 +165,29 @@ function createDataTransfer() {
   } as unknown as DataTransfer;
 }
 
+function stubDownloads() {
+  const anchorClicks: Array<{download: string; href: string}> = [];
+  const createObjectURL = vi.fn(() => 'blob:options-download');
+  Object.defineProperty(URL, 'createObjectURL', {
+    configurable: true,
+    value: createObjectURL
+  });
+  Object.defineProperty(URL, 'revokeObjectURL', {
+    configurable: true,
+    value: vi.fn()
+  });
+  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+    anchorClicks.push({
+      download: this.download,
+      href: this.href
+    });
+  });
+  return {
+    anchorClicks,
+    createObjectURL
+  };
+}
+
 function selectModalProfile(dialog: HTMLElement, label: string, name: string) {
   const group = within(dialog).getByText(label).closest('.profile-duplicate-source') as HTMLElement;
   fireEvent.click(within(group).getByRole('listbox'));
@@ -288,6 +311,14 @@ function installBackground({
       callback({result: currentOptions});
       return;
     }
+    if (typedRequest.method === 'setOptionsSync') {
+      callback({result: undefined});
+      return;
+    }
+    if (typedRequest.method === 'resetOptionsSync') {
+      callback({result: undefined});
+      return;
+    }
     if (typedRequest.method === 'refreshProfileScopeContainerNames') {
       callback({result: refreshedProfileScopeContainers || profileScopeContainers || []});
       return;
@@ -325,6 +356,9 @@ function installBackground({
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+  localStorage.clear();
   window.location.hash = '';
   window.onbeforeunload = null;
   delete (globalThis as any).OmegaPac;
@@ -1076,6 +1110,197 @@ describe('options app', () => {
     );
     await waitFor(() => expect(screen.getByText('options_resetSuccess')).toBeTruthy());
     expect(window.location.hash).toBe('#/about');
+  });
+
+  it('replaces dirty options from the about reset flow without reloading all options', async () => {
+    const loadedOptions = optionsFixture();
+    const resetOptions = {
+      ...optionsFixture(),
+      '+reset': {
+        name: 'reset',
+        profileType: 'FixedProfile'
+      },
+      '-confirmDeletion': true
+    };
+    delete (resetOptions as Record<string, unknown>)['+proxy'];
+    const {requests} = installBackground({
+      options: loadedOptions,
+      resetOptions
+    });
+    window.location.hash = '#/ui';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: 'Interface'});
+    fireEvent.click(screen.getByLabelText('Confirm before deleting profiles and rules.'));
+    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.');
+
+    fireEvent.click(screen.getByRole('link', {name: 'SwitchyAgain'}));
+    await screen.findByRole('heading', {name: 'About'});
+    fireEvent.click(screen.getByRole('button', {name: 'Reset'}));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Reset'}));
+
+    await waitFor(() =>
+      expect(requests).toContainEqual({
+        args: [undefined],
+        method: 'reset'
+      })
+    );
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(screen.queryByRole('link', {name: /proxy/})).toBeNull();
+    expect(screen.getByRole('link', {name: /reset/})).toBeTruthy();
+    expect(getAllRequests(requests)).toHaveLength(1);
+    expect(patchRequests(requests)).toHaveLength(0);
+  });
+
+  it('restores online backups through the embedded import export page without reloading all options', async () => {
+    const loadedOptions = optionsFixture();
+    const resetOptions = {
+      ...optionsFixture(),
+      '+restored': {
+        name: 'restored',
+        profileType: 'FixedProfile'
+      },
+      '-confirmDeletion': true
+    };
+    delete (resetOptions as Record<string, unknown>)['+proxy'];
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve('backup-content')
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const {requests} = installBackground({
+      options: loadedOptions,
+      resetOptions
+    });
+    window.location.hash = '#/ui';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: 'Interface'});
+    fireEvent.click(screen.getByLabelText('Confirm before deleting profiles and rules.'));
+    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.');
+
+    fireEvent.click(screen.getByRole('link', {name: 'Import/Export'}));
+    await screen.findByRole('heading', {name: 'Import/Export'});
+    fireEvent.change(screen.getByLabelText('Restore from online'), {
+      target: {
+        value: 'https://example.com/options.bak'
+      }
+    });
+    fireEvent.click(screen.getByRole('button', {name: 'Restore'}));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('https://example.com/options.bak', expect.any(Object)));
+    await waitFor(() =>
+      expect(requests).toContainEqual({
+        args: ['backup-content'],
+        method: 'reset'
+      })
+    );
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(screen.queryByRole('link', {name: /proxy/})).toBeNull();
+    expect(screen.getByRole('link', {name: /restored/})).toBeTruthy();
+    expect(screen.getByText('options_importSuccess')).toBeTruthy();
+    expect(getAllRequests(requests)).toHaveLength(1);
+    expect(patchRequests(requests)).toHaveLength(0);
+  });
+
+  it('applies dirty embedded options before exporting a full backup', async () => {
+    const loadedOptions = optionsFixture();
+    const {anchorClicks, createObjectURL} = stubDownloads();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/ui';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: 'Interface'});
+    fireEvent.click(screen.getByLabelText('Confirm before deleting profiles and rules.'));
+    fireEvent.click(screen.getByRole('link', {name: 'Import/Export'}));
+    await screen.findByRole('heading', {name: 'Import/Export'});
+
+    fireEvent.click(screen.getByRole('button', {name: /Make backup/}));
+
+    await waitFor(() => expect(anchorClicks).toHaveLength(1));
+    expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('Your changes to the options must be applied before you proceed.'));
+    expect(patchRequests(requests)).toHaveLength(1);
+    expect(firstPatch(requests)).toEqual({
+      '-confirmDeletion': [true, false]
+    });
+    expect(createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+    expect(anchorClicks[0]).toMatchObject({
+      download: 'OmegaOptions.bak'
+    });
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('applies dirty embedded options before saving legacy rule list export preference', async () => {
+    const loadedOptions = optionsFixture();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/ui';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: 'Interface'});
+    fireEvent.click(screen.getByLabelText('Confirm before deleting profiles and rules.'));
+    fireEvent.click(screen.getByRole('link', {name: 'Import/Export'}));
+    await screen.findByRole('heading', {name: 'Import/Export'});
+
+    fireEvent.click(screen.getByLabelText('Export legacy rule lists'));
+
+    await waitFor(() => expect(patchRequests(requests)).toHaveLength(2));
+    const patches = patchRequests(requests);
+    expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('Your changes to the options must be applied before you proceed.'));
+    expect(patches[0]?.args?.[0]).toEqual({
+      '-confirmDeletion': [true, false]
+    });
+    expect(patches[1]?.args?.[0]).toEqual({
+      '-exportLegacyRuleList': [undefined, true]
+    });
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('applies dirty embedded options before resetting synced options', async () => {
+    localStorage.setItem('omega.local.syncOptions', JSON.stringify('conflict'));
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const loadedOptions = optionsFixture();
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/ui';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: 'Interface'});
+    fireEvent.click(screen.getByLabelText('Confirm before deleting profiles and rules.'));
+    fireEvent.click(screen.getByRole('link', {name: 'Import/Export'}));
+    await screen.findByRole('heading', {name: 'Import/Export'});
+
+    fireEvent.click(screen.getByRole('button', {name: 'Reset sync'}));
+
+    await waitFor(() =>
+      expect(requests).toContainEqual({
+        args: [],
+        method: 'resetOptionsSync'
+      })
+    );
+    await waitFor(() => expect(patchRequests(requests)).toHaveLength(1));
+    expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('Your changes to the options must be applied before you proceed.'));
+    expect(firstPatch(requests)).toEqual({
+      '-confirmDeletion': [true, false]
+    });
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    const methods = requestMethods(requests);
+    expect(methods.indexOf('patch')).toBeLessThan(methods.indexOf('resetOptionsSync'));
+    expect(getAllRequests(requests)).toHaveLength(1);
   });
 
   it('renames profiles using the returned options without reloading all options', async () => {
