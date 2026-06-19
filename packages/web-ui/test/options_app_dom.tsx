@@ -16,6 +16,52 @@ function testGlobal() {
   return globalThis as TestGlobal;
 }
 
+function sourceProfileNames(ruleList: string) {
+  return ruleList
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => (line.startsWith('default:') ? line.slice('default:'.length) : line.split(':')[0] || ''))
+    .map((name) => name.trim())
+    .filter(Boolean);
+}
+
+function parseSwitchSource(ruleList: string) {
+  const rules: Array<{condition: {conditionType?: string; pattern?: string}; profileName: string}> = [];
+  let defaultProfileName = 'direct';
+  for (const rawLine of ruleList.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) {
+      continue;
+    }
+    if (line.startsWith('error:')) {
+      throw new Error(line.slice('error:'.length).trim() || 'Invalid source');
+    }
+    if (line.startsWith('default:')) {
+      defaultProfileName = line.slice('default:'.length).trim() || 'direct';
+      continue;
+    }
+    const [profileName, conditionType, ...patternParts] = line.split(':');
+    if (!profileName || !conditionType || patternParts.length === 0) {
+      throw new Error(`Invalid source line: ${line}`);
+    }
+    rules.push({
+      condition: {
+        conditionType,
+        pattern: patternParts.join(':')
+      },
+      profileName
+    });
+  }
+  rules.push({
+    condition: {
+      conditionType: 'TrueCondition'
+    },
+    profileName: defaultProfileName
+  });
+  return rules;
+}
+
 function installOmegaPacMock() {
   (globalThis as any).OmegaPac = {
     Conditions: {
@@ -41,6 +87,23 @@ function installOmegaPacMock() {
       }
     },
     Profiles: {
+      byKey(key: string, options: Options) {
+        if (key === '+direct') {
+          return {
+            builtin: true,
+            name: 'direct',
+            profileType: 'DirectProfile'
+          };
+        }
+        if (key === '+system') {
+          return {
+            builtin: true,
+            name: 'system',
+            profileType: 'SystemProfile'
+          };
+        }
+        return options[key];
+      },
       create(spec: Record<string, unknown>) {
         return {...spec};
       },
@@ -77,6 +140,12 @@ function installOmegaPacMock() {
               (rule) => `${rule.profileName || ''}:${rule.condition?.conditionType || ''}:${rule.condition?.pattern || ''}`
             )
           ].join('\n');
+        },
+        directReferenceSet({ruleList}: {ruleList?: string}) {
+          return Object.fromEntries(sourceProfileNames(ruleList || '').map((name) => [`+${name}`, name]));
+        },
+        parseOmega(ruleList: string) {
+          return parseSwitchSource(ruleList);
         }
       }
     }
@@ -228,6 +297,10 @@ function createDataTransfer() {
       data = value;
     })
   } as unknown as DataTransfer;
+}
+
+function sourceEditor() {
+  return document.querySelector('.rules-source textarea') as HTMLTextAreaElement;
 }
 
 function stubDownloads() {
@@ -1217,6 +1290,197 @@ describe('options app', () => {
     expect(getAllRequests(requests)).toHaveLength(1);
   });
 
+  it('applies switch source edits to rules and the switch default profile', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: 'direct',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.change(sourceEditor(), {
+      target: {
+        value: 'proxy:HostWildcardCondition:*.example.com\ndefault:virtual'
+      }
+    });
+    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(profilePatchValue(firstPatch(requests), '+auto')).toMatchObject({
+      defaultProfileName: 'virtual',
+      rules: [
+        {
+          condition: {
+            conditionType: 'HostWildcardCondition',
+            pattern: '*.example.com'
+          },
+          profileName: 'proxy'
+        }
+      ]
+    });
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('applies open switch source editor drafts through the top-level apply flow', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: 'direct',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.change(sourceEditor(), {
+      target: {
+        value: 'proxy:HostWildcardCondition:*.example.com\ndefault:virtual'
+      }
+    });
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(profilePatchValue(firstPatch(requests), '+auto')).toMatchObject({
+      defaultProfileName: 'virtual',
+      rules: [
+        {
+          condition: {
+            conditionType: 'HostWildcardCondition',
+            pattern: '*.example.com'
+          },
+          profileName: 'proxy'
+        }
+      ]
+    });
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('keeps open switch source editor drafts unsaved when top-level apply hits parse errors', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: 'direct',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.change(sourceEditor(), {
+      target: {
+        value: 'default:missing'
+      }
+    });
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    expect(await screen.findByText('Unknown profile: missing')).toBeTruthy();
+    expect(sourceEditor()).toBeTruthy();
+    expect(window.onbeforeunload).toBeNull();
+    expect(patchRequests(requests)).toHaveLength(0);
+  });
+
+  it('applies enabled switch source default edits to the attached rule list', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: '__ruleListOf_auto',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      },
+      '+__ruleListOf_auto': {
+        defaultProfileName: 'direct',
+        format: 'AutoProxy',
+        name: '__ruleListOf_auto',
+        profileType: 'RuleListProfile',
+        ruleList: '||example.com'
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.change(sourceEditor(), {
+      target: {
+        value: 'default:proxy'
+      }
+    });
+    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(profilePatchValue(firstPatch(requests), '+__ruleListOf_auto')).toMatchObject({
+      defaultProfileName: 'proxy'
+    });
+    expect(profilePatchValue(firstPatch(requests), '+auto')).toBeUndefined();
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('keeps switch source editor open and leaves options unchanged on parse errors', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: 'direct',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.change(sourceEditor(), {
+      target: {
+        value: 'default:missing'
+      }
+    });
+    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+
+    expect(await screen.findByText('Unknown profile: missing')).toBeTruthy();
+    expect(sourceEditor()).toBeTruthy();
+    expect(window.onbeforeunload).toBeNull();
+    expect(patchRequests(requests)).toHaveLength(0);
+  });
+
   it('deletes profiles and cleans linked options through the top-level apply flow', async () => {
     const loadedOptions: Options = {
       ...optionsFixture(),
@@ -1766,6 +2030,78 @@ describe('options app', () => {
     });
     expect(profilePatchValue(firstPatch(requests), '+auto')).toMatchObject({
       defaultProfileName: 'proxy'
+    });
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('applies open switch source drafts before exporting Omega rule lists from applied options', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: 'direct',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      }
+    };
+    const patchedOptions: Options = {
+      ...loadedOptions,
+      '+auto': {
+        ...(loadedOptions['+auto'] as Record<string, unknown>),
+        defaultProfileName: 'virtual',
+        rules: [
+          {
+            condition: {
+              conditionType: 'HostWildcardCondition',
+              pattern: '*.example.com'
+            },
+            profileName: 'proxy'
+          }
+        ]
+      }
+    };
+    const {anchorClicks, createObjectURL} = stubDownloads();
+    const {requests} = installBackground({
+      options: loadedOptions,
+      patchedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.change(sourceEditor(), {
+      target: {
+        value: 'proxy:HostWildcardCondition:*.example.com\ndefault:virtual'
+      }
+    });
+    fireEvent.click(screen.getByRole('button', {name: 'Export Rule List'}));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
+    expect(anchorClicks).toHaveLength(0);
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(anchorClicks).toHaveLength(1));
+    const text = await (createObjectURL.mock.calls[0]?.[0] as Blob).text();
+    expect(text).toContain('proxy:HostWildcardCondition:*.example.com');
+    expect(text).toContain('default:virtual');
+    expect(anchorClicks[0]).toMatchObject({
+      download: 'OmegaRules_auto.sorl'
+    });
+    expect(profilePatchValue(firstPatch(requests), '+auto')).toMatchObject({
+      defaultProfileName: 'virtual',
+      rules: [
+        {
+          condition: {
+            conditionType: 'HostWildcardCondition',
+            pattern: '*.example.com'
+          },
+          profileName: 'proxy'
+        }
+      ]
     });
     await waitFor(() => expect(window.onbeforeunload).toBeNull());
     expect(getAllRequests(requests)).toHaveLength(1);

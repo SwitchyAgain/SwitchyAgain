@@ -186,6 +186,66 @@ type ModalState =
 
 type AppliedOptionsAction = (appliedOptions: Options) => void | Promise<void>;
 
+type PendingSourceEditorState = {
+  editSource: boolean;
+  profileName: string;
+  source?: SwitchRuleSourceState | null;
+} | null;
+
+function applySourceToOptions(sourceOptions: Options, profileName: string, source: SwitchRuleSourceState) {
+  const nextSource = {
+    ...source,
+    code: source.code || ''
+  };
+  const profile = profileOption<NamedSwitchProfileModel>(sourceOptions, profileName, isSwitchProfile);
+  if (!profile) {
+    nextSource.error = {
+      message: message('options_profileNotFound', `Profile not found: ${profileName}`, profileName)
+    };
+    return {
+      ok: false,
+      source: nextSource
+    };
+  }
+  const identity = attachedIdentity(profile.name);
+  const attached = attachedProfileOption(sourceOptions, identity) || null;
+  const attachedOptions = createAttachedOptions(profile, attached);
+  const result = parseSource(nextSource.code, sourceOptions);
+  if (result.error) {
+    nextSource.error = result.error;
+  } else {
+    nextSource.error = undefined;
+  }
+  if (nextSource.error) {
+    return {
+      ok: false,
+      source: {
+        ...nextSource,
+        error: {
+          message: nextSource.error?.message || String(nextSource.error)
+        }
+      }
+    };
+  }
+  const parsedRules = result.rules || [];
+  if (!parsedSourceChangesProfile(profile, attached, identity.attachedName, parsedRules)) {
+    return {
+      ok: true,
+      source: null
+    };
+  }
+  if (!applyParsedSource(profile, attached, attachedOptions, identity.attachedName, parsedRules)) {
+    return {
+      ok: true,
+      source: null
+    };
+  }
+  return {
+    ok: true,
+    source: null
+  };
+}
+
 const PROFILE_COLORS = ['#9ce', '#9d9', '#fa8', '#fe9', '#d497ee', '#47b', '#5b5', '#d63', '#ca0'];
 const FIXED_PROXY_AUTH_KEYS: Record<FixedProfileScheme, FixedProfileProxyField> = {
   '': 'fallbackProxy',
@@ -296,16 +356,22 @@ function useHashRoute() {
 
 function SwitchProfilePreview({
   onDownload,
+  onOptionsReplaceDraft,
+  onSourceEditorStateChange,
   options,
   profile,
+  sourceEditor,
   showConditionHelp = false,
   updatingProfiles,
   updateOptionsDraft,
   updateProfile
 }: {
   onDownload: (name: string) => void;
+  onOptionsReplaceDraft?: (nextOptions: Options) => void;
+  onSourceEditorStateChange?: (state: {editSource: boolean; source?: SwitchRuleSourceState | null}) => void;
   options: Options;
   profile: NamedSwitchProfileModel;
+  sourceEditor?: {editSource: boolean; source?: SwitchRuleSourceState | null} | null;
   showConditionHelp?: boolean;
   updatingProfiles: Record<string, boolean>;
   updateOptionsDraft: (updater: (options: Options) => void | false) => void;
@@ -336,38 +402,16 @@ function SwitchProfilePreview({
   }
 
   function applySource(source: SwitchRuleSourceState) {
-    const nextSource = {
-      ...source
-    };
-    const result = parseSource(nextSource.code || '', options);
-    if (result.error) {
-      nextSource.error = result.error;
+    const nextOptions = cloneOptions(options);
+    const result = applySourceToOptions(nextOptions, profile.name, source);
+    if (result.ok === false) {
+      return result;
     }
-    if (nextSource.error) {
-      return {
-        ok: false,
-        source: {
-          ...nextSource,
-          error: {
-            message: nextSource.error?.message || String(nextSource.error)
-          }
-        }
-      };
-    }
-    const parsedRules = result.rules || [];
-    if (!parsedSourceChangesProfile(profile, attached, identity.attachedName, parsedRules)) {
-      return {
-        ok: true
-      };
-    }
-    updateOptionsDraft((nextOptions) => {
-      const nextProfile = profileOption<SwitchProfileModel>(nextOptions, profile.name);
-      if (!nextProfile) {
-        return false;
-      }
-      const nextAttached = attachedProfileOption(nextOptions, identity) || null;
-      return applyParsedSource(nextProfile, nextAttached, attachedOptions, identity.attachedName, parsedRules) ? undefined : false;
+    onSourceEditorStateChange?.({
+      editSource: false,
+      source: null
     });
+    onOptionsReplaceDraft?.(nextOptions);
     return {
       ok: true
     };
@@ -378,6 +422,7 @@ function SwitchProfilePreview({
       attached={attached}
       attachedOptions={attachedOptions}
       confirmDeletion={!!options['-confirmDeletion']}
+      editSource={!!sourceEditor?.editSource}
       loadRules
       onApplySource={applySource}
       onAddRule={() => mutateProfile((nextProfile) => addRule(nextProfile, attachedOptions.defaultProfileName))}
@@ -428,6 +473,7 @@ function SwitchProfilePreview({
         })
       }
       onDownload={onDownload}
+      onEditorStateChange={onSourceEditorStateChange}
       onIpConditionInputChange={(index, value) =>
         mutateProfile((nextProfile) => {
           updateIpCondition(nextProfile.rules?.[index], value);
@@ -470,6 +516,7 @@ function SwitchProfilePreview({
       rules={profile.rules || []}
       show={showConditionHelp}
       showConditionTypes={showConditionTypes}
+      source={sourceEditor?.source || null}
       updating={attached ? profileUpdating(updatingProfiles, attached.name) : false}
     />
   );
@@ -485,6 +532,7 @@ export function OptionsApp() {
   const [guide, setGuide] = useState<OptionsGuideState | null>(null);
   const [pendingOptionsGuideProfileName, setPendingOptionsGuideProfileName] = useState('');
   const [pendingApplyAction, setPendingApplyAction] = useState<AppliedOptionsAction | null>(null);
+  const [pendingSourceEditor, setPendingSourceEditor] = useState<PendingSourceEditorState>(null);
   const [alert, setAlert] = useState<AlertState>(null);
   const [alertShown, setAlertShown] = useState(false);
   const [profileScopeCapabilities, setProfileScopeCapabilities] = useState<ProfileScopeCapabilities>(DEFAULT_PROFILE_SCOPE_CAPABILITIES);
@@ -525,6 +573,9 @@ export function OptionsApp() {
     }
     return !sameValue(savedOptions, options);
   }, [options, savedOptions]);
+  const pendingSourceDraftDirty = Boolean(
+    pendingSourceEditor?.editSource && pendingSourceEditor.source?.touched && !pendingSourceEditor.source.error
+  );
   const showProfileScope = useMemo(
     () => hasVisibleProfileScopes(savedOptions, profileScopeCapabilities),
     [savedOptions, profileScopeCapabilities]
@@ -590,7 +641,7 @@ export function OptionsApp() {
   }, [modal, pendingOptionsGuideProfileName, route.name, route.profileName, status]);
 
   useEffect(() => {
-    if (!dirty) {
+    if (!dirty && !pendingSourceDraftDirty) {
       window.onbeforeunload = null;
       return;
     }
@@ -598,7 +649,7 @@ export function OptionsApp() {
     return () => {
       window.onbeforeunload = null;
     };
-  }, [dirty]);
+  }, [dirty, pendingSourceDraftDirty]);
 
   function showFirstRun(loadedOptions: Options, firstRun: string) {
     if (!firstRun) {
@@ -634,6 +685,7 @@ export function OptionsApp() {
   function replaceOptions(nextOptions: Options, opts?: {dirty?: boolean}) {
     const cloned = cloneOptions(nextOptions);
     setOptions(cloneOptions(cloned));
+    setPendingSourceEditor(null);
     if (!opts?.dirty) {
       setSavedOptions(cloned);
     }
@@ -664,6 +716,34 @@ export function OptionsApp() {
       }
       return nextOptions;
     });
+  }
+
+  function flushPendingSourceEditor(sourceOptions: Options) {
+    const pending = pendingSourceEditor;
+    if (!pending?.editSource || !pending.source?.touched) {
+      return {
+        ok: true,
+        options: sourceOptions
+      };
+    }
+    const nextOptions = cloneOptions(sourceOptions);
+    const result = applySourceToOptions(nextOptions, pending.profileName, pending.source);
+    if (result.ok === false) {
+      setPendingSourceEditor({
+        editSource: true,
+        profileName: pending.profileName,
+        source: result.source || pending.source
+      });
+      return {
+        ok: false,
+        options: sourceOptions
+      };
+    }
+    setPendingSourceEditor(null);
+    return {
+      ok: true,
+      options: nextOptions
+    };
   }
 
   function updateProfile<TProfile extends ProfileModel = ProfileModel>(
@@ -747,13 +827,21 @@ export function OptionsApp() {
     if (!savedOptions || !options) {
       return Promise.resolve();
     }
-    const patch = optionsPatch(savedOptions, options);
+    const flushed = flushPendingSourceEditor(options);
+    if (!flushed.ok) {
+      return Promise.reject(new Error('source parse error'));
+    }
+    const nextOptions = flushed.options;
+    if (nextOptions !== options) {
+      setOptions(cloneOptions(nextOptions));
+    }
+    const patch = optionsPatch(savedOptions, nextOptions);
     if (isPatchEmpty(patch)) {
-      setSavedOptions(cloneOptions(options));
+      setSavedOptions(cloneOptions(nextOptions));
       if (!opts?.silent) {
         showAlert({type: 'success', i18n: 'options_saveSuccess'});
       }
-      return Promise.resolve(options);
+      return Promise.resolve(nextOptions);
     }
     setStatus('saving');
     return patchOptions(patch)
@@ -781,6 +869,7 @@ export function OptionsApp() {
     }
     const nextOptions = cloneOptions(savedOptions);
     setOptions(nextOptions);
+    setPendingSourceEditor(null);
     showAlert(null);
     if (route.name === 'profile' && route.profileName && !profileByName(nextOptions, route.profileName)) {
       navigate('ui');
@@ -791,7 +880,7 @@ export function OptionsApp() {
     if (!options) {
       return Promise.resolve();
     }
-    if (!dirty) {
+    if (!dirty && !pendingSourceDraftDirty) {
       return Promise.resolve(action(options));
     }
     setPendingApplyAction(() => action);
@@ -805,13 +894,15 @@ export function OptionsApp() {
     const action = pendingApplyAction;
     setModal(null);
     setPendingApplyAction(null);
-    return applyOptions({silent: true}).then((loadedOptions) => {
-      const appliedOptions = loadedOptions || options;
-      if (!appliedOptions || !action) {
-        return;
-      }
-      return Promise.resolve(action(appliedOptions));
-    });
+    return applyOptions({silent: true})
+      .then((loadedOptions) => {
+        const appliedOptions = loadedOptions || options;
+        if (!appliedOptions || !action) {
+          return;
+        }
+        return Promise.resolve(action(appliedOptions));
+      })
+      .catch(() => undefined);
   }
 
   function setProfileUpdating(profileName: string, updating: boolean) {
@@ -1251,7 +1342,7 @@ export function OptionsApp() {
           <ImportExport
             embedded
             options={options}
-            optionsDirty={dirty}
+            optionsDirty={dirty || pendingSourceDraftDirty}
             onApplyOptions={applyOptions}
             onImportSuccess={() => showAlert({type: 'success', i18n: 'options_importSuccess'})}
             onOptionsReplace={replaceOptions}
@@ -1356,11 +1447,25 @@ export function OptionsApp() {
           );
         }
         if (isSwitchProfile(profile)) {
+          const sourceEditor = pendingSourceEditor?.profileName === profile.name ? pendingSourceEditor : null;
           return (
             <SwitchProfilePreview
               onDownload={downloadProfile}
+              onOptionsReplaceDraft={(nextOptions) => setOptions(cloneOptions(nextOptions))}
+              onSourceEditorStateChange={(state) =>
+                setPendingSourceEditor(
+                  state.editSource || state.source
+                    ? {
+                        editSource: state.editSource,
+                        profileName: profile.name,
+                        source: state.source || null
+                      }
+                    : null
+                )
+              }
               options={options}
               profile={profile}
+              sourceEditor={sourceEditor}
               updatingProfiles={updatingProfiles}
               updateOptionsDraft={updateOptionsDraft}
               updateProfile={updateProfile}
@@ -1428,7 +1533,7 @@ export function OptionsApp() {
             onNavigate={navigate}
             onNewProfile={requestNewProfile}
             options={options}
-            optionsDirty={dirty || status === 'saving'}
+            optionsDirty={dirty || pendingSourceDraftDirty || status === 'saving'}
             profileHref={(profile) => routeHref('profile', {name: profile.name})}
             profileScopeHref={routeHref('profileScope')}
             routeTraceHref={routeHref('routeTrace')}

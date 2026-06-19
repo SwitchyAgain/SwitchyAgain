@@ -2300,6 +2300,7 @@ export function SwitchProfileStatefulContent({
     const nextSource = {
       ...(source || {}),
       code,
+      error: undefined,
       touched: true
     };
     setSource(nextSource);

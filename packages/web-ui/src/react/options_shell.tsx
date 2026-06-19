@@ -10,7 +10,7 @@ export type OptionsShellProps = {
   importExportHref?: string;
   isExperimental?: boolean;
   newProfileHref?: string;
-  onApply?: () => void;
+  onApply?: () => void | Promise<unknown>;
   onDiscard?: () => void;
   onNavigate?: (state: string, params?: Record<string, string>) => void;
   onNewProfile?: () => void;
@@ -47,9 +47,9 @@ function alertClassForType(type?: string) {
   return `alert-${type === 'error' ? 'danger' : type}`;
 }
 
-function navClick(event: React.MouseEvent, action?: () => void) {
+function navClick(event: React.MouseEvent, action?: () => void | Promise<unknown>) {
   event.preventDefault();
-  action?.();
+  Promise.resolve(action?.()).catch(() => undefined);
 }
 
 function actionClick(event: React.MouseEvent<HTMLElement>, action?: () => void) {
@@ -68,7 +68,7 @@ function SettingsLink({
   href?: string;
   icon: string;
   label: string;
-  onClick?: () => void;
+  onClick?: () => void | Promise<unknown>;
 }) {
   return (
     <li className={active ? 'active' : ''}>
