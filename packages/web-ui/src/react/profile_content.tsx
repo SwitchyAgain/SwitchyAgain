@@ -129,6 +129,7 @@ export type SwitchConditionHelpProps = {
 
 export type SwitchRulesHeaderProps = {
   editSource?: boolean;
+  onDiscardSource?: () => void;
   onSourceChange?: (code: string) => void;
   onToggleSource?: () => void;
   rules?: SwitchRule[];
@@ -1148,7 +1149,9 @@ export function FixedProfileContent({
   const [draftEditors, setDraftEditors] = useState<FixedProfileProxyEditors>(() => cloneProxyEditors(initialEditors));
   const [draftBypassList, setDraftBypassList] = useState(fixedProfileBypassText(profile));
   const [showAdvanced, setShowAdvanced] = useState(() => fixedProfileHasAdvancedProxy(initialEditors));
+  const bypassEditorRef = useRef<HTMLTextAreaElement | null>(null);
   const previousProfileNameRef = useRef(profileName);
+  const previousBypassProfileNameRef = useRef(profileName);
 
   useEffect(() => {
     const editors = fixedProfileEditors({fallbackProxy, proxyForHttp, proxyForHttps});
@@ -1164,7 +1167,11 @@ export function FixedProfileContent({
   }, [profileName, fallbackProxy, proxyForHttp, proxyForHttps]);
 
   useEffect(() => {
-    setDraftBypassList(fixedProfileBypassText({bypassList}));
+    const profileChanged = previousBypassProfileNameRef.current !== profileName;
+    previousBypassProfileNameRef.current = profileName;
+    if (profileChanged || document.activeElement !== bypassEditorRef.current) {
+      setDraftBypassList(fixedProfileBypassText({bypassList}));
+    }
   }, [profileName, bypassList]);
 
   function commitProxyEditor(
@@ -1222,6 +1229,14 @@ export function FixedProfileContent({
 
   function commitBypassList() {
     const nextBypassList = fixedProfileBypassList(draftBypassList);
+    if (!fixedProfileBypassListEquals(bypassList || [], nextBypassList)) {
+      onBypassListChange?.(nextBypassList);
+    }
+  }
+
+  function changeBypassList(value: string) {
+    const nextBypassList = fixedProfileBypassList(value);
+    setDraftBypassList(value);
     if (!fixedProfileBypassListEquals(bypassList || [], nextBypassList)) {
       onBypassListChange?.(nextBypassList);
     }
@@ -1345,10 +1360,11 @@ export function FixedProfileContent({
           </a>
         </p>
         <textarea
+          ref={bypassEditorRef}
           className="monospace form-control width-limit"
           rows={10}
           value={draftBypassList}
-          onChange={(event) => setDraftBypassList(event.currentTarget.value)}
+          onChange={(event) => changeBypassList(event.currentTarget.value)}
           onBlur={commitBypassList}
         />
       </section>
@@ -1542,7 +1558,14 @@ export function SwitchConditionHelp({onClose, show = false, showConditionTypes =
   );
 }
 
-export function SwitchRulesHeader({editSource = false, onSourceChange, onToggleSource, rules = [], source}: SwitchRulesHeaderProps) {
+export function SwitchRulesHeader({
+  editSource = false,
+  onDiscardSource,
+  onSourceChange,
+  onToggleSource,
+  rules = [],
+  source
+}: SwitchRulesHeaderProps) {
   const [sourceCode, setSourceCode] = useState(source?.code || '');
   const isUrlConditionType = getUrlConditionTypeMap();
   const hasUrlConditions = rules.some((rule) => {
@@ -1563,19 +1586,29 @@ export function SwitchRulesHeader({editSource = false, onSourceChange, onToggleS
     <>
       <h3>
         {message('options_group_switchRules', 'Switch Rules')}{' '}
-        <button type="button" className={`btn ${editSource ? 'btn-primary active' : 'btn-default'}`} onClick={() => onToggleSource?.()}>
-          <span className="glyphicon glyphicon-edit" /> {message('options_profileEditSource', 'Edit Source')}
-        </button>{' '}
+        {!editSource && (
+          <button type="button" className="btn btn-default" onClick={() => onToggleSource?.()}>
+            <span className="glyphicon glyphicon-edit" /> {message('options_profileEditSource', 'Edit Source')}
+          </button>
+        )}
         {editSource && (
-          <a
-            className="btn btn-link btn-sm clear-padding toggle-condition-help"
-            target="_blank"
-            rel="noreferrer"
-            title={message('options_profileEditSourceHelp', 'Edit source help')}
-            href={message('options_profileEditSourceHelpUrl', '#')}
-          >
-            <span className="glyphicon glyphicon-question-sign" />
-          </a>
+          <>
+            <button type="button" className="btn btn-primary" onClick={() => onToggleSource?.()}>
+              <span className="glyphicon glyphicon-ok" /> {message('options_applySource', 'Apply Source')}
+            </button>{' '}
+            <button type="button" className="btn btn-default" onClick={() => onDiscardSource?.()}>
+              <span className="glyphicon glyphicon-remove" /> {message('options_discardSource', 'Discard Source')}
+            </button>{' '}
+            <a
+              className="btn btn-link btn-sm clear-padding toggle-condition-help"
+              target="_blank"
+              rel="noreferrer"
+              title={message('options_profileEditSourceHelp', 'Edit source help')}
+              href={message('options_profileEditSourceHelpUrl', '#')}
+            >
+              <span className="glyphicon glyphicon-question-sign" />
+            </a>
+          </>
         )}
       </h3>
       {source?.error && (
@@ -1740,6 +1773,7 @@ export function SwitchRulesSection({
   onConditionReplace,
   onConditionTypeChange,
   onDefaultProfileChange,
+  onDiscardSource,
   onIpConditionInputChange,
   onMoveRule,
   onNoteChange,
@@ -2028,6 +2062,7 @@ export function SwitchRulesSection({
         <div className="switch-rules-header-host">
           <SwitchRulesHeader
             editSource={editSource}
+            onDiscardSource={onDiscardSource}
             onSourceChange={onSourceChange}
             onToggleSource={onToggleSource}
             rules={rules}
@@ -2288,6 +2323,15 @@ export function SwitchProfileStatefulContent({
     forceLocalRender();
   }
 
+  function discardSourceEditor() {
+    setSource(undefined);
+    setEditSource(false);
+    updateEditorState(false, null);
+    onEditorModeChange?.(false);
+    onRulesLoaded?.();
+    forceLocalRender();
+  }
+
   function toggleSourceEditor() {
     if (editSource) {
       closeSourceEditor();
@@ -2408,6 +2452,7 @@ export function SwitchProfileStatefulContent({
         onRemoveAttached={requestRemoveAttached}
         onRemoveRule={requestRemoveRule}
         onResetRules={requestResetRules}
+        onDiscardSource={discardSourceEditor}
         onSourceChange={updateSourceDraft}
         onToggleConditionHelp={() => updateConditionHelp(!conditionHelpShown)}
         onToggleSource={toggleSourceEditor}

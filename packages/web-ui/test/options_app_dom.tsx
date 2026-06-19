@@ -312,6 +312,19 @@ function editSwitchSourceDraft(value: string) {
   });
 }
 
+async function applySourceDraftDialog() {
+  const dialog = await screen.findByRole('dialog');
+  expect(within(dialog).getByRole('heading', {name: 'Apply Source Changes'})).toBeTruthy();
+  fireEvent.click(within(dialog).getByRole('button', {name: 'Apply Source'}));
+  return dialog;
+}
+
+async function sourceDraftDialog() {
+  const dialog = await screen.findByRole('dialog');
+  expect(within(dialog).getByRole('heading', {name: 'Apply Source Changes'})).toBeTruthy();
+  return dialog;
+}
+
 function stubDownloads() {
   const anchorClicks: Array<{download: string; href: string}> = [];
   const createObjectURL = vi.fn((_blob: Blob) => 'blob:options-download');
@@ -829,6 +842,77 @@ describe('options app', () => {
     });
   });
 
+  it('commits focused fixed profile bypass list edits before top-level apply', async () => {
+    const loadedOptions = optionsFixture();
+    const bypassList = [
+      {
+        conditionType: 'BypassCondition',
+        pattern: 'localhost'
+      },
+      {
+        conditionType: 'BypassCondition',
+        pattern: '*.internal.example'
+      }
+    ];
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/proxy';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: proxy/});
+    const bypassSection = screen.getByRole('heading', {name: 'Bypass List'}).closest('section') as HTMLElement;
+    const bypassEditor = within(bypassSection).getByRole('textbox');
+    fireEvent.focus(bypassEditor);
+    fireEvent.change(bypassEditor, {
+      target: {
+        value: 'localhost\n*.internal.example'
+      }
+    });
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(profilePatchValue(firstPatch(requests), '+proxy')).toMatchObject({
+      bypassList
+    });
+  });
+
+  it('commits focused fixed profile bypass list edits before switching profiles', async () => {
+    const loadedOptions = optionsFixture();
+    const bypassList = [
+      {
+        conditionType: 'BypassCondition',
+        pattern: 'localhost'
+      }
+    ];
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/proxy';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: proxy/});
+    const bypassSection = screen.getByRole('heading', {name: 'Bypass List'}).closest('section') as HTMLElement;
+    const bypassEditor = within(bypassSection).getByRole('textbox');
+    fireEvent.focus(bypassEditor);
+    fireEvent.change(bypassEditor, {
+      target: {
+        value: 'localhost'
+      }
+    });
+    fireEvent.click(screen.getByRole('link', {name: /pac/}));
+
+    await screen.findByRole('heading', {name: /Profile :: pac/});
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(profilePatchValue(firstPatch(requests), '+proxy')).toMatchObject({
+      bypassList
+    });
+  });
+
   it('saves PAC profile script edits through the top-level apply flow', async () => {
     const loadedOptions = optionsFixture();
     const pacScript = 'function FindProxyForURL() { return "DIRECT"; }';
@@ -1138,6 +1222,7 @@ describe('options app', () => {
     editSwitchSourceDraft('proxy:HostWildcardCondition:*.example.com\ndefault:virtual');
     fireEvent.click(screen.getByRole('button', {name: 'Rename'}));
 
+    await applySourceDraftDialog();
     let dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
     fireEvent.click(within(dialog).getByRole('button', {name: 'Apply changes'}));
@@ -1203,6 +1288,7 @@ describe('options app', () => {
     editSwitchSourceDraft('default:__ruleListOf_auto');
     fireEvent.click(screen.getByRole('button', {name: 'Rename'}));
 
+    await applySourceDraftDialog();
     let dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
     fireEvent.click(within(dialog).getByRole('button', {name: 'Apply changes'}));
@@ -1439,7 +1525,7 @@ describe('options app', () => {
         value: 'proxy:HostWildcardCondition:*.example.com\ndefault:virtual'
       }
     });
-    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Apply Source'}));
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
 
     await waitFor(() => expect(window.onbeforeunload).toBeNull());
@@ -1483,6 +1569,8 @@ describe('options app', () => {
       }
     });
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await applySourceDraftDialog();
 
     await waitFor(() => expect(window.onbeforeunload).toBeNull());
     expect(profilePatchValue(firstPatch(requests), '+auto')).toMatchObject({
@@ -1538,6 +1626,33 @@ describe('options app', () => {
     expect(getAllRequests(requests)).toHaveLength(1);
   });
 
+  it('discards switch source editor drafts back to the visual rules list', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: 'direct',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    editSwitchSourceDraft('proxy:HostWildcardCondition:*.example.com\ndefault:virtual');
+    fireEvent.click(screen.getByRole('button', {name: 'Discard Source'}));
+
+    expect(document.querySelector('.rules-source textarea')).toBeNull();
+    expect(screen.getByRole('button', {name: 'Edit Source'})).toBeTruthy();
+    expect(window.onbeforeunload).toBeNull();
+    expect(patchRequests(requests)).toHaveLength(0);
+  });
+
   it('keeps open switch source editor drafts unsaved when top-level apply hits parse errors', async () => {
     const loadedOptions: Options = {
       ...optionsFixture(),
@@ -1564,9 +1679,11 @@ describe('options app', () => {
     });
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
 
+    await applySourceDraftDialog();
+
     expect(await screen.findByText('Unknown profile: missing')).toBeTruthy();
     expect(sourceEditor()).toBeTruthy();
-    expect(window.onbeforeunload).toBeNull();
+    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.');
     expect(patchRequests(requests)).toHaveLength(0);
   });
 
@@ -1596,6 +1713,8 @@ describe('options app', () => {
     });
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
 
+    await applySourceDraftDialog();
+
     expect(await screen.findByText('Unknown profile: missing')).toBeTruthy();
     expect(patchRequests(requests)).toHaveLength(0);
 
@@ -1606,6 +1725,8 @@ describe('options app', () => {
     });
     expect(screen.queryByText('Unknown profile: missing')).toBeNull();
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await applySourceDraftDialog();
 
     await waitFor(() => expect(window.onbeforeunload).toBeNull());
     expect(profilePatchValue(firstPatch(requests), '+auto')).toMatchObject({
@@ -1654,7 +1775,7 @@ describe('options app', () => {
         value: 'default:proxy'
       }
     });
-    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Apply Source'}));
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
 
     await waitFor(() => expect(window.onbeforeunload).toBeNull());
@@ -1689,11 +1810,11 @@ describe('options app', () => {
         value: 'default:missing'
       }
     });
-    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Apply Source'}));
 
     expect(await screen.findByText('Unknown profile: missing')).toBeTruthy();
     expect(sourceEditor()).toBeTruthy();
-    expect(window.onbeforeunload).toBeNull();
+    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.');
     expect(patchRequests(requests)).toHaveLength(0);
   });
 
@@ -1870,6 +1991,7 @@ describe('options app', () => {
     await screen.findByRole('heading', {name: /Profile :: auto/});
     editSwitchSourceDraft('default:proxy');
     fireEvent.click(screen.getByRole('link', {name: /proxy/}));
+    await applySourceDraftDialog();
     await screen.findByRole('heading', {name: /Profile :: proxy/});
     fireEvent.click(screen.getByRole('button', {name: 'Delete Profile'}));
 
@@ -1909,14 +2031,81 @@ describe('options app', () => {
     editSwitchSourceDraft('default:missing');
     fireEvent.click(screen.getByRole('button', {name: 'Delete Profile'}));
 
-    const dialog = await screen.findByRole('dialog');
-    expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
-    fireEvent.click(within(dialog).getByRole('button', {name: 'Apply changes'}));
+    await applySourceDraftDialog();
 
     expect(await screen.findByText('Unknown profile: missing')).toBeTruthy();
     expect(sourceEditor()).toBeTruthy();
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(patchRequests(requests)).toHaveLength(0);
+  });
+
+  it('cancels profile actions from pending switch source drafts', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: 'direct',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    editSwitchSourceDraft('default:proxy');
+    fireEvent.click(screen.getByRole('button', {name: 'Delete Profile'}));
+
+    const dialog = await sourceDraftDialog();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Cancel'}));
+
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(sourceEditor()).toBeTruthy();
+    expect(patchRequests(requests)).toHaveLength(0);
+  });
+
+  it('discards pending switch source drafts before continuing profile actions', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: 'direct',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    editSwitchSourceDraft('default:proxy');
+    fireEvent.click(screen.getByRole('button', {name: 'Delete Profile'}));
+
+    let dialog = await sourceDraftDialog();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Discard Source'}));
+
+    dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Delete Profile'})).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Delete Profile'}));
+
+    await screen.findByRole('heading', {name: 'Interface'});
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(deletedPatchValue(firstPatch(requests), '+auto')).toMatchObject({
+      defaultProfileName: 'direct',
+      name: 'auto',
+      profileType: 'SwitchProfile',
+      rules: []
+    });
   });
 
   it('applies dirty option edits before opening new and duplicate profile actions', async () => {
@@ -1974,6 +2163,7 @@ describe('options app', () => {
     editSwitchSourceDraft('proxy:HostWildcardCondition:*.example.com\ndefault:virtual');
     fireEvent.click(screen.getByRole('button', {name: 'New profile'}));
 
+    await applySourceDraftDialog();
     let dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
     fireEvent.click(within(dialog).getByRole('button', {name: 'Apply changes'}));
@@ -2265,6 +2455,7 @@ describe('options app', () => {
       }
     });
     fireEvent.click(screen.getByRole('link', {name: 'Import/Export'}));
+    await applySourceDraftDialog();
     await screen.findByRole('heading', {name: 'Import/Export'});
 
     fireEvent.click(screen.getByRole('button', {name: /Make backup/}));
@@ -2523,6 +2714,7 @@ describe('options app', () => {
     });
     fireEvent.click(screen.getByRole('button', {name: 'Export Rule List'}));
 
+    await applySourceDraftDialog();
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
     expect(anchorClicks).toHaveLength(0);
@@ -2753,6 +2945,7 @@ describe('options app', () => {
     await screen.findByRole('heading', {name: /Profile :: auto/});
     editSwitchSourceDraft('proxy:HostWildcardCondition:*.example.com\ndefault:virtual');
     fireEvent.click(screen.getByRole('link', {name: /virtual/}));
+    await applySourceDraftDialog();
     await screen.findByRole('heading', {name: /Profile :: virtual/});
     fireEvent.click(screen.getByRole('button', {name: 'Replace target profile'}));
 

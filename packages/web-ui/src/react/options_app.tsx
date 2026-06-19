@@ -167,6 +167,9 @@ type ModalState =
       kind: 'resetOptions';
     }
   | {
+      kind: 'sourceDraft';
+    }
+  | {
       auth?: ProfileAuth;
       authKey: ProfileAuthKey;
       kind: 'proxyAuth';
@@ -185,6 +188,7 @@ type ModalState =
   | null;
 
 type AppliedOptionsAction = (appliedOptions: Options) => void | Promise<void>;
+type PendingDraftAction = (nextOptions?: Options) => unknown | Promise<unknown>;
 
 type PendingSourceEditorState = {
   editSource: boolean;
@@ -532,6 +536,7 @@ export function OptionsApp() {
   const [guide, setGuide] = useState<OptionsGuideState | null>(null);
   const [pendingOptionsGuideProfileName, setPendingOptionsGuideProfileName] = useState('');
   const [pendingApplyAction, setPendingApplyAction] = useState<AppliedOptionsAction | null>(null);
+  const [pendingSourceDraftAction, setPendingSourceDraftAction] = useState<PendingDraftAction | null>(null);
   const [pendingSourceEditor, setPendingSourceEditor] = useState<PendingSourceEditorState>(null);
   const [alert, setAlert] = useState<AlertState>(null);
   const [alertShown, setAlertShown] = useState(false);
@@ -573,9 +578,7 @@ export function OptionsApp() {
     }
     return !sameValue(savedOptions, options);
   }, [options, savedOptions]);
-  const pendingSourceDraftDirty = Boolean(
-    pendingSourceEditor?.editSource && pendingSourceEditor.source?.touched && !pendingSourceEditor.source.error
-  );
+  const pendingSourceDraftDirty = Boolean(pendingSourceEditor?.editSource && pendingSourceEditor.source?.touched);
   const showProfileScope = useMemo(
     () => hasVisibleProfileScopes(savedOptions, profileScopeCapabilities),
     [savedOptions, profileScopeCapabilities]
@@ -880,12 +883,34 @@ export function OptionsApp() {
     if (!options) {
       return Promise.resolve();
     }
-    if (!dirty && !pendingSourceDraftDirty) {
-      return Promise.resolve(action(options));
+    if (pendingSourceDraftDirty) {
+      setPendingSourceDraftAction(() => (nextOptions?: Options) => requireAppliedOptionsForOptions(action, nextOptions || options));
+      setModal({
+        kind: 'sourceDraft'
+      });
+      return Promise.resolve();
+    }
+    return requireAppliedOptionsForOptions(action, options);
+  }
+
+  function requireAppliedOptionsForOptions(action: AppliedOptionsAction, sourceOptions: Options) {
+    if (savedOptions && sameValue(savedOptions, sourceOptions)) {
+      return Promise.resolve(action(sourceOptions));
     }
     setPendingApplyAction(() => action);
     setModal({
       kind: 'applyOptions'
+    });
+    return Promise.resolve();
+  }
+
+  function requireCleanSourceDraft(action: PendingDraftAction) {
+    if (!pendingSourceDraftDirty || !options) {
+      return Promise.resolve(action(options || undefined));
+    }
+    setPendingSourceDraftAction(() => action);
+    setModal({
+      kind: 'sourceDraft'
     });
     return Promise.resolve();
   }
@@ -903,6 +928,39 @@ export function OptionsApp() {
         return Promise.resolve(action(appliedOptions));
       })
       .catch(() => undefined);
+  }
+
+  function applyPendingSourceDraft() {
+    if (!options) {
+      return null;
+    }
+    const flushed = flushPendingSourceEditor(options);
+    if (!flushed.ok) {
+      return null;
+    }
+    if (flushed.options !== options) {
+      setOptions(cloneOptions(flushed.options));
+    }
+    return flushed.options;
+  }
+
+  function confirmSourceDraft(actionType: 'applySource' | 'discardSource') {
+    const action = pendingSourceDraftAction;
+    setPendingSourceDraftAction(null);
+    let nextOptions = options || undefined;
+    if (actionType === 'applySource') {
+      const flushedOptions = applyPendingSourceDraft();
+      if (!flushedOptions) {
+        setModal(null);
+        return Promise.resolve();
+      }
+      nextOptions = flushedOptions;
+    }
+    if (actionType === 'discardSource') {
+      setPendingSourceEditor(null);
+    }
+    setModal(null);
+    return Promise.resolve(action?.(nextOptions)).catch(() => undefined);
   }
 
   function setProfileUpdating(profileName: string, updating: boolean) {
@@ -1299,6 +1357,42 @@ export function OptionsApp() {
     navigateRoute(name as RouteName, params);
   }
 
+  function requestNavigate(name: string, params?: Record<string, string>) {
+    return requireCleanSourceDraft(() => navigate(name, params));
+  }
+
+  function requestApplyOptions() {
+    return requireCleanSourceDraft((sourceOptions) => {
+      if (sourceOptions && sourceOptions !== options) {
+        const patch = savedOptions ? optionsPatch(savedOptions, sourceOptions) : {};
+        if (savedOptions && isPatchEmpty(patch)) {
+          setSavedOptions(cloneOptions(sourceOptions));
+          showAlert({type: 'success', i18n: 'options_saveSuccess'});
+          return Promise.resolve(sourceOptions);
+        }
+        if (savedOptions) {
+          setStatus('saving');
+          return patchOptions(patch)
+            .then((loadedOptions) => {
+              replaceOptions(loadedOptions);
+              setStatus('ready');
+              showAlert({type: 'success', i18n: 'options_saveSuccess'});
+              return loadedOptions;
+            })
+            .catch((err) => {
+              setStatus('ready');
+              showAlert({
+                type: 'error',
+                message: err?.message || String(err)
+              });
+              return Promise.reject(err);
+            });
+        }
+      }
+      return applyOptions();
+    });
+  }
+
   function renderContent() {
     if (status === 'loading' || !options) {
       return (
@@ -1528,9 +1622,9 @@ export function OptionsApp() {
             currentState={route.name}
             generalHref={routeHref('general')}
             importExportHref={routeHref('io')}
-            onApply={applyOptions}
+            onApply={requestApplyOptions}
             onDiscard={discardOptions}
-            onNavigate={navigate}
+            onNavigate={requestNavigate}
             onNewProfile={requestNewProfile}
             options={options}
             optionsDirty={dirty || pendingSourceDraftDirty || status === 'saving'}
@@ -1557,6 +1651,30 @@ export function OptionsApp() {
             onClose={confirmApplyOptions}
             onDismiss={() => {
               setPendingApplyAction(null);
+              setModal(null);
+            }}
+            options={options}
+          />
+        </ModalFrame>
+      )}
+      {modal?.kind === 'sourceDraft' && options && (
+        <ModalFrame
+          onDismiss={() => {
+            setPendingSourceDraftAction(null);
+            setModal(null);
+          }}
+        >
+          <ConfirmModal
+            kind="sourceDraft"
+            onClose={(value) => {
+              if (value === 'discardSource') {
+                confirmSourceDraft('discardSource');
+                return;
+              }
+              confirmSourceDraft('applySource');
+            }}
+            onDismiss={() => {
+              setPendingSourceDraftAction(null);
               setModal(null);
             }}
             options={options}

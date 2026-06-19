@@ -13,11 +13,14 @@ export type ConfirmKind =
   | 'reset'
   | 'replaceProfile'
   | 'ruleRemove'
-  | 'ruleReset';
+  | 'ruleReset'
+  | 'sourceDraft';
 
 type AttachedRuleList = RuleListProfileModel;
 
 export type ConfirmModalCloseValue =
+  | 'applySource'
+  | 'discardSource'
   | 'ok'
   | {
       fromName: string;
@@ -50,6 +53,9 @@ export type ConfirmModalProps = ConfirmModalBaseProps &
       }
     | {
         kind: 'reset';
+      }
+    | {
+        kind: 'sourceDraft';
       }
     | {
         fromName: string;
@@ -92,6 +98,8 @@ function titleFor(kind: ConfirmKind) {
       return message('options_modalHeader_resetOptions', 'Reset Options');
     case 'replaceProfile':
       return message('options_modalHeader_replaceProfile', 'Replace Profile');
+    case 'sourceDraft':
+      return message('options_modalHeader_sourceDraft', 'Apply Source Changes');
     case 'ruleRemove':
       return message('options_modalHeader_deleteRule', 'Delete Rule');
     case 'ruleReset':
@@ -172,6 +180,20 @@ function bodyFor(
         <p className="text-danger">
           {message('options_resetOptionsConfirm', 'Do you really want to reset the options? All profiles and settings will be LOST!')}
         </p>
+      );
+    case 'sourceDraft':
+      return (
+        <>
+          <p>
+            {message('options_sourceDraftConfirm', 'Your changes in the source editor must be applied or discarded before you proceed.')}
+          </p>
+          <p>
+            {message(
+              'options_sourceDraftApplyHelp',
+              'Applying source changes will parse the source and update the switch rules. If parsing fails, you can keep editing.'
+            )}
+          </p>
+        </>
       );
     case 'replaceProfile': {
       const fromProfile = profileByName(props.options, replaceState.fromName);
@@ -282,6 +304,12 @@ function closeButtonFor(kind: ConfirmKind) {
         label: message('options_resetRules', 'Reset Rules'),
         value: 'ok'
       };
+    case 'sourceDraft':
+      return {
+        className: 'btn-primary',
+        label: message('options_applySource', 'Apply Source'),
+        value: 'applySource'
+      };
   }
 }
 
@@ -301,6 +329,10 @@ export function ConfirmModal(props: ConfirmModalProps) {
       onClose?.({fromName, toName});
       return;
     }
+    if (kind === 'sourceDraft') {
+      onClose?.('applySource');
+      return;
+    }
     onClose?.('ok');
   };
   return (
@@ -317,6 +349,11 @@ export function ConfirmModal(props: ConfirmModalProps) {
         <button type="button" className="btn btn-default" onClick={onDismiss}>
           {message('dialog_cancel', 'Cancel')}
         </button>
+        {kind === 'sourceDraft' && (
+          <button type="button" className="btn btn-warning" onClick={() => onClose?.('discardSource')}>
+            {message('options_discardSource', 'Discard Source')}
+          </button>
+        )}
         {closeButton && (
           <button type="button" className={`btn ${closeButton.className}`} onClick={handleClose}>
             {closeButton.label}

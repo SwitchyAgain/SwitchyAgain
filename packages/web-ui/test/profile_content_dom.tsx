@@ -400,7 +400,7 @@ describe('profile content components', () => {
     expect(onBypassListChange).not.toHaveBeenCalled();
   });
 
-  it('closes switch source editing without applying untouched source', () => {
+  it('discards switch source editing without applying untouched source', () => {
     const onApplySource = vi.fn();
     const sourceCode = '[SwitchyOmega Conditions]\n@with result\n* +direct';
 
@@ -422,7 +422,7 @@ describe('profile content components', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
     expect((screen.getByRole('textbox') as HTMLTextAreaElement).value).toBe(sourceCode);
 
-    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Discard Source'}));
     expect(onApplySource).not.toHaveBeenCalled();
     expect(screen.queryByRole('textbox')).toBeNull();
   });
