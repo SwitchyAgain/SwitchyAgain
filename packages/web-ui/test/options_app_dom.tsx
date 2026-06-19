@@ -172,6 +172,36 @@ function applyOptionsPatch(options: Options, patch: Record<string, unknown>) {
   return nextOptions;
 }
 
+function replaceOptionReferences(value: unknown, fromName: string, toName: string): unknown {
+  if (value === fromName) {
+    return toName;
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => replaceOptionReferences(item, fromName, toName));
+  }
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, item]) => [key, replaceOptionReferences(item, fromName, toName)])
+    );
+  }
+  return value;
+}
+
+function renameProfileInOptions(options: Options, fromName: string, toName: string) {
+  const nextOptions = replaceOptionReferences(JSON.parse(JSON.stringify(options)), fromName, toName) as Options;
+  const fromKey = `+${fromName}`;
+  const toKey = `+${toName}`;
+  const profile = nextOptions[fromKey];
+  if (profile && typeof profile === 'object') {
+    nextOptions[toKey] = {
+      ...(profile as Record<string, unknown>),
+      name: toName
+    };
+    delete nextOptions[fromKey];
+  }
+  return nextOptions;
+}
+
 function changeProfileSelect(label: string, name: string) {
   const group = screen.getByText(label).closest('.form-group') as HTMLElement;
   fireEvent.click(within(group).getByRole('listbox'));
@@ -332,7 +362,9 @@ function installBackground({
       return;
     }
     if (typedRequest.method === 'renameProfile') {
-      currentOptions = renamedOptions || currentOptions;
+      currentOptions =
+        renamedOptions ||
+        renameProfileInOptions(currentOptions, String(typedRequest.args?.[0] || ''), String(typedRequest.args?.[1] || ''));
       callback({result: currentOptions});
       return;
     }
@@ -950,6 +982,118 @@ describe('options app', () => {
       name: '__ruleListOf_autocopy',
       profileType: 'RuleListProfile',
       ruleList: '||example.com'
+    });
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('renames dirty switch profiles with newly attached rule lists after applying edits', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: 'direct',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    fireEvent.click(screen.getByRole('button', {name: 'Attach Profile'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Rename'}));
+
+    let dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Apply changes'}));
+
+    dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Rename Profile'})).toBeTruthy();
+    fireEvent.change(within(dialog).getByLabelText('New profile name'), {
+      target: {
+        value: 'autorenamed'
+      }
+    });
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Rename'}));
+
+    await screen.findByRole('heading', {name: /Profile :: autorenamed/});
+    const methods = requestMethods(requests);
+    expect(methods.indexOf('patch')).toBeGreaterThan(-1);
+    expect(methods.indexOf('renameProfile')).toBeGreaterThan(methods.indexOf('patch'));
+    expect(requests).toContainEqual({
+      args: ['auto', 'autorenamed'],
+      method: 'renameProfile'
+    });
+    expect(requests).toContainEqual({
+      args: ['__ruleListOf_auto', '__ruleListOf_autorenamed'],
+      method: 'renameProfile'
+    });
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('renames switch profile attached rule lists over existing target attached profiles', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '+auto': {
+        defaultProfileName: '__ruleListOf_auto',
+        name: 'auto',
+        profileType: 'SwitchProfile',
+        rules: []
+      },
+      '+__ruleListOf_auto': {
+        defaultProfileName: 'direct',
+        format: 'AutoProxy',
+        name: '__ruleListOf_auto',
+        profileType: 'RuleListProfile',
+        ruleList: '||source.example'
+      },
+      '+__ruleListOf_autocopy': {
+        defaultProfileName: 'proxy',
+        format: 'AutoProxy',
+        name: '__ruleListOf_autocopy',
+        profileType: 'RuleListProfile',
+        ruleList: '||target.example'
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/auto';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: auto/});
+    fireEvent.click(screen.getByRole('button', {name: 'Rename'}));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Rename Profile'})).toBeTruthy();
+    fireEvent.change(within(dialog).getByLabelText('New profile name'), {
+      target: {
+        value: 'autocopy'
+      }
+    });
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Rename'}));
+
+    await screen.findByRole('heading', {name: /Profile :: autocopy/});
+    expect(requests).toContainEqual({
+      args: ['auto', 'autocopy'],
+      method: 'renameProfile'
+    });
+    expect(requests).toContainEqual({
+      args: ['__ruleListOf_auto', '__ruleListOf_autocopy'],
+      method: 'renameProfile'
+    });
+    const patches = patchRequests(requests);
+    expect(deletedPatchValue(patches[0]?.args?.[0] as Record<string, unknown> | undefined, '+__ruleListOf_autocopy')).toMatchObject({
+      name: '__ruleListOf_autocopy',
+      ruleList: '||target.example'
+    });
+    expect(profilePatchValue(patches[1]?.args?.[0] as Record<string, unknown> | undefined, '+autocopy')).toMatchObject({
+      defaultProfileName: '__ruleListOf_autocopy'
     });
     expect(getAllRequests(requests)).toHaveLength(1);
   });

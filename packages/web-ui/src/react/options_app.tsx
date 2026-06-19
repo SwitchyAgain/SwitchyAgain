@@ -94,7 +94,6 @@ import {
   attachNew,
   attachedIdentity,
   cloneRule,
-  createAttachedName,
   createAttachedOptions,
   detectAdvancedConditionTypes,
   moveRule,
@@ -908,13 +907,16 @@ export function OptionsApp() {
       return Promise.resolve();
     }
     const sourceOptions = options ? cloneOptions(options) : {};
-    const attachedName = createAttachedName(fromName);
-    const toAttachedName = createAttachedName(toName);
-    const hadAttached = Boolean(profileByName(sourceOptions, attachedName));
-    const targetAttachedExists = Boolean(profileByName(sourceOptions, toAttachedName));
+    const identity = attachedIdentity(fromName);
+    const targetIdentity = attachedIdentity(toName);
+    const attachedName = identity.attachedName;
+    const toAttachedName = targetIdentity.attachedName;
+    const hadAttached = Boolean(attachedProfileOption(sourceOptions, identity));
+    const targetAttachedExists = Boolean(attachedProfileOption(sourceOptions, targetIdentity));
     const originalDefaultProfileName = targetAttachedExists
       ? profileOption<NamedSwitchProfileModel>(sourceOptions, fromName, isSwitchProfile)?.defaultProfileName
       : undefined;
+    const restoredDefaultProfileName = originalDefaultProfileName === attachedName ? toAttachedName : originalDefaultProfileName;
 
     return Promise.resolve()
       .then(() => renameProfileFromBackground(fromName, toName))
@@ -937,12 +939,12 @@ export function OptionsApp() {
           });
         }
         chain = chain.then(() => renameProfileFromBackground(attachedName, toAttachedName));
-        if (originalDefaultProfileName) {
+        if (restoredDefaultProfileName) {
           chain = chain.then((currentOptions) => {
             const nextOptions = cloneOptions(currentOptions);
             const nextProfile = profileOption<SwitchProfileModel>(nextOptions, toName);
             if (nextProfile) {
-              nextProfile.defaultProfileName = originalDefaultProfileName;
+              nextProfile.defaultProfileName = restoredDefaultProfileName;
               updateProfileRevision(nextProfile);
             }
             const patch = optionsPatch(currentOptions, nextOptions);
