@@ -162,4 +162,35 @@ describe('profile modal components', () => {
       username: 'next-user'
     });
   });
+
+  it('dismisses proxy authentication edits without submitting', () => {
+    const onClose = vi.fn();
+    const onDismiss = vi.fn();
+
+    render(
+      <ProxyAuthModal
+        auth={{
+          password: 'pass',
+          username: 'user'
+        }}
+        onClose={onClose}
+        onDismiss={onDismiss}
+      />
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('Username'), {
+      target: {
+        value: 'next-user'
+      }
+    });
+    fireEvent.change(screen.getByPlaceholderText('Password'), {
+      target: {
+        value: 'next-pass'
+      }
+    });
+    fireEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+
+    expect(onDismiss).toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
 });

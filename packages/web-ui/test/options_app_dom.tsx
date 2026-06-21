@@ -2979,6 +2979,106 @@ describe('options app', () => {
     });
   });
 
+  it('discards proxy authentication modal edits without dirtying options', async () => {
+    const baseOptions = optionsFixture();
+    const loadedOptions: Options = {
+      ...baseOptions,
+      '+pac': {
+        ...(baseOptions['+pac'] as Record<string, unknown>),
+        auth: {
+          all: {
+            password: 'saved-pass',
+            username: 'saved-user'
+          }
+        }
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/pac';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: pac/});
+    fireEvent.click(screen.getByTitle('Proxy Authentication'));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Proxy Authentication'})).toBeTruthy();
+    fireEvent.change(within(dialog).getByPlaceholderText('Username'), {
+      target: {
+        value: 'next-user'
+      }
+    });
+    fireEvent.change(within(dialog).getByPlaceholderText('Password'), {
+      target: {
+        value: 'next-pass'
+      }
+    });
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Cancel'}));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(window.onbeforeunload).toBeNull();
+    expect(patchRequests(requests)).toHaveLength(0);
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('saves proxy authentication edits through the top-level apply flow', async () => {
+    const loadedOptions = optionsFixture();
+    const patchedOptions: Options = {
+      ...loadedOptions,
+      '+pac': {
+        ...(loadedOptions['+pac'] as Record<string, unknown>),
+        auth: {
+          all: {
+            password: 'next-pass',
+            username: 'next-user'
+          }
+        }
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions,
+      patchedOptions
+    });
+    window.location.hash = '#/profile/pac';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: pac/});
+    fireEvent.click(screen.getByTitle('Proxy Authentication'));
+
+    let dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Proxy Authentication'})).toBeTruthy();
+    fireEvent.change(within(dialog).getByPlaceholderText('Username'), {
+      target: {
+        value: 'next-user'
+      }
+    });
+    fireEvent.change(within(dialog).getByPlaceholderText('Password'), {
+      target: {
+        value: 'next-pass'
+      }
+    });
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Save'}));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await waitFor(() => expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.'));
+
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(profilePatchValue(firstPatch(requests), '+pac')).toMatchObject({
+      auth: {
+        all: {
+          password: 'next-pass',
+          username: 'next-user'
+        }
+      }
+    });
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
   it('downloads profile updates with only the required options reload', async () => {
     const loadedOptions = optionsFixture();
     const updatedOptions: Options = {
