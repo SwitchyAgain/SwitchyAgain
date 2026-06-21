@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 import {createRoot} from 'react-dom/client';
-import {reloadLocation} from './browser_env';
+import {clearWindowTimeout, confirmDialog, reloadLocation, setWindowTimeout} from './browser_env';
 import {message} from './i18n_client';
 import {downloadBlob, shouldAutoMount} from './navigation_client';
 import {loadOptions, patchOptions, resetOptions, resetOptionsSync, setOptionsSync} from './options_api_client';
@@ -159,7 +159,7 @@ export function ImportExport({
     setLocalState(RESTORE_URL_STATE, url);
     setStatus('restoringOnline');
     const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 10000);
+    const timeout = setWindowTimeout(() => controller.abort(), 10000);
     fetch(url, {
       cache: 'no-store',
       signal: controller.signal
@@ -177,7 +177,7 @@ export function ImportExport({
         showError(err, 'options_importDownloadError', 'Error downloading backup file!');
       })
       .finally(() => {
-        window.clearTimeout(timeout);
+        clearWindowTimeout(timeout);
       });
   }
 
@@ -206,7 +206,7 @@ export function ImportExport({
     if (!optionsDirty) {
       return Promise.resolve(options);
     }
-    const confirmed = window.confirm(
+    const confirmed = confirmDialog(
       [
         message('options_applyOptionsRequired', 'Your changes to the options must be applied before you proceed.'),
         message('options_applyOptionsConfirm', 'Do you want to save and apply the options?')

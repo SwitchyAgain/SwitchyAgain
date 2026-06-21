@@ -1,5 +1,6 @@
 import {useEffect, useRef} from 'react';
 import type {RefObject} from 'react';
+import {setBeforeUnload} from './browser_env';
 
 type EventOptions = boolean | AddEventListenerOptions;
 
@@ -57,3 +58,17 @@ export function useOutsidePointer<T extends HTMLElement>(
   useDocumentEvent('touchstart', handler, undefined, enabled);
 }
 
+export function useBeforeUnload(handler: ((event: BeforeUnloadEvent) => string | void) | null) {
+  const handlerRef = useRef(handler);
+  handlerRef.current = handler;
+
+  useEffect(() => {
+    if (!handlerRef.current) {
+      setBeforeUnload(null);
+      return;
+    }
+    const listener = (event: BeforeUnloadEvent) => handlerRef.current?.(event);
+    setBeforeUnload(listener);
+    return () => setBeforeUnload(null);
+  }, [handler]);
+}

@@ -7,6 +7,12 @@ import {RESTORE_URL_STATE} from '../src/react/import_export_logic';
 import type {Options} from '../src/react/options_client_types';
 
 const optionsClientMock = vi.hoisted(() => ({
+  clearWindowTimeout: vi.fn((timeout: ReturnType<typeof globalThis.setTimeout> | undefined) => {
+    if (timeout != null) {
+      clearTimeout(timeout);
+    }
+  }),
+  confirmDialog: vi.fn((messageText: string) => window.confirm(messageText)),
   downloadBlob: vi.fn(),
   getLocalState: vi.fn(),
   loadOptions: vi.fn(),
@@ -16,6 +22,7 @@ const optionsClientMock = vi.hoisted(() => ({
   resetOptions: vi.fn(),
   resetOptionsSync: vi.fn(),
   setLocalState: vi.fn(),
+  setWindowTimeout: vi.fn((callback: () => void, delay = 0) => setTimeout(callback, delay)),
   setOptionsSync: vi.fn(),
   shouldAutoMount: vi.fn(() => false)
 }));
@@ -26,7 +33,10 @@ vi.mock('../src/react/navigation_client', () => ({
 }));
 
 vi.mock('../src/react/browser_env', () => ({
-  reloadLocation: optionsClientMock.reloadLocation
+  clearWindowTimeout: optionsClientMock.clearWindowTimeout,
+  confirmDialog: optionsClientMock.confirmDialog,
+  reloadLocation: optionsClientMock.reloadLocation,
+  setWindowTimeout: optionsClientMock.setWindowTimeout
 }));
 
 vi.mock('../src/react/state_client', () => ({
@@ -68,6 +78,8 @@ afterEach(() => {
 
 beforeEach(() => {
   optionsClientMock.downloadBlob.mockReset();
+  optionsClientMock.clearWindowTimeout.mockClear();
+  optionsClientMock.confirmDialog.mockClear();
   optionsClientMock.getLocalState.mockReset();
   optionsClientMock.loadOptions.mockReset();
   optionsClientMock.message.mockClear();
@@ -76,6 +88,7 @@ beforeEach(() => {
   optionsClientMock.resetOptions.mockReset();
   optionsClientMock.resetOptionsSync.mockReset();
   optionsClientMock.setLocalState.mockReset();
+  optionsClientMock.setWindowTimeout.mockClear();
   optionsClientMock.setOptionsSync.mockReset();
   optionsClientMock.shouldAutoMount.mockClear();
   optionsClientMock.getLocalState.mockImplementation((key: string) => (key === 'syncOptions' ? 'disabled' : ''));

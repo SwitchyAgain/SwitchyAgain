@@ -1,6 +1,7 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import {About} from './about';
+import {clearWindowTimeout, locationHash, setLocationHash, setWindowTimeout} from './browser_env';
 import {GeneralSettings} from './general_settings';
 import {ImportExport} from './import_export';
 import {callBackground} from './background_client';
@@ -54,7 +55,7 @@ import {
 } from './options_logic';
 import {parseRoute, routeHref} from './options_routes';
 import {ConfirmModal} from './confirm_modals';
-import {useWindowEvent} from './dom_event_hooks';
+import {useBeforeUnload, useWindowEvent} from './dom_event_hooks';
 import {OPTIONS_GUIDE_STEPS, OptionsGuide, SWITCH_PROFILE_GUIDE_STEPS, type OptionsGuideState} from './options_guide';
 import {WelcomeModal} from './options_modals';
 import {NewProfileModal, ProxyAuthModal, RenameProfileModal, type NewProfileSpec} from './profile_modals';
@@ -333,8 +334,8 @@ function ModalFrame({children, onDismiss}: {children: React.ReactNode; onDismiss
 }
 
 function useHashRoute() {
-  const [route, setRoute] = useState(() => parseRoute(window.location.hash));
-  function updateRoute(nextRoute = parseRoute(window.location.hash)) {
+  const [route, setRoute] = useState(() => parseRoute(locationHash()));
+  function updateRoute(nextRoute = parseRoute(locationHash())) {
     setRoute(nextRoute);
     lastUrl(routeHref(nextRoute.name, nextRoute.profileName ? {name: nextRoute.profileName} : undefined).replace(/^#/, ''));
   }
@@ -343,15 +344,15 @@ function useHashRoute() {
   }
   function navigateRoute(name: RouteName, params?: Record<string, string>) {
     const href = routeHref(name, params);
-    window.location.hash = href;
+    setLocationHash(href);
     updateRoute(parseRoute(href));
   }
   useWindowEvent('hashchange', syncRoute);
 
   useEffect(() => {
-    if (!window.location.hash) {
+    if (!locationHash()) {
       const storedUrl = lastUrl();
-      window.location.hash = storedUrl || routeHref('about');
+      setLocationHash(storedUrl || routeHref('about'));
     }
     syncRoute();
   }, []);
@@ -614,12 +615,12 @@ export function OptionsApp() {
     }
 
     let cancelled = false;
-    let timeout: number | undefined;
+    let timeout: ReturnType<typeof setWindowTimeout> | undefined;
 
     function startWhenReady(attempt = 0) {
       const target = document.querySelector('.fixed-servers');
       if (!target && attempt < 30) {
-        timeout = window.setTimeout(() => startWhenReady(attempt + 1), 100);
+        timeout = setWindowTimeout(() => startWhenReady(attempt + 1), 100);
         return;
       }
       if (cancelled) {
@@ -634,25 +635,16 @@ export function OptionsApp() {
       }
     }
 
-    timeout = window.setTimeout(startWhenReady, 0);
+    timeout = setWindowTimeout(startWhenReady, 0);
     return () => {
       cancelled = true;
-      if (timeout != null) {
-        window.clearTimeout(timeout);
-      }
+      clearWindowTimeout(timeout);
     };
   }, [modal, pendingOptionsGuideProfileName, route.name, route.profileName, status]);
 
-  useEffect(() => {
-    if (!dirty && !pendingSourceDraftDirty) {
-      window.onbeforeunload = null;
-      return;
-    }
-    window.onbeforeunload = () => message('options_optionsNotSaved', 'Options are not saved.');
-    return () => {
-      window.onbeforeunload = null;
-    };
-  }, [dirty, pendingSourceDraftDirty]);
+  useBeforeUnload(
+    dirty || pendingSourceDraftDirty ? () => message('options_optionsNotSaved', 'Options are not saved.') : null
+  );
 
   function showFirstRun(loadedOptions: Options, firstRun: string) {
     if (!firstRun) {
@@ -674,7 +666,7 @@ export function OptionsApp() {
     setAlert(nextAlert);
     setAlertShown(Boolean(nextAlert));
     if (nextAlert) {
-      window.setTimeout(() => setAlertShown(false), 3000);
+      setWindowTimeout(() => setAlertShown(false), 3000);
     }
   }
 

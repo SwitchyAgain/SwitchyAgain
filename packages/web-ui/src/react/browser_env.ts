@@ -118,8 +118,34 @@ export function setLocationHref(url: string) {
   globalThis.location.href = url;
 }
 
+export function locationHash() {
+  return globalThis.location.hash || '';
+}
+
+export function setLocationHash(hash: string) {
+  globalThis.location.hash = hash;
+}
+
 export function reloadLocation() {
   globalThis.location.reload();
+}
+
+export function confirmDialog(messageText: string) {
+  return globalThis.confirm(messageText);
+}
+
+export function setWindowTimeout(callback: () => void, delay = 0) {
+  return globalThis.setTimeout(callback, delay);
+}
+
+export function clearWindowTimeout(timeout: ReturnType<typeof globalThis.setTimeout> | undefined) {
+  if (timeout != null) {
+    globalThis.clearTimeout(timeout);
+  }
+}
+
+export function setBeforeUnload(handler: ((event: BeforeUnloadEvent) => string | void) | null) {
+  globalThis.onbeforeunload = handler;
 }
 
 export function getJsonLocalStorage<T = unknown>(key: string) {
