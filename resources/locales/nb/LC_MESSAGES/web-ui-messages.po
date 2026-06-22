@@ -520,6 +520,29 @@ msgstr ""
 "https://github.com/FelisCatus/SwitchyOmega/wiki/SwitchyOmega-conditions-"
 "format#result-profile"
 
+msgid "options_applySource"
+msgstr "Bruk kildekode"
+
+msgid "options_discardSource"
+msgstr "Forkast kildekode"
+
+msgid "options_modalHeader_sourceDraft"
+msgstr "Bruk kildekodeendringer"
+
+msgid "options_sourceDraftConfirm"
+msgstr "Endringene i kildekoderedigeringen må brukes eller forkastes før du fortsetter."
+
+msgid "options_sourceDraftApplyHelp"
+msgstr ""
+"Når kildekodeendringer brukes, tolkes kildekoden og brytereglene oppdateres. "
+"Hvis tolkingen mislykkes, kan du fortsette å redigere."
+
+msgid "options_group_profileOptions"
+msgstr "Profilvalg"
+
+msgid "options_loading"
+msgstr "Laster..."
+
 msgid "options_group_proxyServers"
 msgstr "Tjenere for mellomtjening"
 

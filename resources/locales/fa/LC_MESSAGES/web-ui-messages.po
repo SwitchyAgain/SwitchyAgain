@@ -597,6 +597,29 @@ msgstr ""
 "https://github.com/FelisCatus/SwitchyOmega/wiki/SwitchyOmega-conditions-"
 "format#result-profile"
 
+msgid "options_applySource"
+msgstr "اعمال سورس کد"
+
+msgid "options_discardSource"
+msgstr "نادیده گرفتن سورس کد"
+
+msgid "options_modalHeader_sourceDraft"
+msgstr "اعمال تغییرات سورس کد"
+
+msgid "options_sourceDraftConfirm"
+msgstr "پیش از ادامه، تغییرات ویرایشگر سورس باید اعمال یا نادیده گرفته شوند."
+
+msgid "options_sourceDraftApplyHelp"
+msgstr ""
+"اعمال تغییرات سورس، سورس را تجزیه می‌کند و قوانین تغییر را به‌روزرسانی "
+"می‌کند. اگر تجزیه ناموفق باشد، می‌توانید به ویرایش ادامه دهید."
+
+msgid "options_group_profileOptions"
+msgstr "گزینه‌های پروفایل"
+
+msgid "options_loading"
+msgstr "در حال بارگذاری..."
+
 msgid "options_group_proxyServers"
 msgstr "کارسازهای پیشکار"
 

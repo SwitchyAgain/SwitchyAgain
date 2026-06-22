@@ -593,6 +593,29 @@ msgstr ""
 "https://github.com/FelisCatus/SwitchyOmega/wiki/SwitchyOmega-conditions-"
 "format#result-profile"
 
+msgid "options_applySource"
+msgstr "Použít zdrojový kód"
+
+msgid "options_discardSource"
+msgstr "Zahodit zdrojový kód"
+
+msgid "options_modalHeader_sourceDraft"
+msgstr "Použít změny zdrojového kódu"
+
+msgid "options_sourceDraftConfirm"
+msgstr "Než budete pokračovat, musíte změny v editoru zdroje použít nebo zahodit."
+
+msgid "options_sourceDraftApplyHelp"
+msgstr ""
+"Použití změn zdroje analyzuje zdrojový kód a aktualizuje pravidla "
+"přepínání. Pokud analýza selže, můžete pokračovat v úpravách."
+
+msgid "options_group_profileOptions"
+msgstr "Možnosti profilu"
+
+msgid "options_loading"
+msgstr "Načítání..."
+
 msgid "options_group_proxyServers"
 msgstr "Proxy servery"
 

@@ -584,6 +584,29 @@ msgstr ""
 "https://github.com/FelisCatus/SwitchyOmega/wiki/SwitchyOmega-conditions-"
 "format#result-profile"
 
+msgid "options_applySource"
+msgstr "Apply Source"
+
+msgid "options_discardSource"
+msgstr "Discard Source"
+
+msgid "options_modalHeader_sourceDraft"
+msgstr "Apply Source Changes"
+
+msgid "options_sourceDraftConfirm"
+msgstr "Your changes in the source editor must be applied or discarded before you proceed."
+
+msgid "options_sourceDraftApplyHelp"
+msgstr ""
+"Applying source changes will parse the source and update the switch rules. "
+"If parsing fails, you can keep editing."
+
+msgid "options_group_profileOptions"
+msgstr "Profile Options"
+
+msgid "options_loading"
+msgstr "Loading..."
+
 msgid "options_group_proxyServers"
 msgstr "Proxy servers"
 

@@ -612,6 +612,30 @@ msgstr ""
 "https://github.com/FelisCatus/SwitchyOmega/wiki/SwitchyOmega-conditions-"
 "format#result-profile"
 
+msgid "options_applySource"
+msgstr "Применить исходный код"
+
+msgid "options_discardSource"
+msgstr "Отменить исходный код"
+
+msgid "options_modalHeader_sourceDraft"
+msgstr "Применить изменения исходного кода"
+
+msgid "options_sourceDraftConfirm"
+msgstr "Перед продолжением необходимо применить или отменить изменения в редакторе исходного кода."
+
+msgid "options_sourceDraftApplyHelp"
+msgstr ""
+"При применении изменений исходный код будет разобран, а правила переключения "
+"будут обновлены. Если разбор завершится ошибкой, вы сможете продолжить "
+"редактирование."
+
+msgid "options_group_profileOptions"
+msgstr "Параметры профиля"
+
+msgid "options_loading"
+msgstr "Загрузка..."
+
 msgid "options_group_proxyServers"
 msgstr "Прокси-сервера"
 

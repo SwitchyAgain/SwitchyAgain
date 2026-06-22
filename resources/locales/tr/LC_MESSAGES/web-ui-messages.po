@@ -516,6 +516,29 @@ msgstr ""
 "https://github.com/FelisCatus/SwitchyOmega/wiki/SwitchyOmega-conditions-"
 "format#result-profile"
 
+msgid "options_applySource"
+msgstr "Kaynağı uygula"
+
+msgid "options_discardSource"
+msgstr "Kaynağı at"
+
+msgid "options_modalHeader_sourceDraft"
+msgstr "Kaynak değişikliklerini uygula"
+
+msgid "options_sourceDraftConfirm"
+msgstr "Devam etmeden önce kaynak düzenleyicideki değişiklikler uygulanmalı veya atılmalıdır."
+
+msgid "options_sourceDraftApplyHelp"
+msgstr ""
+"Kaynak değişikliklerini uygulamak kaynağı ayrıştırır ve geçiş kurallarını "
+"günceller. Ayrıştırma başarısız olursa düzenlemeye devam edebilirsiniz."
+
+msgid "options_group_profileOptions"
+msgstr "Profil seçenekleri"
+
+msgid "options_loading"
+msgstr "Yükleniyor..."
+
 msgid "options_group_proxyServers"
 msgstr "Proxy servers"
 

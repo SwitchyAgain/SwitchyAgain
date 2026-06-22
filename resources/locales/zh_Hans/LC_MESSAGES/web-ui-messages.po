@@ -535,6 +535,27 @@ msgstr ""
 "https://github.com/FelisCatus/SwitchyOmega/wiki/SwitchyOmega-conditions-"
 "format#result-profile"
 
+msgid "options_applySource"
+msgstr "应用源代码"
+
+msgid "options_discardSource"
+msgstr "放弃源代码"
+
+msgid "options_modalHeader_sourceDraft"
+msgstr "应用源代码更改"
+
+msgid "options_sourceDraftConfirm"
+msgstr "继续之前，必须应用或放弃源代码编辑器中的更改。"
+
+msgid "options_sourceDraftApplyHelp"
+msgstr "应用源代码更改将解析源代码并更新切换规则。如果解析失败，你可以继续编辑。"
+
+msgid "options_group_profileOptions"
+msgstr "情景模式选项"
+
+msgid "options_loading"
+msgstr "正在加载..."
+
 msgid "options_group_proxyServers"
 msgstr "代理服务器"
 

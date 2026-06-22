@@ -618,6 +618,30 @@ msgstr ""
 "https://github.com/FelisCatus/SwitchyOmega/wiki/SwitchyOmega-conditions-"
 "format#result-profile"
 
+msgid "options_applySource"
+msgstr "Aplicar código fuente"
+
+msgid "options_discardSource"
+msgstr "Descartar código fuente"
+
+msgid "options_modalHeader_sourceDraft"
+msgstr "Aplicar cambios del código fuente"
+
+msgid "options_sourceDraftConfirm"
+msgstr "Debes aplicar o descartar los cambios en el editor de código fuente antes de continuar."
+
+msgid "options_sourceDraftApplyHelp"
+msgstr ""
+"Al aplicar los cambios del código fuente, se analizará el código y se "
+"actualizarán las reglas de cambio. Si el análisis falla, puedes seguir "
+"editando."
+
+msgid "options_group_profileOptions"
+msgstr "Opciones del perfil"
+
+msgid "options_loading"
+msgstr "Cargando..."
+
 msgid "options_group_proxyServers"
 msgstr "Servidores proxy"
 

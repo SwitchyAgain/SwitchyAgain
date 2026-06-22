@@ -188,7 +188,7 @@ export function RouteTrace({currentProfileName: initialCurrentProfileName, embed
       <section className="settings-group width-limit route-trace-input">
         <form onSubmit={explain}>
           <div className="form-group">
-            <label htmlFor="route-trace-url">{message('routeTrace_url', 'URL')}</label>
+            <label htmlFor="route-trace-url">URL</label>
             <input
               className="form-control"
               id="route-trace-url"
