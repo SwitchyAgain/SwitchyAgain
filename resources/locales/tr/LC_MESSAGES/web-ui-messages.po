@@ -456,13 +456,13 @@ msgid "options_syncReset"
 msgstr "Uzak kopyayı temizle"
 
 msgid "options_syncPristineHelp"
-msgstr ""
+msgstr "Ayarlarınızı ve profillerinizi aynı tarayıcı hesabıyla oturum açılmış desteklenen masaüstü tarayıcılar arasında otomatik olarak eşitleyebilirsiniz."
 
 msgid "options_syncSyncAlert"
 msgstr ""
 
 msgid "options_syncSyncHelp"
-msgstr ""
+msgstr "Eşitlemenin çalışması için her cihazda (bu cihaz dahil) aynı tarayıcı hesabıyla oturum açmanız gerekir. <br>Çalıştığını doğrulamak için bu bölümü diğer cihazlarda kontrol edebilirsiniz."
 
 msgid "options_syncConflictAlert"
 msgstr ""
@@ -471,7 +471,7 @@ msgid "options_syncConflictHelp"
 msgstr ""
 
 msgid "options_syncUnsupportedHelp"
-msgstr ""
+msgstr "Seçenek eşitleme platformunuzda veya tarayıcınızda desteklenmiyor."
 
 msgid "options_profileSyncDisabled"
 msgstr "Bu profil için eşitleme pasifleştirildi."

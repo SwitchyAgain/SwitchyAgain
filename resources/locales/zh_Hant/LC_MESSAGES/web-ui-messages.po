@@ -466,13 +466,13 @@ msgid "options_syncReset"
 msgstr "刪除雲端版本"
 
 msgid "options_syncPristineHelp"
-msgstr "您可以將設定和情境模式同步到所有使用Chrome瀏覽器的桌面裝置。"
+msgstr "您可以在登入同一瀏覽器帳號的受支援桌面瀏覽器之間自動同步設定和情境模式。"
 
 msgid "options_syncSyncAlert"
 msgstr "您的設定將會自動與其他裝置進行同步。"
 
 msgid "options_syncSyncHelp"
-msgstr "請注意：您需要在所有裝置上（包括此裝置）的Chrome瀏覽器中登入，這樣同步的選項才能正常使用。<br>可以在其他裝置上檢視此頁面，來檢查同步是否生效。"
+msgstr "請注意：您需要在所有裝置上（包括此裝置）登入同一瀏覽器帳號，這樣選項同步才能正常使用。<br>可以在其他裝置上檢視此頁面，來檢查同步是否生效。"
 
 msgid "options_syncConflictAlert"
 msgstr "您已經通過其他裝置上傳了一份選項用於同步。"
@@ -481,7 +481,7 @@ msgid "options_syncConflictHelp"
 msgstr "您可以將雲端的選項下載到此裝置使用。<br>一旦選擇下載，<b>此裝置上的設定和情境模式將會被覆蓋</b>。"
 
 msgid "options_syncUnsupportedHelp"
-msgstr "選項同步暫不支援您的平臺或瀏覽器。目前只支援桌面版Chrome的瀏覽器的同步，請諒解。"
+msgstr "選項同步暫不支援您的平台或瀏覽器。"
 
 msgid "options_profileSyncDisabled"
 msgstr "此情境模式已經停用同步。"

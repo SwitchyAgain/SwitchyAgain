@@ -523,17 +523,17 @@ msgstr "Odstranit vzdálenou kopii"
 
 msgid "options_syncPristineHelp"
 msgstr ""
-"Vy můžete nyní automaticky synchronizovat Vaše nastavení, profily napříč "
-"všemi desktop spuštěnými Chrome prohlížeči."
+"Můžete automaticky synchronizovat nastavení a profily mezi podporovanými "
+"desktopovými prohlížeči přihlášenými ke stejnému účtu prohlížeče."
 
 msgid "options_syncSyncAlert"
 msgstr "Vaše nastavení jsou automaticky synchronizování s dalšími zařízeními."
 
 msgid "options_syncSyncHelp"
 msgstr ""
-"Vezměte prosím na vědomí, že musíte se přihlásit k Chrome na každém zařízení "
-"(včetně této) pro synchronizaci skutečně pracovat. <br>Můžete zkontrolovat "
-"tuto sekci na jiných zařízeních, aby bylo zajištěno, že to funguje."
+"Upozorňujeme, že aby synchronizace fungovala, musíte se na každém zařízení "
+"(včetně tohoto) přihlásit ke stejnému účtu prohlížeče. <br>Tuto část můžete "
+"zkontrolovat na dalších zařízeních a ověřit, že synchronizace funguje."
 
 msgid "options_syncConflictAlert"
 msgstr ""
@@ -546,9 +546,7 @@ msgstr ""
 "by však <b>přepsat stávající nastavení a profily</b> v tomto zařízení."
 
 msgid "options_syncUnsupportedHelp"
-msgstr ""
-"Možnosti synchronizace není podporována na platformě nebo prohlížeče. Pro "
-"tuto chvíli je podporován pouze prohlížeč Chrome na desktopu."
+msgstr "Synchronizace možností není na vaší platformě nebo v prohlížeči podporována."
 
 msgid "options_profileSyncDisabled"
 msgstr "Synchronizace je vypnutá pro tento profil."

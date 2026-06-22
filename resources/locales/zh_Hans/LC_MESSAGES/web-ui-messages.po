@@ -477,13 +477,13 @@ msgid "options_syncReset"
 msgstr "删除云端版本"
 
 msgid "options_syncPristineHelp"
-msgstr "您可以将设置和情景模式同步到所有使用Chrome浏览器的桌面设备。"
+msgstr "您可以在登录同一浏览器账号的受支持桌面浏览器之间自动同步设置和情景模式。"
 
 msgid "options_syncSyncAlert"
 msgstr "您的设置将会自动与其他设备进行同步。"
 
 msgid "options_syncSyncHelp"
-msgstr "请注意：您需要在所有设备上（包括此设备）的Chrome浏览器中登录，这样同步的选项才能正常使用。<br>可以在其他设备上查看此页面，来检查同步是否生效。"
+msgstr "请注意：您需要在所有设备上（包括此设备）登录同一浏览器账号，这样选项同步才能正常使用。<br>可以在其他设备上查看此页面，来检查同步是否生效。"
 
 msgid "options_syncConflictAlert"
 msgstr "您已经通过其他设备上传了一份选项用于同步。"
@@ -492,7 +492,7 @@ msgid "options_syncConflictHelp"
 msgstr "您可以将云端的选项下载到此设备使用。<br>一旦选择下载，<b>此设备上的设置和情景模式将会被覆盖</b>。"
 
 msgid "options_syncUnsupportedHelp"
-msgstr "选项同步暂不支持您的平台或浏览器。目前只支持桌面版Chrome的浏览器的同步，请谅解。"
+msgstr "选项同步暂不支持您的平台或浏览器。"
 
 msgid "options_profileSyncDisabled"
 msgstr "此情景模式已经禁用同步。"

@@ -462,13 +462,13 @@ msgid "options_syncReset"
 msgstr ""
 
 msgid "options_syncPristineHelp"
-msgstr ""
+msgstr "Du kan automatisk synkronisere innstillinger og profiler mellom støttede skrivebordsnettlesere der du er logget inn med samme nettleserkonto."
 
 msgid "options_syncSyncAlert"
 msgstr ""
 
 msgid "options_syncSyncHelp"
-msgstr ""
+msgstr "Merk at du må logge inn med samme nettleserkonto på hver enhet (inkludert denne) for at synkronisering skal fungere. <br>Du kan sjekke denne delen på andre enheter for å bekrefte at den fungerer."
 
 msgid "options_syncConflictAlert"
 msgstr ""
@@ -477,7 +477,7 @@ msgid "options_syncConflictHelp"
 msgstr ""
 
 msgid "options_syncUnsupportedHelp"
-msgstr ""
+msgstr "Synkronisering av innstillinger støttes ikke på plattformen eller i nettleseren din."
 
 msgid "options_profileSyncDisabled"
 msgstr ""

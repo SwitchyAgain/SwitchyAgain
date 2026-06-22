@@ -517,17 +517,17 @@ msgstr "Clear remote copy"
 
 msgid "options_syncPristineHelp"
 msgstr ""
-"You can now automatically synchronize your settings and profiles across all "
-"your desktop devices running Chrome browser."
+"You can automatically synchronize your settings and profiles across supported "
+"desktop browsers signed in to the same browser account."
 
 msgid "options_syncSyncAlert"
 msgstr "Your options are automatically synchronized with your other devices."
 
 msgid "options_syncSyncHelp"
 msgstr ""
-"Please note that you must sign in to Chrome on each of your devices ("
-"including this one) for the syncing to actually work. <br> You may check this "
-"section on other devices to ensure that it is working."
+"Please note that you must sign in to the same browser account on each device "
+"(including this one) for syncing to work. <br> You may check this section on "
+"other devices to ensure that it is working."
 
 msgid "options_syncConflictAlert"
 msgstr "You have uploaded a copy of your options on another device via syncing."
@@ -539,9 +539,7 @@ msgstr ""
 "device."
 
 msgid "options_syncUnsupportedHelp"
-msgstr ""
-"Options syncing is not supported on your platform or browser. For now, only "
-"Chrome browser on desktop is supported."
+msgstr "Options syncing is not supported on your platform or browser."
 
 msgid "options_profileSyncDisabled"
 msgstr "Syncing is disabled for this profile."
