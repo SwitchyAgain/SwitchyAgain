@@ -282,9 +282,6 @@ msgstr "Potvrdit smazání podmínky."
 msgid "options_refreshOnProfileChange"
 msgstr "Obnovit aktuální záložku při změnu profilu."
 
-msgid "options_showInspectMenu"
-msgstr "Povolit kontrolu proxy pro prvky stránky přes kontextové menu."
-
 msgid "options_showPopupAddCondition"
 msgstr "Zobrazit „Přidat podmínku“ ve vyskakovacím menu."
 
@@ -1335,9 +1332,6 @@ msgstr ""
 "Poznámka: Nastavení serveru proxy jsou v současnosti řízena jinými "
 "aplikacemi."
 
-msgid "browserAction_titleInspect"
-msgstr "[Prohlédnout] $URL$"
-
 msgid "browserAction_defaultRuleDetails"
 msgstr "(výchozí)"
 
@@ -1349,18 +1343,6 @@ msgstr "(RL) "
 
 msgid "browserAction_tempRulePrefix"
 msgstr "(DOČASNÉ) "
-
-msgid "contextMenu_inspectPage"
-msgstr "Zkontrolujte proxy pro tuto stránku"
-
-msgid "contextMenu_inspectFrame"
-msgstr "Zkontrolujte proxy pro tento Frame"
-
-msgid "contextMenu_inspectLink"
-msgstr "Zkontrolujte, zda server proxy používaná tento prvek"
-
-msgid "contextMenu_inspectElement"
-msgstr "Zkontrolujte, zda server proxy používaná tento prvek"
 
 msgid "contextMenu_enableQuickSwitch"
 msgstr "Povolit rychlé přepínání"

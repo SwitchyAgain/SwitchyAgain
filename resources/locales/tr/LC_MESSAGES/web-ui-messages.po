@@ -247,9 +247,6 @@ msgstr "Koşula bağlı silinmeyi onayla."
 msgid "options_refreshOnProfileChange"
 msgstr "Profil güncellendiğinde mevcut sekmeyi yenile."
 
-msgid "options_showInspectMenu"
-msgstr ""
-
 msgid "options_showPopupAddCondition"
 msgstr "Açılır menüde \"Koşul Ekle\" öğesini göster."
 
@@ -1170,9 +1167,6 @@ msgstr ""
 msgid "browserAction_titleExternalProxy"
 msgstr ""
 
-msgid "browserAction_titleInspect"
-msgstr ""
-
 msgid "browserAction_defaultRuleDetails"
 msgstr "(default)"
 
@@ -1184,18 +1178,6 @@ msgstr "(RL) "
 
 msgid "browserAction_tempRulePrefix"
 msgstr "(TEMP) "
-
-msgid "contextMenu_inspectPage"
-msgstr ""
-
-msgid "contextMenu_inspectFrame"
-msgstr ""
-
-msgid "contextMenu_inspectLink"
-msgstr ""
-
-msgid "contextMenu_inspectElement"
-msgstr ""
 
 msgid "contextMenu_enableQuickSwitch"
 msgstr "Hızlı Geçişi Etkinleştir"

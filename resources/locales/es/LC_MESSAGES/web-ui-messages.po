@@ -288,9 +288,6 @@ msgstr "Confirmar al borrar condición."
 
 msgid "options_refreshOnProfileChange"
 msgstr "Recargar pestaña actual al cambiar perfil."
-
-msgid "options_showInspectMenu"
-msgstr ""
 "Permitir inspeccionar el proxy utilizado por cada elemento de la página a "
 "través del menú contextual."
 
@@ -1394,9 +1391,6 @@ msgstr ""
 "Nota: La configuración del proxy está actualmente controlada por otra(s) "
 "aplicación(es)."
 
-msgid "browserAction_titleInspect"
-msgstr "[Inspeccionar] $URL$"
-
 msgid "browserAction_defaultRuleDetails"
 msgstr "(por defecto)"
 
@@ -1408,18 +1402,6 @@ msgstr "(RL) "
 
 msgid "browserAction_tempRulePrefix"
 msgstr "(TEMP) "
-
-msgid "contextMenu_inspectPage"
-msgstr "Inspeccionar proxy usado en esta página"
-
-msgid "contextMenu_inspectFrame"
-msgstr "Inspeccionar proxy utilizado para este Frame"
-
-msgid "contextMenu_inspectLink"
-msgstr "Inspeccionar proxy utilizado si este Enlace es abierto"
-
-msgid "contextMenu_inspectElement"
-msgstr "Inspeccionar proxy utilizado para este Elemento"
 
 msgid "contextMenu_enableQuickSwitch"
 msgstr "Habilitar Conmutador Rápido"

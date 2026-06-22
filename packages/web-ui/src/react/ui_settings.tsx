@@ -568,16 +568,6 @@ export function UiSettings({
           <label>
             <input
               type="checkbox"
-              checked={Boolean(draftOptions['-showInspectMenu'])}
-              onChange={(event) => updateOption('-showInspectMenu', event.currentTarget.checked)}
-            />
-            <span> {message('options_showInspectMenu', 'Show inspect menu.')}</span>
-          </label>
-        </div>
-        <div className="checkbox">
-          <label>
-            <input
-              type="checkbox"
               checked={Boolean(draftOptions['-showCurrentProfileInGeneral'])}
               onChange={(event) => updateOption('-showCurrentProfileInGeneral', event.currentTarget.checked)}
             />

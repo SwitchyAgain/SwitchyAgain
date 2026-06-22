@@ -172,10 +172,6 @@ type ApplyProfileOptions = {
   update?: boolean;
 };
 
-type InspectSettings = {
-  showMenu?: unknown;
-};
-
 type ExternalProfileArgs = {
   internal?: boolean;
   noRevert?: boolean;
@@ -971,20 +967,6 @@ class Options {
             return this.updateProfile();
           });
         }
-        if ((changes['-showInspectMenu'] != null) || changes === this._options) {
-          let showMenu = this._options['-showInspectMenu'];
-          if (showMenu == null) {
-            showMenu = true;
-            this._setOptions({
-              '-showInspectMenu': true
-            }, {
-              persist: true
-            });
-          }
-          this.setInspect({
-            showMenu: showMenu
-          });
-        }
         if ((changes['-monitorWebRequests'] != null) || changes === this._options) {
           let monitorWebRequests = this._options['-monitorWebRequests'];
           if (monitorWebRequests == null) {
@@ -1048,20 +1030,6 @@ class Options {
       return this.setQuickSwitch(null, !!quickSwitchProfiles);
     }
   }
-
-
-  /**
-   * Apply the settings related to element proxy inspection.
-   * In base class, this method is not implemented and will not do anything.
-   * @param {{}} settings
-   * @param {boolean} settings.showMenu Whether to show the menu or not
-   * @returns {Promise} A promise which is fulfilled when the settings apply
-   */
-
-  setInspect(settings?: InspectSettings): RuntimePromise<void> {
-    return Promise.resolve();
-  }
-
 
   /**
    * Apply the settings related to web request monitoring.

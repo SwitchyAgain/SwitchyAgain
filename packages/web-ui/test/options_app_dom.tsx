@@ -185,7 +185,6 @@ function optionsFixture(): Options {
     '-confirmDeletion': true,
     '-enableQuickSwitch': true,
     '-quickSwitchProfiles': ['direct', 'proxy'],
-    '-showInspectMenu': true,
     '-uiLocale': 'en',
     '-uiTheme': 'light'
   };

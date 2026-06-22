@@ -238,9 +238,6 @@ msgstr ""
 msgid "options_refreshOnProfileChange"
 msgstr "Gjenoppfrisk gjeldende fane ved profilendring."
 
-msgid "options_showInspectMenu"
-msgstr ""
-
 msgid "options_showPopupAddCondition"
 msgstr "Vis «Legg til betingelse» i oppsprettsmenyen."
 
@@ -1180,9 +1177,6 @@ msgstr "Advarsel: Kunne ikke laste ned PAC-skript og/eller regellister."
 msgid "browserAction_titleExternalProxy"
 msgstr ""
 
-msgid "browserAction_titleInspect"
-msgstr "[Se over] $URL$"
-
 msgid "browserAction_defaultRuleDetails"
 msgstr "(forvalg)"
 
@@ -1195,18 +1189,6 @@ msgstr ""
 
 msgid "browserAction_tempRulePrefix"
 msgstr "(MIDLERTIDIG) "
-
-msgid "contextMenu_inspectPage"
-msgstr "Se over mellomtjenerbruk for denne siden"
-
-msgid "contextMenu_inspectFrame"
-msgstr ""
-
-msgid "contextMenu_inspectLink"
-msgstr ""
-
-msgid "contextMenu_inspectElement"
-msgstr ""
 
 msgid "contextMenu_enableQuickSwitch"
 msgstr "Skru på raskt bytte"

@@ -103,14 +103,8 @@ type BackgroundExternalApi = {
   listen(): unknown;
 };
 
-type BackgroundInspect = {
-  disable?(): unknown;
-  enable?(): unknown;
-};
-
 type BackgroundState = {
   get(keys: unknown): OmegaPromise<Record<string, unknown>>;
-  remove(keys: string | string[]): OmegaPromise<unknown>;
   set(items: Record<string, unknown>): OmegaPromise<unknown>;
 };
 
@@ -156,7 +150,6 @@ type BackgroundOptions = BackgroundOptionMethods & {
   setBadge(): unknown;
   setExternalProfile(profile: BackgroundProfile, args?: {internal?: boolean; noRevert?: boolean}): Promise<unknown> | void;
   setProxyNotControllable(reason: string | null): unknown;
-  _inspect: BackgroundInspect | null;
   _options: OmegaOptionsData;
 };
 
@@ -220,7 +213,6 @@ type BackgroundOmegaTarget = {
   BrowserStorage: new (storage: Storage, prefix: string) => BackgroundState;
   ChromeTabs: new (actionForUrl: (tab: ChromeTab, url: string) => Promise<BackgroundActionInfo | null>) => BackgroundTabs;
   ExternalApi: new (options: BackgroundOptions) => BackgroundExternalApi;
-  Inspect: new (onInspect: (url: string, tab: ChromeTab) => unknown) => BackgroundInspect;
   Log: BackgroundLog;
   Options: (new (
     options: null,
@@ -621,41 +613,6 @@ type BackgroundOmegaTarget = {
   tabs = new OmegaTargetCurrent.ChromeTabs(actionForUrl);
 
   tabs.watch();
-
-  options._inspect = new OmegaTargetCurrent.Inspect((url: string, tab: ChromeTab) => {
-    if (url === tab.url) {
-      options.clearBadge();
-      tabs.processTab(tab);
-      state.remove('inspectUrl');
-      return;
-    }
-    state.set({
-      inspectUrl: url
-    });
-    return actionForUrl(tab, url).then((action) => {
-      if (!action) {
-        return;
-      }
-      const parsedUrl = OmegaTargetCurrent.Url.parse(url);
-      const tabPageUrl = tab.url;
-      let urlDisp: string | undefined;
-      if (tabPageUrl && parsedUrl.hostname === OmegaTargetCurrent.Url.parse(tabPageUrl).hostname) {
-        urlDisp = stringOrUndefined(parsedUrl.path);
-      } else {
-        urlDisp = stringOrUndefined(parsedUrl.hostname);
-      }
-      let title = chrome.i18n.getMessage('browserAction_titleInspect', urlDisp) + '\n';
-      title += action.title;
-      actionApi().setTitle({
-        title: title,
-        tabId: tab.id
-      });
-      return tabs.setTabBadge(tab, {
-        text: '#',
-        color: action.resultColor || action.profileColor || '#777'
-      });
-    });
-  });
 
   options.setProxyNotControllable(null);
 

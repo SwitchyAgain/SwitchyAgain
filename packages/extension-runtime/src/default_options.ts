@@ -17,7 +17,6 @@ export default function defaultOptions() {
     '-quickSwitchProfiles': [] as string[],
     '-revertProxyChanges': true,
     '-confirmDeletion': true,
-    '-showInspectMenu': true,
     '-showCurrentProfileInGeneral': false,
     '-addConditionsToBottom': false,
     '-showProfileOptions': false,

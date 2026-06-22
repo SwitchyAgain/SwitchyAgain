@@ -10,7 +10,6 @@ export const UI_KEYS = [
   '-quickSwitchProfiles',
   '-confirmDeletion',
   '-refreshOnProfileChange',
-  '-showInspectMenu',
   '-showCurrentProfileInGeneral',
   '-showSocks5LocalDnsOption',
   '-addConditionsToBottom',

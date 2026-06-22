@@ -263,9 +263,6 @@ msgstr "删除切换条件时需要确认。"
 msgid "options_refreshOnProfileChange"
 msgstr "当更改情景模式时刷新当前标签。"
 
-msgid "options_showInspectMenu"
-msgstr "右键菜单中，可检查网页元素所使用的代理。"
-
 msgid "options_showPopupAddCondition"
 msgstr "在弹出菜单中显示“添加条件”入口。"
 
@@ -1192,9 +1189,6 @@ msgstr "警告：更新PAC文件或规则列表失败。"
 msgid "browserAction_titleExternalProxy"
 msgstr "注意：其他应用正在控制当前代理设置。"
 
-msgid "browserAction_titleInspect"
-msgstr "[检查] $URL$"
-
 msgid "browserAction_defaultRuleDetails"
 msgstr "(默认)"
 
@@ -1206,18 +1200,6 @@ msgstr "(列表) "
 
 msgid "browserAction_tempRulePrefix"
 msgstr "(临时) "
-
-msgid "contextMenu_inspectPage"
-msgstr "检查此页面使用的代理"
-
-msgid "contextMenu_inspectFrame"
-msgstr "检查此[框架页面]使用的代理"
-
-msgid "contextMenu_inspectLink"
-msgstr "检查此[链接目标]将会使用的代理"
-
-msgid "contextMenu_inspectElement"
-msgstr "检查此[元素]使用的代理"
 
 msgid "contextMenu_enableQuickSwitch"
 msgstr "启用快速切换"

@@ -21,7 +21,6 @@ function optionsFixture(): Options {
     '-quickSwitchProfiles': ['direct', 'proxy'],
     '-refreshOnProfileChange': false,
     '-showConditionTypes': 0,
-    '-showInspectMenu': true,
     '-startupProfileName': '',
     '-uiLocale': 'en',
     '-uiTheme': 'light'

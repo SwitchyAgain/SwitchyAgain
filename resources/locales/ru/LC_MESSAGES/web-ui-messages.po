@@ -283,9 +283,6 @@ msgstr "Требовать подтверждения при удалении у
 
 msgid "options_refreshOnProfileChange"
 msgstr "Обновить текущую вкладку при изменении профиля."
-
-msgid "options_showInspectMenu"
-msgstr ""
 "Узнавать прокси, использованный для элемента страницы, через контекстное "
 "меню."
 
@@ -1376,9 +1373,6 @@ msgstr ""
 "Замечание: в данный момент, настройки прокси контролируются другим "
 "приложением."
 
-msgid "browserAction_titleInspect"
-msgstr "[Проверить] $URL$"
-
 msgid "browserAction_defaultRuleDetails"
 msgstr "(по умолчанию)"
 
@@ -1390,18 +1384,6 @@ msgstr "(RL) "
 
 msgid "browserAction_tempRulePrefix"
 msgstr "(TEMP) "
-
-msgid "contextMenu_inspectPage"
-msgstr "Проверить прокси, использованный для этой страницы"
-
-msgid "contextMenu_inspectFrame"
-msgstr "Проверить прокси, использованный для этого фрейма"
-
-msgid "contextMenu_inspectLink"
-msgstr "Проверить прокси для открытия этой ссылки"
-
-msgid "contextMenu_inspectElement"
-msgstr "Проверить прокси, использованный для этого элемента"
 
 msgid "contextMenu_enableQuickSwitch"
 msgstr "Включить быстрое переключение"

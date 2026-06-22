@@ -23,11 +23,6 @@ type ExternalApiLike = {
   disabled: boolean;
 };
 
-type InspectLike = {
-  disable(): unknown;
-  enable(): unknown;
-};
-
 type RequestSummaryItem = {
   errorCount: number;
 };
@@ -310,7 +305,6 @@ class ChromeOptions extends OmegaTarget.Options {
   declare proxyImpl: ProxyImplInstance;
   private _alarms: Record<string, () => void> | null;
   private _badgeTitle: string | null;
-  private _inspect: InspectLike | null;
   private _monitorWebRequests: boolean;
   private _proxyNotControllable: string | null;
   private _profileScopeContainers: Record<string, ProfileScopeContainerInfo>;
@@ -327,7 +321,6 @@ class ChromeOptions extends OmegaTarget.Options {
   constructor(...args: unknown[]) {
     super(...args);
     this.fetchUrl = fetchUrl;
-    this._inspect = null;
     this._proxyNotControllable = null;
     this._badgeTitle = null;
     this._quickSwitchInit = false;
@@ -935,17 +928,6 @@ class ChromeOptions extends OmegaTarget.Options {
     return OmegaPromise.resolve();
   }
 
-  setInspect(settings: {showMenu?: boolean}) {
-    if (this._inspect) {
-      if (settings.showMenu) {
-        this._inspect.enable();
-      } else {
-        this._inspect.disable();
-      }
-    }
-    return OmegaPromise.resolve();
-  }
-
   setMonitorWebRequests(enabled: boolean) {
     this._monitorWebRequests = enabled;
     if (enabled && this._requestMonitor == null) {
@@ -1120,89 +1102,67 @@ class ChromeOptions extends OmegaTarget.Options {
       errorCount,
       summary
     } : null;
-    const getBadge = new OmegaPromise((resolve: (value: string) => void) => {
-      const api = actionApi();
-      if (typeof api.getBadgeText !== 'function') {
-        resolve('');
-        return;
-      }
-      return api.getBadgeText({
-        tabId
-      }, (badgeText: string) => {
-        return resolve(badgeText);
-      });
-    });
-    const getInspectUrl = this._state.get({
-      inspectUrl: ''
-    });
-    return OmegaPromise.join(getBadge, getInspectUrl, (badge: string, state: {inspectUrl?: string}) => {
-      const inspectUrl = state.inspectUrl;
-      if (badge === '#' && inspectUrl) {
-        url = inspectUrl;
-      } else {
-        this.clearBadge();
-        url = tabInfoPageUrl(tabInfo, url);
-      }
-      if (!url) {
-        return result;
-      }
-      if (url.slice(0, 6) === 'chrome') {
-        const errorPagePrefix = 'chrome://errorpage/';
-        if (url.startsWith(errorPagePrefix)) {
-          url = new URL(url).searchParams.get('lasturl') || undefined;
-          if (!url) {
-            return result;
-          }
-        } else {
+    this.clearBadge();
+    url = tabInfoPageUrl(tabInfo, url);
+    if (!url) {
+      return result;
+    }
+    if (url.slice(0, 6) === 'chrome') {
+      const errorPagePrefix = 'chrome://errorpage/';
+      if (url.startsWith(errorPagePrefix)) {
+        url = new URL(url).searchParams.get('lasturl') || undefined;
+        if (!url) {
           return result;
         }
-      }
-      if (url.slice(0, 6) === 'about:') {
+      } else {
         return result;
       }
-      if (url.slice(0, 4) === 'moz-') {
-        return result;
-      }
-      const domain = OmegaPac.getBaseDomain(new URL(url).hostname.replace(/^\[(.*)\]$/, '$1'));
-      const pageRequests = pageRequestsFromTabInfo(tabInfo, url);
-      const basePageInfo = {
-        url,
-        domain,
-        tempRuleProfileName: this.queryTempRule(domain),
-        profileScope,
-        errorCount,
-        summary,
-        requests: pageRequests.requests,
-        requestLimitExceeded: pageRequests.requestLimitExceeded
-      };
-      if (!includeExplanations) {
-        return basePageInfo;
-      }
-      const explanations = pageRequests.requests.map((request) => {
-        const explainArgs = profileScope.effectiveScope && profileScope.effectiveScope !== 'current'
-          ? {profileName: profileScope.effectiveProfileName, url: request.url}
-          : {url: request.url};
-        return this.explainRequest(explainArgs).catch((error: unknown) => ({
-          currentProfile: undefined as Partial<PopupApiProfile> | undefined,
-          errors: [error instanceof Error ? error.message : String(error)],
-          final: {
-            kind: 'error'
-          },
-          finalProfile: undefined as Partial<PopupApiProfile> | undefined,
-          request: {
-            url: request.url
-          },
-          startProfile: undefined as Partial<PopupApiProfile> | undefined,
-          steps: [] as Array<Record<string, unknown>>,
-          tempRulesActive: false,
-          warnings: [] as string[]
-        }));
-      });
-      return OmegaPromise.all(explanations).then((requestExplanations: PopupApiRequestExplanation[]) => ({
-        ...basePageInfo,
-        requestExplanations,
+    }
+    if (url.slice(0, 6) === 'about:') {
+      return result;
+    }
+    if (url.slice(0, 4) === 'moz-') {
+      return result;
+    }
+    const domain = OmegaPac.getBaseDomain(new URL(url).hostname.replace(/^\[(.*)\]$/, '$1'));
+    const pageRequests = pageRequestsFromTabInfo(tabInfo, url);
+    const basePageInfo = {
+      url,
+      domain,
+      tempRuleProfileName: this.queryTempRule(domain),
+      profileScope,
+      errorCount,
+      summary,
+      requests: pageRequests.requests,
+      requestLimitExceeded: pageRequests.requestLimitExceeded
+    };
+    if (!includeExplanations) {
+      return basePageInfo;
+    }
+    const explanations = pageRequests.requests.map((request) => {
+      const explainArgs = profileScope.effectiveScope && profileScope.effectiveScope !== 'current'
+        ? {profileName: profileScope.effectiveProfileName, url: request.url}
+        : {url: request.url};
+      return this.explainRequest(explainArgs).catch((error: unknown) => ({
+        currentProfile: undefined as Partial<PopupApiProfile> | undefined,
+        errors: [error instanceof Error ? error.message : String(error)],
+        final: {
+          kind: 'error'
+        },
+        finalProfile: undefined as Partial<PopupApiProfile> | undefined,
+        request: {
+          url: request.url
+        },
+        startProfile: undefined as Partial<PopupApiProfile> | undefined,
+        steps: [] as Array<Record<string, unknown>>,
+        tempRulesActive: false,
+        warnings: [] as string[]
       }));
     });
+    return OmegaPromise.all(explanations).then((requestExplanations: PopupApiRequestExplanation[]) => ({
+      ...basePageInfo,
+      requestExplanations
+    }));
   }
 }
 

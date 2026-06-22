@@ -74,7 +74,6 @@ export type OptionsData = {
   '-refreshOnProfileChange'?: boolean;
   '-showConditionTypes'?: number;
   '-showExternalProfile'?: boolean;
-  '-showInspectMenu'?: boolean;
   '-showSocks5LocalDnsOption'?: boolean;
   '-showProfileOptions'?: boolean;
   '-showPopupAddCondition'?: boolean;

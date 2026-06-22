@@ -281,9 +281,6 @@ msgstr "تصدیق در زمان حذف شروط."
 
 msgid "options_refreshOnProfileChange"
 msgstr "رفرش کردن تب کنونی در هنگام تغییر پروفایل."
-
-msgid "options_showInspectMenu"
-msgstr ""
 "مجوز برای بررسی پروکسی مورد استفاده برای یک المان صفحه در منوی زمنیه ("
 "context menu)."
 
@@ -1351,9 +1348,6 @@ msgstr "اخطار: شکست در دانلود اسکریپت PAC و/یا لیس
 msgid "browserAction_titleExternalProxy"
 msgstr "نکته : تنظیمات پروکسی هم اکنون توسط دیگر برنامه (ها) مدیریت میشود ."
 
-msgid "browserAction_titleInspect"
-msgstr "[بررسی] $URL$"
-
 msgid "browserAction_defaultRuleDetails"
 msgstr "(پیش‌گزیده)"
 
@@ -1365,18 +1359,6 @@ msgstr "(RL) "
 
 msgid "browserAction_tempRulePrefix"
 msgstr "(موقت) "
-
-msgid "contextMenu_inspectPage"
-msgstr "بررسی پروکسی مورد استفاده برای این صفحه"
-
-msgid "contextMenu_inspectFrame"
-msgstr "بررسی پروکسی مورد استفاده برای این فریم"
-
-msgid "contextMenu_inspectLink"
-msgstr "بررسی پروکسی مورد استفاده اگر لینک باز شود"
-
-msgid "contextMenu_inspectElement"
-msgstr "بررسی پروکسی مورد استفاده برای این المان"
 
 msgid "contextMenu_enableQuickSwitch"
 msgstr "فعال سازی تغییر سرعتی"

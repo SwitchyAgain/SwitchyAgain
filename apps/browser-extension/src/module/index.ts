@@ -1,6 +1,5 @@
 import omegaTarget from '@switchyagain/extension-runtime';
 import ExternalApi from './external_api';
-import Inspect from './inspect';
 import Options from './options';
 import * as proxy from './proxy';
 import Storage from './storage';
@@ -30,7 +29,6 @@ const chromiumTarget: Record<string, unknown> = {
   ChromeTabs,
   ExternalApi,
   WebRequestMonitor,
-  Inspect,
   Url,
   proxy
 };
@@ -44,7 +42,6 @@ for (const name of Object.keys(omegaTarget)) {
 export {
   ChromeTabs,
   ExternalApi,
-  Inspect,
   Options,
   Storage,
   Url,
