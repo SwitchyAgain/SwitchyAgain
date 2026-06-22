@@ -33,11 +33,14 @@ type LocaleMessage = {
 
 type ReleaseManifest = Record<string, unknown> & {
   background: Record<string, unknown>;
+  browser_specific_settings?: unknown;
   key?: string;
   minimum_chrome_version?: string;
   optional_permissions?: string[];
   permissions: string[];
 };
+
+type ReleaseTarget = 'chrome' | 'edge' | 'firefox';
 
 type PoEntry = {
   msgid: string;
@@ -223,14 +226,17 @@ async function writeLocale(dest: string, src: string) {
   await fsp.writeFile(dest, JSON.stringify(await convertPo(src)));
 }
 
-async function writeReleaseManifest(dest: string, target: 'chrome' | 'firefox') {
+async function writeReleaseManifest(dest: string, target: ReleaseTarget) {
   const manifestPath = path.join(root, 'overlay/manifest.json');
   const manifest = JSON.parse(await fsp.readFile(manifestPath, 'utf8')) as ReleaseManifest;
   manifest.permissions = manifest.permissions.filter((permission: string) => permission !== 'downloads');
   delete manifest.optional_permissions;
-  if (target === 'chrome') {
+  if (target === 'chrome' || target === 'edge') {
     delete manifest.background.scripts;
     delete manifest.background.preferred_environment;
+  }
+  if (target === 'edge') {
+    delete manifest.browser_specific_settings;
   }
   if (target === 'firefox') {
     delete manifest.key;
@@ -338,10 +344,13 @@ async function main() {
   if (isRelease) {
     const releaseDir = path.join(root, 'release');
     const chromeManifest = path.join(root, 'tmp/manifest-chrome.json');
+    const edgeManifest = path.join(root, 'tmp/manifest-edge.json');
     const firefoxManifest = path.join(root, 'tmp/manifest-firefox.json');
     await writeReleaseManifest(chromeManifest, 'chrome');
+    await writeReleaseManifest(edgeManifest, 'edge');
     await writeReleaseManifest(firefoxManifest, 'firefox');
     await zipRelease(path.join(releaseDir, 'chromium-release.zip'), chromeManifest);
+    await zipRelease(path.join(releaseDir, 'edge-release.zip'), edgeManifest);
     await zipRelease(path.join(releaseDir, 'firefox-unsigned.xpi'), firefoxManifest);
   }
 }
