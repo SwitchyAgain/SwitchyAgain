@@ -343,6 +343,7 @@ class ChromeOptions extends OmegaTarget.Options {
     this._tabRequestInfoPorts = null;
     this._alarms = null;
     this.initProfileScopes();
+    this.restoreTabProfileNames();
   }
 
   private initProfileScopes() {
@@ -366,6 +367,7 @@ class ChromeOptions extends OmegaTarget.Options {
     this._tabProfileScopeWatching = true;
     chrome.tabs.onRemoved.addListener((tabId: number) => {
       delete this._tabProfileNames[tabId];
+      this.removeTabProfileFromStorage(tabId);
       delete this._tabProfileContexts[tabId];
     });
     chrome.tabs.onReplaced?.addListener((added: number, removed: number) => {
@@ -483,6 +485,59 @@ class ChromeOptions extends OmegaTarget.Options {
 
   refreshProfileScopeContainerNames() {
     return this.refreshProfileScopeContainers();
+  }
+
+  private restoreTabProfileNames() {
+    const sessionStorage = chrome?.storage?.session as {
+      get?: (keys: string | string[] | Record<string, unknown> | null) => Promise<Record<string, unknown>>;
+    } | undefined;
+    if (!sessionStorage?.get) {
+      return;
+    }
+    sessionStorage.get(null).then((data: Record<string, unknown>) => {
+      for (const [key, value] of Object.entries(data)) {
+        if (key.startsWith('tabProfile_')) {
+          const tabId = parseInt(key.substring(11), 10);
+          if (!isNaN(tabId) && typeof value === 'string') {
+            this._tabProfileNames[tabId] = value;
+          }
+        }
+      }
+    }).catch(() => {
+      // Session storage may not be available in some contexts
+    });
+  }
+
+  private saveTabProfileToStorage(tabId: number, profileName?: string) {
+    const sessionStorage = chrome?.storage?.session as {
+      set?: (items: Record<string, unknown>) => Promise<void>;
+      remove?: (keys: string | string[]) => Promise<void>;
+    } | undefined;
+    if (!sessionStorage) {
+      return;
+    }
+    const key = `tabProfile_${tabId}`;
+    if (profileName) {
+      sessionStorage.set?.({[key]: profileName}).catch(() => {
+        // Silently ignore storage errors
+      });
+    } else {
+      sessionStorage.remove?.(key).catch(() => {
+        // Silently ignore storage errors
+      });
+    }
+  }
+
+  private removeTabProfileFromStorage(tabId: number) {
+    const sessionStorage = chrome?.storage?.session as {
+      remove?: (keys: string | string[]) => Promise<void>;
+    } | undefined;
+    if (!sessionStorage?.remove) {
+      return;
+    }
+    sessionStorage.remove(`tabProfile_${tabId}`).catch(() => {
+      // Silently ignore storage errors
+    });
   }
 
   private profileScopeCapabilities(): ProfileScopeSettings {
@@ -674,6 +729,7 @@ class ChromeOptions extends OmegaTarget.Options {
       } else {
         delete this._tabProfileNames[args.tabId];
       }
+      this.saveTabProfileToStorage(args.tabId, profileName);
       return this._currentProfileName
         ? this.applyProfile(this._currentProfileName, {update: false})
         : OmegaPromise.resolve();
