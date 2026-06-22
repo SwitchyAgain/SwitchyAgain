@@ -1613,3 +1613,6 @@ msgstr "زبانه‌ها"
 
 msgid "options_profileScopeTabsHelp"
 msgstr "اختصاص نمایه به زبانه‌ها موقت است و با همان زبانه‌ها می‌ماند."
+
+msgid "contextMenu_openLinkInNewTabWithProfile"
+msgstr "باز کردن پیوند در زبانهٔ جدید با نمایه"

@@ -1432,3 +1432,6 @@ msgstr "Sekmeler"
 
 msgid "options_profileScopeTabsHelp"
 msgstr "Sekme profil atamaları geçicidir ve kendi sekmeleriyle kalır."
+
+msgid "contextMenu_openLinkInNewTabWithProfile"
+msgstr "Bağlantıyı profille yeni sekmede aç"

@@ -10,6 +10,7 @@ type ChromeListener = (...args: unknown[]) => unknown;
 
 type ChromeContextMenuClickInfo = Record<string, unknown> & {
   checked?: boolean;
+  linkUrl?: string;
   menuItemId: string;
 };
 
@@ -244,6 +245,12 @@ interface BrowserDownloadsApi {
   [key: string]: unknown;
 }
 
+interface BrowserTabsApi {
+  create(properties: Record<string, unknown>): Promise<ChromeTab>;
+  update(tabId: number, properties: Record<string, unknown>): Promise<ChromeTab>;
+  [key: string]: unknown;
+}
+
 interface BrowserContextualIdentity {
   color?: string;
   colorCode?: string;
@@ -279,6 +286,7 @@ interface BrowserGlobal {
   proxy: BrowserProxyApi;
   runtime: BrowserRuntimeApi;
   storage: BrowserStorageApi;
+  tabs?: BrowserTabsApi;
   [key: string]: unknown;
 }
 
@@ -375,7 +383,9 @@ interface OmegaOptionsData extends Record<string, unknown> {
 
 interface OmegaOptionsBase {
   _currentProfileName: string;
+  _isSystem: boolean;
   _options: OmegaOptionsData;
+  _setAvailableProfiles(): Promise<unknown>;
   _setOptions(changes: Record<string, unknown>): OmegaPromise<unknown>;
   _state: OmegaOptionsState;
   fallbackProfileName: string;
@@ -384,6 +394,7 @@ interface OmegaOptionsBase {
     log(...args: unknown[]): void;
   };
   applyProfile(profileName: string, options?: Record<string, unknown>): OmegaPromise<unknown>;
+  currentProfile(): unknown;
   currentProfileChanged(reason: string): unknown;
   explainRequest(args: unknown): OmegaPromise<PopupApiRequestExplanation>;
   queryTempRule(domain: string): unknown;

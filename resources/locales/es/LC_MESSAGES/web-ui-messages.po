@@ -1656,3 +1656,6 @@ msgstr "Pestañas"
 
 msgid "options_profileScopeTabsHelp"
 msgstr "Las asignaciones de perfiles de pestañas son temporales y permanecen con sus pestañas."
+
+msgid "contextMenu_openLinkInNewTabWithProfile"
+msgstr "Abrir enlace en nueva pestaña con perfil"

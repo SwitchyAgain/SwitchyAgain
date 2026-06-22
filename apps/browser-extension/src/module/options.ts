@@ -8,6 +8,27 @@ import type {ProxyImplInstance, ProxyProfile, ProxyRequestDetails} from './proxy
 const OmegaPac = OmegaTarget.OmegaPac;
 const OmegaPromise = OmegaTarget.Promise;
 
+const LINK_PROFILE_CONTEXT_MENU_ROOT_ID = 'openLinkInNewTabWithProfile';
+const LINK_PROFILE_CONTEXT_MENU_ITEM_PREFIX = `${LINK_PROFILE_CONTEXT_MENU_ROOT_ID}:`;
+const WEB_LINK_PATTERNS = ['http://*/*', 'https://*/*'];
+const PROFILE_MENU_ORDER: Record<string, number> = {
+  FixedProfile: -2000,
+  PacProfile: -1000,
+  VirtualProfile: 1000,
+  SwitchProfile: 2000,
+  RuleListProfile: 3000
+};
+const PROFILE_ICON_PATHS: Record<string, string> = {
+  AutoDetectProfile: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h4"/>',
+  DirectProfile: '<path d="M4 8h13"/><path d="M13 4l4 4-4 4"/><path d="M20 16H7"/><path d="M11 12l-4 4 4 4"/>',
+  FixedProfile: '<circle cx="12" cy="12" r="8"/><path d="M4 12h16"/><path d="M12 4c2 2.4 3 5.1 3 8s-1 5.6-3 8"/><path d="M12 4c-2 2.4-3 5.1-3 8s1 5.6 3 8"/>',
+  PacProfile: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h4"/>',
+  RuleListProfile: '<path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/><circle cx="4.5" cy="7" r=".7"/><circle cx="4.5" cy="12" r=".7"/><circle cx="4.5" cy="17" r=".7"/>',
+  SwitchProfile: '<path d="M6 8h8c2.8 0 5 2.2 5 5"/><path d="M16 10l3 3 3-3"/><path d="M18 16h-8c-2.8 0-5-2.2-5-5"/><path d="M8 14l-3-3-3 3"/>',
+  SystemProfile: '<path d="M12 4v8"/><path d="M7 6.7a8 8 0 1 0 10 0"/>',
+  VirtualProfile: '<path d="M9 9a3 3 0 1 1 4.6 2.5c-1.1.7-1.6 1.3-1.6 2.5"/><path d="M12 18h.01"/>'
+};
+
 type BadgeOptions = {
   color: string;
   text: string;
@@ -15,6 +36,7 @@ type BadgeOptions = {
 };
 
 type Profile = ProxyProfile;
+type ContextMenuProfile = Profile & {name: string};
 type FixedProfileProxyField = 'fallbackProxy' | 'proxyForHttp' | 'proxyForHttps';
 
 const FIXED_PROFILE_PROXY_FIELDS: FixedProfileProxyField[] = ['fallbackProxy', 'proxyForHttp', 'proxyForHttps'];
@@ -312,6 +334,10 @@ class ChromeOptions extends OmegaTarget.Options {
   private _quickSwitchCanEnable: boolean;
   private _quickSwitchHandlerReady: boolean;
   private _quickSwitchInit: boolean;
+  private _linkProfileContextMenuClickReady: boolean;
+  private _linkProfileContextMenuIds: string[];
+  private _linkProfileContextMenuProfiles: Record<string, string>;
+  private _linkProfileContextMenuRefreshToken: number;
   private _requestMonitor: RequestMonitorLike | null;
   private _tabProfileContexts: Record<number, TabProfileContext>;
   private _tabProfileNames: Record<number, string | undefined>;
@@ -326,6 +352,10 @@ class ChromeOptions extends OmegaTarget.Options {
     this._quickSwitchInit = false;
     this._quickSwitchHandlerReady = false;
     this._quickSwitchCanEnable = false;
+    this._linkProfileContextMenuClickReady = false;
+    this._linkProfileContextMenuIds = [];
+    this._linkProfileContextMenuProfiles = {};
+    this._linkProfileContextMenuRefreshToken = 0;
     this._requestMonitor = null;
     this._profileScopeContainers = {};
     this._profileScopeContainerOrder = [];
@@ -335,6 +365,7 @@ class ChromeOptions extends OmegaTarget.Options {
     this._monitorWebRequests = false;
     this._tabRequestInfoPorts = null;
     this._alarms = null;
+    this._onLinkProfileContextMenuClicked = this._onLinkProfileContextMenuClicked.bind(this);
     this.initProfileScopes();
     this.restoreTabProfileNames();
   }
@@ -558,6 +589,315 @@ class ChromeOptions extends OmegaTarget.Options {
 
   private validProfileName(profileName?: string) {
     return profileName && OmegaPac.Profiles.byName(profileName, this._options) ? profileName : undefined;
+  }
+
+  private compareProfile(a: Profile, b: Profile) {
+    const diff = (PROFILE_MENU_ORDER[a.profileType || ''] || 0) - (PROFILE_MENU_ORDER[b.profileType || ''] || 0);
+    if (diff !== 0) {
+      return diff;
+    }
+    const aName = a.name || '';
+    const bName = b.name || '';
+    return aName === bName ? 0 : aName < bName ? -1 : 1;
+  }
+
+  private isVisibleResultProfileName(name?: string) {
+    return !!name && (name.charAt(0) !== '_' || name.charAt(1) !== '_');
+  }
+
+  private localizedProfileName(profile: ContextMenuProfile) {
+    return chrome.i18n.getMessage(`profile_${profile.name}`) || profile.name;
+  }
+
+  private profileIconColor(profile: ContextMenuProfile) {
+    const color = typeof profile.color === 'string' ? profile.color.trim() : '';
+    return /^#[0-9a-fA-F]{3,8}$/.test(color) ? color : '#777777';
+  }
+
+  private contextMenuIconForProfile(profile: ContextMenuProfile) {
+    const color = this.profileIconColor(profile);
+    const glyph = PROFILE_ICON_PATHS[profile.profileType || ''] || PROFILE_ICON_PATHS.VirtualProfile;
+    const svg = [
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">',
+      `<circle cx="12" cy="12" r="11" fill="${color}"/>`,
+      '<g fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
+      glyph,
+      '</g>',
+      '</svg>'
+    ].join('');
+    const dataUrl = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+    return {
+      16: dataUrl,
+      32: dataUrl
+    };
+  }
+
+  private linkProfileContextMenuProfiles(): ContextMenuProfile[] {
+    if (!chrome?.contextMenus || !chrome?.tabs || !chrome?.i18n?.getMessage) {
+      return [];
+    }
+    if (this._isSystem || !this.enabledProfileScopes().tab || !this._currentProfileName) {
+      return [];
+    }
+    const current = this.currentProfile() as Profile | null;
+    if (!current) {
+      return [];
+    }
+    let profiles: Profile[] = [];
+    if (OmegaPac.Profiles.isInclusive(current)) {
+      profiles = OmegaPac.Profiles.validResultProfilesFor(current, this._options) as unknown as Profile[];
+    } else if (OmegaPac.Profiles.isIncludable(current)) {
+      OmegaPac.Profiles.each(this._options, (_key: string, profile: Profile) => {
+        if (OmegaPac.Profiles.isIncludable(profile)) {
+          profiles.push(profile);
+        }
+      });
+    }
+    const seen = new Set<string>();
+    return profiles
+      .filter((profile): profile is ContextMenuProfile => {
+        const name = profile.name;
+        if (typeof name !== 'string' || !this.isVisibleResultProfileName(name) || seen.has(name)) {
+          return false;
+        }
+        seen.add(name);
+        return true;
+      })
+      .sort((a, b) => this.compareProfile(a, b));
+  }
+
+  private removeContextMenuItems(ids: string[], callback: () => void) {
+    const contextMenus = chrome.contextMenus;
+    if (!ids.length || contextMenus == null) {
+      callback();
+      return;
+    }
+    let remaining = ids.length;
+    const done = () => {
+      remaining--;
+      if (remaining === 0) {
+        callback();
+      }
+    };
+    for (const id of ids) {
+      try {
+        contextMenus.remove(id, () => {
+          chrome.runtime.lastError;
+          done();
+        });
+      } catch (_error) {
+        done();
+      }
+    }
+  }
+
+  private ensureLinkProfileContextMenuClickListener() {
+    const contextMenus = chrome.contextMenus;
+    if (contextMenus == null || this._linkProfileContextMenuClickReady) {
+      return;
+    }
+    contextMenus.onClicked.addListener(this._onLinkProfileContextMenuClicked);
+    this._linkProfileContextMenuClickReady = true;
+  }
+
+  private createContextMenuItem(properties: Record<string, unknown>) {
+    const contextMenus = chrome.contextMenus;
+    if (contextMenus == null) {
+      return;
+    }
+    contextMenus.create(properties, () => {
+      const error = chrome.runtime.lastError;
+      if (!error || properties.icons == null) {
+        return;
+      }
+      this.log.error('Creating context menu item with icons failed; retrying without icons.', error.message || error);
+      const fallback = {
+        ...properties
+      };
+      delete fallback.icons;
+      contextMenus.create(fallback, () => {
+        chrome.runtime.lastError;
+      });
+    });
+  }
+
+  private updateLinkProfileContextMenu() {
+    const contextMenus = chrome.contextMenus;
+    if (contextMenus == null || chrome.i18n?.getMessage == null) {
+      return;
+    }
+    this.ensureLinkProfileContextMenuClickListener();
+    const token = ++this._linkProfileContextMenuRefreshToken;
+    const profiles = this.linkProfileContextMenuProfiles();
+    const oldIds = this._linkProfileContextMenuIds;
+    this._linkProfileContextMenuIds = [];
+    this._linkProfileContextMenuProfiles = {};
+    this.removeContextMenuItems(oldIds, () => {
+      if (token !== this._linkProfileContextMenuRefreshToken || profiles.length === 0) {
+        return;
+      }
+      this.createContextMenuItem({
+        id: LINK_PROFILE_CONTEXT_MENU_ROOT_ID,
+        title: chrome.i18n.getMessage('contextMenu_openLinkInNewTabWithProfile') || 'Open Link in New Tab with Profile',
+        contexts: ['link'],
+        targetUrlPatterns: WEB_LINK_PATTERNS
+      });
+      const nextIds: string[] = [];
+      const nextProfiles: Record<string, string> = {};
+      profiles.forEach((profile, index) => {
+        const id = `${LINK_PROFILE_CONTEXT_MENU_ITEM_PREFIX}${index}`;
+        nextIds.push(id);
+        nextProfiles[id] = profile.name;
+        this.createContextMenuItem({
+          id,
+          icons: this.contextMenuIconForProfile(profile),
+          parentId: LINK_PROFILE_CONTEXT_MENU_ROOT_ID,
+          title: this.localizedProfileName(profile),
+          contexts: ['link'],
+          targetUrlPatterns: WEB_LINK_PATTERNS
+        });
+      });
+      this._linkProfileContextMenuIds = nextIds.concat(LINK_PROFILE_CONTEXT_MENU_ROOT_ID);
+      this._linkProfileContextMenuProfiles = nextProfiles;
+    });
+  }
+
+  private isHttpLinkUrl(url: unknown): url is string {
+    if (typeof url !== 'string') {
+      return false;
+    }
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  private chromeLastErrorMessage(action: string) {
+    return chrome.runtime.lastError?.message || `${action} failed.`;
+  }
+
+  private createTab(properties: Record<string, unknown>) {
+    const browserTabs = typeof browser !== 'undefined' ? browser.tabs : undefined;
+    if (browserTabs?.create) {
+      return browserTabs.create(properties);
+    }
+    return new Promise<ChromeTab>((resolve, reject) => {
+      chrome.tabs.create(properties, (createdTab: unknown) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(this.chromeLastErrorMessage('tabs.create')));
+          return;
+        }
+        resolve((createdTab || {}) as ChromeTab);
+      });
+    });
+  }
+
+  private updateTab(tabId: number, properties: Record<string, unknown>) {
+    const browserTabs = typeof browser !== 'undefined' ? browser.tabs : undefined;
+    if (browserTabs?.update) {
+      return browserTabs.update(tabId, properties);
+    }
+    return new Promise<ChromeTab>((resolve, reject) => {
+      chrome.tabs.update(tabId, properties, (updatedTab: unknown) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(this.chromeLastErrorMessage('tabs.update')));
+          return;
+        }
+        resolve((updatedTab || {}) as ChromeTab);
+      });
+    });
+  }
+
+  private async refreshWebRequestHandlerBehavior() {
+    try {
+      const browserWebRequest = (typeof browser !== 'undefined' ? browser.webRequest : undefined) as {
+        handlerBehaviorChanged?: () => Promise<void>;
+      } | undefined;
+      const chromeWebRequest = chrome?.webRequest as {
+        handlerBehaviorChanged?: (callback?: () => void) => Promise<void> | void;
+      } | undefined;
+      const handlerBehaviorChanged = browserWebRequest?.handlerBehaviorChanged || chromeWebRequest?.handlerBehaviorChanged;
+      if (typeof handlerBehaviorChanged !== 'function') {
+        return;
+      }
+      if (browserWebRequest?.handlerBehaviorChanged) {
+        await browserWebRequest.handlerBehaviorChanged();
+        return;
+      }
+      await new Promise<void>((resolve, reject) => {
+        handlerBehaviorChanged.call(chromeWebRequest, () => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(this.chromeLastErrorMessage('webRequest.handlerBehaviorChanged')));
+            return;
+          }
+          resolve();
+        });
+      });
+    } catch (error) {
+      this.log.error('Refreshing webRequest handler behavior failed; continuing to open link.', error);
+    }
+  }
+
+  private async createBlankTab(sourceTab: ChromeTab | undefined) {
+    const createProperties: Record<string, unknown> = {
+      active: true,
+      url: 'about:blank'
+    };
+    if (typeof sourceTab?.id === 'number') {
+      createProperties.openerTabId = sourceTab.id;
+    }
+    try {
+      return await this.createTab(createProperties);
+    } catch (error) {
+      if (createProperties.openerTabId == null) {
+        throw error;
+      }
+      delete createProperties.openerTabId;
+      this.log.error('Creating tab with openerTabId failed; retrying without openerTabId.', error);
+      return this.createTab(createProperties);
+    }
+  }
+
+  private async openLinkInNewTabWithProfile(linkUrl: string, sourceTab: ChromeTab | undefined, profileName: string) {
+    const createdTab = await this.createBlankTab(sourceTab);
+    if (typeof createdTab.id !== 'number') {
+      throw new Error('tabs.create did not return a tab id.');
+    }
+    const tabId = createdTab.id;
+    await Promise.resolve(this.setProfileScope({
+        profileName,
+        scope: 'tab',
+        tabId
+    }));
+    await this.refreshWebRequestHandlerBehavior();
+    await this.updateTab(tabId, {
+      url: linkUrl
+    });
+  }
+
+  private _onLinkProfileContextMenuClicked(info: ChromeContextMenuClickInfo, tab: ChromeTab | undefined) {
+    const profileName = this._linkProfileContextMenuProfiles[info.menuItemId];
+    if (!profileName || !this.isHttpLinkUrl(info.linkUrl)) {
+      return;
+    }
+    const profileStillAvailable = this.linkProfileContextMenuProfiles().some((profile) => profile.name === profileName);
+    if (!profileStillAvailable) {
+      this.updateLinkProfileContextMenu();
+      return;
+    }
+    this.openLinkInNewTabWithProfile(info.linkUrl, tab, profileName).catch((error: unknown) => {
+      this.log.error('Failed to open link in new tab with profile.', error);
+    });
+  }
+
+  _setAvailableProfiles() {
+    const result = super._setAvailableProfiles();
+    return result.then((value: unknown) => {
+      this.updateLinkProfileContextMenu();
+      return value;
+    });
   }
 
   private scopeContext(args: ProfileScopeInfoArgs | ProxyRequestDetails): Required<Pick<ProfileScopeInfoArgs, 'tabId'>> & TabProfileContext {

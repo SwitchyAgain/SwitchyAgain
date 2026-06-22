@@ -1595,3 +1595,6 @@ msgstr "Karty"
 
 msgid "options_profileScopeTabsHelp"
 msgstr "Přiřazení profilů kartám jsou dočasná a zůstávají u svých karet."
+
+msgid "contextMenu_openLinkInNewTabWithProfile"
+msgstr "Otevřít odkaz na nové kartě s profilem"

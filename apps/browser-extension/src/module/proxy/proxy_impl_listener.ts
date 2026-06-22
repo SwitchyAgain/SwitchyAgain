@@ -19,6 +19,10 @@ type MatchedProxyServer = ProxyServer & {
   scheme: string;
 };
 
+type DirectProxyInfo = {
+  type: 'direct';
+};
+
 type ProxyInfo = {
   host: string;
   password?: string;
@@ -110,12 +114,15 @@ class ListenerProxyImpl extends ProxyImpl {
           }
         }
         if (Array.isArray(result)) {
-          const proxy = result[2] as MatchedProxyServer | undefined;
-          const auth = result[3] as ProxyCredentials | undefined;
-          if (proxy) {
-            return this.proxyInfo(proxy, auth);
+          const resultValue = result[0];
+          if (typeof resultValue === 'string' && resultValue.charAt(0) === '+') {
+            next = resultValue;
+            profile = OmegaPac.Profiles.byKey(next, this._options);
+            continue;
           }
-          next = result[0];
+          const proxy = result[2] as ProxyServer | undefined;
+          const auth = result[3] as ProxyCredentials | undefined;
+          return this.proxyInfoFromMatch(resultValue, proxy, auth);
         } else if (result.profileName) {
           next = OmegaPac.Profiles.nameAsKey(result.profileName);
         } else {
@@ -129,6 +136,47 @@ class ListenerProxyImpl extends ProxyImpl {
 
   onError(error: unknown) {
     return this.log.error(error);
+  }
+
+  directProxyInfo(): DirectProxyInfo {
+    return {
+      type: 'direct'
+    };
+  }
+
+  proxyInfoFromMatch(result: unknown, proxy?: ProxyServer, auth?: ProxyCredentials) {
+    if (this.isDirectResult(result, proxy)) {
+      return this.directProxyInfo();
+    }
+    const matchedProxy = this.normalizeProxyServer(proxy);
+    if (!matchedProxy) {
+      throw new Error(`Invalid proxy result: ${String(result)}`);
+    }
+    return this.proxyInfo(matchedProxy, auth);
+  }
+
+  isDirectResult(result: unknown, proxy?: ProxyServer) {
+    return result === 'DIRECT' || proxy?.scheme === 'direct';
+  }
+
+  normalizeProxyServer(proxy?: ProxyServer): MatchedProxyServer | null {
+    if (!proxy || typeof proxy.host !== 'string' || typeof proxy.scheme !== 'string') {
+      return null;
+    }
+    const port = typeof proxy.port === 'number'
+      ? proxy.port
+      : typeof proxy.port === 'string'
+        ? parseInt(proxy.port, 10)
+        : NaN;
+    if (!proxy.host || !proxy.scheme || !Number.isInteger(port) || port <= 0) {
+      return null;
+    }
+    return {
+      ...proxy,
+      host: proxy.host,
+      port,
+      scheme: proxy.scheme
+    };
   }
 
   proxyInfo(proxy: MatchedProxyServer, auth?: ProxyCredentials) {

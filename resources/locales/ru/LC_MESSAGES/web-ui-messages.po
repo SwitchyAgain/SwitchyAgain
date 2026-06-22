@@ -1638,3 +1638,6 @@ msgstr "Вкладки"
 
 msgid "options_profileScopeTabsHelp"
 msgstr "Назначения профилей вкладкам временные и остаются с этими вкладками."
+
+msgid "contextMenu_openLinkInNewTabWithProfile"
+msgstr "Открыть ссылку в новой вкладке с профилем"

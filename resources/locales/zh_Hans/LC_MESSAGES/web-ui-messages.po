@@ -1452,3 +1452,6 @@ msgstr "标签页"
 
 msgid "options_profileScopeTabsHelp"
 msgstr "标签页情景模式是临时的，并跟随对应标签页。"
+
+msgid "contextMenu_openLinkInNewTabWithProfile"
+msgstr "使用情景模式在新标签页中打开链接"
