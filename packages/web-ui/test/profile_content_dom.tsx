@@ -37,11 +37,13 @@ beforeEach(() => {
 });
 
 describe('profile content components', () => {
-  it('toggles popup visibility from profile options', () => {
+  it('toggles popup and context menu visibility from profile options', () => {
+    const onContextMenuHiddenChange = vi.fn();
     const onPopupHiddenChange = vi.fn();
 
     render(
       <ProfileShell
+        onContextMenuHiddenChange={onContextMenuHiddenChange}
         onPopupHiddenChange={onPopupHiddenChange}
         profile={{
           name: 'proxy',
@@ -53,12 +55,19 @@ describe('profile content components', () => {
 
     expect(screen.getByRole('heading', {name: 'Profile Options'})).toBeTruthy();
     expect(screen.getByText('When enabled, this profile is moved to the hidden profiles section in the popup menu.')).toBeTruthy();
+    expect(screen.getByText('When enabled, this profile is moved to the hidden profiles section in profile context menus.')).toBeTruthy();
 
-    const switchInput = screen.getByRole('switch', {name: 'Hide from popup menu'}) as HTMLInputElement;
-    expect(switchInput.checked).toBe(false);
+    const popupSwitch = screen.getByRole('switch', {name: 'Hide from popup menu'}) as HTMLInputElement;
+    expect(popupSwitch.checked).toBe(false);
 
-    fireEvent.click(switchInput);
+    fireEvent.click(popupSwitch);
     expect(onPopupHiddenChange).toHaveBeenCalledWith(true);
+
+    const contextMenuSwitch = screen.getByRole('switch', {name: 'Hide from context menu'}) as HTMLInputElement;
+    expect(contextMenuSwitch.checked).toBe(false);
+
+    fireEvent.click(contextMenuSwitch);
+    expect(onContextMenuHiddenChange).toHaveBeenCalledWith(true);
   });
 
   it('hides profile options when profile options are disabled', () => {

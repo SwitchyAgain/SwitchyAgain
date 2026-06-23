@@ -122,6 +122,23 @@ function contextMenuCapabilitiesForProfileScope(profileScopeCapabilities: Profil
   };
 }
 
+function contextMenuOptionVisible(optionKey: keyof ContextMenuOptions, profileScopeCapabilities: ProfileScopeCapabilities) {
+  switch (optionKey) {
+    case 'switchProfile':
+    case 'windowProfile':
+      return true;
+    case 'tabProfile':
+    case 'linkProfileNewTab':
+    case 'linkProfileNewWindow':
+    case 'linkProfileNewPrivateWindow':
+      return profileScopeCapabilities.tab === true;
+    case 'groupProfile':
+      return profileScopeCapabilities.group === true;
+    case 'containerProfile':
+      return profileScopeCapabilities.container === true;
+  }
+}
+
 function UiLocaleSelect({value, onChange}: {value: string; onChange: (value: string) => void}) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -540,6 +557,9 @@ export function UiSettings({
   }
 
   function ContextMenuCheckbox({fallback, messageKey, optionKey}: {fallback: string; messageKey: string; optionKey: keyof ContextMenuOptions}) {
+    if (!contextMenuOptionVisible(optionKey, profileScopeCapabilities)) {
+      return null;
+    }
     const supported = contextMenuCapabilities[optionKey] === true;
     return (
       <div className={`checkbox ${supported ? '' : 'disabled'}`}>
@@ -675,7 +695,10 @@ export function UiSettings({
             />
             <span>
               {' '}
-              {message('options_showProfileOptions', 'Show Profile Options on profile pages for hiding profiles from the popup menu.')}
+              {message(
+                'options_showProfileOptions',
+                'Show Profile Options on profile pages for hiding profiles from the popup and context menus.'
+              )}
             </span>
           </label>
         </div>
@@ -713,7 +736,7 @@ export function UiSettings({
       </section>
 
       <section className="settings-group">
-        <h3>{message('options_group_contextMenuOptions', 'Context Menu Options')}</h3>
+        <h3>{message('options_group_contextMenuOptions', 'Context Menu')}</h3>
         <ContextMenuCheckbox
           optionKey="switchProfile"
           messageKey="options_contextMenuSwitchProfile"

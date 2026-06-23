@@ -291,6 +291,7 @@ export function duplicatableProfilesFromOptions(options?: Options | null) {
 function cloneDuplicatedProfile<TProfile extends NamedProfile>(profile: TProfile, name: string): TProfile {
   const nextProfile = cloneOptions(profile);
   nextProfile.name = name;
+  delete nextProfile.hiddenInContextMenu;
   delete nextProfile.hiddenInPopup;
   delete nextProfile.revision;
   updateProfileRevision(nextProfile);

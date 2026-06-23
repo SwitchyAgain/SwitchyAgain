@@ -249,9 +249,11 @@ export type ProfileShellProps = {
   onDelete?: () => void;
   onExportRuleList?: () => void;
   onExportScript?: () => void;
+  onContextMenuHiddenChange?: (hidden: boolean) => void;
   onPopupHiddenChange?: (hidden: boolean) => void;
   onRename?: () => void;
   profile: Profile & {
+    hiddenInContextMenu?: boolean;
     hiddenInPopup?: boolean;
     syncError?: {
       reason?: string;
@@ -270,6 +272,7 @@ export function ProfileShell({
   onDelete,
   onExportRuleList,
   onExportScript,
+  onContextMenuHiddenChange,
   onPopupHiddenChange,
   onRename,
   profile,
@@ -348,6 +351,24 @@ export function ProfileShell({
             {message(
               'options_hideFromPopupMenuHelp',
               'When enabled, this profile is moved to the hidden profiles section in the popup menu.'
+            )}
+          </p>
+          <label className="profile-switch-label">
+            <input
+              type="checkbox"
+              role="switch"
+              checked={!!profile.hiddenInContextMenu}
+              onChange={(event) => onContextMenuHiddenChange?.(event.currentTarget.checked)}
+            />
+            <span className="profile-switch" aria-hidden="true">
+              <span className="profile-switch-knob" />
+            </span>
+            <span>{message('options_hideFromContextMenu', 'Hide from context menu')}</span>
+          </label>
+          <p className="help-block profile-switch-help">
+            {message(
+              'options_hideFromContextMenuHelp',
+              'When enabled, this profile is moved to the hidden profiles section in profile context menus.'
             )}
           </p>
         </section>

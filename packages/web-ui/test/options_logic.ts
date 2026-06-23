@@ -388,7 +388,7 @@ describe('options logic', () => {
     expect(duplicatableProfilesFromOptions(options).map((profile) => profile.name)).toEqual(['auto', 'pac']);
   });
 
-  it('duplicates profile options without carrying hidden popup state or stale revisions', () => {
+  it('duplicates profile options without carrying hidden menu state or stale revisions', () => {
     const revisions: string[] = [];
     (globalThis as any).OmegaPac = {
       Profiles: {
@@ -406,6 +406,7 @@ describe('options logic', () => {
             username: 'user'
           }
         },
+        hiddenInContextMenu: true,
         hiddenInPopup: true,
         name: 'proxy',
         profileType: 'FixedProfile',

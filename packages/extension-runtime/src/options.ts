@@ -272,6 +272,7 @@ type AvailableProfile = {
   color?: unknown;
   defaultProfileName?: unknown;
   desc?: string | null;
+  hiddenInContextMenu?: boolean;
   hiddenInPopup?: boolean;
   name?: unknown;
   profileType?: unknown;
@@ -1165,6 +1166,7 @@ class Options {
           profileType: p.profileType,
           color: p.color,
           desc: this.printProfile(p),
+          hiddenInContextMenu: p.hiddenInContextMenu ? true : void 0,
           hiddenInPopup: p.hiddenInPopup ? true : void 0,
           builtin: p.builtin ? true : void 0
         };

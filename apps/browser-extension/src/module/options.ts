@@ -11,6 +11,8 @@ const OmegaPromise = OmegaTarget.Promise;
 const LINK_PROFILE_CONTEXT_MENU_ROOT_ID = 'openLinkInNewTabWithProfile';
 const SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID = 'switchProfile';
 const SWITCH_PROFILE_CONTEXT_MENU_ITEM_PREFIX = `${SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID}:`;
+const SWITCH_PROFILE_HIDDEN_CONTEXT_MENU_ROOT_ID = `${SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID}:hidden`;
+const SWITCH_PROFILE_HIDDEN_CONTEXT_MENU_ITEM_PREFIX = `${SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID}:hidden:`;
 const TAB_PROFILE_CONTEXT_MENU_ROOT_ID = 'useProfileForThisTab';
 const TAB_PROFILE_CONTEXT_MENU_ITEM_PREFIX = `${TAB_PROFILE_CONTEXT_MENU_ROOT_ID}:`;
 const CLEAR_TAB_PROFILE_CONTEXT_MENU_ID = `${TAB_PROFILE_CONTEXT_MENU_ROOT_ID}:clear`;
@@ -54,6 +56,10 @@ type BadgeOptions = {
 
 type Profile = ProxyProfile;
 type ContextMenuProfile = Profile & {name: string};
+type ContextMenuProfileGroups = {
+  hidden: ContextMenuProfile[];
+  visible: ContextMenuProfile[];
+};
 type LinkProfileContextMenuTarget = 'tab' | 'window' | 'privateWindow';
 type LinkProfileContextMenuSelection = {
   profileName: string;
@@ -914,6 +920,19 @@ class ChromeOptions extends OmegaTarget.Options {
       .sort((a, b) => this.compareProfile(a, b));
   }
 
+  private splitContextMenuProfiles(profiles: ContextMenuProfile[], activeProfileName?: string): ContextMenuProfileGroups {
+    const visible: ContextMenuProfile[] = [];
+    const hidden: ContextMenuProfile[] = [];
+    for (const profile of profiles) {
+      if (profile.hiddenInContextMenu === true && profile.name !== activeProfileName) {
+        hidden.push(profile);
+      } else {
+        visible.push(profile);
+      }
+    }
+    return {hidden, visible};
+  }
+
   private removeContextMenuItems(ids: string[], callback: () => void) {
     const contextMenus = chrome.contextMenus;
     if (!ids.length || contextMenus == null) {
@@ -1004,6 +1023,7 @@ class ChromeOptions extends OmegaTarget.Options {
       const nextIds: string[] = [];
       const nextSelections: Record<string, LinkProfileContextMenuSelection> = {};
       for (const root of roots) {
+        const profileGroups = this.splitContextMenuProfiles(profiles);
         this.createContextMenuItem({
           id: root.id,
           title: chrome.i18n.getMessage(root.titleKey) || root.fallbackTitle,
@@ -1011,7 +1031,7 @@ class ChromeOptions extends OmegaTarget.Options {
           targetUrlPatterns: WEB_LINK_PATTERNS
         });
         nextIds.push(root.id);
-        profiles.forEach((profile, index) => {
+        profileGroups.visible.forEach((profile, index) => {
           const id = `${root.itemPrefix}${index}`;
           nextIds.push(id);
           nextSelections[id] = {
@@ -1027,6 +1047,34 @@ class ChromeOptions extends OmegaTarget.Options {
             targetUrlPatterns: WEB_LINK_PATTERNS
           });
         });
+        if (profileGroups.hidden.length > 0) {
+          const hiddenRootId = `${root.id}:hidden`;
+          const hiddenItemPrefix = `${root.itemPrefix}hidden:`;
+          nextIds.push(hiddenRootId);
+          this.createContextMenuItem({
+            id: hiddenRootId,
+            parentId: root.id,
+            title: chrome.i18n.getMessage('popup_hiddenProfilesMenu') || 'Hidden',
+            contexts: ['link'],
+            targetUrlPatterns: WEB_LINK_PATTERNS
+          });
+          profileGroups.hidden.forEach((profile, index) => {
+            const id = `${hiddenItemPrefix}${index}`;
+            nextIds.push(id);
+            nextSelections[id] = {
+              profileName: profile.name,
+              target: root.target
+            };
+            this.createContextMenuItem({
+              id,
+              icons: this.contextMenuIconForProfile(profile),
+              parentId: hiddenRootId,
+              title: this.localizedProfileName(profile),
+              contexts: ['link'],
+              targetUrlPatterns: WEB_LINK_PATTERNS
+            });
+          });
+        }
       }
       this._linkProfileContextMenuIds = nextIds;
       this._linkProfileContextMenuSelections = nextSelections;
@@ -1057,7 +1105,8 @@ class ChromeOptions extends OmegaTarget.Options {
       const nextIds = [SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID];
       const nextProfiles: Record<string, string> = {};
       const useIcons = this.contextMenuItemIconsSupported();
-      profiles.forEach((profile, index) => {
+      const profileGroups = this.splitContextMenuProfiles(profiles, this._currentProfileName);
+      profileGroups.visible.forEach((profile, index) => {
         const id = `${SWITCH_PROFILE_CONTEXT_MENU_ITEM_PREFIX}${index}`;
         const checked = profile.name === this._currentProfileName;
         nextIds.push(id);
@@ -1084,6 +1133,41 @@ class ChromeOptions extends OmegaTarget.Options {
           radioItem
         );
       });
+      if (profileGroups.hidden.length > 0) {
+        nextIds.push(SWITCH_PROFILE_HIDDEN_CONTEXT_MENU_ROOT_ID);
+        this.createContextMenuItem({
+          id: SWITCH_PROFILE_HIDDEN_CONTEXT_MENU_ROOT_ID,
+          parentId: SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID,
+          title: chrome.i18n.getMessage('popup_hiddenProfilesMenu') || 'Hidden',
+          contexts: ['page'],
+          documentUrlPatterns: WEB_LINK_PATTERNS
+        });
+        profileGroups.hidden.forEach((profile, index) => {
+          const id = `${SWITCH_PROFILE_HIDDEN_CONTEXT_MENU_ITEM_PREFIX}${index}`;
+          nextIds.push(id);
+          nextProfiles[id] = profile.name;
+          const baseItem = {
+            id,
+            parentId: SWITCH_PROFILE_HIDDEN_CONTEXT_MENU_ROOT_ID,
+            title: this.localizedProfileName(profile),
+            contexts: ['page'],
+            documentUrlPatterns: WEB_LINK_PATTERNS
+          };
+          const radioItem = {
+            ...baseItem,
+            type: 'radio'
+          };
+          this.createContextMenuItem(
+            useIcons
+              ? {
+                  ...baseItem,
+                  icons: this.contextMenuIconForProfile(profile)
+                }
+              : radioItem,
+            radioItem
+          );
+        });
+      }
       this._switchProfileContextMenuIds = nextIds;
       this._switchProfileContextMenuProfiles = nextProfiles;
     });
@@ -1196,6 +1280,7 @@ class ChromeOptions extends OmegaTarget.Options {
         const nextSelections: Record<string, ProfileScopeContextMenuSelection> = {};
         const useIcons = this.contextMenuItemIconsSupported();
         for (const target of targets) {
+          const profileGroups = this.splitContextMenuProfiles(profiles, target.activeProfileName);
           nextIds.push(target.rootId);
           this.createContextMenuItem({
             id: target.rootId,
@@ -1214,7 +1299,7 @@ class ChromeOptions extends OmegaTarget.Options {
               documentUrlPatterns: WEB_LINK_PATTERNS
             });
           }
-          profiles.forEach((profile, index) => {
+          profileGroups.visible.forEach((profile, index) => {
             const id = `${target.itemPrefix}${index}`;
             const checked = profile.name === target.activeProfileName;
             nextIds.push(id);
@@ -1244,6 +1329,46 @@ class ChromeOptions extends OmegaTarget.Options {
               radioItem
             );
           });
+          if (profileGroups.hidden.length > 0) {
+            const hiddenRootId = `${target.rootId}:hidden`;
+            const hiddenItemPrefix = `${target.itemPrefix}hidden:`;
+            nextIds.push(hiddenRootId);
+            this.createContextMenuItem({
+              id: hiddenRootId,
+              parentId: target.rootId,
+              title: chrome.i18n.getMessage('popup_hiddenProfilesMenu') || 'Hidden',
+              contexts: ['page'],
+              documentUrlPatterns: WEB_LINK_PATTERNS
+            });
+            profileGroups.hidden.forEach((profile, index) => {
+              const id = `${hiddenItemPrefix}${index}`;
+              nextIds.push(id);
+              nextSelections[id] = {
+                ...target.setArgs,
+                profileName: profile.name
+              };
+              const baseItem = {
+                id,
+                parentId: hiddenRootId,
+                title: this.localizedProfileName(profile),
+                contexts: ['page'],
+                documentUrlPatterns: WEB_LINK_PATTERNS
+              };
+              const radioItem = {
+                ...baseItem,
+                type: 'radio'
+              };
+              this.createContextMenuItem(
+                useIcons
+                  ? {
+                      ...baseItem,
+                      icons: this.contextMenuIconForProfile(profile)
+                    }
+                  : radioItem,
+                radioItem
+              );
+            });
+          }
         }
         this._profileScopeContextMenuIds = nextIds;
         this._profileScopeContextMenuSelections = nextSelections;

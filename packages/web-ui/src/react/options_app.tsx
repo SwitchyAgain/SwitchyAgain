@@ -1584,6 +1584,15 @@ export function OptionsApp() {
               onDelete={() => requestDeleteProfile(profile)}
               onExportRuleList={() => switchProfile && exportRuleList(switchProfile.name)}
               onExportScript={() => exportScript(profile.name)}
+              onContextMenuHiddenChange={(hidden) =>
+                updateProfile(profile.name, (nextProfile) => {
+                  if (hidden) {
+                    nextProfile.hiddenInContextMenu = true;
+                  } else {
+                    delete nextProfile.hiddenInContextMenu;
+                  }
+                })
+              }
               onPopupHiddenChange={(hidden) =>
                 updateProfile(profile.name, (nextProfile) => {
                   if (hidden) {

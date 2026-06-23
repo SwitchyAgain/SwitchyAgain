@@ -77,7 +77,7 @@ describe('ui settings component', () => {
       })
     );
 
-    fireEvent.click(screen.getByLabelText('Show Profile Options on profile pages for hiding profiles from the popup menu.'));
+    fireEvent.click(screen.getByLabelText('Show Profile Options on profile pages for hiding profiles from the popup and context menus.'));
     expect(onOptionsChange).toHaveBeenLastCalledWith(
       expect.objectContaining({
         '-showProfileOptions': true
@@ -223,6 +223,38 @@ describe('ui settings component', () => {
       ],
       method: 'patch'
     });
+  });
+
+  it('hides unsupported context menu options', async () => {
+    const sendMessage = vi.fn((request, callback) => {
+      if (request.method === 'getAll') {
+        callback({result: optionsFixture()});
+        return;
+      }
+      if (request.method === 'getState') {
+        callback({
+          result: {
+            profileScopeCapabilities: {
+              window: true
+            },
+            proxyDnsCapabilities: {}
+          }
+        });
+      }
+    });
+    installBackground(sendMessage);
+
+    render(<UiSettings />);
+
+    await screen.findByRole('heading', {name: 'Context Menu'});
+    expect(screen.getByLabelText('Show Switch Profile')).toBeTruthy();
+    expect(screen.getByLabelText('Show normal/private default switching')).toBeTruthy();
+    expect(screen.queryByLabelText('Show tab profile switching')).toBeNull();
+    expect(screen.queryByLabelText('Show tab group profile switching')).toBeNull();
+    expect(screen.queryByLabelText('Show container profile switching')).toBeNull();
+    expect(screen.queryByLabelText('Show Open Link in New Tab with Profile')).toBeNull();
+    expect(screen.queryByLabelText('Show Open Link in New Window with Profile')).toBeNull();
+    expect(screen.queryByLabelText('Show Open Link in New Private Window with Profile')).toBeNull();
   });
 
   it('shows standalone load errors instead of staying on the loading state', async () => {

@@ -9,6 +9,7 @@ export type Profile = NamedProfile & {
   attachedToProfileName?: string;
   defaultProfileName?: string;
   desc?: string;
+  hiddenInContextMenu?: boolean;
   hiddenInPopup?: boolean;
   role?: string;
   validResultProfiles?: string[];

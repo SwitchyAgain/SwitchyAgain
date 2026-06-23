@@ -39,6 +39,7 @@ export type ProxyProfile = Record<string, unknown> & {
   bypassList?: ProxyCondition[];
   defaultProfileName?: string;
   fallbackProxy?: ProxyServer;
+  hiddenInContextMenu?: boolean;
   name?: string;
   pacScript?: string;
   pacUrl?: string;
