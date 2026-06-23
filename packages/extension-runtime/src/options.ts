@@ -64,6 +64,17 @@ type ProfileScopeAssignments = {
   privateDefaultProfileName?: string;
 };
 
+type ContextMenuOptions = {
+  containerProfile: boolean;
+  groupProfile: boolean;
+  linkProfileNewPrivateWindow: boolean;
+  linkProfileNewTab: boolean;
+  linkProfileNewWindow: boolean;
+  switchProfile: boolean;
+  tabProfile: boolean;
+  windowProfile: boolean;
+};
+
 function isRecordValue(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object';
 }
@@ -97,6 +108,20 @@ function normalizeProfileScopeAssignments(value: unknown): ProfileScopeAssignmen
   return assignments;
 }
 
+function normalizeContextMenuOptions(value: unknown): ContextMenuOptions {
+  const raw = isRecordValue(value) ? value : {};
+  return {
+    switchProfile: raw.switchProfile !== false,
+    tabProfile: raw.tabProfile === true,
+    groupProfile: raw.groupProfile === true,
+    containerProfile: raw.containerProfile === true,
+    windowProfile: raw.windowProfile === true,
+    linkProfileNewTab: raw.linkProfileNewTab === true,
+    linkProfileNewWindow: raw.linkProfileNewWindow === true,
+    linkProfileNewPrivateWindow: raw.linkProfileNewPrivateWindow === true
+  };
+}
+
 function profileScopeSettingsEqual(left: ProfileScopeSettings, right: unknown) {
   if (!isRecordValue(right)) {
     return false;
@@ -114,6 +139,31 @@ function profileScopeAssignmentsEqual(left: ProfileScopeAssignments, right: unkn
     return false;
   }
   return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function contextMenuOptionsEqual(left: ContextMenuOptions, right: unknown) {
+  if (!isRecordValue(right)) {
+    return false;
+  }
+  const validKeys = new Set([
+    'switchProfile',
+    'tabProfile',
+    'groupProfile',
+    'containerProfile',
+    'windowProfile',
+    'linkProfileNewTab',
+    'linkProfileNewWindow',
+    'linkProfileNewPrivateWindow'
+  ]);
+  return left.switchProfile === right.switchProfile &&
+    left.tabProfile === right.tabProfile &&
+    left.groupProfile === right.groupProfile &&
+    left.containerProfile === right.containerProfile &&
+    left.windowProfile === right.windowProfile &&
+    left.linkProfileNewTab === right.linkProfileNewTab &&
+    left.linkProfileNewWindow === right.linkProfileNewWindow &&
+    left.linkProfileNewPrivateWindow === right.linkProfileNewPrivateWindow &&
+    Object.keys(right).every((key) => validKeys.has(key));
 }
 
 function replaceProfileScopeAssignmentRef(assignments: ProfileScopeAssignments, fromName: string, toName: string) {
@@ -680,6 +730,11 @@ class Options {
         changes['-profileScopeAssignments'] = profileScopeAssignments;
         options['-profileScopeAssignments'] = profileScopeAssignments;
       }
+      const contextMenuOptions = normalizeContextMenuOptions(options['-contextMenuOptions']);
+      if (!contextMenuOptionsEqual(contextMenuOptions, options['-contextMenuOptions'])) {
+        changes['-contextMenuOptions'] = contextMenuOptions;
+        options['-contextMenuOptions'] = contextMenuOptions;
+      }
       return Promise.resolve([options, changes]);
     } else {
       return Promise.reject(new Error("Invalid schemaVersion " + version + "!"));
@@ -879,6 +934,9 @@ class Options {
       }
       if (!currentProfileAffected && (key === '-profileScopes' || key === '-profileScopeAssignments')) {
         currentProfileAffected = 'changed';
+      }
+      if (key === '-contextMenuOptions') {
+        profilesChanged = true;
       }
     }
     switch (currentProfileAffected) {

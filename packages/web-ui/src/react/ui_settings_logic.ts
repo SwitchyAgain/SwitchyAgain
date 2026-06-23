@@ -4,6 +4,7 @@ export const UI_KEYS = [
   '-uiLocale',
   '-uiTheme',
   '-profileScopes',
+  '-contextMenuOptions',
   '-startupProfileName',
   '-showConditionTypes',
   '-enableQuickSwitch',

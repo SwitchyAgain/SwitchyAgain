@@ -56,6 +56,16 @@ export type OptionsData = {
   [key: string]: unknown;
   '-addConditionsToBottom'?: boolean;
   '-confirmDeletion'?: boolean;
+  '-contextMenuOptions'?: {
+    containerProfile?: boolean;
+    groupProfile?: boolean;
+    linkProfileNewPrivateWindow?: boolean;
+    linkProfileNewTab?: boolean;
+    linkProfileNewWindow?: boolean;
+    switchProfile?: boolean;
+    tabProfile?: boolean;
+    windowProfile?: boolean;
+  };
   '-downloadInterval'?: number | string;
   '-enableQuickSwitch'?: boolean;
   '-exportLegacyRuleList'?: boolean;

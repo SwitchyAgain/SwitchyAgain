@@ -14,6 +14,16 @@ export default function defaultOptions() {
     '-profileScopeAssignments': {
       containers: {}
     },
+    '-contextMenuOptions': {
+      switchProfile: true,
+      tabProfile: false,
+      groupProfile: false,
+      containerProfile: false,
+      windowProfile: false,
+      linkProfileNewTab: false,
+      linkProfileNewWindow: false,
+      linkProfileNewPrivateWindow: false
+    },
     '-startupProfileName': '',
     '-quickSwitchProfiles': [] as string[],
     '-revertProxyChanges': true,

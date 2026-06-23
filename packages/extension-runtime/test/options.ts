@@ -160,6 +160,27 @@ describe('Options', function() {
         assert.strictEqual(changes['-profileScopes'], undefined);
       });
     });
+
+    it('should add default context menu options during upgrade', function() {
+      const options = Object.create(Options.prototype);
+      return options.upgrade({
+        schemaVersion: 3,
+        '-uiLocale': 'en',
+        '-uiTheme': 'light'
+      }).then(([upgraded, changes]: any[]) => {
+        assert.deepStrictEqual(upgraded['-contextMenuOptions'], {
+          switchProfile: true,
+          tabProfile: false,
+          groupProfile: false,
+          containerProfile: false,
+          windowProfile: false,
+          linkProfileNewTab: false,
+          linkProfileNewWindow: false,
+          linkProfileNewPrivateWindow: false
+        });
+        assert.strictEqual(changes['-contextMenuOptions'], upgraded['-contextMenuOptions']);
+      });
+    });
   });
 
   describe('#setExternalProfile', function() {

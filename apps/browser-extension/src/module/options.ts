@@ -75,6 +75,7 @@ const LINK_PROFILE_CONTEXT_MENU_ROOTS: Array<{
   fallbackTitle: string;
   id: string;
   itemPrefix: string;
+  optionKey: keyof ContextMenuOptions;
   target: LinkProfileContextMenuTarget;
   titleKey: string;
 }> = [
@@ -82,6 +83,7 @@ const LINK_PROFILE_CONTEXT_MENU_ROOTS: Array<{
     fallbackTitle: 'Open Link in New Tab with Profile',
     id: LINK_PROFILE_CONTEXT_MENU_ROOT_ID,
     itemPrefix: `${LINK_PROFILE_CONTEXT_MENU_ROOT_ID}:`,
+    optionKey: 'linkProfileNewTab',
     target: 'tab',
     titleKey: 'contextMenu_openLinkInNewTabWithProfile'
   },
@@ -89,6 +91,7 @@ const LINK_PROFILE_CONTEXT_MENU_ROOTS: Array<{
     fallbackTitle: 'Open Link in New Window with Profile',
     id: 'openLinkInNewWindowWithProfile',
     itemPrefix: 'openLinkInNewWindowWithProfile:',
+    optionKey: 'linkProfileNewWindow',
     target: 'window',
     titleKey: 'contextMenu_openLinkInNewWindowWithProfile'
   },
@@ -96,6 +99,7 @@ const LINK_PROFILE_CONTEXT_MENU_ROOTS: Array<{
     fallbackTitle: 'Open Link in New Private Window with Profile',
     id: 'openLinkInNewPrivateWindowWithProfile',
     itemPrefix: 'openLinkInNewPrivateWindowWithProfile:',
+    optionKey: 'linkProfileNewPrivateWindow',
     target: 'privateWindow',
     titleKey: 'contextMenu_openLinkInNewPrivateWindowWithProfile'
   }
@@ -148,6 +152,17 @@ type ProfileScopeSettings = {
   group: boolean;
   tab: boolean;
   window: boolean;
+};
+
+type ContextMenuOptions = {
+  containerProfile: boolean;
+  groupProfile: boolean;
+  linkProfileNewPrivateWindow: boolean;
+  linkProfileNewTab: boolean;
+  linkProfileNewWindow: boolean;
+  switchProfile: boolean;
+  tabProfile: boolean;
+  windowProfile: boolean;
 };
 
 type ProfileScopeAssignments = {
@@ -286,6 +301,33 @@ function normalizeProfileScopeAssignments(value: unknown): ProfileScopeAssignmen
     assignments.privateDefaultProfileName = rawAssignments.privateDefaultProfileName;
   }
   return assignments;
+}
+
+function normalizeContextMenuOptions(value: unknown, capabilities?: ContextMenuOptions): ContextMenuOptions {
+  const raw = isRecordValue(value) ? value : {};
+  const options = {
+    switchProfile: raw.switchProfile !== false,
+    tabProfile: raw.tabProfile === true,
+    groupProfile: raw.groupProfile === true,
+    containerProfile: raw.containerProfile === true,
+    windowProfile: raw.windowProfile === true,
+    linkProfileNewTab: raw.linkProfileNewTab === true,
+    linkProfileNewWindow: raw.linkProfileNewWindow === true,
+    linkProfileNewPrivateWindow: raw.linkProfileNewPrivateWindow === true
+  };
+  if (!capabilities) {
+    return options;
+  }
+  return {
+    switchProfile: options.switchProfile && capabilities.switchProfile,
+    tabProfile: options.tabProfile && capabilities.tabProfile,
+    groupProfile: options.groupProfile && capabilities.groupProfile,
+    containerProfile: options.containerProfile && capabilities.containerProfile,
+    windowProfile: options.windowProfile && capabilities.windowProfile,
+    linkProfileNewTab: options.linkProfileNewTab && capabilities.linkProfileNewTab,
+    linkProfileNewWindow: options.linkProfileNewWindow && capabilities.linkProfileNewWindow,
+    linkProfileNewPrivateWindow: options.linkProfileNewPrivateWindow && capabilities.linkProfileNewPrivateWindow
+  };
 }
 
 function isFirefoxContainerId(cookieStoreId?: string): cookieStoreId is string {
@@ -738,6 +780,24 @@ class ChromeOptions extends OmegaTarget.Options {
     return normalizeProfileScopeAssignments(this._options['-profileScopeAssignments']);
   }
 
+  private contextMenuCapabilities(): ContextMenuOptions {
+    const capabilities = this.profileScopeCapabilities();
+    return {
+      switchProfile: true,
+      tabProfile: capabilities.tab,
+      groupProfile: capabilities.group,
+      containerProfile: capabilities.container,
+      windowProfile: capabilities.window,
+      linkProfileNewTab: capabilities.tab,
+      linkProfileNewWindow: capabilities.tab,
+      linkProfileNewPrivateWindow: capabilities.tab
+    };
+  }
+
+  private contextMenuOptions() {
+    return normalizeContextMenuOptions(this._options['-contextMenuOptions'], this.contextMenuCapabilities());
+  }
+
   private validProfileName(profileName?: string) {
     return profileName && OmegaPac.Profiles.byName(profileName, this._options) ? profileName : undefined;
   }
@@ -834,6 +894,9 @@ class ChromeOptions extends OmegaTarget.Options {
     if (!chrome?.contextMenus || !chrome?.tabs || !chrome?.i18n?.getMessage) {
       return [];
     }
+    if (!this.contextMenuOptions().switchProfile) {
+      return [];
+    }
     const profiles: Profile[] = [];
     OmegaPac.Profiles.each(this._options, (_key: string, profile: Profile) => {
       profiles.push(profile);
@@ -928,7 +991,9 @@ class ChromeOptions extends OmegaTarget.Options {
     }
     this.ensureLinkProfileContextMenuClickListener();
     const token = ++this._linkProfileContextMenuRefreshToken;
-    const profiles = this.linkProfileContextMenuProfiles();
+    const contextMenuOptions = this.contextMenuOptions();
+    const roots = LINK_PROFILE_CONTEXT_MENU_ROOTS.filter((root) => contextMenuOptions[root.optionKey]);
+    const profiles = roots.length ? this.linkProfileContextMenuProfiles() : [];
     const oldIds = this._linkProfileContextMenuIds;
     this._linkProfileContextMenuIds = [];
     this._linkProfileContextMenuSelections = {};
@@ -938,7 +1003,7 @@ class ChromeOptions extends OmegaTarget.Options {
       }
       const nextIds: string[] = [];
       const nextSelections: Record<string, LinkProfileContextMenuSelection> = {};
-      for (const root of LINK_PROFILE_CONTEXT_MENU_ROOTS) {
+      for (const root of roots) {
         this.createContextMenuItem({
           id: root.id,
           title: chrome.i18n.getMessage(root.titleKey) || root.fallbackTitle,
@@ -1036,8 +1101,9 @@ class ChromeOptions extends OmegaTarget.Options {
       tabId: tab.id,
       windowId: tab.windowId
     });
+    const contextMenuOptions = this.contextMenuOptions();
     const targets: ProfileScopeContextMenuTarget[] = [];
-    if (profileScope.enabled.tab && profileScope.tabId != null) {
+    if (contextMenuOptions.tabProfile && profileScope.enabled.tab && profileScope.tabId != null) {
       targets.push({
         activeProfileName: profileScope.tabProfileName,
         clearId: CLEAR_TAB_PROFILE_CONTEXT_MENU_ID,
@@ -1051,7 +1117,7 @@ class ChromeOptions extends OmegaTarget.Options {
         titleKey: 'contextMenu_useProfileForThisTab'
       });
     }
-    if (profileScope.enabled.group && profileScope.groupId != null) {
+    if (contextMenuOptions.groupProfile && profileScope.enabled.group && profileScope.groupId != null) {
       targets.push({
         activeProfileName: profileScope.groupProfileName,
         clearId: CLEAR_GROUP_PROFILE_CONTEXT_MENU_ID,
@@ -1066,7 +1132,7 @@ class ChromeOptions extends OmegaTarget.Options {
         titleKey: 'contextMenu_useProfileForThisTabGroup'
       });
     }
-    if (profileScope.enabled.container && profileScope.isContainer && profileScope.cookieStoreId) {
+    if (contextMenuOptions.containerProfile && profileScope.enabled.container && profileScope.isContainer && profileScope.cookieStoreId) {
       targets.push({
         activeProfileName: profileScope.containerProfileName,
         clearId: CLEAR_CONTAINER_PROFILE_CONTEXT_MENU_ID,
@@ -1080,7 +1146,7 @@ class ChromeOptions extends OmegaTarget.Options {
         titleKey: 'contextMenu_useProfileForThisContainer'
       });
     }
-    if (profileScope.enabled.window) {
+    if (contextMenuOptions.windowProfile && profileScope.enabled.window) {
       const privateWindow = profileScope.incognito;
       targets.push({
         activeProfileName: profileScope.windowProfileName,

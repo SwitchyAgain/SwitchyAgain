@@ -39,6 +39,17 @@ type ProfileScopeCapabilities = {
 
 type ProfileScopeKey = keyof ProfileScopeCapabilities;
 
+type ContextMenuOptions = {
+  containerProfile: boolean;
+  groupProfile: boolean;
+  linkProfileNewPrivateWindow: boolean;
+  linkProfileNewTab: boolean;
+  linkProfileNewWindow: boolean;
+  switchProfile: boolean;
+  tabProfile: boolean;
+  windowProfile: boolean;
+};
+
 const DEFAULT_PROFILE_SCOPE_CAPABILITIES: ProfileScopeCapabilities = {
   container: false,
   group: false,
@@ -79,6 +90,35 @@ function profileScopesForOptions(options?: Options | null): Required<ProfileScop
     group: scopes.group === true,
     container: scopes.container === true,
     window: scopes.window === true
+  };
+}
+
+function contextMenuOptionsForOptions(options?: Options | null): ContextMenuOptions {
+  const raw = options?.['-contextMenuOptions'];
+  const contextMenuOptions = raw && typeof raw === 'object' ? (raw as Partial<ContextMenuOptions>) : {};
+  return {
+    switchProfile: contextMenuOptions.switchProfile !== false,
+    tabProfile: contextMenuOptions.tabProfile === true,
+    groupProfile: contextMenuOptions.groupProfile === true,
+    containerProfile: contextMenuOptions.containerProfile === true,
+    windowProfile: contextMenuOptions.windowProfile === true,
+    linkProfileNewTab: contextMenuOptions.linkProfileNewTab === true,
+    linkProfileNewWindow: contextMenuOptions.linkProfileNewWindow === true,
+    linkProfileNewPrivateWindow: contextMenuOptions.linkProfileNewPrivateWindow === true
+  };
+}
+
+function contextMenuCapabilitiesForProfileScope(profileScopeCapabilities: ProfileScopeCapabilities): ContextMenuOptions {
+  const tabSupported = profileScopeCapabilities.tab === true;
+  return {
+    switchProfile: true,
+    tabProfile: tabSupported,
+    groupProfile: profileScopeCapabilities.group === true,
+    containerProfile: profileScopeCapabilities.container === true,
+    windowProfile: profileScopeCapabilities.window === true,
+    linkProfileNewTab: tabSupported,
+    linkProfileNewWindow: tabSupported,
+    linkProfileNewPrivateWindow: tabSupported
   };
 }
 
@@ -292,6 +332,16 @@ export function UiSettings({
     }));
   }
 
+  function updateContextMenuOption(key: keyof ContextMenuOptions, enabled: boolean) {
+    updateOptions((current) => ({
+      ...current,
+      '-contextMenuOptions': {
+        ...contextMenuOptionsForOptions(current),
+        [key]: enabled
+      }
+    }));
+  }
+
   function updateQuickSwitchProfiles(profiles: string[]) {
     updateOption('-quickSwitchProfiles', profiles);
   }
@@ -413,6 +463,8 @@ export function UiSettings({
   const quickSwitchProfiles = quickSwitchProfileNames(draftOptions['-quickSwitchProfiles']);
   const notCycledProfiles = notCycledProfileNames(allProfiles, quickSwitchProfiles);
   const profileScopes = profileScopesForOptions(draftOptions);
+  const contextMenuOptions = contextMenuOptionsForOptions(draftOptions);
+  const contextMenuCapabilities = contextMenuCapabilitiesForProfileScope(profileScopeCapabilities);
   const socks5LocalDnsSupported = proxyDnsCapabilities.socks5 === true;
 
   function QuickSwitchList({enabled, names}: {enabled: boolean; names: string[]}) {
@@ -483,6 +535,23 @@ export function UiSettings({
           <span> {message(messageKey, fallback)}</span>
         </label>
         <p className="help-block">{message(helpKey, helpFallback)}</p>
+      </div>
+    );
+  }
+
+  function ContextMenuCheckbox({fallback, messageKey, optionKey}: {fallback: string; messageKey: string; optionKey: keyof ContextMenuOptions}) {
+    const supported = contextMenuCapabilities[optionKey] === true;
+    return (
+      <div className={`checkbox ${supported ? '' : 'disabled'}`}>
+        <label>
+          <input
+            type="checkbox"
+            checked={supported && contextMenuOptions[optionKey] === true}
+            disabled={!supported}
+            onChange={(event) => updateContextMenuOption(optionKey, event.currentTarget.checked)}
+          />
+          <span> {message(messageKey, fallback)}</span>
+        </label>
       </div>
     );
   }
@@ -641,6 +710,50 @@ export function UiSettings({
             <span> {message('options_showSocks5LocalDnsOption', 'Show SOCKS5 local DNS option. Firefox only.')}</span>
           </label>
         </div>
+      </section>
+
+      <section className="settings-group">
+        <h3>{message('options_group_contextMenuOptions', 'Context Menu Options')}</h3>
+        <ContextMenuCheckbox
+          optionKey="switchProfile"
+          messageKey="options_contextMenuSwitchProfile"
+          fallback="Show Switch Profile"
+        />
+        <ContextMenuCheckbox
+          optionKey="tabProfile"
+          messageKey="options_contextMenuTabProfile"
+          fallback="Show tab profile switching"
+        />
+        <ContextMenuCheckbox
+          optionKey="groupProfile"
+          messageKey="options_contextMenuGroupProfile"
+          fallback="Show tab group profile switching"
+        />
+        <ContextMenuCheckbox
+          optionKey="containerProfile"
+          messageKey="options_contextMenuContainerProfile"
+          fallback="Show container profile switching"
+        />
+        <ContextMenuCheckbox
+          optionKey="windowProfile"
+          messageKey="options_contextMenuWindowProfile"
+          fallback="Show normal/private default switching"
+        />
+        <ContextMenuCheckbox
+          optionKey="linkProfileNewTab"
+          messageKey="options_contextMenuOpenLinkInNewTabWithProfile"
+          fallback="Show Open Link in New Tab with Profile"
+        />
+        <ContextMenuCheckbox
+          optionKey="linkProfileNewWindow"
+          messageKey="options_contextMenuOpenLinkInNewWindowWithProfile"
+          fallback="Show Open Link in New Window with Profile"
+        />
+        <ContextMenuCheckbox
+          optionKey="linkProfileNewPrivateWindow"
+          messageKey="options_contextMenuOpenLinkInNewPrivateWindowWithProfile"
+          fallback="Show Open Link in New Private Window with Profile"
+        />
       </section>
 
       <section className="settings-group">
