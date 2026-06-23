@@ -1598,3 +1598,9 @@ msgstr "Přiřazení profilů kartám jsou dočasná a zůstávají u svých kar
 
 msgid "contextMenu_openLinkInNewTabWithProfile"
 msgstr "Otevřít odkaz na nové kartě s profilem"
+
+msgid "contextMenu_openLinkInNewWindowWithProfile"
+msgstr "Otevřít odkaz v novém okně s profilem"
+
+msgid "contextMenu_openLinkInNewPrivateWindowWithProfile"
+msgstr "Otevřít odkaz v novém anonymním okně s profilem"

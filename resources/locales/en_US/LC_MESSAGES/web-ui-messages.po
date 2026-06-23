@@ -1587,3 +1587,9 @@ msgstr "Tab profile assignments are temporary and stay with their tabs."
 
 msgid "contextMenu_openLinkInNewTabWithProfile"
 msgstr "Open Link in New Tab with Profile"
+
+msgid "contextMenu_openLinkInNewWindowWithProfile"
+msgstr "Open Link in New Window with Profile"
+
+msgid "contextMenu_openLinkInNewPrivateWindowWithProfile"
+msgstr "Open Link in New Private Window with Profile"

@@ -1659,3 +1659,9 @@ msgstr "Las asignaciones de perfiles de pestañas son temporales y permanecen co
 
 msgid "contextMenu_openLinkInNewTabWithProfile"
 msgstr "Abrir enlace en nueva pestaña con perfil"
+
+msgid "contextMenu_openLinkInNewWindowWithProfile"
+msgstr "Abrir enlace en nueva ventana con perfil"
+
+msgid "contextMenu_openLinkInNewPrivateWindowWithProfile"
+msgstr "Abrir enlace en nueva ventana privada con perfil"

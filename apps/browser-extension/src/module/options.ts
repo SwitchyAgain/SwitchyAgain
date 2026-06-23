@@ -9,7 +9,6 @@ const OmegaPac = OmegaTarget.OmegaPac;
 const OmegaPromise = OmegaTarget.Promise;
 
 const LINK_PROFILE_CONTEXT_MENU_ROOT_ID = 'openLinkInNewTabWithProfile';
-const LINK_PROFILE_CONTEXT_MENU_ITEM_PREFIX = `${LINK_PROFILE_CONTEXT_MENU_ROOT_ID}:`;
 const WEB_LINK_PATTERNS = ['http://*/*', 'https://*/*'];
 const PROFILE_MENU_ORDER: Record<string, number> = {
   FixedProfile: -2000,
@@ -37,7 +36,42 @@ type BadgeOptions = {
 
 type Profile = ProxyProfile;
 type ContextMenuProfile = Profile & {name: string};
+type LinkProfileContextMenuTarget = 'tab' | 'window' | 'privateWindow';
+type LinkProfileContextMenuSelection = {
+  profileName: string;
+  target: LinkProfileContextMenuTarget;
+};
 type FixedProfileProxyField = 'fallbackProxy' | 'proxyForHttp' | 'proxyForHttps';
+
+const LINK_PROFILE_CONTEXT_MENU_ROOTS: Array<{
+  fallbackTitle: string;
+  id: string;
+  itemPrefix: string;
+  target: LinkProfileContextMenuTarget;
+  titleKey: string;
+}> = [
+  {
+    fallbackTitle: 'Open Link in New Tab with Profile',
+    id: LINK_PROFILE_CONTEXT_MENU_ROOT_ID,
+    itemPrefix: `${LINK_PROFILE_CONTEXT_MENU_ROOT_ID}:`,
+    target: 'tab',
+    titleKey: 'contextMenu_openLinkInNewTabWithProfile'
+  },
+  {
+    fallbackTitle: 'Open Link in New Window with Profile',
+    id: 'openLinkInNewWindowWithProfile',
+    itemPrefix: 'openLinkInNewWindowWithProfile:',
+    target: 'window',
+    titleKey: 'contextMenu_openLinkInNewWindowWithProfile'
+  },
+  {
+    fallbackTitle: 'Open Link in New Private Window with Profile',
+    id: 'openLinkInNewPrivateWindowWithProfile',
+    itemPrefix: 'openLinkInNewPrivateWindowWithProfile:',
+    target: 'privateWindow',
+    titleKey: 'contextMenu_openLinkInNewPrivateWindowWithProfile'
+  }
+];
 
 const FIXED_PROFILE_PROXY_FIELDS: FixedProfileProxyField[] = ['fallbackProxy', 'proxyForHttp', 'proxyForHttps'];
 
@@ -336,7 +370,7 @@ class ChromeOptions extends OmegaTarget.Options {
   private _quickSwitchInit: boolean;
   private _linkProfileContextMenuClickReady: boolean;
   private _linkProfileContextMenuIds: string[];
-  private _linkProfileContextMenuProfiles: Record<string, string>;
+  private _linkProfileContextMenuSelections: Record<string, LinkProfileContextMenuSelection>;
   private _linkProfileContextMenuRefreshToken: number;
   private _requestMonitor: RequestMonitorLike | null;
   private _tabProfileContexts: Record<number, TabProfileContext>;
@@ -354,7 +388,7 @@ class ChromeOptions extends OmegaTarget.Options {
     this._quickSwitchCanEnable = false;
     this._linkProfileContextMenuClickReady = false;
     this._linkProfileContextMenuIds = [];
-    this._linkProfileContextMenuProfiles = {};
+    this._linkProfileContextMenuSelections = {};
     this._linkProfileContextMenuRefreshToken = 0;
     this._requestMonitor = null;
     this._profileScopeContainers = {};
@@ -731,34 +765,40 @@ class ChromeOptions extends OmegaTarget.Options {
     const profiles = this.linkProfileContextMenuProfiles();
     const oldIds = this._linkProfileContextMenuIds;
     this._linkProfileContextMenuIds = [];
-    this._linkProfileContextMenuProfiles = {};
+    this._linkProfileContextMenuSelections = {};
     this.removeContextMenuItems(oldIds, () => {
       if (token !== this._linkProfileContextMenuRefreshToken || profiles.length === 0) {
         return;
       }
-      this.createContextMenuItem({
-        id: LINK_PROFILE_CONTEXT_MENU_ROOT_ID,
-        title: chrome.i18n.getMessage('contextMenu_openLinkInNewTabWithProfile') || 'Open Link in New Tab with Profile',
-        contexts: ['link'],
-        targetUrlPatterns: WEB_LINK_PATTERNS
-      });
       const nextIds: string[] = [];
-      const nextProfiles: Record<string, string> = {};
-      profiles.forEach((profile, index) => {
-        const id = `${LINK_PROFILE_CONTEXT_MENU_ITEM_PREFIX}${index}`;
-        nextIds.push(id);
-        nextProfiles[id] = profile.name;
+      const nextSelections: Record<string, LinkProfileContextMenuSelection> = {};
+      for (const root of LINK_PROFILE_CONTEXT_MENU_ROOTS) {
         this.createContextMenuItem({
-          id,
-          icons: this.contextMenuIconForProfile(profile),
-          parentId: LINK_PROFILE_CONTEXT_MENU_ROOT_ID,
-          title: this.localizedProfileName(profile),
+          id: root.id,
+          title: chrome.i18n.getMessage(root.titleKey) || root.fallbackTitle,
           contexts: ['link'],
           targetUrlPatterns: WEB_LINK_PATTERNS
         });
-      });
-      this._linkProfileContextMenuIds = nextIds.concat(LINK_PROFILE_CONTEXT_MENU_ROOT_ID);
-      this._linkProfileContextMenuProfiles = nextProfiles;
+        nextIds.push(root.id);
+        profiles.forEach((profile, index) => {
+          const id = `${root.itemPrefix}${index}`;
+          nextIds.push(id);
+          nextSelections[id] = {
+            profileName: profile.name,
+            target: root.target
+          };
+          this.createContextMenuItem({
+            id,
+            icons: this.contextMenuIconForProfile(profile),
+            parentId: root.id,
+            title: this.localizedProfileName(profile),
+            contexts: ['link'],
+            targetUrlPatterns: WEB_LINK_PATTERNS
+          });
+        });
+      }
+      this._linkProfileContextMenuIds = nextIds;
+      this._linkProfileContextMenuSelections = nextSelections;
     });
   }
 
@@ -790,6 +830,47 @@ class ChromeOptions extends OmegaTarget.Options {
           return;
         }
         resolve((createdTab || {}) as ChromeTab);
+      });
+    });
+  }
+
+  private createWindow(properties: Record<string, unknown>) {
+    const browserWindows = (typeof browser !== 'undefined' ? browser.windows : undefined) as {
+      create?: (properties: Record<string, unknown>) => Promise<ChromeWindow>;
+    } | undefined;
+    if (browserWindows?.create) {
+      return browserWindows.create(properties);
+    }
+    const chromeWindows = chrome?.windows as {
+      create?: (properties: Record<string, unknown>, callback?: (...args: unknown[]) => void) => void;
+    } | undefined;
+    const createWindow = chromeWindows?.create;
+    if (!createWindow) {
+      return Promise.reject(new Error('windows.create is unavailable.'));
+    }
+    return new Promise<ChromeWindow>((resolve, reject) => {
+      createWindow.call(chromeWindows, properties, (createdWindow: unknown) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(this.chromeLastErrorMessage('windows.create')));
+          return;
+        }
+        resolve((createdWindow || {}) as ChromeWindow);
+      });
+    });
+  }
+
+  private queryTabs(queryInfo: Record<string, unknown>) {
+    const browserTabs = typeof browser !== 'undefined' ? browser.tabs : undefined;
+    if (browserTabs?.query) {
+      return browserTabs.query(queryInfo);
+    }
+    return new Promise<ChromeTab[]>((resolve, reject) => {
+      chrome.tabs.query(queryInfo, (tabs: ChromeTab[]) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(this.chromeLastErrorMessage('tabs.query')));
+          return;
+        }
+        resolve(tabs || []);
       });
     });
   }
@@ -842,7 +923,7 @@ class ChromeOptions extends OmegaTarget.Options {
 
   private async createBlankTab(sourceTab: ChromeTab | undefined) {
     const createProperties: Record<string, unknown> = {
-      active: true,
+      active: false,
       url: 'about:blank'
     };
     if (typeof sourceTab?.id === 'number') {
@@ -860,10 +941,45 @@ class ChromeOptions extends OmegaTarget.Options {
     }
   }
 
-  private async openLinkInNewTabWithProfile(linkUrl: string, sourceTab: ChromeTab | undefined, profileName: string) {
-    const createdTab = await this.createBlankTab(sourceTab);
+  private async createBlankWindow(incognito: boolean) {
+    const createdWindow = await this.createWindow({
+      focused: true,
+      incognito,
+      url: 'about:blank'
+    });
+    const firstTab = createdWindow.tabs?.find((tab) => typeof tab.id === 'number');
+    if (firstTab) {
+      return firstTab;
+    }
+    if (typeof createdWindow.id !== 'number') {
+      throw new Error('windows.create did not return a window id.');
+    }
+    const tabs = await this.queryTabs({
+      windowId: createdWindow.id
+    });
+    const queriedTab = tabs.find((tab) => typeof tab.id === 'number');
+    if (!queriedTab) {
+      throw new Error('windows.create did not return a tab id.');
+    }
+    return queriedTab;
+  }
+
+  private async createBlankProfileTarget(target: LinkProfileContextMenuTarget, sourceTab: ChromeTab | undefined) {
+    if (target === 'tab') {
+      return this.createBlankTab(sourceTab);
+    }
+    return this.createBlankWindow(target === 'privateWindow');
+  }
+
+  private async openLinkWithProfile(
+    linkUrl: string,
+    sourceTab: ChromeTab | undefined,
+    profileName: string,
+    target: LinkProfileContextMenuTarget
+  ) {
+    const createdTab = await this.createBlankProfileTarget(target, sourceTab);
     if (typeof createdTab.id !== 'number') {
-      throw new Error('tabs.create did not return a tab id.');
+      throw new Error('Target creation did not return a tab id.');
     }
     const tabId = createdTab.id;
     await Promise.resolve(this.setProfileScope({
@@ -878,17 +994,17 @@ class ChromeOptions extends OmegaTarget.Options {
   }
 
   private _onLinkProfileContextMenuClicked(info: ChromeContextMenuClickInfo, tab: ChromeTab | undefined) {
-    const profileName = this._linkProfileContextMenuProfiles[info.menuItemId];
-    if (!profileName || !this.isHttpLinkUrl(info.linkUrl)) {
+    const selection = this._linkProfileContextMenuSelections[info.menuItemId];
+    if (!selection || !this.isHttpLinkUrl(info.linkUrl)) {
       return;
     }
-    const profileStillAvailable = this.linkProfileContextMenuProfiles().some((profile) => profile.name === profileName);
+    const profileStillAvailable = this.linkProfileContextMenuProfiles().some((profile) => profile.name === selection.profileName);
     if (!profileStillAvailable) {
       this.updateLinkProfileContextMenu();
       return;
     }
-    this.openLinkInNewTabWithProfile(info.linkUrl, tab, profileName).catch((error: unknown) => {
-      this.log.error('Failed to open link in new tab with profile.', error);
+    this.openLinkWithProfile(info.linkUrl, tab, selection.profileName, selection.target).catch((error: unknown) => {
+      this.log.error('Failed to open link with profile.', error);
     });
   }
 

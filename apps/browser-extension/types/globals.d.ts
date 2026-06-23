@@ -115,6 +115,13 @@ interface ChromeTab {
   [key: string]: unknown;
 }
 
+interface ChromeWindow {
+  id?: number;
+  incognito?: boolean;
+  tabs?: ChromeTab[];
+  [key: string]: unknown;
+}
+
 interface ChromeTabsApi {
   create(properties: Record<string, unknown>, callback?: (...args: unknown[]) => void): void;
   get(tabId: number, callback: (tab: ChromeTab) => void): void;
@@ -247,6 +254,7 @@ interface BrowserDownloadsApi {
 
 interface BrowserTabsApi {
   create(properties: Record<string, unknown>): Promise<ChromeTab>;
+  query(queryInfo: Record<string, unknown>): Promise<ChromeTab[]>;
   update(tabId: number, properties: Record<string, unknown>): Promise<ChromeTab>;
   [key: string]: unknown;
 }

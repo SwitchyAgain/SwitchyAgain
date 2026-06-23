@@ -1444,3 +1444,9 @@ msgstr "Profiltilordninger for faner er midlertidige og følger fanene."
 
 msgid "contextMenu_openLinkInNewTabWithProfile"
 msgstr "Åpne lenke i ny fane med profil"
+
+msgid "contextMenu_openLinkInNewWindowWithProfile"
+msgstr "Åpne lenke i nytt vindu med profil"
+
+msgid "contextMenu_openLinkInNewPrivateWindowWithProfile"
+msgstr "Åpne lenke i nytt privat vindu med profil"

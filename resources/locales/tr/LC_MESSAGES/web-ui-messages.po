@@ -1435,3 +1435,9 @@ msgstr "Sekme profil atamaları geçicidir ve kendi sekmeleriyle kalır."
 
 msgid "contextMenu_openLinkInNewTabWithProfile"
 msgstr "Bağlantıyı profille yeni sekmede aç"
+
+msgid "contextMenu_openLinkInNewWindowWithProfile"
+msgstr "Bağlantıyı profille yeni pencerede aç"
+
+msgid "contextMenu_openLinkInNewPrivateWindowWithProfile"
+msgstr "Bağlantıyı profille yeni gizli pencerede aç"

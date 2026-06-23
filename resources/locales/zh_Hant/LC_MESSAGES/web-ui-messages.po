@@ -1442,3 +1442,9 @@ msgstr "分頁情境模式是暫時的，並跟隨對應分頁。"
 
 msgid "contextMenu_openLinkInNewTabWithProfile"
 msgstr "使用情境模式在新分頁中開啟鏈結"
+
+msgid "contextMenu_openLinkInNewWindowWithProfile"
+msgstr "使用情境模式在新視窗中開啟鏈結"
+
+msgid "contextMenu_openLinkInNewPrivateWindowWithProfile"
+msgstr "使用情境模式在新隱私視窗中開啟鏈結"
