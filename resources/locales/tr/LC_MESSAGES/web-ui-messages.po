@@ -260,13 +260,13 @@ msgid "options_addConditionsToBottom"
 msgstr ""
 
 msgid "options_showProfileOptions"
-msgstr "Açılır menüden profilleri gizlemek için profil sayfalarında Profil Seçenekleri'ni göster."
+msgstr "Açılır ve bağlam menülerinden profilleri gizlemek için profil sayfalarında Profil Seçenekleri'ni göster."
 
 msgid "options_showSocks5LocalDnsOption"
 msgstr "SOCKS5 yerel DNS seçeneğini göster. Yalnızca Firefox."
 
 msgid "options_group_contextMenuOptions"
-msgstr "Bağlam Menüsü Seçenekleri"
+msgstr "Bağlam Menüsü"
 
 msgid "options_contextMenuSwitchProfile"
 msgstr "Profil Değiştir'i göster"
@@ -852,6 +852,14 @@ msgid "options_hideFromPopupMenuHelp"
 msgstr ""
 "Etkinleştirildiğinde bu profil açılır menüdeki gizli profiller bölümüne "
 "taşınır."
+
+msgid "options_hideFromContextMenu"
+msgstr "Bağlam menüsünde gizle"
+
+msgid "options_hideFromContextMenuHelp"
+msgstr ""
+"Etkinleştirildiğinde bu profil profil bağlam menülerindeki gizli profiller "
+"bölümüne taşınır."
 
 msgid "options_modalHeader_replaceProfile"
 msgstr "Profili Yer Değiştir"

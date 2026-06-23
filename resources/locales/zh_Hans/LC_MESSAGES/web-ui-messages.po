@@ -276,13 +276,13 @@ msgid "options_addConditionsToBottom"
 msgstr "把以弹出菜单方式创建的规则添加到列表末尾。"
 
 msgid "options_showProfileOptions"
-msgstr "在情景模式页面显示“情景模式选项”，用于从弹出菜单隐藏情景模式。"
+msgstr "在情景模式页面显示“情景模式选项”，用于从弹出菜单和右键菜单隐藏情景模式。"
 
 msgid "options_showSocks5LocalDnsOption"
 msgstr "显示 SOCKS5 本地 DNS 选项。仅 Firefox 支持。"
 
 msgid "options_group_contextMenuOptions"
-msgstr "右键菜单选项"
+msgstr "右键菜单"
 
 msgid "options_contextMenuSwitchProfile"
 msgstr "显示“切换情景模式”"
@@ -863,6 +863,12 @@ msgstr "在弹出菜单中隐藏"
 
 msgid "options_hideFromPopupMenuHelp"
 msgstr "启用后，此情景模式会移动到弹出菜单的隐藏区域。"
+
+msgid "options_hideFromContextMenu"
+msgstr "在右键菜单中隐藏"
+
+msgid "options_hideFromContextMenuHelp"
+msgstr "启用后，此情景模式会移动到情景模式右键菜单的隐藏区域。"
 
 msgid "options_modalHeader_replaceProfile"
 msgstr "替换情景模式"

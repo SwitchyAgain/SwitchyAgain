@@ -294,13 +294,15 @@ msgid "options_addConditionsToBottom"
 msgstr "Put new conditions added using the popup menu to the bottom of the list."
 
 msgid "options_showProfileOptions"
-msgstr "Show Profile Options on profile pages for hiding profiles from the popup menu."
+msgstr ""
+"Show Profile Options on profile pages for hiding profiles from the popup and "
+"context menus."
 
 msgid "options_showSocks5LocalDnsOption"
 msgstr "Show SOCKS5 local DNS option. Firefox only."
 
 msgid "options_group_contextMenuOptions"
-msgstr "Context Menu Options"
+msgstr "Context Menu"
 
 msgid "options_contextMenuSwitchProfile"
 msgstr "Show Switch Profile"
@@ -954,6 +956,14 @@ msgid "options_hideFromPopupMenuHelp"
 msgstr ""
 "When enabled, this profile is moved to the hidden profiles section in the "
 "popup menu."
+
+msgid "options_hideFromContextMenu"
+msgstr "Hide from context menu"
+
+msgid "options_hideFromContextMenuHelp"
+msgstr ""
+"When enabled, this profile is moved to the hidden profiles section in profile "
+"context menus."
 
 msgid "options_modalHeader_replaceProfile"
 msgstr "Replace Profile"

@@ -297,13 +297,13 @@ msgid "options_addConditionsToBottom"
 msgstr "شرایط جدید افزوده‌شده از منوی بازشو را در انتهای فهرست قرار بده."
 
 msgid "options_showProfileOptions"
-msgstr "نمایش گزینه‌های پروفایل در صفحه‌های پروفایل برای پنهان کردن پروفایل‌ها از منوی بازشو."
+msgstr "نمایش گزینه‌های پروفایل در صفحه‌های پروفایل برای پنهان کردن پروفایل‌ها از منوی بازشو و منوی زمینه."
 
 msgid "options_showSocks5LocalDnsOption"
 msgstr "گزینه DNS محلی SOCKS5 را نشان بده. فقط Firefox."
 
 msgid "options_group_contextMenuOptions"
-msgstr "گزینه‌های منوی زمینه"
+msgstr "منوی زمینه"
 
 msgid "options_contextMenuSwitchProfile"
 msgstr "نمایش تغییر نمایه"
@@ -969,6 +969,14 @@ msgid "options_hideFromPopupMenuHelp"
 msgstr ""
 "پس از فعال‌سازی، این پروفایل به بخش پروفایل‌های پنهان در منوی بازشو منتقل "
 "می‌شود."
+
+msgid "options_hideFromContextMenu"
+msgstr "پنهان کردن از منوی زمینه"
+
+msgid "options_hideFromContextMenuHelp"
+msgstr ""
+"پس از فعال‌سازی، این پروفایل به بخش پروفایل‌های پنهان در منوهای زمینهٔ "
+"پروفایل منتقل می‌شود."
 
 msgid "options_modalHeader_replaceProfile"
 msgstr "جایگزینی پروفایل"

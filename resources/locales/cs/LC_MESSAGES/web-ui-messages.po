@@ -295,13 +295,13 @@ msgid "options_addConditionsToBottom"
 msgstr "Put new conditions added using the popup menu to the bottom of the list."
 
 msgid "options_showProfileOptions"
-msgstr "Zobrazit možnosti profilu na stránkách profilů pro skrytí profilů ve vyskakovacím menu."
+msgstr "Zobrazit možnosti profilu na stránkách profilů pro skrytí profilů ve vyskakovacím a kontextovém menu."
 
 msgid "options_showSocks5LocalDnsOption"
 msgstr "Zobrazit volbu místního DNS pro SOCKS5. Pouze Firefox."
 
 msgid "options_group_contextMenuOptions"
-msgstr "Možnosti kontextového menu"
+msgstr "Kontextové menu"
 
 msgid "options_contextMenuSwitchProfile"
 msgstr "Zobrazit Přepnout profil"
@@ -959,6 +959,14 @@ msgid "options_hideFromPopupMenuHelp"
 msgstr ""
 "Po zapnutí se tento profil přesune do části skrytých profilů v místní "
 "nabídce."
+
+msgid "options_hideFromContextMenu"
+msgstr "Skrýt v kontextovém menu"
+
+msgid "options_hideFromContextMenuHelp"
+msgstr ""
+"Po zapnutí se tento profil přesune do části skrytých profilů v kontextových "
+"menu profilů."
 
 msgid "options_modalHeader_replaceProfile"
 msgstr "Nahradit profil"

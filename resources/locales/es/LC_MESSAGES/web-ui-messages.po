@@ -307,13 +307,13 @@ msgstr ""
 msgid "options_showProfileOptions"
 msgstr ""
 "Mostrar Opciones de perfil en las páginas de perfil para ocultar perfiles "
-"del menú emergente."
+"del menú emergente y del menú contextual."
 
 msgid "options_showSocks5LocalDnsOption"
 msgstr "Mostrar la opción de DNS local SOCKS5. Solo Firefox."
 
 msgid "options_group_contextMenuOptions"
-msgstr "Opciones del menú contextual"
+msgstr "Menú contextual"
 
 msgid "options_contextMenuSwitchProfile"
 msgstr "Mostrar Cambiar perfil"
@@ -995,6 +995,14 @@ msgid "options_hideFromPopupMenuHelp"
 msgstr ""
 "Al activarlo, este perfil se moverá a la sección de perfiles ocultos del menú "
 "emergente."
+
+msgid "options_hideFromContextMenu"
+msgstr "Ocultar en el menú contextual"
+
+msgid "options_hideFromContextMenuHelp"
+msgstr ""
+"Al activarlo, este perfil se moverá a la sección de perfiles ocultos de los "
+"menús contextuales de perfiles."
 
 msgid "options_modalHeader_replaceProfile"
 msgstr "Reemplazar Perfil"

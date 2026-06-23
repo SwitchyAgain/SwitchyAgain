@@ -302,13 +302,13 @@ msgstr ""
 msgid "options_showProfileOptions"
 msgstr ""
 "Показывать параметры профиля на страницах профилей, чтобы скрывать профили "
-"во всплывающем меню."
+"во всплывающем и контекстном меню."
 
 msgid "options_showSocks5LocalDnsOption"
 msgstr "Показывать вариант локального DNS для SOCKS5. Только Firefox."
 
 msgid "options_group_contextMenuOptions"
-msgstr "Параметры контекстного меню"
+msgstr "Контекстное меню"
 
 msgid "options_contextMenuSwitchProfile"
 msgstr "Показывать «Сменить профиль»"
@@ -988,6 +988,14 @@ msgid "options_hideFromPopupMenuHelp"
 msgstr ""
 "Если включено, этот профиль будет перемещён в раздел скрытых профилей во "
 "всплывающем меню."
+
+msgid "options_hideFromContextMenu"
+msgstr "Скрыть в контекстном меню"
+
+msgid "options_hideFromContextMenuHelp"
+msgstr ""
+"Если включено, этот профиль будет перемещён в раздел скрытых профилей в "
+"контекстных меню профилей."
 
 msgid "options_modalHeader_replaceProfile"
 msgstr "Заменить профиль"
