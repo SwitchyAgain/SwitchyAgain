@@ -1448,3 +1448,6 @@ msgstr "使用情境模式在新視窗中開啟鏈結"
 
 msgid "contextMenu_openLinkInNewPrivateWindowWithProfile"
 msgstr "使用情境模式在新隱私視窗中開啟鏈結"
+
+msgid "contextMenu_switchProfile"
+msgstr "切換情境模式"

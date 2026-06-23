@@ -1441,3 +1441,6 @@ msgstr "Bağlantıyı profille yeni pencerede aç"
 
 msgid "contextMenu_openLinkInNewPrivateWindowWithProfile"
 msgstr "Bağlantıyı profille yeni gizli pencerede aç"
+
+msgid "contextMenu_switchProfile"
+msgstr "Profili değiştir"

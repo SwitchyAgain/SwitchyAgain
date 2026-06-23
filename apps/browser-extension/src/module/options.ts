@@ -9,6 +9,8 @@ const OmegaPac = OmegaTarget.OmegaPac;
 const OmegaPromise = OmegaTarget.Promise;
 
 const LINK_PROFILE_CONTEXT_MENU_ROOT_ID = 'openLinkInNewTabWithProfile';
+const SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID = 'switchProfile';
+const SWITCH_PROFILE_CONTEXT_MENU_ITEM_PREFIX = `${SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID}:`;
 const WEB_LINK_PATTERNS = ['http://*/*', 'https://*/*'];
 const PROFILE_MENU_ORDER: Record<string, number> = {
   FixedProfile: -2000,
@@ -372,6 +374,9 @@ class ChromeOptions extends OmegaTarget.Options {
   private _linkProfileContextMenuIds: string[];
   private _linkProfileContextMenuSelections: Record<string, LinkProfileContextMenuSelection>;
   private _linkProfileContextMenuRefreshToken: number;
+  private _switchProfileContextMenuIds: string[];
+  private _switchProfileContextMenuProfiles: Record<string, string>;
+  private _switchProfileContextMenuRefreshToken: number;
   private _requestMonitor: RequestMonitorLike | null;
   private _tabProfileContexts: Record<number, TabProfileContext>;
   private _tabProfileNames: Record<number, string | undefined>;
@@ -390,6 +395,9 @@ class ChromeOptions extends OmegaTarget.Options {
     this._linkProfileContextMenuIds = [];
     this._linkProfileContextMenuSelections = {};
     this._linkProfileContextMenuRefreshToken = 0;
+    this._switchProfileContextMenuIds = [];
+    this._switchProfileContextMenuProfiles = {};
+    this._switchProfileContextMenuRefreshToken = 0;
     this._requestMonitor = null;
     this._profileScopeContainers = {};
     this._profileScopeContainerOrder = [];
@@ -648,7 +656,7 @@ class ChromeOptions extends OmegaTarget.Options {
     return /^#[0-9a-fA-F]{3,8}$/.test(color) ? color : '#777777';
   }
 
-  private contextMenuIconForProfile(profile: ContextMenuProfile) {
+  private contextMenuIconForProfile(profile: ContextMenuProfile, checked = false) {
     const color = this.profileIconColor(profile);
     const glyph = PROFILE_ICON_PATHS[profile.profileType || ''] || PROFILE_ICON_PATHS.VirtualProfile;
     const svg = [
@@ -657,6 +665,12 @@ class ChromeOptions extends OmegaTarget.Options {
       '<g fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
       glyph,
       '</g>',
+      checked
+        ? '<circle cx="17.7" cy="17.7" r="5.1" fill="#198754" stroke="#fff" stroke-width="1.7"/>'
+        : '',
+      checked
+        ? '<path d="M15.4 17.7l1.5 1.5 3.2-3.6" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>'
+        : '',
       '</svg>'
     ].join('');
     const dataUrl = `data:image/svg+xml,${encodeURIComponent(svg)}`;
@@ -687,6 +701,27 @@ class ChromeOptions extends OmegaTarget.Options {
         }
       });
     }
+    const seen = new Set<string>();
+    return profiles
+      .filter((profile): profile is ContextMenuProfile => {
+        const name = profile.name;
+        if (typeof name !== 'string' || !this.isVisibleResultProfileName(name) || seen.has(name)) {
+          return false;
+        }
+        seen.add(name);
+        return true;
+      })
+      .sort((a, b) => this.compareProfile(a, b));
+  }
+
+  private switchProfileContextMenuProfiles(): ContextMenuProfile[] {
+    if (!chrome?.contextMenus || !chrome?.tabs || !chrome?.i18n?.getMessage) {
+      return [];
+    }
+    const profiles: Profile[] = [];
+    OmegaPac.Profiles.each(this._options, (_key: string, profile: Profile) => {
+      profiles.push(profile);
+    });
     const seen = new Set<string>();
     return profiles
       .filter((profile): profile is ContextMenuProfile => {
@@ -734,7 +769,14 @@ class ChromeOptions extends OmegaTarget.Options {
     this._linkProfileContextMenuClickReady = true;
   }
 
-  private createContextMenuItem(properties: Record<string, unknown>) {
+  private contextMenuItemIconsSupported() {
+    const browserRuntime = (typeof browser !== 'undefined' ? browser.runtime : undefined) as {
+      getBrowserInfo?: () => Promise<unknown>;
+    } | undefined;
+    return typeof browserRuntime?.getBrowserInfo === 'function';
+  }
+
+  private createContextMenuItem(properties: Record<string, unknown>, fallbackProperties?: Record<string, unknown>) {
     const contextMenus = chrome.contextMenus;
     if (contextMenus == null) {
       return;
@@ -746,7 +788,7 @@ class ChromeOptions extends OmegaTarget.Options {
       }
       this.log.error('Creating context menu item with icons failed; retrying without icons.', error.message || error);
       const fallback = {
-        ...properties
+        ...(fallbackProperties || properties)
       };
       delete fallback.icons;
       contextMenus.create(fallback, () => {
@@ -799,6 +841,62 @@ class ChromeOptions extends OmegaTarget.Options {
       }
       this._linkProfileContextMenuIds = nextIds;
       this._linkProfileContextMenuSelections = nextSelections;
+    });
+  }
+
+  private updateSwitchProfileContextMenu() {
+    const contextMenus = chrome.contextMenus;
+    if (contextMenus == null || chrome.i18n?.getMessage == null) {
+      return;
+    }
+    this.ensureLinkProfileContextMenuClickListener();
+    const token = ++this._switchProfileContextMenuRefreshToken;
+    const profiles = this.switchProfileContextMenuProfiles();
+    const oldIds = this._switchProfileContextMenuIds;
+    this._switchProfileContextMenuIds = [];
+    this._switchProfileContextMenuProfiles = {};
+    this.removeContextMenuItems(oldIds, () => {
+      if (token !== this._switchProfileContextMenuRefreshToken || profiles.length === 0) {
+        return;
+      }
+      this.createContextMenuItem({
+        id: SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID,
+        title: chrome.i18n.getMessage('contextMenu_switchProfile') || 'Switch Profile',
+        contexts: ['page'],
+        documentUrlPatterns: WEB_LINK_PATTERNS
+      });
+      const nextIds = [SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID];
+      const nextProfiles: Record<string, string> = {};
+      const useIcons = this.contextMenuItemIconsSupported();
+      profiles.forEach((profile, index) => {
+        const id = `${SWITCH_PROFILE_CONTEXT_MENU_ITEM_PREFIX}${index}`;
+        const checked = profile.name === this._currentProfileName;
+        nextIds.push(id);
+        nextProfiles[id] = profile.name;
+        const baseItem = {
+          id,
+          parentId: SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID,
+          title: this.localizedProfileName(profile),
+          contexts: ['page'],
+          documentUrlPatterns: WEB_LINK_PATTERNS
+        };
+        const radioItem = {
+          ...baseItem,
+          type: 'radio',
+          checked
+        };
+        this.createContextMenuItem(
+          useIcons
+            ? {
+                ...baseItem,
+                icons: this.contextMenuIconForProfile(profile, checked)
+              }
+            : radioItem,
+          radioItem
+        );
+      });
+      this._switchProfileContextMenuIds = nextIds;
+      this._switchProfileContextMenuProfiles = nextProfiles;
     });
   }
 
@@ -888,6 +986,30 @@ class ChromeOptions extends OmegaTarget.Options {
         }
         resolve((updatedTab || {}) as ChromeTab);
       });
+    });
+  }
+
+  private reloadContextMenuTabIfEnabled(tab: ChromeTab | undefined) {
+    if (!this._options['-refreshOnProfileChange'] || typeof tab?.id !== 'number') {
+      return;
+    }
+    const url = this.getMonitoredTabUrl(tab.id, tabUrl(tab));
+    if (!url) {
+      return;
+    }
+    if (url.substring(0, 6) === 'chrome') {
+      return;
+    }
+    if (url.substring(0, 6) === 'about:') {
+      return;
+    }
+    if (url.substring(0, 4) === 'moz-') {
+      return;
+    }
+    chrome.tabs.reload(tab.id, {
+      bypassCache: true
+    }, () => {
+      chrome.runtime.lastError;
     });
   }
 
@@ -994,6 +1116,15 @@ class ChromeOptions extends OmegaTarget.Options {
   }
 
   private _onLinkProfileContextMenuClicked(info: ChromeContextMenuClickInfo, tab: ChromeTab | undefined) {
+    const switchProfileName = this._switchProfileContextMenuProfiles[info.menuItemId];
+    if (switchProfileName) {
+      this.applyProfile(switchProfileName).then(() => {
+        this.reloadContextMenuTabIfEnabled(tab);
+      }).catch((error: unknown) => {
+        this.log.error('Failed to switch profile from context menu.', error);
+      });
+      return;
+    }
     const selection = this._linkProfileContextMenuSelections[info.menuItemId];
     if (!selection || !this.isHttpLinkUrl(info.linkUrl)) {
       return;
@@ -1012,6 +1143,7 @@ class ChromeOptions extends OmegaTarget.Options {
     const result = super._setAvailableProfiles();
     return result.then((value: unknown) => {
       this.updateLinkProfileContextMenu();
+      this.updateSwitchProfileContextMenu();
       return value;
     });
   }

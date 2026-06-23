@@ -1647,3 +1647,6 @@ msgstr "Открыть ссылку в новом окне с профилем"
 
 msgid "contextMenu_openLinkInNewPrivateWindowWithProfile"
 msgstr "Открыть ссылку в новом приватном окне с профилем"
+
+msgid "contextMenu_switchProfile"
+msgstr "Переключить профиль"

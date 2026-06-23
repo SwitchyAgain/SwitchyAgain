@@ -1593,3 +1593,6 @@ msgstr "Open Link in New Window with Profile"
 
 msgid "contextMenu_openLinkInNewPrivateWindowWithProfile"
 msgstr "Open Link in New Private Window with Profile"
+
+msgid "contextMenu_switchProfile"
+msgstr "Switch Profile"

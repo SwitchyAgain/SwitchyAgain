@@ -1622,3 +1622,6 @@ msgstr "باز کردن پیوند در پنجرهٔ جدید با نمایه"
 
 msgid "contextMenu_openLinkInNewPrivateWindowWithProfile"
 msgstr "باز کردن پیوند در پنجرهٔ خصوصی جدید با نمایه"
+
+msgid "contextMenu_switchProfile"
+msgstr "تغییر نمایه"
