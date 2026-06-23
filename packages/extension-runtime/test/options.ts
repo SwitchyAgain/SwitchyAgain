@@ -137,6 +137,29 @@ describe('Options', function() {
         assert.strictEqual(changes['-uiTheme'], undefined);
       });
     });
+
+    it('should preserve tab group profile scope settings during upgrade', function() {
+      const options = Object.create(Options.prototype);
+      return options.upgrade({
+        schemaVersion: 3,
+        '-uiLocale': 'en',
+        '-uiTheme': 'light',
+        '-profileScopes': {
+          tab: true,
+          group: true,
+          container: false,
+          window: true
+        }
+      }).then(([upgraded, changes]: any[]) => {
+        assert.deepStrictEqual(upgraded['-profileScopes'], {
+          tab: true,
+          group: true,
+          container: false,
+          window: true
+        });
+        assert.strictEqual(changes['-profileScopes'], undefined);
+      });
+    });
   });
 
   describe('#setExternalProfile', function() {

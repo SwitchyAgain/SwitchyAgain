@@ -57,7 +57,7 @@ export function About({embedded = false, isExperimental = false, version, onDown
           </div>
           <div className="media-body">
             <h4 className="media-heading">{message('appNameShort', 'SwitchyAgain')}</h4>
-            <p>{message('about_app_description', 'A proxy configuration tool')}</p>
+            <p>{message('about_app_description', 'An advanced proxy configuration tool')}</p>
           </div>
         </div>
       </section>

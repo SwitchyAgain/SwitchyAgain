@@ -7,6 +7,7 @@ export default function defaultOptions() {
     '-uiTheme': 'light',
     '-profileScopes': {
       tab: false,
+      group: false,
       container: false,
       window: false
     },

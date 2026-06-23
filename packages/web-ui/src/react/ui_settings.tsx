@@ -526,7 +526,7 @@ export function UiSettings({
           messageKey="options_profileScopeTab"
           fallback="Tab profiles"
           helpKey="options_profileScopeTabHelp"
-          helpFallback="Allow assigning a profile to the current tab from the popup. Firefox only."
+          helpFallback="Allow assigning a profile to the current tab from the popup or page context menu. Firefox only."
         />
         <ProfileScopeCheckbox
           scope="group"
@@ -540,14 +540,14 @@ export function UiSettings({
           messageKey="options_profileScopeContainer"
           fallback="Container profiles"
           helpKey="options_profileScopeContainerHelp"
-          helpFallback="Allow assigning profiles to Firefox containers from the popup. Firefox only."
+          helpFallback="Allow assigning profiles to Firefox containers from the popup or page context menu. Firefox only."
         />
         <ProfileScopeCheckbox
           scope="window"
           messageKey="options_profileScopeWindow"
           fallback="Normal/private defaults"
           helpKey="options_profileScopeWindowHelp"
-          helpFallback="Allow separate default profiles for normal and private windows."
+          helpFallback="Allow separate default profiles for normal and private windows from the popup or page context menu."
         />
       </section>
 
