@@ -274,14 +274,16 @@ function PopupApp() {
     });
   }
 
-  function setProfileScope(scope: 'container' | 'normal' | 'private' | 'tab', profileName?: string) {
+  function setProfileScope(scope: 'container' | 'group' | 'normal' | 'private' | 'tab', profileName?: string) {
     const info = pageInfo?.profileScope;
     popupTarget().setProfileScope?.({
       cookieStoreId: info?.cookieStoreId,
+      groupId: info?.groupId,
       incognito: info?.incognito,
       profileName,
       scope,
-      tabId: info?.tabId
+      tabId: info?.tabId,
+      windowId: info?.windowId
     }, closePopup);
   }
 
@@ -461,10 +463,11 @@ function PopupApp() {
     .filter((profile) => !!pageInfo?.tempRuleProfileName || resultProfiles.length === 1 || profile.name !== state.currentProfileName);
   const profileScope = pageInfo?.profileScope;
   const showTabScope = !!(profileScope?.enabled?.tab && profileScope.tabId != null && hasResultProfiles);
+  const showGroupScope = !!(profileScope?.enabled?.group && profileScope.groupId != null && hasResultProfiles);
   const showContainerScope = !!(profileScope?.enabled?.container && profileScope.isContainer && hasResultProfiles);
   const windowScope = profileScope?.incognito ? 'private' : 'normal';
   const showWindowScope = !!(profileScope?.enabled?.window && hasResultProfiles);
-  const showProfileScopes = showTabScope || showContainerScope || showWindowScope;
+  const showProfileScopes = showTabScope || showGroupScope || showContainerScope || showWindowScope;
 
   return (
     <ul className="om-nav">
@@ -566,6 +569,19 @@ function PopupApp() {
               state={state}
               onToggle={() => setProfileScopeMenuOpen(profileScopeMenuOpen === 'tab' ? '' : 'tab')}
               onProfileChange={(profileName) => setProfileScope('tab', profileName)}
+            />
+          )}
+          {showGroupScope && (
+            <ProfileScopeMenuItem
+              scope="group"
+              icon="glyphicon-th-large"
+              label={popupMessage('popup_profileScopeGroup', 'Tab Group')}
+              activeProfileName={profileScope?.groupProfileName}
+              open={profileScopeMenuOpen === 'group'}
+              profiles={resultProfiles}
+              state={state}
+              onToggle={() => setProfileScopeMenuOpen(profileScopeMenuOpen === 'group' ? '' : 'group')}
+              onProfileChange={(profileName) => setProfileScope('group', profileName)}
             />
           )}
           {showContainerScope && (

@@ -6,6 +6,7 @@ import {ProfileSelect, allProfilesFromOptions, profileOrder} from './profile_wid
 
 export type ProfileScopeCapabilities = {
   container?: boolean;
+  group?: boolean;
   tab?: boolean;
   window?: boolean;
 };
@@ -21,6 +22,7 @@ export type ProfileScopeContainerInfo = {
 
 export type ProfileScopeSettings = {
   container: boolean;
+  group: boolean;
   tab: boolean;
   window: boolean;
 };
@@ -38,6 +40,7 @@ type ProfileScopeContainerRow = ProfileScopeContainerInfo & {
 
 export const DEFAULT_PROFILE_SCOPE_CAPABILITIES: ProfileScopeCapabilities = {
   container: false,
+  group: false,
   tab: false,
   window: false
 };
@@ -55,6 +58,7 @@ export function profileScopesForOptions(options?: Options | null): ProfileScopeS
   const scopes = isRecordValue(raw) ? raw : {};
   return {
     tab: scopes.tab === true,
+    group: scopes.group === true,
     container: scopes.container === true,
     window: scopes.window === true
   };
@@ -65,6 +69,7 @@ export function visibleProfileScopes(options?: Options | null, capabilities?: Pr
   const supported = capabilities || DEFAULT_PROFILE_SCOPE_CAPABILITIES;
   return {
     tab: scopes.tab && supported.tab === true,
+    group: scopes.group && supported.group === true,
     container: scopes.container && supported.container === true,
     window: scopes.window && supported.window === true
   };
@@ -72,7 +77,7 @@ export function visibleProfileScopes(options?: Options | null, capabilities?: Pr
 
 export function hasVisibleProfileScopes(options?: Options | null, capabilities?: ProfileScopeCapabilities | null) {
   const visible = visibleProfileScopes(options, capabilities);
-  return visible.tab || visible.container || visible.window;
+  return visible.tab || visible.group || visible.container || visible.window;
 }
 
 function assignmentsForOptions(options?: Options | null): ProfileScopeAssignments {
@@ -376,11 +381,14 @@ export function ProfileScopeSettingsPage({
         </section>
       )}
 
-      {visible.tab && (
+      {(visible.tab || visible.group) && (
         <section className="settings-group profile-scope-settings-group">
-          <h3>{message('options_profileScopeTabsSection', 'Tabs')}</h3>
+          <h3>{message('options_profileScopeTabsSection', 'Tabs / Tab Groups')}</h3>
           <p className="help-block">
-            {message('options_profileScopeTabsHelp', 'Tab profile assignments are temporary and stay with their tabs.')}
+            {message(
+              'options_profileScopeTabsHelp',
+              'Tab and tab group profile assignments are temporary and stay with the tab or tab group where they were set.'
+            )}
           </p>
         </section>
       )}

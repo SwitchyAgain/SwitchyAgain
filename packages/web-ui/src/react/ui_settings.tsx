@@ -32,6 +32,7 @@ export type UiSettingsProps = {
 
 type ProfileScopeCapabilities = {
   container?: boolean;
+  group?: boolean;
   tab?: boolean;
   window?: boolean;
 };
@@ -40,6 +41,7 @@ type ProfileScopeKey = keyof ProfileScopeCapabilities;
 
 const DEFAULT_PROFILE_SCOPE_CAPABILITIES: ProfileScopeCapabilities = {
   container: false,
+  group: false,
   tab: false,
   window: false
 };
@@ -74,6 +76,7 @@ function profileScopesForOptions(options?: Options | null): Required<ProfileScop
   const scopes = raw && typeof raw === 'object' ? (raw as ProfileScopeCapabilities) : {};
   return {
     tab: scopes.tab === true,
+    group: scopes.group === true,
     container: scopes.container === true,
     window: scopes.window === true
   };
@@ -524,6 +527,13 @@ export function UiSettings({
           fallback="Tab profiles"
           helpKey="options_profileScopeTabHelp"
           helpFallback="Allow assigning a profile to the current tab from the popup. Firefox only."
+        />
+        <ProfileScopeCheckbox
+          scope="group"
+          messageKey="options_profileScopeGroup"
+          fallback="Tab group profiles"
+          helpKey="options_profileScopeGroupHelp"
+          helpFallback="Allow assigning a profile to the current tab group from the popup or page context menu. Firefox only."
         />
         <ProfileScopeCheckbox
           scope="container"

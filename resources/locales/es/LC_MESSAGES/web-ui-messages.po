@@ -1579,6 +1579,12 @@ msgstr "Perfiles por pestaña"
 msgid "options_profileScopeTabHelp"
 msgstr "Permite asignar un perfil a la pestaña actual desde el menú emergente. Solo Firefox."
 
+msgid "options_profileScopeGroup"
+msgstr "Perfiles de grupos de pestañas"
+
+msgid "options_profileScopeGroupHelp"
+msgstr "Permite asignar un perfil al grupo de pestañas actual desde el menú emergente o el menú contextual de la página. Solo Firefox."
+
 msgid "options_profileScopeContainer"
 msgstr "Perfiles de contenedor"
 
@@ -1593,6 +1599,9 @@ msgstr "Permite perfiles predeterminados separados para ventanas normales y priv
 
 msgid "popup_profileScopeTab"
 msgstr "Esta pestaña"
+
+msgid "popup_profileScopeGroup"
+msgstr "Grupo de pestañas"
 
 msgid "popup_profileScopeContainer"
 msgstr "Contenedor"
@@ -1652,10 +1661,10 @@ msgid "options_profileScopeContainerName"
 msgstr "Contenedor $1:NUMBER$"
 
 msgid "options_profileScopeTabsSection"
-msgstr "Pestañas"
+msgstr "Pestañas / Grupos de pestañas"
 
 msgid "options_profileScopeTabsHelp"
-msgstr "Las asignaciones de perfiles de pestañas son temporales y permanecen con sus pestañas."
+msgstr "Las asignaciones de perfiles de pestañas y grupos de pestañas son temporales y permanecen con la pestaña o el grupo de pestañas donde se definieron."
 
 msgid "contextMenu_openLinkInNewTabWithProfile"
 msgstr "Abrir enlace en nueva pestaña con perfil"
@@ -1668,3 +1677,9 @@ msgstr "Abrir enlace en nueva ventana privada con perfil"
 
 msgid "contextMenu_switchProfile"
 msgstr "Cambiar perfil"
+
+msgid "contextMenu_useProfileForThisTabGroup"
+msgstr "Usar perfil para este grupo de pestañas"
+
+msgid "contextMenu_clearTabGroupProfile"
+msgstr "Borrar perfil del grupo de pestañas"

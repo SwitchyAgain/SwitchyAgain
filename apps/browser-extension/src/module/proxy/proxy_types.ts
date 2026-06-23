@@ -48,9 +48,11 @@ export type ProxyProfile = Record<string, unknown> & {
 
 export type ProxyRequestDetails = {
   cookieStoreId?: string;
+  groupId?: number;
   incognito?: boolean;
   tabId?: number;
   url: string;
+  windowId?: number;
   [key: string]: unknown;
 };
 

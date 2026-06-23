@@ -213,6 +213,7 @@ describe('ui settings component', () => {
             undefined,
             {
               container: false,
+              group: false,
               tab: true,
               window: false
             }

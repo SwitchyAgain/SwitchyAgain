@@ -25,6 +25,8 @@
   --sa-popup-effective-bg: #d9edf7;
   --sa-popup-scope-tab-bg: #eaf3ff;
   --sa-popup-scope-tab-border: #6ea8fe;
+  --sa-popup-scope-group-bg: #e6f6f8;
+  --sa-popup-scope-group-border: #20a5b8;
   --sa-popup-scope-container-bg: #f1ecff;
   --sa-popup-scope-container-border: #8f6ed5;
   --sa-popup-scope-window-bg: #e9f7f2;
@@ -50,6 +52,8 @@
   --sa-popup-effective-bg: #032830;
   --sa-popup-scope-tab-bg: #0b2f4a;
   --sa-popup-scope-tab-border: #6ea8fe;
+  --sa-popup-scope-group-bg: #07353d;
+  --sa-popup-scope-group-border: #36c2d7;
   --sa-popup-scope-container-bg: #2f244b;
   --sa-popup-scope-container-border: #a98eda;
   --sa-popup-scope-window-bg: #12372a;
@@ -145,6 +149,13 @@ body {
     }
     .om-nav-item.om-nav-profile-scope.om-active[data-profile-scope="tab"] > a .glyphicon {
       color: var(--sa-popup-scope-tab-border);
+    }
+    .om-nav-item.om-nav-profile-scope.om-active[data-profile-scope="group"] > a {
+      background-color: var(--sa-popup-scope-group-bg);
+      box-shadow: inset 3px 0 0 var(--sa-popup-scope-group-border);
+    }
+    .om-nav-item.om-nav-profile-scope.om-active[data-profile-scope="group"] > a .glyphicon {
+      color: var(--sa-popup-scope-group-border);
     }
     .om-nav-item.om-nav-profile-scope.om-active[data-profile-scope="container"] > a {
       background-color: var(--sa-popup-scope-container-bg);
@@ -295,6 +306,9 @@ body {
 }
 .glyphicon-off:before {
   content: "\e017";
+}
+.glyphicon-th-large:before {
+  content: "\e010";
 }
 .glyphicon-warning-sign:before {
     content: "\e107";

@@ -1536,6 +1536,12 @@ msgstr "نمایه‌های زبانه"
 msgid "options_profileScopeTabHelp"
 msgstr "اجازه دهید از پنجره بازشو یک نمایه به زبانه فعلی اختصاص داده شود. فقط Firefox."
 
+msgid "options_profileScopeGroup"
+msgstr "نمایه‌های گروه زبانه"
+
+msgid "options_profileScopeGroupHelp"
+msgstr "اجازه دهید از پنجره بازشو یا منوی زمینه صفحه یک نمایه به گروه زبانه فعلی اختصاص داده شود. فقط Firefox."
+
 msgid "options_profileScopeContainer"
 msgstr "نمایه‌های کانتینر"
 
@@ -1550,6 +1556,9 @@ msgstr "اجازه دهید برای پنجره‌های عادی و خصوصی 
 
 msgid "popup_profileScopeTab"
 msgstr "این زبانه"
+
+msgid "popup_profileScopeGroup"
+msgstr "گروه زبانه"
 
 msgid "popup_profileScopeContainer"
 msgstr "کانتینر"
@@ -1609,10 +1618,10 @@ msgid "options_profileScopeContainerName"
 msgstr "کانتینر $1:NUMBER$"
 
 msgid "options_profileScopeTabsSection"
-msgstr "زبانه‌ها"
+msgstr "زبانه‌ها / گروه‌های زبانه"
 
 msgid "options_profileScopeTabsHelp"
-msgstr "اختصاص نمایه به زبانه‌ها موقت است و با همان زبانه‌ها می‌ماند."
+msgstr "اختصاص نمایه به زبانه‌ها و گروه‌های زبانه موقت است و با همان زبانه یا گروه زبانه‌ای می‌ماند که روی آن تنظیم شده است."
 
 msgid "contextMenu_openLinkInNewTabWithProfile"
 msgstr "باز کردن پیوند در زبانهٔ جدید با نمایه"
@@ -1625,3 +1634,9 @@ msgstr "باز کردن پیوند در پنجرهٔ خصوصی جدید با ن
 
 msgid "contextMenu_switchProfile"
 msgstr "تغییر نمایه"
+
+msgid "contextMenu_useProfileForThisTabGroup"
+msgstr "استفاده از نمایه برای این گروه زبانه"
+
+msgid "contextMenu_clearTabGroupProfile"
+msgstr "پاک کردن نمایه گروه زبانه"

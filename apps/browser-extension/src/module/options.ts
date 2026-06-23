@@ -11,6 +11,10 @@ const OmegaPromise = OmegaTarget.Promise;
 const LINK_PROFILE_CONTEXT_MENU_ROOT_ID = 'openLinkInNewTabWithProfile';
 const SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID = 'switchProfile';
 const SWITCH_PROFILE_CONTEXT_MENU_ITEM_PREFIX = `${SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID}:`;
+const GROUP_PROFILE_CONTEXT_MENU_ROOT_ID = 'useProfileForThisTabGroup';
+const GROUP_PROFILE_CONTEXT_MENU_ITEM_PREFIX = `${GROUP_PROFILE_CONTEXT_MENU_ROOT_ID}:`;
+const CLEAR_GROUP_PROFILE_CONTEXT_MENU_ID = `${GROUP_PROFILE_CONTEXT_MENU_ROOT_ID}:clear`;
+const TAB_GROUP_ID_NONE = -1;
 const WEB_LINK_PATTERNS = ['http://*/*', 'https://*/*'];
 const PROFILE_MENU_ORDER: Record<string, number> = {
   FixedProfile: -2000,
@@ -119,6 +123,7 @@ type TabRequestInfo = {
 
 type ProfileScopeSettings = {
   container: boolean;
+  group: boolean;
   tab: boolean;
   window: boolean;
 };
@@ -140,21 +145,27 @@ type ProfileScopeContainerInfo = {
 
 type ProfileScopeSetArgs = {
   cookieStoreId?: string;
+  groupId?: number;
   incognito?: boolean;
   profileName?: string;
-  scope: 'container' | 'normal' | 'private' | 'tab';
+  scope: 'container' | 'group' | 'normal' | 'private' | 'tab';
   tabId?: number;
+  windowId?: number;
 };
 
 type ProfileScopeInfoArgs = {
   cookieStoreId?: string;
+  groupId?: number;
   incognito?: boolean;
   tabId?: number;
+  windowId?: number;
 };
 
 type TabProfileContext = {
   cookieStoreId?: string;
+  groupId?: number;
   incognito?: boolean;
+  windowId?: number;
 };
 
 type ContextualIdentity = {
@@ -203,10 +214,12 @@ function normalizeSocks5LocalDnsProfile(profile: Profile) {
 
 type PageInfoArgs = {
   cookieStoreId?: string;
+  groupId?: number;
   includeExplanations?: boolean;
   incognito?: boolean;
   tabId: number;
   url?: string;
+  windowId?: number;
 };
 
 const MAX_PAGE_EXPLAIN_REQUESTS = 100;
@@ -228,6 +241,7 @@ function normalizeProfileScopes(value: unknown): ProfileScopeSettings {
   const scopes = isRecordValue(value) ? value : {};
   return {
     tab: scopes.tab === true,
+    group: scopes.group === true,
     container: scopes.container === true,
     window: scopes.window === true
   };
@@ -377,8 +391,12 @@ class ChromeOptions extends OmegaTarget.Options {
   private _switchProfileContextMenuIds: string[];
   private _switchProfileContextMenuProfiles: Record<string, string>;
   private _switchProfileContextMenuRefreshToken: number;
+  private _groupProfileContextMenuIds: string[];
+  private _groupProfileContextMenuSelections: Record<string, string | undefined>;
+  private _groupProfileContextMenuRefreshToken: number;
   private _requestMonitor: RequestMonitorLike | null;
   private _tabProfileContexts: Record<number, TabProfileContext>;
+  private _groupProfileNames: Record<string, string | undefined>;
   private _tabProfileNames: Record<number, string | undefined>;
   private _tabProfileScopeWatching: boolean;
   private _tabRequestInfoPorts: Record<number, ChromePortLike> | null;
@@ -398,16 +416,21 @@ class ChromeOptions extends OmegaTarget.Options {
     this._switchProfileContextMenuIds = [];
     this._switchProfileContextMenuProfiles = {};
     this._switchProfileContextMenuRefreshToken = 0;
+    this._groupProfileContextMenuIds = [];
+    this._groupProfileContextMenuSelections = {};
+    this._groupProfileContextMenuRefreshToken = 0;
     this._requestMonitor = null;
     this._profileScopeContainers = {};
     this._profileScopeContainerOrder = [];
     this._tabProfileContexts = {};
+    this._groupProfileNames = {};
     this._tabProfileNames = {};
     this._tabProfileScopeWatching = false;
     this._monitorWebRequests = false;
     this._tabRequestInfoPorts = null;
     this._alarms = null;
     this._onLinkProfileContextMenuClicked = this._onLinkProfileContextMenuClicked.bind(this);
+    this._onContextMenuShown = this._onContextMenuShown.bind(this);
     this.initProfileScopes();
     this.restoreTabProfileNames();
   }
@@ -449,6 +472,25 @@ class ChromeOptions extends OmegaTarget.Options {
     chrome.tabs.onUpdated.addListener((tabId: number, _changeInfo: Record<string, unknown>, tab: ChromeTab) => {
       this.updateTabProfileContext(tabId, tab);
     });
+    chrome.tabs.onMoved?.addListener((tabId: number) => {
+      chrome.tabs.get(tabId, (tab: ChromeTab) => {
+        if (!chrome.runtime.lastError && tab?.id != null) {
+          this.updateTabProfileContext(tab.id, tab);
+        }
+      });
+    });
+    const tabGroups = chrome.tabGroups as {
+      onRemoved?: {
+        addListener(callback: (group: {id?: number; windowId?: number}) => void): void;
+      };
+    } | undefined;
+    tabGroups?.onRemoved?.addListener((group) => {
+      const key = this.groupProfileKey(group.windowId, group.id);
+      if (key) {
+        delete this._groupProfileNames[key];
+        this.saveGroupProfileToStorage(key);
+      }
+    });
     chrome.tabs.query({}, (tabs: ChromeTab[]) => {
       for (const tab of tabs) {
         if (tab.id != null) {
@@ -458,13 +500,15 @@ class ChromeOptions extends OmegaTarget.Options {
     });
   }
 
-  private updateTabProfileContext(tabId: number, tab: Pick<ChromeTab, 'cookieStoreId' | 'incognito'>) {
+  private updateTabProfileContext(tabId: number, tab: Pick<ChromeTab, 'cookieStoreId' | 'groupId' | 'incognito' | 'windowId'>) {
     if (isFirefoxContainerId(tab.cookieStoreId)) {
       this.rememberProfileScopeContainer(tab.cookieStoreId);
     }
     this._tabProfileContexts[tabId] = {
       cookieStoreId: typeof tab.cookieStoreId === 'string' ? tab.cookieStoreId : this._tabProfileContexts[tabId]?.cookieStoreId,
-      incognito: typeof tab.incognito === 'boolean' ? tab.incognito : this._tabProfileContexts[tabId]?.incognito
+      groupId: typeof tab.groupId === 'number' ? tab.groupId : this._tabProfileContexts[tabId]?.groupId,
+      incognito: typeof tab.incognito === 'boolean' ? tab.incognito : this._tabProfileContexts[tabId]?.incognito,
+      windowId: typeof tab.windowId === 'number' ? tab.windowId : this._tabProfileContexts[tabId]?.windowId
     };
   }
 
@@ -567,6 +611,11 @@ class ChromeOptions extends OmegaTarget.Options {
           if (!isNaN(tabId) && typeof value === 'string') {
             this._tabProfileNames[tabId] = value;
           }
+        } else if (key.startsWith('tabGroupProfile_') && typeof value === 'string') {
+          const groupKey = key.substring(16);
+          if (this.validGroupProfileKey(groupKey)) {
+            this._groupProfileNames[groupKey] = value;
+          }
         }
       }
     }).catch(() => {
@@ -606,10 +655,47 @@ class ChromeOptions extends OmegaTarget.Options {
     });
   }
 
+  private groupProfileKey(windowId?: number, groupId?: number) {
+    if (
+      typeof windowId !== 'number' ||
+      typeof groupId !== 'number' ||
+      groupId === TAB_GROUP_ID_NONE ||
+      groupId < 0
+    ) {
+      return undefined;
+    }
+    return `${windowId}:${groupId}`;
+  }
+
+  private validGroupProfileKey(key: string) {
+    return /^\d+:\d+$/.test(key);
+  }
+
+  private saveGroupProfileToStorage(groupKey: string, profileName?: string) {
+    const sessionStorage = chrome?.storage?.session as {
+      set?: (items: Record<string, unknown>) => Promise<void>;
+      remove?: (keys: string | string[]) => Promise<void>;
+    } | undefined;
+    if (!sessionStorage) {
+      return;
+    }
+    const key = `tabGroupProfile_${groupKey}`;
+    if (profileName) {
+      sessionStorage.set?.({[key]: profileName}).catch(() => {
+        // Silently ignore storage errors
+      });
+    } else {
+      sessionStorage.remove?.(key).catch(() => {
+        // Silently ignore storage errors
+      });
+    }
+  }
+
   private profileScopeCapabilities(): ProfileScopeSettings {
     const features = this.proxyImpl.features || [];
     return {
       tab: features.indexOf('tabProfileScope') >= 0,
+      group: features.indexOf('groupProfileScope') >= 0,
       container: features.indexOf('containerProfileScope') >= 0,
       window: features.indexOf('windowProfileScope') >= 0
     };
@@ -620,6 +706,7 @@ class ChromeOptions extends OmegaTarget.Options {
     const capabilities = this.profileScopeCapabilities();
     return {
       tab: scopes.tab && capabilities.tab,
+      group: scopes.group && capabilities.group,
       container: scopes.container && capabilities.container,
       window: scopes.window && capabilities.window
     };
@@ -680,11 +767,11 @@ class ChromeOptions extends OmegaTarget.Options {
     };
   }
 
-  private linkProfileContextMenuProfiles(): ContextMenuProfile[] {
+  private profileScopeContextMenuProfiles(): ContextMenuProfile[] {
     if (!chrome?.contextMenus || !chrome?.tabs || !chrome?.i18n?.getMessage) {
       return [];
     }
-    if (this._isSystem || !this.enabledProfileScopes().tab || !this._currentProfileName) {
+    if (this._isSystem || !this._currentProfileName) {
       return [];
     }
     const current = this.currentProfile() as Profile | null;
@@ -712,6 +799,13 @@ class ChromeOptions extends OmegaTarget.Options {
         return true;
       })
       .sort((a, b) => this.compareProfile(a, b));
+  }
+
+  private linkProfileContextMenuProfiles(): ContextMenuProfile[] {
+    if (!this.enabledProfileScopes().tab) {
+      return [];
+    }
+    return this.profileScopeContextMenuProfiles();
   }
 
   private switchProfileContextMenuProfiles(): ContextMenuProfile[] {
@@ -766,6 +860,7 @@ class ChromeOptions extends OmegaTarget.Options {
       return;
     }
     contextMenus.onClicked.addListener(this._onLinkProfileContextMenuClicked);
+    contextMenus.onShown?.addListener(this._onContextMenuShown);
     this._linkProfileContextMenuClickReady = true;
   }
 
@@ -795,6 +890,13 @@ class ChromeOptions extends OmegaTarget.Options {
         chrome.runtime.lastError;
       });
     });
+  }
+
+  private refreshContextMenuItems() {
+    const refresh = chrome.contextMenus?.refresh;
+    if (typeof refresh === 'function') {
+      refresh.call(chrome.contextMenus);
+    }
   }
 
   private updateLinkProfileContextMenu() {
@@ -898,6 +1000,96 @@ class ChromeOptions extends OmegaTarget.Options {
       this._switchProfileContextMenuIds = nextIds;
       this._switchProfileContextMenuProfiles = nextProfiles;
     });
+  }
+
+  private updateGroupProfileContextMenuForTab(tab?: ChromeTab) {
+    const contextMenus = chrome.contextMenus;
+    if (contextMenus == null || chrome.i18n?.getMessage == null) {
+      return;
+    }
+    this.ensureLinkProfileContextMenuClickListener();
+    const token = ++this._groupProfileContextMenuRefreshToken;
+    const profiles = this.profileScopeContextMenuProfiles();
+    const oldIds = this._groupProfileContextMenuIds;
+    this._groupProfileContextMenuIds = [];
+    this._groupProfileContextMenuSelections = {};
+    this.removeContextMenuItems(oldIds, () => {
+      if (token !== this._groupProfileContextMenuRefreshToken || profiles.length === 0) {
+        this.refreshContextMenuItems();
+        return;
+      }
+      if (!this.enabledProfileScopes().group || tab?.id == null) {
+        this.refreshContextMenuItems();
+        return;
+      }
+      chrome.tabs.get(tab.id, (currentTab: ChromeTab) => {
+        if (token !== this._groupProfileContextMenuRefreshToken || chrome.runtime.lastError || currentTab?.id == null) {
+          return;
+        }
+        this.updateTabProfileContext(currentTab.id, currentTab);
+        const context = this.scopeContext(currentTab);
+        const groupKey = this.groupProfileKey(context.windowId, context.groupId);
+        if (!groupKey) {
+          this.refreshContextMenuItems();
+          return;
+        }
+        const activeProfileName = this.validProfileName(this._groupProfileNames[groupKey]);
+        const nextIds = [GROUP_PROFILE_CONTEXT_MENU_ROOT_ID];
+        const nextSelections: Record<string, string | undefined> = {};
+        this.createContextMenuItem({
+          id: GROUP_PROFILE_CONTEXT_MENU_ROOT_ID,
+          title: chrome.i18n.getMessage('contextMenu_useProfileForThisTabGroup') || 'Use Profile for This Tab Group',
+          contexts: ['page'],
+          documentUrlPatterns: WEB_LINK_PATTERNS
+        });
+        if (activeProfileName) {
+          nextIds.push(CLEAR_GROUP_PROFILE_CONTEXT_MENU_ID);
+          nextSelections[CLEAR_GROUP_PROFILE_CONTEXT_MENU_ID] = undefined;
+          this.createContextMenuItem({
+            id: CLEAR_GROUP_PROFILE_CONTEXT_MENU_ID,
+            parentId: GROUP_PROFILE_CONTEXT_MENU_ROOT_ID,
+            title: chrome.i18n.getMessage('contextMenu_clearTabGroupProfile') || 'Clear Tab Group Profile',
+            contexts: ['page'],
+            documentUrlPatterns: WEB_LINK_PATTERNS
+          });
+        }
+        const useIcons = this.contextMenuItemIconsSupported();
+        profiles.forEach((profile, index) => {
+          const id = `${GROUP_PROFILE_CONTEXT_MENU_ITEM_PREFIX}${index}`;
+          const checked = profile.name === activeProfileName;
+          nextIds.push(id);
+          nextSelections[id] = profile.name;
+          const baseItem = {
+            id,
+            parentId: GROUP_PROFILE_CONTEXT_MENU_ROOT_ID,
+            title: this.localizedProfileName(profile),
+            contexts: ['page'],
+            documentUrlPatterns: WEB_LINK_PATTERNS
+          };
+          const radioItem = {
+            ...baseItem,
+            type: 'radio',
+            checked
+          };
+          this.createContextMenuItem(
+            useIcons
+              ? {
+                  ...baseItem,
+                  icons: this.contextMenuIconForProfile(profile, checked)
+                }
+              : radioItem,
+            radioItem
+          );
+        });
+        this._groupProfileContextMenuIds = nextIds;
+        this._groupProfileContextMenuSelections = nextSelections;
+        this.refreshContextMenuItems();
+      });
+    });
+  }
+
+  private _onContextMenuShown(_info: Record<string, unknown>, tab?: ChromeTab) {
+    this.updateGroupProfileContextMenuForTab(tab);
   }
 
   private isHttpLinkUrl(url: unknown): url is string {
@@ -1125,6 +1317,30 @@ class ChromeOptions extends OmegaTarget.Options {
       });
       return;
     }
+    if (Object.prototype.hasOwnProperty.call(this._groupProfileContextMenuSelections, info.menuItemId)) {
+      if (tab?.id == null) {
+        return;
+      }
+      chrome.tabs.get(tab.id, (currentTab: ChromeTab) => {
+        if (chrome.runtime.lastError || currentTab?.id == null) {
+          return;
+        }
+        this.updateTabProfileContext(currentTab.id, currentTab);
+        const context = this.scopeContext(currentTab);
+        this.setProfileScope({
+          groupId: context.groupId,
+          profileName: this._groupProfileContextMenuSelections[info.menuItemId],
+          scope: 'group',
+          windowId: context.windowId
+        }).then(() => {
+          this.reloadContextMenuTabIfEnabled(currentTab);
+          this.updateGroupProfileContextMenuForTab(currentTab);
+        }).catch((error: unknown) => {
+          this.log.error('Failed to set tab group profile from context menu.', error);
+        });
+      });
+      return;
+    }
     const selection = this._linkProfileContextMenuSelections[info.menuItemId];
     if (!selection || !this.isHttpLinkUrl(info.linkUrl)) {
       return;
@@ -1144,6 +1360,7 @@ class ChromeOptions extends OmegaTarget.Options {
     return result.then((value: unknown) => {
       this.updateLinkProfileContextMenu();
       this.updateSwitchProfileContextMenu();
+      this.updateGroupProfileContextMenuForTab();
       return value;
     });
   }
@@ -1154,12 +1371,16 @@ class ChromeOptions extends OmegaTarget.Options {
     const context = {
       tabId,
       cookieStoreId: typeof args.cookieStoreId === 'string' ? args.cookieStoreId : cached?.cookieStoreId,
-      incognito: typeof args.incognito === 'boolean' ? args.incognito : cached?.incognito
+      groupId: typeof args.groupId === 'number' ? args.groupId : cached?.groupId,
+      incognito: typeof args.incognito === 'boolean' ? args.incognito : cached?.incognito,
+      windowId: typeof args.windowId === 'number' ? args.windowId : cached?.windowId
     };
     if (tabId >= 0) {
       this._tabProfileContexts[tabId] = {
         cookieStoreId: context.cookieStoreId,
-        incognito: context.incognito
+        groupId: context.groupId,
+        incognito: context.incognito,
+        windowId: context.windowId
       };
     }
     return context;
@@ -1174,6 +1395,14 @@ class ChromeOptions extends OmegaTarget.Options {
       return {
         profileName: tabProfileName,
         scope: 'tab'
+      };
+    }
+    const groupKey = this.groupProfileKey(context.windowId, context.groupId);
+    const groupProfileName = groupKey ? this.validProfileName(this._groupProfileNames[groupKey]) : undefined;
+    if (scopes.group && groupProfileName) {
+      return {
+        profileName: groupProfileName,
+        scope: 'group'
       };
     }
     const containerProfileName = isFirefoxContainerId(context.cookieStoreId)
@@ -1251,6 +1480,11 @@ class ChromeOptions extends OmegaTarget.Options {
         names.add(profileName as string);
       }
     }
+    for (const profileName of Object.values(this._groupProfileNames)) {
+      if (this.validProfileName(profileName)) {
+        names.add(profileName as string);
+      }
+    }
     for (const profileName of Object.values(assignments.containers)) {
       if (this.validProfileName(profileName)) {
         names.add(profileName);
@@ -1271,6 +1505,8 @@ class ChromeOptions extends OmegaTarget.Options {
     const enabled = this.enabledProfileScopes();
     const assignments = this.profileScopeAssignments();
     const tabProfileName = context.tabId >= 0 ? this.validProfileName(this._tabProfileNames[context.tabId]) : undefined;
+    const groupKey = this.groupProfileKey(context.windowId, context.groupId);
+    const groupProfileName = groupKey ? this.validProfileName(this._groupProfileNames[groupKey]) : undefined;
     const containerProfileName = isFirefoxContainerId(context.cookieStoreId)
       ? this.validProfileName(assignments.containers[context.cookieStoreId as string])
       : undefined;
@@ -1285,10 +1521,13 @@ class ChromeOptions extends OmegaTarget.Options {
       enabled,
       effectiveProfileName: effective.profileName,
       effectiveScope: effective.scope,
+      groupId: context.groupId != null && context.groupId !== TAB_GROUP_ID_NONE ? context.groupId : undefined,
+      groupProfileName,
       incognito: !!context.incognito,
       isContainer: isFirefoxContainerId(context.cookieStoreId),
       tabId: context.tabId >= 0 ? context.tabId : undefined,
       tabProfileName,
+      windowId: context.windowId,
       containerProfileName,
       windowProfileName
     };
@@ -1311,6 +1550,24 @@ class ChromeOptions extends OmegaTarget.Options {
         delete this._tabProfileNames[args.tabId];
       }
       this.saveTabProfileToStorage(args.tabId, profileName);
+      return this._currentProfileName
+        ? this.applyProfile(this._currentProfileName, {update: false})
+        : OmegaPromise.resolve();
+    }
+    if (args.scope === 'group') {
+      if (!capabilities.group || !scopes.group) {
+        return OmegaPromise.resolve();
+      }
+      const groupKey = this.groupProfileKey(args.windowId, args.groupId);
+      if (!groupKey) {
+        return OmegaPromise.resolve();
+      }
+      if (profileName) {
+        this._groupProfileNames[groupKey] = profileName;
+      } else {
+        delete this._groupProfileNames[groupKey];
+      }
+      this.saveGroupProfileToStorage(groupKey, profileName);
       return this._currentProfileName
         ? this.applyProfile(this._currentProfileName, {update: false})
         : OmegaPromise.resolve();
@@ -1677,12 +1934,14 @@ class ChromeOptions extends OmegaTarget.Options {
     return tabInfoPageUrl(this._requestMonitor?.tabInfo[tabId], url);
   }
 
-  getPageInfo({cookieStoreId, includeExplanations = false, incognito, tabId, url}: PageInfoArgs) {
+  getPageInfo({cookieStoreId, groupId, includeExplanations = false, incognito, tabId, url, windowId}: PageInfoArgs) {
     const tabInfo = this._requestMonitor?.tabInfo[tabId];
     const profileScope = this.getProfileScopeInfo({
       cookieStoreId,
+      groupId,
       incognito,
-      tabId
+      tabId,
+      windowId
     });
     const errorCount = tabInfo?.errorCount;
     const summary = tabInfo?.summary;

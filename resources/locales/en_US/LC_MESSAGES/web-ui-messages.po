@@ -1507,6 +1507,12 @@ msgstr "Tab profiles"
 msgid "options_profileScopeTabHelp"
 msgstr "Allow assigning a profile to the current tab from the popup. Firefox only."
 
+msgid "options_profileScopeGroup"
+msgstr "Tab group profiles"
+
+msgid "options_profileScopeGroupHelp"
+msgstr "Allow assigning a profile to the current tab group from the popup or page context menu. Firefox only."
+
 msgid "options_profileScopeContainer"
 msgstr "Container profiles"
 
@@ -1521,6 +1527,9 @@ msgstr "Allow separate default profiles for normal and private windows."
 
 msgid "popup_profileScopeTab"
 msgstr "This Tab"
+
+msgid "popup_profileScopeGroup"
+msgstr "Tab Group"
 
 msgid "popup_profileScopeContainer"
 msgstr "Container"
@@ -1580,10 +1589,10 @@ msgid "options_profileScopeContainerName"
 msgstr "Container $1:NUMBER$"
 
 msgid "options_profileScopeTabsSection"
-msgstr "Tabs"
+msgstr "Tabs / Tab Groups"
 
 msgid "options_profileScopeTabsHelp"
-msgstr "Tab profile assignments are temporary and stay with their tabs."
+msgstr "Tab and tab group profile assignments are temporary and stay with the tab or tab group where they were set."
 
 msgid "contextMenu_openLinkInNewTabWithProfile"
 msgstr "Open Link in New Tab with Profile"
@@ -1596,3 +1605,9 @@ msgstr "Open Link in New Private Window with Profile"
 
 msgid "contextMenu_switchProfile"
 msgstr "Switch Profile"
+
+msgid "contextMenu_useProfileForThisTabGroup"
+msgstr "Use Profile for This Tab Group"
+
+msgid "contextMenu_clearTabGroupProfile"
+msgstr "Clear Tab Group Profile"

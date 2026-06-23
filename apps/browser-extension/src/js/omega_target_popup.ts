@@ -7,10 +7,12 @@ type BackgroundResponse<T = unknown> = {
 
 type PageInfoRequest = {
   cookieStoreId?: string;
+  groupId?: number;
   includeExplanations?: boolean;
   incognito?: boolean;
   tabId?: number;
   url: string;
+  windowId?: number;
 };
 
 type PageInfoOptions = {
@@ -23,10 +25,12 @@ function popupTabUrl(tab?: Pick<ChromeTab, 'pendingUrl' | 'url'> | null) {
 
 type ProfileScopeSetRequest = {
   cookieStoreId?: string;
+  groupId?: number;
   incognito?: boolean;
   profileName?: string;
-  scope: 'container' | 'normal' | 'private' | 'tab';
+  scope: 'container' | 'group' | 'normal' | 'private' | 'tab';
   tabId?: number;
+  windowId?: number;
 };
 
 type PopupBackgroundMethodArgs = {
@@ -201,10 +205,12 @@ function cacheActivePageInfo(info?: PopupApiPageInfo | null) {
       if (tabs.length === 0 || !url) return callback?.();
       const args = {
         cookieStoreId: typeof tab.cookieStoreId === 'string' ? tab.cookieStoreId : undefined,
+        groupId: typeof tab.groupId === 'number' ? tab.groupId : undefined,
         includeExplanations: options.includeExplanations,
         incognito: typeof tab.incognito === 'boolean' ? tab.incognito : undefined,
         tabId: tab.id,
-        url
+        url,
+        windowId: typeof tab.windowId === 'number' ? tab.windowId : undefined
       };
       callBackground('getPageInfo', [args], (err?: unknown, info?: PopupApiPageInfo) => {
         if (!err) cacheActivePageInfo(info);

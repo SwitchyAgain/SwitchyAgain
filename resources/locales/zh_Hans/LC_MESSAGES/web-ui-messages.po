@@ -1375,6 +1375,12 @@ msgstr "标签页情景模式"
 msgid "options_profileScopeTabHelp"
 msgstr "允许在弹出菜单中为当前标签页指定情景模式。仅 Firefox 支持。"
 
+msgid "options_profileScopeGroup"
+msgstr "标签组情景模式"
+
+msgid "options_profileScopeGroupHelp"
+msgstr "允许在弹出菜单或网页右键菜单中为当前标签组指定情景模式。仅 Firefox 支持。"
+
 msgid "options_profileScopeContainer"
 msgstr "容器情景模式"
 
@@ -1389,6 +1395,9 @@ msgstr "允许为普通窗口和隐私窗口分别设置默认情景模式。"
 
 msgid "popup_profileScopeTab"
 msgstr "当前标签页"
+
+msgid "popup_profileScopeGroup"
+msgstr "标签组"
 
 msgid "popup_profileScopeContainer"
 msgstr "容器"
@@ -1448,10 +1457,10 @@ msgid "options_profileScopeContainerName"
 msgstr "容器 $1:NUMBER$"
 
 msgid "options_profileScopeTabsSection"
-msgstr "标签页"
+msgstr "标签页 / 标签组"
 
 msgid "options_profileScopeTabsHelp"
-msgstr "标签页情景模式是临时的，并跟随对应标签页。"
+msgstr "标签页和标签组情景模式是临时的，并会跟随设置它们的标签页或标签组。"
 
 msgid "contextMenu_openLinkInNewTabWithProfile"
 msgstr "使用情景模式在新标签页中打开链接"
@@ -1464,3 +1473,9 @@ msgstr "使用情景模式在新隐私窗口中打开链接"
 
 msgid "contextMenu_switchProfile"
 msgstr "切换情景模式"
+
+msgid "contextMenu_useProfileForThisTabGroup"
+msgstr "为当前标签组使用情景模式"
+
+msgid "contextMenu_clearTabGroupProfile"
+msgstr "清除标签组情景模式"

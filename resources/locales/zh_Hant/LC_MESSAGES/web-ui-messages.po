@@ -1362,6 +1362,12 @@ msgstr "分頁情境模式"
 msgid "options_profileScopeTabHelp"
 msgstr "允許在彈出選單中為目前分頁指定情境模式。僅 Firefox 支援。"
 
+msgid "options_profileScopeGroup"
+msgstr "分頁群組情境模式"
+
+msgid "options_profileScopeGroupHelp"
+msgstr "允許在彈出選單或網頁右鍵選單中為目前分頁群組指定情境模式。僅 Firefox 支援。"
+
 msgid "options_profileScopeContainer"
 msgstr "容器情境模式"
 
@@ -1376,6 +1382,9 @@ msgstr "允許為一般視窗與隱私視窗分別設定預設情境模式。"
 
 msgid "popup_profileScopeTab"
 msgstr "目前分頁"
+
+msgid "popup_profileScopeGroup"
+msgstr "分頁群組"
 
 msgid "popup_profileScopeContainer"
 msgstr "容器"
@@ -1435,10 +1444,10 @@ msgid "options_profileScopeContainerName"
 msgstr "容器 $1:NUMBER$"
 
 msgid "options_profileScopeTabsSection"
-msgstr "分頁"
+msgstr "分頁 / 分頁群組"
 
 msgid "options_profileScopeTabsHelp"
-msgstr "分頁情境模式是暫時的，並跟隨對應分頁。"
+msgstr "分頁與分頁群組情境模式是暫時的，並會跟隨設定它們的分頁或分頁群組。"
 
 msgid "contextMenu_openLinkInNewTabWithProfile"
 msgstr "使用情境模式在新分頁中開啟鏈結"
@@ -1451,3 +1460,9 @@ msgstr "使用情境模式在新隱私視窗中開啟鏈結"
 
 msgid "contextMenu_switchProfile"
 msgstr "切換情境模式"
+
+msgid "contextMenu_useProfileForThisTabGroup"
+msgstr "為目前分頁群組使用情境模式"
+
+msgid "contextMenu_clearTabGroupProfile"
+msgstr "清除分頁群組情境模式"

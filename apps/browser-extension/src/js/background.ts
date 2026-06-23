@@ -22,21 +22,25 @@ type BackgroundMethodArgs = {
 
 type PageInfoArgs = {
   cookieStoreId?: string;
+  groupId?: number;
   includeExplanations?: boolean;
   incognito?: boolean;
   tabId: number;
   url?: string;
+  windowId?: number;
 };
 
 type ProfileScopeSetArgs = {
   cookieStoreId?: string;
+  groupId?: number;
   incognito?: boolean;
   profileName?: string;
-  scope: 'container' | 'normal' | 'private' | 'tab';
+  scope: 'container' | 'group' | 'normal' | 'private' | 'tab';
   tabId?: number;
+  windowId?: number;
 };
 
-type ProfileScopeName = 'container' | 'current' | 'normal' | 'private' | 'tab';
+type ProfileScopeName = 'container' | 'current' | 'group' | 'normal' | 'private' | 'tab';
 
 type ProfileScopeMarker = Exclude<ProfileScopeName, 'current'>;
 
@@ -47,8 +51,10 @@ type ProfileScopeInfo = {
 
 type ProfileScopeInfoArgs = {
   cookieStoreId?: string;
+  groupId?: number;
   incognito?: boolean;
   tabId?: number;
+  windowId?: number;
 };
 
 function backgroundTabUrl(tab?: Pick<ChromeTab, 'pendingUrl' | 'url'> | null) {
@@ -309,6 +315,7 @@ type BackgroundOmegaTarget = {
 
   const profileScopeMarkerColors: Record<ProfileScopeMarker, string> = {
     tab: '#3d8bfd',
+    group: '#0f766e',
     container: '#8f6ed5',
     normal: '#38a169',
     private: '#c47f17'
@@ -407,6 +414,7 @@ type BackgroundOmegaTarget = {
   function profileScopeMarker(scope?: ProfileScopeName): ProfileScopeMarker | undefined {
     switch (scope) {
       case 'tab':
+      case 'group':
       case 'container':
       case 'normal':
       case 'private':
@@ -419,12 +427,14 @@ type BackgroundOmegaTarget = {
   function profileScopeLabel(scope: ProfileScopeMarker) {
     const messageKey = {
       tab: 'popup_profileScopeTab',
+      group: 'popup_profileScopeGroup',
       container: 'popup_profileScopeContainer',
       normal: 'popup_profileScopeNormal',
       private: 'popup_profileScopePrivate'
     }[scope];
     const fallback = {
       tab: 'This Tab',
+      group: 'Tab Group',
       container: 'Container',
       normal: 'Normal',
       private: 'Private'
@@ -459,8 +469,10 @@ type BackgroundOmegaTarget = {
       const request = OmegaPac.Conditions.requestFromUrl(url);
       const profileScope = options.getProfileScopeInfo({
         cookieStoreId: tab.cookieStoreId,
+        groupId: tab.groupId,
         incognito: tab.incognito,
-        tabId: tab.id
+        tabId: tab.id,
+        windowId: tab.windowId
       });
       const scopeMarker = profileScopeMarker(profileScope.effectiveScope);
       const match = scopeMarker && profileScope.effectiveProfileName

@@ -1364,6 +1364,12 @@ msgstr "Faneprofiler"
 msgid "options_profileScopeTabHelp"
 msgstr "Tillat å tilordne en profil til gjeldende fane fra sprettoppmenyen. Bare Firefox."
 
+msgid "options_profileScopeGroup"
+msgstr "Fanegruppeprofiler"
+
+msgid "options_profileScopeGroupHelp"
+msgstr "Tillat å tilordne en profil til gjeldende fanegruppe fra sprettoppmenyen eller sidens kontekstmeny. Bare Firefox."
+
 msgid "options_profileScopeContainer"
 msgstr "Beholderprofiler"
 
@@ -1378,6 +1384,9 @@ msgstr "Tillat separate standardprofiler for normale og private vinduer."
 
 msgid "popup_profileScopeTab"
 msgstr "Denne fanen"
+
+msgid "popup_profileScopeGroup"
+msgstr "Fanegruppe"
 
 msgid "popup_profileScopeContainer"
 msgstr "Beholder"
@@ -1437,10 +1446,10 @@ msgid "options_profileScopeContainerName"
 msgstr "Beholder $1:NUMBER$"
 
 msgid "options_profileScopeTabsSection"
-msgstr "Faner"
+msgstr "Faner / Fanegrupper"
 
 msgid "options_profileScopeTabsHelp"
-msgstr "Profiltilordninger for faner er midlertidige og følger fanene."
+msgstr "Profiltilordninger for faner og fanegrupper er midlertidige og følger fanen eller fanegruppen der de ble angitt."
 
 msgid "contextMenu_openLinkInNewTabWithProfile"
 msgstr "Åpne lenke i ny fane med profil"
@@ -1453,3 +1462,9 @@ msgstr "Åpne lenke i nytt privat vindu med profil"
 
 msgid "contextMenu_switchProfile"
 msgstr "Bytt profil"
+
+msgid "contextMenu_useProfileForThisTabGroup"
+msgstr "Bruk profil for denne fanegruppen"
+
+msgid "contextMenu_clearTabGroupProfile"
+msgstr "Tøm fanegruppeprofil"

@@ -42,7 +42,7 @@ class ListenerProxyImpl extends ProxyImpl {
 
   constructor(log: ProxyLog) {
     super(log);
-    this.features = ['fullUrl', 'socks5Auth', 'tabProfileScope', 'containerProfileScope', 'windowProfileScope'];
+    this.features = ['fullUrl', 'socks5Auth', 'tabProfileScope', 'groupProfileScope', 'containerProfileScope', 'windowProfileScope'];
     this.proxyAuthCapabilities = {
       http: true,
       https: true,

@@ -426,6 +426,7 @@ function installBackground({
         isSystemProfile: false,
         profileScopeCapabilities: profileScopeCapabilities || {
           container: false,
+          group: false,
           tab: false,
           window: false
         },
@@ -649,6 +650,7 @@ describe('options app', () => {
       options: loadedOptions,
       profileScopeCapabilities: {
         container: true,
+        group: true,
         tab: true,
         window: true
       }
@@ -659,6 +661,7 @@ describe('options app', () => {
 
     await screen.findByRole('heading', {name: 'Interface'});
     fireEvent.click(screen.getByLabelText('Tab profiles'));
+    fireEvent.click(screen.getByLabelText('Tab group profiles'));
     fireEvent.click(screen.getByLabelText('Container profiles'));
     fireEvent.click(screen.getByLabelText('Normal/private defaults'));
     await waitFor(() => expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.'));
@@ -668,10 +671,38 @@ describe('options app', () => {
     await waitFor(() => expect(window.onbeforeunload).toBeNull());
     expect(patchedOptionValue<Record<string, boolean>>(firstPatch(requests), '-profileScopes')).toEqual({
       container: true,
+      group: true,
       tab: true,
       window: true
     });
     expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
+  it('shows profile scope settings for tab group profiles without tab profiles', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '-profileScopes': {
+        group: true
+      }
+    };
+    installBackground({
+      options: loadedOptions,
+      profileScopeCapabilities: {
+        container: false,
+        group: true,
+        tab: true,
+        window: false
+      }
+    });
+    window.location.hash = '#/profileScope';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: 'Profile Scope'});
+    expect(screen.getByRole('heading', {name: 'Tabs / Tab Groups'})).toBeTruthy();
+    expect(
+      screen.getByText('Tab and tab group profile assignments are temporary and stay with the tab or tab group where they were set.')
+    ).toBeTruthy();
   });
 
   it('saves profile scope assignments through the top-level apply flow', async () => {

@@ -67,6 +67,7 @@ export type OptionsData = {
   };
   '-profileScopes'?: {
     container?: boolean;
+    group?: boolean;
     tab?: boolean;
     window?: boolean;
   };

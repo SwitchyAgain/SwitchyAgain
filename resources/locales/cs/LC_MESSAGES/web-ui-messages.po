@@ -1518,6 +1518,12 @@ msgstr "Profily karet"
 msgid "options_profileScopeTabHelp"
 msgstr "Umožní přiřadit profil aktuální kartě z vyskakovací nabídky. Pouze Firefox."
 
+msgid "options_profileScopeGroup"
+msgstr "Profily skupin karet"
+
+msgid "options_profileScopeGroupHelp"
+msgstr "Umožní přiřadit profil aktuální skupině karet z vyskakovací nabídky nebo kontextové nabídky stránky. Pouze Firefox."
+
 msgid "options_profileScopeContainer"
 msgstr "Profily kontejnerů"
 
@@ -1532,6 +1538,9 @@ msgstr "Umožní samostatné výchozí profily pro normální a soukromá okna."
 
 msgid "popup_profileScopeTab"
 msgstr "Tato karta"
+
+msgid "popup_profileScopeGroup"
+msgstr "Skupina karet"
 
 msgid "popup_profileScopeContainer"
 msgstr "Kontejner"
@@ -1591,10 +1600,10 @@ msgid "options_profileScopeContainerName"
 msgstr "Kontejner $1:NUMBER$"
 
 msgid "options_profileScopeTabsSection"
-msgstr "Karty"
+msgstr "Karty / Skupiny karet"
 
 msgid "options_profileScopeTabsHelp"
-msgstr "Přiřazení profilů kartám jsou dočasná a zůstávají u svých karet."
+msgstr "Přiřazení profilů kartám a skupinám karet jsou dočasná a zůstávají u karty nebo skupiny karet, kde byla nastavena."
 
 msgid "contextMenu_openLinkInNewTabWithProfile"
 msgstr "Otevřít odkaz na nové kartě s profilem"
@@ -1607,3 +1616,9 @@ msgstr "Otevřít odkaz v novém anonymním okně s profilem"
 
 msgid "contextMenu_switchProfile"
 msgstr "Přepnout profil"
+
+msgid "contextMenu_useProfileForThisTabGroup"
+msgstr "Použít profil pro tuto skupinu karet"
+
+msgid "contextMenu_clearTabGroupProfile"
+msgstr "Vymazat profil skupiny karet"

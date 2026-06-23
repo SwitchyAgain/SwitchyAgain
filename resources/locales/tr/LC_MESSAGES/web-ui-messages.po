@@ -1355,6 +1355,12 @@ msgstr "Sekme profilleri"
 msgid "options_profileScopeTabHelp"
 msgstr "Açılır menüden geçerli sekmeye profil atamaya izin ver. Yalnızca Firefox."
 
+msgid "options_profileScopeGroup"
+msgstr "Sekme grubu profilleri"
+
+msgid "options_profileScopeGroupHelp"
+msgstr "Açılır menüden veya sayfa bağlam menüsünden geçerli sekme grubuna profil atamaya izin ver. Yalnızca Firefox."
+
 msgid "options_profileScopeContainer"
 msgstr "Kapsayıcı profilleri"
 
@@ -1369,6 +1375,9 @@ msgstr "Normal ve gizli pencereler için ayrı varsayılan profillere izin ver."
 
 msgid "popup_profileScopeTab"
 msgstr "Bu Sekme"
+
+msgid "popup_profileScopeGroup"
+msgstr "Sekme Grubu"
 
 msgid "popup_profileScopeContainer"
 msgstr "Kapsayıcı"
@@ -1428,10 +1437,10 @@ msgid "options_profileScopeContainerName"
 msgstr "Kapsayıcı $1:NUMBER$"
 
 msgid "options_profileScopeTabsSection"
-msgstr "Sekmeler"
+msgstr "Sekmeler / Sekme grupları"
 
 msgid "options_profileScopeTabsHelp"
-msgstr "Sekme profil atamaları geçicidir ve kendi sekmeleriyle kalır."
+msgstr "Sekme ve sekme grubu profil atamaları geçicidir ve ayarlandıkları sekme veya sekme grubuyla kalır."
 
 msgid "contextMenu_openLinkInNewTabWithProfile"
 msgstr "Bağlantıyı profille yeni sekmede aç"
@@ -1444,3 +1453,9 @@ msgstr "Bağlantıyı profille yeni gizli pencerede aç"
 
 msgid "contextMenu_switchProfile"
 msgstr "Profili değiştir"
+
+msgid "contextMenu_useProfileForThisTabGroup"
+msgstr "Bu sekme grubu için profil kullan"
+
+msgid "contextMenu_clearTabGroupProfile"
+msgstr "Sekme grubu profilini temizle"

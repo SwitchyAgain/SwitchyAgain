@@ -44,27 +44,33 @@ export type ProfileScopeInfo = {
   containerProfileName?: string;
   cookieStoreId?: string;
   effectiveProfileName?: string;
-  effectiveScope?: 'container' | 'current' | 'normal' | 'private' | 'tab';
+  effectiveScope?: 'container' | 'current' | 'group' | 'normal' | 'private' | 'tab';
   enabled?: ProfileScopeSettings;
+  groupId?: number;
+  groupProfileName?: string;
   incognito?: boolean;
   isContainer?: boolean;
   tabId?: number;
   tabProfileName?: string;
+  windowId?: number;
   windowProfileName?: string;
 };
 
 export type ProfileScopeSettings = {
   container?: boolean;
+  group?: boolean;
   tab?: boolean;
   window?: boolean;
 };
 
 export type ProfileScopeSetRequest = {
   cookieStoreId?: string;
+  groupId?: number;
   incognito?: boolean;
   profileName?: string;
-  scope: 'container' | 'normal' | 'private' | 'tab';
+  scope: 'container' | 'group' | 'normal' | 'private' | 'tab';
   tabId?: number;
+  windowId?: number;
 };
 
 export type PageInfoOptions = {

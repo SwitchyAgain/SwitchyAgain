@@ -108,10 +108,12 @@ interface BrowserRuntimeApi {
 interface ChromeTab {
   active?: boolean;
   cookieStoreId?: string;
+  groupId?: number;
   id?: number;
   incognito?: boolean;
   pendingUrl?: string;
   url?: string;
+  windowId?: number;
   [key: string]: unknown;
 }
 
@@ -135,6 +137,7 @@ interface ChromeTabsApi {
   update(tabId: number | undefined, properties: Record<string, unknown>, callback?: (...args: unknown[]) => void): void;
   onActivated: ChromeEvent<(info: {tabId: number}) => void>;
   onCreated: ChromeEvent<(tab: ChromeTab) => void>;
+  onMoved?: ChromeEvent<(tabId: number, moveInfo?: unknown) => void>;
   onRemoved: ChromeEvent<(tabId: number, removeInfo?: unknown) => void>;
   onReplaced?: ChromeEvent<(addedTabId: number, removedTabId: number) => void>;
   onUpdated: ChromeEvent<(tabId: number, changeInfo: Record<string, unknown>, tab: ChromeTab) => void>;
@@ -154,10 +157,12 @@ interface ChromeActionApi {
 
 interface ChromeContextMenusApi {
   create(properties: Record<string, unknown>, callback?: (...args: unknown[]) => void): void;
+  refresh?(): void;
   remove(menuItemId: string, callback?: (...args: unknown[]) => void): void;
   removeAll?(callback?: (...args: unknown[]) => void): void;
   update(menuItemId: string, updateProperties: Record<string, unknown>, callback?: (...args: unknown[]) => void): void;
   onClicked: ChromeEvent<(info: ChromeContextMenuClickInfo, tab: ChromeTab) => void>;
+  onShown?: ChromeEvent<(info: Record<string, unknown>, tab?: ChromeTab) => void>;
   [key: string]: unknown;
 }
 
@@ -228,7 +233,14 @@ interface ChromeProxyApi {
 interface BrowserProxyApi {
   onError: ChromeEvent<(error: unknown) => void>;
   onProxyError: ChromeEvent<(error: {message?: string}) => void>;
-  onRequest: ChromeEvent<(details: {cookieStoreId?: string; incognito?: boolean; tabId?: number; url: string}) => unknown>;
+  onRequest: ChromeEvent<(details: {
+    cookieStoreId?: string;
+    groupId?: number;
+    incognito?: boolean;
+    tabId?: number;
+    url: string;
+    windowId?: number;
+  }) => unknown>;
   register?(scriptUrl: string): Promise<unknown> | void;
   registerProxyScript(scriptUrl: string): Promise<unknown> | void;
   unregister?(): Promise<unknown> | void;
@@ -578,7 +590,7 @@ interface OmegaTargetPopupApi {
     cookieStoreId?: string;
     incognito?: boolean;
     profileName?: string;
-    scope: 'container' | 'normal' | 'private' | 'tab';
+    scope: 'container' | 'group' | 'normal' | 'private' | 'tab';
     tabId?: number;
   }, cb?: PopupApiCallback): void;
   setState(
