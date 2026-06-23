@@ -307,6 +307,33 @@ msgstr ""
 msgid "options_showSocks5LocalDnsOption"
 msgstr "Показывать вариант локального DNS для SOCKS5. Только Firefox."
 
+msgid "options_group_contextMenuOptions"
+msgstr "Параметры контекстного меню"
+
+msgid "options_contextMenuSwitchProfile"
+msgstr "Показывать «Сменить профиль»"
+
+msgid "options_contextMenuTabProfile"
+msgstr "Показывать переключение профиля вкладки"
+
+msgid "options_contextMenuGroupProfile"
+msgstr "Показывать переключение профиля группы вкладок"
+
+msgid "options_contextMenuContainerProfile"
+msgstr "Показывать переключение профиля контейнера"
+
+msgid "options_contextMenuWindowProfile"
+msgstr "Показывать переключение профиля по умолчанию для обычных/приватных окон"
+
+msgid "options_contextMenuOpenLinkInNewTabWithProfile"
+msgstr "Показывать «Открыть ссылку в новой вкладке с профилем»"
+
+msgid "options_contextMenuOpenLinkInNewWindowWithProfile"
+msgstr "Показывать «Открыть ссылку в новом окне с профилем»"
+
+msgid "options_contextMenuOpenLinkInNewPrivateWindowWithProfile"
+msgstr "Показывать «Открыть ссылку в новом приватном окне с профилем»"
+
 msgid "options_group_keyboardShortcut"
 msgstr "Горячая клавиша"
 

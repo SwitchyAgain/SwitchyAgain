@@ -276,6 +276,33 @@ msgstr "在情境模式頁面顯示「情境模式選項」，用於從彈出式
 msgid "options_showSocks5LocalDnsOption"
 msgstr "顯示 SOCKS5 本機 DNS 選項。僅 Firefox 支援。"
 
+msgid "options_group_contextMenuOptions"
+msgstr "右鍵選單選項"
+
+msgid "options_contextMenuSwitchProfile"
+msgstr "顯示「切換情境模式」"
+
+msgid "options_contextMenuTabProfile"
+msgstr "顯示分頁情境模式切換"
+
+msgid "options_contextMenuGroupProfile"
+msgstr "顯示分頁群組情境模式切換"
+
+msgid "options_contextMenuContainerProfile"
+msgstr "顯示容器情境模式切換"
+
+msgid "options_contextMenuWindowProfile"
+msgstr "顯示一般/隱私視窗預設情境模式切換"
+
+msgid "options_contextMenuOpenLinkInNewTabWithProfile"
+msgstr "顯示「以情境模式在新分頁開啟連結」"
+
+msgid "options_contextMenuOpenLinkInNewWindowWithProfile"
+msgstr "顯示「以情境模式在新視窗開啟連結」"
+
+msgid "options_contextMenuOpenLinkInNewPrivateWindowWithProfile"
+msgstr "顯示「以情境模式在新隱私視窗開啟連結」"
+
 msgid "options_group_keyboardShortcut"
 msgstr "鍵盤快速鍵"
 

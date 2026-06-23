@@ -312,6 +312,33 @@ msgstr ""
 msgid "options_showSocks5LocalDnsOption"
 msgstr "Mostrar la opción de DNS local SOCKS5. Solo Firefox."
 
+msgid "options_group_contextMenuOptions"
+msgstr "Opciones del menú contextual"
+
+msgid "options_contextMenuSwitchProfile"
+msgstr "Mostrar Cambiar perfil"
+
+msgid "options_contextMenuTabProfile"
+msgstr "Mostrar cambio de perfil de pestaña"
+
+msgid "options_contextMenuGroupProfile"
+msgstr "Mostrar cambio de perfil de grupo de pestañas"
+
+msgid "options_contextMenuContainerProfile"
+msgstr "Mostrar cambio de perfil de contenedor"
+
+msgid "options_contextMenuWindowProfile"
+msgstr "Mostrar cambio de perfil predeterminado para ventanas normales/privadas"
+
+msgid "options_contextMenuOpenLinkInNewTabWithProfile"
+msgstr "Mostrar Abrir enlace en nueva pestaña con perfil"
+
+msgid "options_contextMenuOpenLinkInNewWindowWithProfile"
+msgstr "Mostrar Abrir enlace en nueva ventana con perfil"
+
+msgid "options_contextMenuOpenLinkInNewPrivateWindowWithProfile"
+msgstr "Mostrar Abrir enlace en nueva ventana privada con perfil"
+
 msgid "options_group_keyboardShortcut"
 msgstr "Atajo de teclado"
 

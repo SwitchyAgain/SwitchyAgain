@@ -300,6 +300,33 @@ msgstr "Zobrazit možnosti profilu na stránkách profilů pro skrytí profilů 
 msgid "options_showSocks5LocalDnsOption"
 msgstr "Zobrazit volbu místního DNS pro SOCKS5. Pouze Firefox."
 
+msgid "options_group_contextMenuOptions"
+msgstr "Možnosti kontextového menu"
+
+msgid "options_contextMenuSwitchProfile"
+msgstr "Zobrazit Přepnout profil"
+
+msgid "options_contextMenuTabProfile"
+msgstr "Zobrazit přepínání profilu záložky"
+
+msgid "options_contextMenuGroupProfile"
+msgstr "Zobrazit přepínání profilu skupiny záložek"
+
+msgid "options_contextMenuContainerProfile"
+msgstr "Zobrazit přepínání profilu kontejneru"
+
+msgid "options_contextMenuWindowProfile"
+msgstr "Zobrazit přepínání výchozího profilu pro normální/soukromá okna"
+
+msgid "options_contextMenuOpenLinkInNewTabWithProfile"
+msgstr "Zobrazit Otevřít odkaz v nové záložce s profilem"
+
+msgid "options_contextMenuOpenLinkInNewWindowWithProfile"
+msgstr "Zobrazit Otevřít odkaz v novém okně s profilem"
+
+msgid "options_contextMenuOpenLinkInNewPrivateWindowWithProfile"
+msgstr "Zobrazit Otevřít odkaz v novém soukromém okně s profilem"
+
 msgid "options_group_keyboardShortcut"
 msgstr "Klávesové zkratky"
 

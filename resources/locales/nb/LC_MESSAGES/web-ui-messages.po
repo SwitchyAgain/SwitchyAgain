@@ -256,6 +256,33 @@ msgstr "Vis profilalternativer på profilsider for å skjule profiler fra sprett
 msgid "options_showSocks5LocalDnsOption"
 msgstr "Vis alternativet for lokal DNS med SOCKS5. Bare Firefox."
 
+msgid "options_group_contextMenuOptions"
+msgstr "Alternativer for kontekstmeny"
+
+msgid "options_contextMenuSwitchProfile"
+msgstr "Vis Bytt profil"
+
+msgid "options_contextMenuTabProfile"
+msgstr "Vis bytte av faneprofil"
+
+msgid "options_contextMenuGroupProfile"
+msgstr "Vis bytte av fanegruppeprofil"
+
+msgid "options_contextMenuContainerProfile"
+msgstr "Vis bytte av containerprofil"
+
+msgid "options_contextMenuWindowProfile"
+msgstr "Vis bytte av standardprofil for normale/private vinduer"
+
+msgid "options_contextMenuOpenLinkInNewTabWithProfile"
+msgstr "Vis Åpne lenke i ny fane med profil"
+
+msgid "options_contextMenuOpenLinkInNewWindowWithProfile"
+msgstr "Vis Åpne lenke i nytt vindu med profil"
+
+msgid "options_contextMenuOpenLinkInNewPrivateWindowWithProfile"
+msgstr "Vis Åpne lenke i nytt privat vindu med profil"
+
 msgid "options_group_keyboardShortcut"
 msgstr "Tastatursnarvei"
 

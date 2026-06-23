@@ -299,6 +299,33 @@ msgstr "Show Profile Options on profile pages for hiding profiles from the popup
 msgid "options_showSocks5LocalDnsOption"
 msgstr "Show SOCKS5 local DNS option. Firefox only."
 
+msgid "options_group_contextMenuOptions"
+msgstr "Context Menu Options"
+
+msgid "options_contextMenuSwitchProfile"
+msgstr "Show Switch Profile"
+
+msgid "options_contextMenuTabProfile"
+msgstr "Show tab profile switching"
+
+msgid "options_contextMenuGroupProfile"
+msgstr "Show tab group profile switching"
+
+msgid "options_contextMenuContainerProfile"
+msgstr "Show container profile switching"
+
+msgid "options_contextMenuWindowProfile"
+msgstr "Show normal/private default switching"
+
+msgid "options_contextMenuOpenLinkInNewTabWithProfile"
+msgstr "Show Open Link in New Tab with Profile"
+
+msgid "options_contextMenuOpenLinkInNewWindowWithProfile"
+msgstr "Show Open Link in New Window with Profile"
+
+msgid "options_contextMenuOpenLinkInNewPrivateWindowWithProfile"
+msgstr "Show Open Link in New Private Window with Profile"
+
 msgid "options_group_keyboardShortcut"
 msgstr "Keyboard Shortcut"
 

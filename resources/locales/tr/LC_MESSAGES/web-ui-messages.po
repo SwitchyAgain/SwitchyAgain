@@ -265,6 +265,33 @@ msgstr "Açılır menüden profilleri gizlemek için profil sayfalarında Profil
 msgid "options_showSocks5LocalDnsOption"
 msgstr "SOCKS5 yerel DNS seçeneğini göster. Yalnızca Firefox."
 
+msgid "options_group_contextMenuOptions"
+msgstr "Bağlam Menüsü Seçenekleri"
+
+msgid "options_contextMenuSwitchProfile"
+msgstr "Profil Değiştir'i göster"
+
+msgid "options_contextMenuTabProfile"
+msgstr "Sekme profili geçişini göster"
+
+msgid "options_contextMenuGroupProfile"
+msgstr "Sekme grubu profili geçişini göster"
+
+msgid "options_contextMenuContainerProfile"
+msgstr "Konteyner profili geçişini göster"
+
+msgid "options_contextMenuWindowProfile"
+msgstr "Normal/gizli varsayılan profil geçişini göster"
+
+msgid "options_contextMenuOpenLinkInNewTabWithProfile"
+msgstr "Profille Yeni Sekmede Bağlantı Aç'ı göster"
+
+msgid "options_contextMenuOpenLinkInNewWindowWithProfile"
+msgstr "Profille Yeni Pencerede Bağlantı Aç'ı göster"
+
+msgid "options_contextMenuOpenLinkInNewPrivateWindowWithProfile"
+msgstr "Profille Yeni Gizli Pencerede Bağlantı Aç'ı göster"
+
 msgid "options_group_keyboardShortcut"
 msgstr "Klavye Kısayolu"
 

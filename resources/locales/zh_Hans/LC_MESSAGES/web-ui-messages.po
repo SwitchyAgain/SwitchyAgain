@@ -281,6 +281,33 @@ msgstr "在情景模式页面显示“情景模式选项”，用于从弹出菜
 msgid "options_showSocks5LocalDnsOption"
 msgstr "显示 SOCKS5 本地 DNS 选项。仅 Firefox 支持。"
 
+msgid "options_group_contextMenuOptions"
+msgstr "右键菜单选项"
+
+msgid "options_contextMenuSwitchProfile"
+msgstr "显示“切换情景模式”"
+
+msgid "options_contextMenuTabProfile"
+msgstr "显示标签页情景模式切换"
+
+msgid "options_contextMenuGroupProfile"
+msgstr "显示标签组情景模式切换"
+
+msgid "options_contextMenuContainerProfile"
+msgstr "显示容器情景模式切换"
+
+msgid "options_contextMenuWindowProfile"
+msgstr "显示普通/隐私窗口默认情景模式切换"
+
+msgid "options_contextMenuOpenLinkInNewTabWithProfile"
+msgstr "显示“在新标签页中以情景模式打开链接”"
+
+msgid "options_contextMenuOpenLinkInNewWindowWithProfile"
+msgstr "显示“在新窗口中以情景模式打开链接”"
+
+msgid "options_contextMenuOpenLinkInNewPrivateWindowWithProfile"
+msgstr "显示“在新隐私窗口中以情景模式打开链接”"
+
 msgid "options_group_keyboardShortcut"
 msgstr "键盘快捷键"
 
