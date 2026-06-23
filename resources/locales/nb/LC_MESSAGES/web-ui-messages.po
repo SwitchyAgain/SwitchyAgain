@@ -1197,7 +1197,7 @@ msgid "about_title"
 msgstr "About"
 
 msgid "about_app_description"
-msgstr "A proxy configuration tool"
+msgstr "Et avansert verktøy for proxy-konfigurasjon"
 
 msgid "about_version"
 msgstr "Version $VERSION$"
@@ -1362,7 +1362,7 @@ msgid "options_profileScopeTab"
 msgstr "Faneprofiler"
 
 msgid "options_profileScopeTabHelp"
-msgstr "Tillat å tilordne en profil til gjeldende fane fra sprettoppmenyen. Bare Firefox."
+msgstr "Tillat å tilordne en profil til gjeldende fane fra sprettoppmenyen eller sidens kontekstmeny. Bare Firefox."
 
 msgid "options_profileScopeGroup"
 msgstr "Fanegruppeprofiler"
@@ -1374,13 +1374,13 @@ msgid "options_profileScopeContainer"
 msgstr "Beholderprofiler"
 
 msgid "options_profileScopeContainerHelp"
-msgstr "Tillat å tilordne profiler til Firefox-beholdere fra sprettoppmenyen. Bare Firefox."
+msgstr "Tillat å tilordne profiler til Firefox-beholdere fra sprettoppmenyen eller sidens kontekstmeny. Bare Firefox."
 
 msgid "options_profileScopeWindow"
 msgstr "Standarder for normal/privat"
 
 msgid "options_profileScopeWindowHelp"
-msgstr "Tillat separate standardprofiler for normale og private vinduer."
+msgstr "Tillat separate standardprofiler for normale og private vinduer fra sprettoppmenyen eller sidens kontekstmeny."
 
 msgid "popup_profileScopeTab"
 msgstr "Denne fanen"
@@ -1463,8 +1463,17 @@ msgstr "Åpne lenke i nytt privat vindu med profil"
 msgid "contextMenu_switchProfile"
 msgstr "Bytt profil"
 
+msgid "contextMenu_useProfileForThisTab"
+msgstr "Bruk profil for denne fanen"
+
 msgid "contextMenu_useProfileForThisTabGroup"
 msgstr "Bruk profil for denne fanegruppen"
 
-msgid "contextMenu_clearTabGroupProfile"
-msgstr "Tøm fanegruppeprofil"
+msgid "contextMenu_useProfileForThisContainer"
+msgstr "Bruk profil for denne beholderen"
+
+msgid "contextMenu_useProfileForNormalWindows"
+msgstr "Bruk profil for normale vinduer"
+
+msgid "contextMenu_useProfileForPrivateWindows"
+msgstr "Bruk profil for private vinduer"

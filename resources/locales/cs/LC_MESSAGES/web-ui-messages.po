@@ -1351,7 +1351,7 @@ msgid "about_title"
 msgstr "About"
 
 msgid "about_app_description"
-msgstr "A proxy configuration tool"
+msgstr "Pokročilý nástroj pro konfiguraci proxy"
 
 msgid "about_version"
 msgstr "Version $VERSION$"
@@ -1516,7 +1516,7 @@ msgid "options_profileScopeTab"
 msgstr "Profily karet"
 
 msgid "options_profileScopeTabHelp"
-msgstr "Umožní přiřadit profil aktuální kartě z vyskakovací nabídky. Pouze Firefox."
+msgstr "Umožní přiřadit profil aktuální kartě z vyskakovací nabídky nebo kontextové nabídky stránky. Pouze Firefox."
 
 msgid "options_profileScopeGroup"
 msgstr "Profily skupin karet"
@@ -1528,13 +1528,13 @@ msgid "options_profileScopeContainer"
 msgstr "Profily kontejnerů"
 
 msgid "options_profileScopeContainerHelp"
-msgstr "Umožní přiřadit profily kontejnerům Firefoxu z vyskakovací nabídky. Pouze Firefox."
+msgstr "Umožní přiřadit profily kontejnerům Firefoxu z vyskakovací nabídky nebo kontextové nabídky stránky. Pouze Firefox."
 
 msgid "options_profileScopeWindow"
 msgstr "Výchozí pro normální/soukromá okna"
 
 msgid "options_profileScopeWindowHelp"
-msgstr "Umožní samostatné výchozí profily pro normální a soukromá okna."
+msgstr "Umožní samostatné výchozí profily pro normální a soukromá okna z vyskakovací nabídky nebo kontextové nabídky stránky."
 
 msgid "popup_profileScopeTab"
 msgstr "Tato karta"
@@ -1617,8 +1617,17 @@ msgstr "Otevřít odkaz v novém anonymním okně s profilem"
 msgid "contextMenu_switchProfile"
 msgstr "Přepnout profil"
 
+msgid "contextMenu_useProfileForThisTab"
+msgstr "Použít profil pro tuto kartu"
+
 msgid "contextMenu_useProfileForThisTabGroup"
 msgstr "Použít profil pro tuto skupinu karet"
 
-msgid "contextMenu_clearTabGroupProfile"
-msgstr "Vymazat profil skupiny karet"
+msgid "contextMenu_useProfileForThisContainer"
+msgstr "Použít profil pro tento kontejner"
+
+msgid "contextMenu_useProfileForNormalWindows"
+msgstr "Použít profil pro normální okna"
+
+msgid "contextMenu_useProfileForPrivateWindows"
+msgstr "Použít profil pro soukromá okna"

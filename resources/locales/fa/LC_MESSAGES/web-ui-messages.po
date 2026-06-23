@@ -1367,7 +1367,7 @@ msgid "about_title"
 msgstr "درباره"
 
 msgid "about_app_description"
-msgstr "ابزار پیکربندی پراکسی"
+msgstr "ابزار پیشرفتهٔ پیکربندی پراکسی"
 
 msgid "about_version"
 msgstr "نسخه $VERSION$"
@@ -1534,7 +1534,7 @@ msgid "options_profileScopeTab"
 msgstr "نمایه‌های زبانه"
 
 msgid "options_profileScopeTabHelp"
-msgstr "اجازه دهید از پنجره بازشو یک نمایه به زبانه فعلی اختصاص داده شود. فقط Firefox."
+msgstr "اجازه دهید از پنجره بازشو یا منوی زمینهٔ صفحه یک نمایه به زبانهٔ فعلی اختصاص داده شود. فقط Firefox."
 
 msgid "options_profileScopeGroup"
 msgstr "نمایه‌های گروه زبانه"
@@ -1546,13 +1546,13 @@ msgid "options_profileScopeContainer"
 msgstr "نمایه‌های کانتینر"
 
 msgid "options_profileScopeContainerHelp"
-msgstr "اجازه دهید از پنجره بازشو نمایه‌هایی به کانتینرهای Firefox اختصاص داده شوند. فقط Firefox."
+msgstr "اجازه دهید از پنجره بازشو یا منوی زمینهٔ صفحه نمایه‌هایی به کانتینرهای Firefox اختصاص داده شوند. فقط Firefox."
 
 msgid "options_profileScopeWindow"
 msgstr "پیش‌فرض‌های عادی/خصوصی"
 
 msgid "options_profileScopeWindowHelp"
-msgstr "اجازه دهید برای پنجره‌های عادی و خصوصی نمایه‌های پیش‌فرض جداگانه تنظیم شود."
+msgstr "اجازه دهید از پنجره بازشو یا منوی زمینهٔ صفحه برای پنجره‌های عادی و خصوصی نمایه‌های پیش‌فرض جداگانه تنظیم شود."
 
 msgid "popup_profileScopeTab"
 msgstr "این زبانه"
@@ -1635,8 +1635,17 @@ msgstr "باز کردن پیوند در پنجرهٔ خصوصی جدید با ن
 msgid "contextMenu_switchProfile"
 msgstr "تغییر نمایه"
 
+msgid "contextMenu_useProfileForThisTab"
+msgstr "استفاده از نمایه برای این زبانه"
+
 msgid "contextMenu_useProfileForThisTabGroup"
 msgstr "استفاده از نمایه برای این گروه زبانه"
 
-msgid "contextMenu_clearTabGroupProfile"
-msgstr "پاک کردن نمایه گروه زبانه"
+msgid "contextMenu_useProfileForThisContainer"
+msgstr "استفاده از نمایه برای این کانتینر"
+
+msgid "contextMenu_useProfileForNormalWindows"
+msgstr "استفاده از نمایه برای پنجره‌های عادی"
+
+msgid "contextMenu_useProfileForPrivateWindows"
+msgstr "استفاده از نمایه برای پنجره‌های خصوصی"

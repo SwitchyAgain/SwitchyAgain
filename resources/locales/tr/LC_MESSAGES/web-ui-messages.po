@@ -1186,7 +1186,7 @@ msgid "about_title"
 msgstr "Hakkında"
 
 msgid "about_app_description"
-msgstr "Proxy yapılandırma aracı"
+msgstr "Gelişmiş proxy yapılandırma aracı"
 
 msgid "about_version"
 msgstr "Sürüm $VERSION$"
@@ -1353,7 +1353,7 @@ msgid "options_profileScopeTab"
 msgstr "Sekme profilleri"
 
 msgid "options_profileScopeTabHelp"
-msgstr "Açılır menüden geçerli sekmeye profil atamaya izin ver. Yalnızca Firefox."
+msgstr "Açılır menüden veya sayfa bağlam menüsünden geçerli sekmeye profil atamaya izin ver. Yalnızca Firefox."
 
 msgid "options_profileScopeGroup"
 msgstr "Sekme grubu profilleri"
@@ -1365,13 +1365,13 @@ msgid "options_profileScopeContainer"
 msgstr "Kapsayıcı profilleri"
 
 msgid "options_profileScopeContainerHelp"
-msgstr "Açılır menüden Firefox kapsayıcılarına profil atamaya izin ver. Yalnızca Firefox."
+msgstr "Açılır menüden veya sayfa bağlam menüsünden Firefox kapsayıcılarına profil atamaya izin ver. Yalnızca Firefox."
 
 msgid "options_profileScopeWindow"
 msgstr "Normal/gizli varsayılanları"
 
 msgid "options_profileScopeWindowHelp"
-msgstr "Normal ve gizli pencereler için ayrı varsayılan profillere izin ver."
+msgstr "Açılır menüden veya sayfa bağlam menüsünden normal ve gizli pencereler için ayrı varsayılan profillere izin ver."
 
 msgid "popup_profileScopeTab"
 msgstr "Bu Sekme"
@@ -1454,8 +1454,17 @@ msgstr "Bağlantıyı profille yeni gizli pencerede aç"
 msgid "contextMenu_switchProfile"
 msgstr "Profili değiştir"
 
+msgid "contextMenu_useProfileForThisTab"
+msgstr "Bu sekme için profil kullan"
+
 msgid "contextMenu_useProfileForThisTabGroup"
 msgstr "Bu sekme grubu için profil kullan"
 
-msgid "contextMenu_clearTabGroupProfile"
-msgstr "Sekme grubu profilini temizle"
+msgid "contextMenu_useProfileForThisContainer"
+msgstr "Bu kapsayıcı için profil kullan"
+
+msgid "contextMenu_useProfileForNormalWindows"
+msgstr "Normal pencereler için profil kullan"
+
+msgid "contextMenu_useProfileForPrivateWindows"
+msgstr "Gizli pencereler için profil kullan"

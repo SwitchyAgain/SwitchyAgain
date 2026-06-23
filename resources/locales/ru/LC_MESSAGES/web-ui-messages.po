@@ -1392,7 +1392,7 @@ msgid "about_title"
 msgstr "О расширении"
 
 msgid "about_app_description"
-msgstr "Инструмент настройки прокси"
+msgstr "Расширенный инструмент настройки прокси"
 
 msgid "about_version"
 msgstr "Версия $VERSION$"
@@ -1559,7 +1559,7 @@ msgid "options_profileScopeTab"
 msgstr "Профили вкладок"
 
 msgid "options_profileScopeTabHelp"
-msgstr "Разрешить назначать профиль текущей вкладке из всплывающего меню. Только Firefox."
+msgstr "Разрешить назначать профиль текущей вкладке из всплывающего меню или контекстного меню страницы. Только Firefox."
 
 msgid "options_profileScopeGroup"
 msgstr "Профили групп вкладок"
@@ -1571,13 +1571,13 @@ msgid "options_profileScopeContainer"
 msgstr "Профили контейнеров"
 
 msgid "options_profileScopeContainerHelp"
-msgstr "Разрешить назначать профили контейнерам Firefox из всплывающего меню. Только Firefox."
+msgstr "Разрешить назначать профили контейнерам Firefox из всплывающего меню или контекстного меню страницы. Только Firefox."
 
 msgid "options_profileScopeWindow"
 msgstr "Обычные/приватные по умолчанию"
 
 msgid "options_profileScopeWindowHelp"
-msgstr "Разрешить разные профили по умолчанию для обычных и приватных окон."
+msgstr "Разрешить разные профили по умолчанию для обычных и приватных окон из всплывающего меню или контекстного меню страницы."
 
 msgid "popup_profileScopeTab"
 msgstr "Эта вкладка"
@@ -1660,8 +1660,17 @@ msgstr "Открыть ссылку в новом приватном окне с
 msgid "contextMenu_switchProfile"
 msgstr "Переключить профиль"
 
+msgid "contextMenu_useProfileForThisTab"
+msgstr "Использовать профиль для этой вкладки"
+
 msgid "contextMenu_useProfileForThisTabGroup"
 msgstr "Использовать профиль для этой группы вкладок"
 
-msgid "contextMenu_clearTabGroupProfile"
-msgstr "Очистить профиль группы вкладок"
+msgid "contextMenu_useProfileForThisContainer"
+msgstr "Использовать профиль для этого контейнера"
+
+msgid "contextMenu_useProfileForNormalWindows"
+msgstr "Использовать профиль для обычных окон"
+
+msgid "contextMenu_useProfileForPrivateWindows"
+msgstr "Использовать профиль для приватных окон"

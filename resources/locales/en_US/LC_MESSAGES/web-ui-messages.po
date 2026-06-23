@@ -1340,7 +1340,7 @@ msgid "about_title"
 msgstr "About"
 
 msgid "about_app_description"
-msgstr "A proxy configuration tool"
+msgstr "An advanced proxy configuration tool"
 
 msgid "about_version"
 msgstr "Version $VERSION$"
@@ -1505,7 +1505,7 @@ msgid "options_profileScopeTab"
 msgstr "Tab profiles"
 
 msgid "options_profileScopeTabHelp"
-msgstr "Allow assigning a profile to the current tab from the popup. Firefox only."
+msgstr "Allow assigning a profile to the current tab from the popup or page context menu. Firefox only."
 
 msgid "options_profileScopeGroup"
 msgstr "Tab group profiles"
@@ -1517,13 +1517,13 @@ msgid "options_profileScopeContainer"
 msgstr "Container profiles"
 
 msgid "options_profileScopeContainerHelp"
-msgstr "Allow assigning profiles to Firefox containers from the popup. Firefox only."
+msgstr "Allow assigning profiles to Firefox containers from the popup or page context menu. Firefox only."
 
 msgid "options_profileScopeWindow"
 msgstr "Normal/private defaults"
 
 msgid "options_profileScopeWindowHelp"
-msgstr "Allow separate default profiles for normal and private windows."
+msgstr "Allow separate default profiles for normal and private windows from the popup or page context menu."
 
 msgid "popup_profileScopeTab"
 msgstr "This Tab"
@@ -1606,8 +1606,17 @@ msgstr "Open Link in New Private Window with Profile"
 msgid "contextMenu_switchProfile"
 msgstr "Switch Profile"
 
+msgid "contextMenu_useProfileForThisTab"
+msgstr "Use Profile for This Tab"
+
 msgid "contextMenu_useProfileForThisTabGroup"
 msgstr "Use Profile for This Tab Group"
 
-msgid "contextMenu_clearTabGroupProfile"
-msgstr "Clear Tab Group Profile"
+msgid "contextMenu_useProfileForThisContainer"
+msgstr "Use Profile for This Container"
+
+msgid "contextMenu_useProfileForNormalWindows"
+msgstr "Use Profile for Normal Windows"
+
+msgid "contextMenu_useProfileForPrivateWindows"
+msgstr "Use Profile for Private Windows"

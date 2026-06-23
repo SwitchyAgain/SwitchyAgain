@@ -1410,7 +1410,7 @@ msgid "about_title"
 msgstr "Acerca de"
 
 msgid "about_app_description"
-msgstr "Una herramienta de configuración de proxy"
+msgstr "Una herramienta avanzada de configuración de proxy"
 
 msgid "about_version"
 msgstr "Versión $VERSION$"
@@ -1577,7 +1577,7 @@ msgid "options_profileScopeTab"
 msgstr "Perfiles por pestaña"
 
 msgid "options_profileScopeTabHelp"
-msgstr "Permite asignar un perfil a la pestaña actual desde el menú emergente. Solo Firefox."
+msgstr "Permite asignar un perfil a la pestaña actual desde el menú emergente o el menú contextual de la página. Solo Firefox."
 
 msgid "options_profileScopeGroup"
 msgstr "Perfiles de grupos de pestañas"
@@ -1589,13 +1589,13 @@ msgid "options_profileScopeContainer"
 msgstr "Perfiles de contenedor"
 
 msgid "options_profileScopeContainerHelp"
-msgstr "Permite asignar perfiles a contenedores de Firefox desde el menú emergente. Solo Firefox."
+msgstr "Permite asignar perfiles a contenedores de Firefox desde el menú emergente o el menú contextual de la página. Solo Firefox."
 
 msgid "options_profileScopeWindow"
 msgstr "Predeterminados normal/privado"
 
 msgid "options_profileScopeWindowHelp"
-msgstr "Permite perfiles predeterminados separados para ventanas normales y privadas."
+msgstr "Permite perfiles predeterminados separados para ventanas normales y privadas desde el menú emergente o el menú contextual de la página."
 
 msgid "popup_profileScopeTab"
 msgstr "Esta pestaña"
@@ -1678,8 +1678,17 @@ msgstr "Abrir enlace en nueva ventana privada con perfil"
 msgid "contextMenu_switchProfile"
 msgstr "Cambiar perfil"
 
+msgid "contextMenu_useProfileForThisTab"
+msgstr "Usar perfil para esta pestaña"
+
 msgid "contextMenu_useProfileForThisTabGroup"
 msgstr "Usar perfil para este grupo de pestañas"
 
-msgid "contextMenu_clearTabGroupProfile"
-msgstr "Borrar perfil del grupo de pestañas"
+msgid "contextMenu_useProfileForThisContainer"
+msgstr "Usar perfil para este contenedor"
+
+msgid "contextMenu_useProfileForNormalWindows"
+msgstr "Usar perfil para ventanas normales"
+
+msgid "contextMenu_useProfileForPrivateWindows"
+msgstr "Usar perfil para ventanas privadas"
