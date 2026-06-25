@@ -37,7 +37,8 @@ import {
   requestDomains,
   suggestCondition,
   visibleMenuProfiles,
-  visibleResultProfiles
+  visibleResultProfiles,
+  visibleScopeAssignableProfiles
 } from './popup_logic';
 import type {RouteInfoGroup} from './popup_logic';
 import {applyUiTheme} from './ui_theme';
@@ -199,6 +200,7 @@ function PopupApp() {
             'lastProfileNameForCondition',
             'proxyNotControllable',
             'refreshOnProfileChange',
+            'scopeAssignableProfiles',
             'showExternalProfile',
             'showPopupAddCondition',
             'showPopupAddTempRule',
@@ -230,7 +232,9 @@ function PopupApp() {
   const customProfiles = useMemo(() => visibleMenuProfiles(state), [state]);
   const hiddenProfiles = useMemo(() => hiddenMenuProfiles(state), [state]);
   const resultProfiles = useMemo(() => visibleResultProfiles(state), [state]);
+  const scopeAssignableProfiles = useMemo(() => visibleScopeAssignableProfiles(state), [state]);
   const hasResultProfiles = resultProfiles.length > 0;
+  const hasScopeAssignableProfiles = scopeAssignableProfiles.length > 0;
   const hasPageDomain = !!pageInfo?.domain;
   const showRouteInfo = !!(
     pageInfo &&
@@ -466,11 +470,11 @@ function PopupApp() {
     .filter((profile) => profile.name.indexOf('__') !== 0)
     .filter((profile) => !!pageInfo?.tempRuleProfileName || resultProfiles.length === 1 || profile.name !== state.currentProfileName);
   const profileScope = pageInfo?.profileScope;
-  const showTabScope = !!(profileScope?.enabled?.tab && profileScope.tabId != null && hasResultProfiles);
-  const showGroupScope = !!(profileScope?.enabled?.group && profileScope.groupId != null && hasResultProfiles);
-  const showContainerScope = !!(profileScope?.enabled?.container && profileScope.isContainer && hasResultProfiles);
+  const showTabScope = !!(profileScope?.enabled?.tab && profileScope.tabId != null && hasScopeAssignableProfiles);
+  const showGroupScope = !!(profileScope?.enabled?.group && profileScope.groupId != null && hasScopeAssignableProfiles);
+  const showContainerScope = !!(profileScope?.enabled?.container && profileScope.isContainer && hasScopeAssignableProfiles);
   const windowScope = profileScope?.incognito ? 'private' : 'normal';
-  const showWindowScope = !!(profileScope?.enabled?.window && hasResultProfiles);
+  const showWindowScope = !!(profileScope?.enabled?.window && hasScopeAssignableProfiles);
   const showProfileScopes = showTabScope || showGroupScope || showContainerScope || showWindowScope;
 
   return (
@@ -569,7 +573,7 @@ function PopupApp() {
               label={popupMessage('popup_profileScopeTab', 'This Tab')}
               activeProfileName={profileScope?.tabProfileName}
               open={profileScopeMenuOpen === 'tab'}
-              profiles={resultProfiles}
+              profiles={scopeAssignableProfiles}
               state={state}
               onToggle={() => setProfileScopeMenuOpen(profileScopeMenuOpen === 'tab' ? '' : 'tab')}
               onProfileChange={(profileName) => setProfileScope('tab', profileName)}
@@ -582,7 +586,7 @@ function PopupApp() {
               label={popupMessage('popup_profileScopeGroup', 'Tab Group')}
               activeProfileName={profileScope?.groupProfileName}
               open={profileScopeMenuOpen === 'group'}
-              profiles={resultProfiles}
+              profiles={scopeAssignableProfiles}
               state={state}
               onToggle={() => setProfileScopeMenuOpen(profileScopeMenuOpen === 'group' ? '' : 'group')}
               onProfileChange={(profileName) => setProfileScope('group', profileName)}
@@ -595,7 +599,7 @@ function PopupApp() {
               label={popupMessage('popup_profileScopeContainer', 'Container')}
               activeProfileName={profileScope?.containerProfileName}
               open={profileScopeMenuOpen === 'container'}
-              profiles={resultProfiles}
+              profiles={scopeAssignableProfiles}
               state={state}
               onToggle={() => setProfileScopeMenuOpen(profileScopeMenuOpen === 'container' ? '' : 'container')}
               onProfileChange={(profileName) => setProfileScope('container', profileName)}
@@ -612,7 +616,7 @@ function PopupApp() {
               }
               activeProfileName={profileScope?.windowProfileName}
               open={profileScopeMenuOpen === windowScope}
-              profiles={resultProfiles}
+              profiles={scopeAssignableProfiles}
               state={state}
               onToggle={() => setProfileScopeMenuOpen(profileScopeMenuOpen === windowScope ? '' : windowScope)}
               onProfileChange={(profileName) => setProfileScope(windowScope, profileName)}

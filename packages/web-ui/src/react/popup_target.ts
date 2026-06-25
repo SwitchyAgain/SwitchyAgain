@@ -87,6 +87,7 @@ export type PopupState = {
   lastProfileNameForCondition?: string;
   proxyNotControllable?: string;
   refreshOnProfileChange?: boolean;
+  scopeAssignableProfiles?: string[];
   showExternalProfile?: boolean;
   showPopupAddCondition?: boolean;
   showPopupAddTempRule?: boolean;

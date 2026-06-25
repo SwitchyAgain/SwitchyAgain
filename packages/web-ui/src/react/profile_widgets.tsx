@@ -170,6 +170,10 @@ export function allProfilesFromOptions(options?: Options | null) {
     .concat(BUILTIN_PROFILES);
 }
 
+export function scopeAssignableProfilesForOptions(options?: Options | null) {
+  return allProfilesFromOptions(options);
+}
+
 export function profilesForFilter(options: Options | null | undefined, filter?: ProfileModel | string | null) {
   if (!options) {
     return [];

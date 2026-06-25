@@ -110,6 +110,13 @@ export function visibleResultProfiles(state?: PopupState) {
     .sort(compareProfile);
 }
 
+export function visibleScopeAssignableProfiles(state?: PopupState) {
+  return (state?.scopeAssignableProfiles || [])
+    .map((name) => profileFromMap(state?.availableProfiles, name))
+    .filter((profile): profile is Profile => !!profile)
+    .sort(compareProfile);
+}
+
 export function requestDomains(info?: PageInfo) {
   return Object.keys(info?.summary || {})
     .map((domain) => ({

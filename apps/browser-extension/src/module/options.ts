@@ -861,6 +861,10 @@ class ChromeOptions extends OmegaTarget.Options {
     return !!name && (name.charAt(0) !== '_' || name.charAt(1) !== '_');
   }
 
+  private isScopeAssignableProfileName(name?: string) {
+    return !!name && name.charAt(0) !== '_';
+  }
+
   private localizedProfileName(profile: ContextMenuProfile) {
     return chrome.i18n.getMessage(`profile_${profile.name}`) || profile.name;
   }
@@ -910,25 +914,15 @@ class ChromeOptions extends OmegaTarget.Options {
     if (this._isSystem || !this._currentProfileName) {
       return [];
     }
-    const current = this.currentProfile() as Profile | null;
-    if (!current) {
-      return [];
-    }
-    let profiles: Profile[] = [];
-    if (OmegaPac.Profiles.isInclusive(current)) {
-      profiles = OmegaPac.Profiles.validResultProfilesFor(current, this._options) as unknown as Profile[];
-    } else if (OmegaPac.Profiles.isIncludable(current)) {
-      OmegaPac.Profiles.each(this._options, (_key: string, profile: Profile) => {
-        if (OmegaPac.Profiles.isIncludable(profile)) {
-          profiles.push(profile);
-        }
-      });
-    }
+    const profiles: Profile[] = [];
+    OmegaPac.Profiles.each(this._options, (_key: string, profile: Profile) => {
+      profiles.push(profile);
+    });
     const seen = new Set<string>();
     return profiles
       .filter((profile): profile is ContextMenuProfile => {
         const name = profile.name;
-        if (typeof name !== 'string' || !this.isVisibleResultProfileName(name) || seen.has(name)) {
+        if (typeof name !== 'string' || !this.isScopeAssignableProfileName(name) || seen.has(name)) {
           return false;
         }
         seen.add(name);

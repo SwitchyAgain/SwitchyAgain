@@ -1151,10 +1151,25 @@ class Options {
     return Promise.resolve(OmegaPac.PacGenerator.ascii(ast.print_to_string()));
   }
 
+  scopeAssignableProfileNames() {
+    const names: string[] = [];
+    const seen: Record<string, boolean> = {};
+    OmegaPac.Profiles.each(this._options, (_key, profile) => {
+      const name = profile.name;
+      if (typeof name !== 'string' || name.charAt(0) === '_' || seen[name]) {
+        return;
+      }
+      seen[name] = true;
+      names.push(name);
+    });
+    return names;
+  }
+
   _setAvailableProfiles(): RuntimePromise<unknown> {
     const profile = this._currentProfileName ? this.currentProfile() : null;
     const profiles: Record<string, AvailableProfile> = {};
     const currentIncludable = profile && OmegaPac.Profiles.isIncludable(profile);
+    const scopeAssignableProfiles = profile && !this._isSystem ? this.scopeAssignableProfileNames() : [];
     let allReferenceSet: Record<string, string> | null = null;
     let results: string[] | null = null;
     if (!profile || !OmegaPac.Profiles.isInclusive(profile)) {
@@ -1195,6 +1210,7 @@ class Options {
     }
     return this._state.set({
       'availableProfiles': profiles,
+      'scopeAssignableProfiles': scopeAssignableProfiles,
       'validResultProfiles': results
     });
   }
@@ -2099,6 +2115,7 @@ class Options {
       this._state.set({
         'currentProfileName': '',
         'externalProfile': profile,
+        'scopeAssignableProfiles': [],
         'validResultProfiles': [],
         'currentProfileCanAddRule': false
       });

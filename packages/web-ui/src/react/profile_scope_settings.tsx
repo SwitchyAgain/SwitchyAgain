@@ -2,7 +2,7 @@ import React, {useMemo, useState} from 'react';
 import {message} from './i18n_client';
 import type {Options} from './options_client_types';
 import {cloneOptions} from './options_logic';
-import {ProfileSelect, allProfilesFromOptions, profileOrder} from './profile_widgets';
+import {ProfileSelect, profileOrder, scopeAssignableProfilesForOptions} from './profile_widgets';
 
 export type ProfileScopeCapabilities = {
   container?: boolean;
@@ -217,7 +217,7 @@ export function ProfileScopeSettingsPage({
   const visible = visibleScopes || visibleProfileScopes(options, capabilities);
   const assignments = assignmentsForOptions(options);
   const appliedAssignments = assignmentsForOptions(appliedOptions || options);
-  const profiles = useMemo(() => allProfilesFromOptions(options).slice().sort(profileOrder), [options]);
+  const profiles = useMemo(() => scopeAssignableProfilesForOptions(options).slice().sort(profileOrder), [options]);
   const rows = useMemo(
     () => containerRows(containers, assignments, appliedAssignments, showDefaultContainers, showDeletedContainers),
     [appliedAssignments, assignments, containers, showDefaultContainers, showDeletedContainers]
