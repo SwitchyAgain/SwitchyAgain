@@ -21,7 +21,8 @@ import {
   requestHostname,
   suggestCondition,
   visibleMenuProfiles,
-  visibleResultProfiles
+  visibleResultProfiles,
+  visibleScopeAssignableProfiles
 } from '../src/react/popup_logic';
 import type {RequestExplanation} from '../src/react/options_client_types';
 import type {PageInfo, PopupState, Profile, ProfileMap} from '../src/react/popup_target';
@@ -89,6 +90,22 @@ describe('popup logic', () => {
     expect(isVisibleResultProfileName('__attached')).toBe(false);
     expect(isVisibleResultProfileName('_temporary')).toBe(true);
     expect([profile('b'), profile('a')].sort(compareProfile).map((item) => item.name)).toEqual(['a', 'b']);
+  });
+
+  it('keeps scope assignable profiles separate from rule result profiles', () => {
+    const availableProfiles: ProfileMap = {
+      '+direct': profile('direct', 'DirectProfile', {builtin: true}),
+      '+system': profile('system', 'SystemProfile', {builtin: true}),
+      '+proxy-z': profile('proxy-z', 'FixedProfile')
+    };
+    const state: PopupState = {
+      availableProfiles,
+      scopeAssignableProfiles: ['system', 'direct', 'proxy-z'],
+      validResultProfiles: ['proxy-z']
+    };
+
+    expect(visibleResultProfiles(state).map((item) => item.name)).toEqual(['proxy-z']);
+    expect(visibleScopeAssignableProfiles(state).map((item) => item.name)).toEqual(['proxy-z', 'direct', 'system']);
   });
 
   it('resolves profiles, virtual targets, and titles', () => {
