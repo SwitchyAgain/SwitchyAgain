@@ -429,9 +429,13 @@ function PopupApp() {
 
   if (!state) {
     return (
-      <form className="condition-form om-popup-form">
-        <fieldset>{popupMessage('options_profileDownloadStatusDownloading', 'Loading...')}</fieldset>
-      </form>
+      <ul className="om-nav om-nav-loading">
+        <li className="om-nav-item">
+          <span className="om-nav-loading-text" role="status">
+            {popupMessage('options_profileDownloadStatusDownloading', 'Loading...')}
+          </span>
+        </li>
+      </ul>
     );
   }
 

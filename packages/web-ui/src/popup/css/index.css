@@ -90,6 +90,15 @@ body {
   margin: 0;
 }
 
+  .om-nav-loading-text {
+    display: block;
+    padding: 5px 25px 5px 8px;
+    line-height: 1.5em;
+    font-size: 1em;
+    color: var(--sa-popup-muted);
+    white-space: nowrap;
+  }
+
   .om-nav-item {
     display: block;
     margin: 2px 0;
