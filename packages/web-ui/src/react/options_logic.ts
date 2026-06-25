@@ -1,16 +1,22 @@
 import {message} from './i18n_client';
 import type {BackgroundError, Options, ProfileUpdateResults} from './options_client_types';
 import type {
-  NamedFixedProfileModel,
   NamedProfile,
   NamedRuleListProfileModel,
-  Profile as ProfileModel,
   ProfileAuth,
   ProxyAuthCapabilities,
   ProxyDnsCapabilities,
   FixedProfileProxyProtocol,
+  Profile as ProfileModel,
   RuleListProfileModel
 } from './profile_types';
+import {
+  isFixedProfile,
+  isNamedProfile,
+  isRuleListProfile,
+  profileByName,
+  profilesFromOptions
+} from './profile_model_utils';
 import {
   attachedIdentity,
   createAttachedName,
@@ -28,21 +34,6 @@ const DUPLICATABLE_PROFILE_TYPES: Record<string, true> = {
   SwitchProfile: true,
   VirtualProfile: true
 };
-const BUILTIN_PROFILES: NamedProfile[] = [
-  {
-    name: 'direct',
-    profileType: 'DirectProfile',
-    color: '#aaaaaa',
-    builtin: true
-  },
-  {
-    name: 'system',
-    profileType: 'SystemProfile',
-    color: '#000000',
-    builtin: true
-  }
-];
-
 type GlobalWithBrowserProxy = typeof globalThis & {
   browser?: {
     proxy?: {
@@ -57,44 +48,8 @@ type AttachedProfileIdentity = {
   attachedName: string;
 };
 
-function isProfileKey(key: string) {
-  return key.charAt(0) === '+';
-}
-
-function isNamedProfile(value: unknown): value is NamedProfile {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
-  const profile = value as ProfileModel;
-  return typeof profile.name === 'string' && profile.name.length > 0;
-}
-
-function isVisibleProfile(value: unknown): value is NamedProfile {
-  if (!isNamedProfile(value)) {
-    return false;
-  }
-  const name = value.name;
-  return !(name.charAt(0) === '_' && name.charAt(1) === '_');
-}
-
-function profilesFromOptions(options?: Options | null) {
-  if (!options) {
-    return [];
-  }
-  return Object.keys(options)
-    .filter(isProfileKey)
-    .map((key) => options[key])
-    .filter(isVisibleProfile);
-}
-
 function isDuplicatableProfile(value: unknown): value is NamedProfile {
   return isNamedProfile(value) && !value.builtin && Boolean(DUPLICATABLE_PROFILE_TYPES[value.profileType || '']);
-}
-
-function profileByName(options: Options | null | undefined, name: string) {
-  return profilesFromOptions(options)
-    .concat(BUILTIN_PROFILES)
-    .find((candidate) => candidate.name === name);
 }
 
 export function cloneOptions<T>(options: T): T {
@@ -221,22 +176,6 @@ export function isSwitchProfile(value: unknown): value is NamedSwitchProfileMode
   }
   const profile = value as Partial<NamedSwitchProfileModel>;
   return profile.profileType === 'SwitchProfile' && typeof profile.name === 'string' && profile.name.length > 0;
-}
-
-function isRuleListProfile(value: unknown): value is NamedRuleListProfileModel {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
-  const profile = value as Partial<NamedRuleListProfileModel>;
-  return profile.profileType === 'RuleListProfile' && typeof profile.name === 'string' && profile.name.length > 0;
-}
-
-function isFixedProfile(value: unknown): value is NamedFixedProfileModel {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
-  const profile = value as Partial<NamedFixedProfileModel>;
-  return profile.profileType === 'FixedProfile' && typeof profile.name === 'string' && profile.name.length > 0;
 }
 
 export function firstFixedProfileName(options: Options) {
