@@ -210,6 +210,77 @@ describe('Options', function() {
     });
   });
 
+  describe('#_setAvailableProfiles', function() {
+    function stateRecorder() {
+      const calls: any[] = [];
+      return {
+        calls,
+        storage: {
+          set(items: any) {
+            calls.push(items);
+            return Promise.resolve(items);
+          }
+        }
+      };
+    }
+
+    it('should expose scope assignable profiles separately from rule result profiles', function() {
+      const options = Object.create(Options.prototype);
+      const state = stateRecorder();
+      options._options = {
+        '+auto': {
+          name: 'auto',
+          profileType: 'SwitchProfile',
+          defaultProfileName: 'proxy',
+          rules: []
+        },
+        '+proxy': {
+          name: 'proxy',
+          profileType: 'FixedProfile'
+        },
+        '+__attached': {
+          name: '__attached',
+          profileType: 'RuleListProfile',
+          defaultProfileName: 'direct'
+        },
+        '+_temporary': {
+          name: '_temporary',
+          profileType: 'FixedProfile'
+        }
+      };
+      options._state = state.storage;
+      options._currentProfileName = 'auto';
+      options._isSystem = false;
+
+      return options._setAvailableProfiles().then(() => {
+        const available = state.calls[0];
+        assert.deepStrictEqual(available.scopeAssignableProfiles, ['auto', 'proxy', 'direct', 'system']);
+        assert.deepStrictEqual(available.validResultProfiles, ['proxy', '__attached', '_temporary', 'direct']);
+        assert.strictEqual(available.validResultProfiles.includes('system'), false);
+      });
+    });
+
+    it('should clear scope assignable profiles while the current profile is system proxy', function() {
+      const options = Object.create(Options.prototype);
+      const state = stateRecorder();
+      options._options = {
+        '+proxy': {
+          name: 'proxy',
+          profileType: 'FixedProfile'
+        }
+      };
+      options._state = state.storage;
+      options._currentProfileName = 'system';
+      options._isSystem = true;
+
+      return options._setAvailableProfiles().then(() => {
+        const available = state.calls[0];
+        assert.deepStrictEqual(available.scopeAssignableProfiles, []);
+        assert.deepStrictEqual(available.validResultProfiles, []);
+      });
+    });
+  });
+
   describe('#explainRequest', function() {
     it('should explain switch profile rules down to the final fixed proxy result', function() {
       const options = Object.create(Options.prototype);
