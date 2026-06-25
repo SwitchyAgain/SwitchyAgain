@@ -135,12 +135,21 @@ interface ChromeTabsApi {
     callback?: (...args: unknown[]) => void
   ): void;
   update(tabId: number | undefined, properties: Record<string, unknown>, callback?: (...args: unknown[]) => void): void;
-  onActivated: ChromeEvent<(info: {tabId: number}) => void>;
+  onActivated: ChromeEvent<(info: {tabId: number; windowId?: number}) => void>;
   onCreated: ChromeEvent<(tab: ChromeTab) => void>;
   onMoved?: ChromeEvent<(tabId: number, moveInfo?: unknown) => void>;
   onRemoved: ChromeEvent<(tabId: number, removeInfo?: unknown) => void>;
   onReplaced?: ChromeEvent<(addedTabId: number, removedTabId: number) => void>;
   onUpdated: ChromeEvent<(tabId: number, changeInfo: Record<string, unknown>, tab: ChromeTab) => void>;
+  [key: string]: unknown;
+}
+
+interface ChromeWindowsApi {
+  WINDOW_ID_NONE?: number;
+  create?(properties: Record<string, unknown>, callback?: (...args: unknown[]) => void): void;
+  get?(windowId: number, getInfo: Record<string, unknown>, callback: (window: ChromeWindow) => void): void;
+  getLastFocused?(getInfo: Record<string, unknown>, callback: (window: ChromeWindow) => void): void;
+  onFocusChanged?: ChromeEvent<(windowId: number) => void>;
   [key: string]: unknown;
 }
 
@@ -297,6 +306,7 @@ interface ChromeGlobal {
   storage: ChromeStorageApi;
   tabs: ChromeTabsApi;
   webRequest: ChromeWebRequestApi;
+  windows?: ChromeWindowsApi;
   [key: string]: unknown;
 }
 

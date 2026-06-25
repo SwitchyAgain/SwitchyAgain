@@ -468,6 +468,7 @@ class ChromeOptions extends OmegaTarget.Options {
   private _profileScopeContextMenuSelections: Record<string, ProfileScopeContextMenuSelection>;
   private _profileScopeContextMenuRefreshToken: number;
   private _profileScopeContextMenuSignature: string;
+  private _contextMenuWindowIncognito: boolean;
   private _requestMonitor: RequestMonitorLike | null;
   private _tabProfileContexts: Record<number, TabProfileContext>;
   private _groupProfileNames: Record<string, string | undefined>;
@@ -494,6 +495,7 @@ class ChromeOptions extends OmegaTarget.Options {
     this._profileScopeContextMenuSelections = {};
     this._profileScopeContextMenuRefreshToken = 0;
     this._profileScopeContextMenuSignature = '';
+    this._contextMenuWindowIncognito = false;
     this._requestMonitor = null;
     this._profileScopeContainers = {};
     this._profileScopeContainerOrder = [];
@@ -547,12 +549,34 @@ class ChromeOptions extends OmegaTarget.Options {
     chrome.tabs.onUpdated.addListener((tabId: number, _changeInfo: Record<string, unknown>, tab: ChromeTab) => {
       this.updateTabProfileContext(tabId, tab);
     });
+    chrome.tabs.onActivated.addListener((info) => {
+      chrome.tabs.get(info.tabId, (tab: ChromeTab) => {
+        if (!chrome.runtime.lastError && tab?.id != null) {
+          this.updateTabProfileContext(tab.id, tab);
+        }
+      });
+      this.updateContextMenuWindowIncognitoFromCurrentTab(true, info.windowId);
+    });
+    chrome.tabs.onCreated.addListener((tab: ChromeTab) => {
+      if (tab.id != null) {
+        this.updateTabProfileContext(tab.id, tab);
+      }
+      if (tab.active) {
+        this.updateContextMenuWindowIncognitoFromCurrentTab(true, tab.windowId);
+      }
+    });
     chrome.tabs.onMoved?.addListener((tabId: number) => {
       chrome.tabs.get(tabId, (tab: ChromeTab) => {
         if (!chrome.runtime.lastError && tab?.id != null) {
           this.updateTabProfileContext(tab.id, tab);
         }
       });
+    });
+    chrome.windows?.onFocusChanged?.addListener((windowId) => {
+      if (windowId === chrome.windows?.WINDOW_ID_NONE) {
+        return;
+      }
+      this.updateContextMenuWindowIncognitoFromCurrentTab(true, windowId);
     });
     const tabGroups = chrome.tabGroups as {
       onRemoved?: {
@@ -572,6 +596,7 @@ class ChromeOptions extends OmegaTarget.Options {
           this.updateTabProfileContext(tab.id, tab);
         }
       }
+      this.updateContextMenuWindowIncognitoFromCurrentTab(true);
     });
   }
 
@@ -1421,8 +1446,161 @@ class ChromeOptions extends OmegaTarget.Options {
     });
   }
 
-  private updateStaticWindowProfileContextMenuVisibility(tab?: ChromeTab) {
-    const privateWindow = !!tab?.incognito;
+  private contextMenuTabIncognito(tab?: ChromeTab) {
+    if (typeof tab?.incognito === 'boolean') {
+      return tab.incognito;
+    }
+    if (typeof tab?.id === 'number') {
+      const cached = this._tabProfileContexts[tab.id]?.incognito;
+      if (typeof cached === 'boolean') {
+        return cached;
+      }
+    }
+    return this._contextMenuWindowIncognito;
+  }
+
+  private contextMenuWindowId(tab?: ChromeTab) {
+    return typeof tab?.windowId === 'number'
+      ? tab.windowId
+      : typeof tab?.id === 'number'
+        ? this._tabProfileContexts[tab.id]?.windowId
+        : undefined;
+  }
+
+  private rememberContextMenuWindowIncognito(privateWindow: boolean, refreshStaticMenu = false) {
+    this._contextMenuWindowIncognito = privateWindow;
+    if (
+      refreshStaticMenu &&
+      this.useStaticWindowProfileContextMenu() &&
+      this._profileScopeContextMenuIds.length > 0
+    ) {
+      this.updateStaticWindowProfileContextMenuVisibility(privateWindow);
+    }
+  }
+
+  private resolveContextMenuWindowIncognitoForWindowId(
+    windowId: number,
+    fallback: boolean,
+    callback: (privateWindow: boolean) => void
+  ) {
+    const windowsApi = chrome?.windows;
+    if (typeof windowId !== 'number' || typeof windowsApi?.get !== 'function') {
+      callback(fallback);
+      return;
+    }
+    try {
+      windowsApi.get.call(windowsApi, windowId, {populate: false}, (window) => {
+        const error = chrome.runtime.lastError;
+        if (!error && typeof window?.incognito === 'boolean') {
+          this.rememberContextMenuWindowIncognito(window.incognito);
+          callback(window.incognito);
+          return;
+        }
+        callback(fallback);
+      });
+    } catch (_error) {
+      callback(fallback);
+    }
+  }
+
+  private resolveLastFocusedContextMenuWindowIncognito(fallback: boolean, callback: (privateWindow: boolean) => void) {
+    const windowsApi = chrome?.windows;
+    if (typeof windowsApi?.getLastFocused === 'function') {
+      try {
+        windowsApi.getLastFocused.call(windowsApi, {populate: false}, (window) => {
+          const error = chrome.runtime.lastError;
+          if (!error && typeof window?.incognito === 'boolean') {
+            this.rememberContextMenuWindowIncognito(window.incognito);
+            callback(window.incognito);
+            return;
+          }
+          callback(fallback);
+        });
+        return;
+      } catch (_error) {
+        // Fall through to the fallback below.
+      }
+    }
+    callback(fallback);
+  }
+
+  private getCurrentContextMenuTab(callback: (tab?: ChromeTab) => void) {
+    if (typeof chrome?.tabs?.query !== 'function') {
+      callback();
+      return;
+    }
+    try {
+      chrome.tabs.query({active: true, lastFocusedWindow: true}, (tabs: ChromeTab[]) => {
+        if (chrome.runtime.lastError) {
+          callback();
+          return;
+        }
+        const activeTab = tabs[0];
+        if (activeTab?.id != null) {
+          this.updateTabProfileContext(activeTab.id, activeTab);
+        }
+        callback(activeTab);
+      });
+    } catch (_error) {
+      callback();
+    }
+  }
+
+  private resolveContextMenuTabWindowIncognito(tab: ChromeTab | undefined, callback: (privateWindow: boolean) => void) {
+    const fallback = this.contextMenuTabIncognito(tab);
+    if (typeof tab?.incognito === 'boolean') {
+      this.rememberContextMenuWindowIncognito(tab.incognito);
+      callback(tab.incognito);
+      return;
+    }
+    const windowId = this.contextMenuWindowId(tab);
+    if (typeof windowId === 'number') {
+      this.resolveContextMenuWindowIncognitoForWindowId(windowId, fallback, (privateWindow) => {
+        if (typeof tab?.id === 'number') {
+          this.updateTabProfileContext(tab.id, {
+            incognito: privateWindow,
+            windowId
+          });
+        }
+        callback(privateWindow);
+      });
+      return;
+    }
+    callback(fallback);
+  }
+
+  private resolveCurrentContextMenuWindowIncognito(
+    hintTab: ChromeTab | undefined,
+    callback: (privateWindow: boolean) => void
+  ) {
+    this.getCurrentContextMenuTab((currentTab) => {
+      const tab = currentTab || hintTab;
+      if (tab) {
+        this.resolveContextMenuTabWindowIncognito(tab, callback);
+        return;
+      }
+      this.resolveLastFocusedContextMenuWindowIncognito(this._contextMenuWindowIncognito, callback);
+    });
+  }
+
+  private updateContextMenuWindowIncognitoFromCurrentTab(refreshStaticMenu = false, hintWindowId?: number) {
+    this.getCurrentContextMenuTab((tab) => {
+      const apply = (privateWindow: boolean) => {
+        this.rememberContextMenuWindowIncognito(privateWindow, refreshStaticMenu);
+      };
+      if (tab) {
+        this.resolveContextMenuTabWindowIncognito(tab, apply);
+        return;
+      }
+      if (typeof hintWindowId === 'number') {
+        this.resolveContextMenuWindowIncognitoForWindowId(hintWindowId, this._contextMenuWindowIncognito, apply);
+        return;
+      }
+      this.resolveLastFocusedContextMenuWindowIncognito(this._contextMenuWindowIncognito, apply);
+    });
+  }
+
+  private updateStaticWindowProfileContextMenuVisibility(privateWindow: boolean) {
     let remaining = 2;
     const done = () => {
       remaining--;
@@ -1455,7 +1633,9 @@ class ChromeOptions extends OmegaTarget.Options {
       this._profileScopeContextMenuIds.length > 0 &&
       this._profileScopeContextMenuSignature === signature
     ) {
-      this.updateStaticWindowProfileContextMenuVisibility(tab);
+      this.resolveCurrentContextMenuWindowIncognito(tab, (privateWindow) => {
+        this.updateStaticWindowProfileContextMenuVisibility(privateWindow);
+      });
       return;
     }
     const token = ++this._profileScopeContextMenuRefreshToken;
@@ -1475,17 +1655,21 @@ class ChromeOptions extends OmegaTarget.Options {
       }
       const nextIds: string[] = [];
       const nextSelections: Record<string, ProfileScopeContextMenuSelection> = {};
-      const privateWindow = !!tab?.incognito;
-      for (const target of targets) {
-        const visible = privateWindow
-          ? target.setArgs.scope === 'private'
-          : target.setArgs.scope === 'normal';
-        this.createProfileScopeContextMenuTarget(target, profiles, nextIds, nextSelections, visible);
-      }
-      this._profileScopeContextMenuIds = nextIds;
-      this._profileScopeContextMenuSelections = nextSelections;
-      this._profileScopeContextMenuSignature = signature;
-      this.refreshContextMenuItems();
+      this.resolveCurrentContextMenuWindowIncognito(tab, (privateWindow) => {
+        if (token !== this._profileScopeContextMenuRefreshToken) {
+          return;
+        }
+        for (const target of targets) {
+          const visible = privateWindow
+            ? target.setArgs.scope === 'private'
+            : target.setArgs.scope === 'normal';
+          this.createProfileScopeContextMenuTarget(target, profiles, nextIds, nextSelections, visible);
+        }
+        this._profileScopeContextMenuIds = nextIds;
+        this._profileScopeContextMenuSelections = nextSelections;
+        this._profileScopeContextMenuSignature = signature;
+        this.refreshContextMenuItems();
+      });
     });
   }
 
@@ -1772,12 +1956,27 @@ class ChromeOptions extends OmegaTarget.Options {
           return;
         }
         this.updateTabProfileContext(currentTab.id, currentTab);
-        this.setProfileScope(selection).then(() => {
-          this.reloadContextMenuTabIfEnabled(currentTab);
-          this.updateProfileScopeContextMenuForTab(currentTab);
-        }).catch((error: unknown) => {
-          this.log.error('Failed to set profile scope from context menu.', error);
-        });
+        const setScope = (scopeSelection: ProfileScopeContextMenuSelection) => {
+          this.setProfileScope(scopeSelection).then(() => {
+            this.reloadContextMenuTabIfEnabled(currentTab);
+            this.updateProfileScopeContextMenuForTab(currentTab);
+          }).catch((error: unknown) => {
+            this.log.error('Failed to set profile scope from context menu.', error);
+          });
+        };
+        if (
+          this.useStaticWindowProfileContextMenu() &&
+          (selection.scope === 'normal' || selection.scope === 'private')
+        ) {
+          this.resolveCurrentContextMenuWindowIncognito(currentTab, (privateWindow) => {
+            setScope({
+              ...selection,
+              scope: privateWindow ? 'private' : 'normal'
+            });
+          });
+          return;
+        }
+        setScope(selection);
       });
       return;
     }
