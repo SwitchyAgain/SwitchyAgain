@@ -47,6 +47,15 @@ const PROFILE_ICON_PATHS: Record<string, string> = {
   SystemProfile: '<path d="M12 4v8"/><path d="M7 6.7a8 8 0 1 0 10 0"/>',
   VirtualProfile: '<path d="M9 9a3 3 0 1 1 4.6 2.5c-1.1.7-1.6 1.3-1.6 2.5"/><path d="M12 18h.01"/>'
 };
+const PROFILE_CONTEXT_MENU_TYPE_LABELS: Record<string, string> = {
+  AutoDetectProfile: '[pac]',
+  DirectProfile: '[direct]',
+  FixedProfile: '[proxy]',
+  PacProfile: '[pac]',
+  SwitchProfile: '[switch]',
+  SystemProfile: '[system]',
+  VirtualProfile: '[virtual]'
+};
 
 type BadgeOptions = {
   color: string;
@@ -856,6 +865,15 @@ class ChromeOptions extends OmegaTarget.Options {
     return chrome.i18n.getMessage(`profile_${profile.name}`) || profile.name;
   }
 
+  private contextMenuProfileTitle(profile: ContextMenuProfile, useIcons: boolean) {
+    const title = this.localizedProfileName(profile);
+    if (useIcons) {
+      return title;
+    }
+    const label = PROFILE_CONTEXT_MENU_TYPE_LABELS[profile.profileType || ''];
+    return label ? `${label} ${title}` : title;
+  }
+
   private profileIconColor(profile: ContextMenuProfile) {
     const color = typeof profile.color === 'string' ? profile.color.trim() : '';
     return /^#[0-9a-fA-F]{3,8}$/.test(color) ? color : '#777777';
@@ -1076,6 +1094,7 @@ class ChromeOptions extends OmegaTarget.Options {
       }
       const nextIds: string[] = [];
       const nextSelections: Record<string, LinkProfileContextMenuSelection> = {};
+      const useIcons = this.contextMenuItemIconsSupported();
       for (const root of roots) {
         const profileGroups = this.splitContextMenuProfiles(profiles);
         this.createContextMenuItem({
@@ -1092,14 +1111,22 @@ class ChromeOptions extends OmegaTarget.Options {
             profileName: profile.name,
             target: root.target
           };
-          this.createContextMenuItem({
+          const baseItem = {
             id,
-            icons: this.contextMenuIconForProfile(profile),
             parentId: root.id,
-            title: this.localizedProfileName(profile),
+            title: this.contextMenuProfileTitle(profile, useIcons),
             contexts: ['link'],
             targetUrlPatterns: WEB_LINK_PATTERNS
-          });
+          };
+          this.createContextMenuItem(
+            useIcons
+              ? {
+                  ...baseItem,
+                  icons: this.contextMenuIconForProfile(profile)
+                }
+              : baseItem,
+            baseItem
+          );
         });
         if (profileGroups.hidden.length > 0) {
           const hiddenRootId = `${root.id}:hidden`;
@@ -1119,14 +1146,22 @@ class ChromeOptions extends OmegaTarget.Options {
               profileName: profile.name,
               target: root.target
             };
-            this.createContextMenuItem({
+            const baseItem = {
               id,
-              icons: this.contextMenuIconForProfile(profile),
               parentId: hiddenRootId,
-              title: this.localizedProfileName(profile),
+              title: this.contextMenuProfileTitle(profile, useIcons),
               contexts: ['link'],
               targetUrlPatterns: WEB_LINK_PATTERNS
-            });
+            };
+            this.createContextMenuItem(
+              useIcons
+                ? {
+                    ...baseItem,
+                    icons: this.contextMenuIconForProfile(profile)
+                  }
+                : baseItem,
+              baseItem
+            );
           });
         }
       }
@@ -1168,7 +1203,7 @@ class ChromeOptions extends OmegaTarget.Options {
         const baseItem = {
           id,
           parentId: SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID,
-          title: this.localizedProfileName(profile),
+          title: this.contextMenuProfileTitle(profile, useIcons),
           contexts: ['page'],
           documentUrlPatterns: WEB_LINK_PATTERNS
         };
@@ -1203,7 +1238,7 @@ class ChromeOptions extends OmegaTarget.Options {
           const baseItem = {
             id,
             parentId: SWITCH_PROFILE_HIDDEN_CONTEXT_MENU_ROOT_ID,
-            title: this.localizedProfileName(profile),
+            title: this.contextMenuProfileTitle(profile, useIcons),
             contexts: ['page'],
             documentUrlPatterns: WEB_LINK_PATTERNS
           };
@@ -1367,7 +1402,7 @@ class ChromeOptions extends OmegaTarget.Options {
       const baseItem = {
         id,
         parentId: target.rootId,
-        title: this.localizedProfileName(profile),
+        title: this.contextMenuProfileTitle(profile, useIcons),
         contexts: ['page'],
         documentUrlPatterns: WEB_LINK_PATTERNS
       };
@@ -1407,7 +1442,7 @@ class ChromeOptions extends OmegaTarget.Options {
         const baseItem = {
           id,
           parentId: hiddenRootId,
-          title: this.localizedProfileName(profile),
+          title: this.contextMenuProfileTitle(profile, useIcons),
           contexts: ['page'],
           documentUrlPatterns: WEB_LINK_PATTERNS
         };
