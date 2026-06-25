@@ -69,6 +69,17 @@ type ContextMenuProfileGroups = {
   hidden: ContextMenuProfile[];
   visible: ContextMenuProfile[];
 };
+type ContextMenuProfileItemOptions = {
+  checked?: boolean;
+  contexts: string[];
+  documentUrlPatterns?: string[];
+  id: string;
+  parentId: string;
+  profile: ContextMenuProfile;
+  radio?: boolean;
+  targetUrlPatterns?: string[];
+  useIcons: boolean;
+};
 type LinkProfileContextMenuTarget = 'tab' | 'window' | 'privateWindow';
 type LinkProfileContextMenuSelection = {
   profileName: string;
@@ -907,13 +918,7 @@ class ChromeOptions extends OmegaTarget.Options {
     };
   }
 
-  private profileScopeContextMenuProfiles(): ContextMenuProfile[] {
-    if (!chrome?.contextMenus || !chrome?.tabs || !chrome?.i18n?.getMessage) {
-      return [];
-    }
-    if (this._isSystem || !this._currentProfileName) {
-      return [];
-    }
+  private contextMenuProfilesMatching(acceptName: (name: string) => boolean): ContextMenuProfile[] {
     const profiles: Profile[] = [];
     OmegaPac.Profiles.each(this._options, (_key: string, profile: Profile) => {
       profiles.push(profile);
@@ -922,13 +927,54 @@ class ChromeOptions extends OmegaTarget.Options {
     return profiles
       .filter((profile): profile is ContextMenuProfile => {
         const name = profile.name;
-        if (typeof name !== 'string' || !this.isScopeAssignableProfileName(name) || seen.has(name)) {
+        if (typeof name !== 'string' || !acceptName(name) || seen.has(name)) {
           return false;
         }
         seen.add(name);
         return true;
       })
       .sort((a, b) => this.compareProfile(a, b));
+  }
+
+  private createContextMenuProfileItem(options: ContextMenuProfileItemOptions) {
+    const baseItem: Record<string, unknown> = {
+      id: options.id,
+      parentId: options.parentId,
+      title: this.contextMenuProfileTitle(options.profile, options.useIcons),
+      contexts: options.contexts
+    };
+    if (options.documentUrlPatterns) {
+      baseItem.documentUrlPatterns = options.documentUrlPatterns;
+    }
+    if (options.targetUrlPatterns) {
+      baseItem.targetUrlPatterns = options.targetUrlPatterns;
+    }
+    const fallbackItem = options.radio
+      ? {
+          ...baseItem,
+          type: 'radio',
+          checked: options.checked === true
+        }
+      : baseItem;
+    this.createContextMenuItem(
+      options.useIcons
+        ? {
+            ...baseItem,
+            icons: this.contextMenuIconForProfile(options.profile, options.checked === true)
+          }
+        : fallbackItem,
+      fallbackItem
+    );
+  }
+
+  private profileScopeContextMenuProfiles(): ContextMenuProfile[] {
+    if (!chrome?.contextMenus || !chrome?.tabs || !chrome?.i18n?.getMessage) {
+      return [];
+    }
+    if (this._isSystem || !this._currentProfileName) {
+      return [];
+    }
+    return this.contextMenuProfilesMatching((name) => this.isScopeAssignableProfileName(name));
   }
 
   private linkProfileContextMenuProfiles(): ContextMenuProfile[] {
@@ -945,21 +991,7 @@ class ChromeOptions extends OmegaTarget.Options {
     if (!this.contextMenuOptions().switchProfile) {
       return [];
     }
-    const profiles: Profile[] = [];
-    OmegaPac.Profiles.each(this._options, (_key: string, profile: Profile) => {
-      profiles.push(profile);
-    });
-    const seen = new Set<string>();
-    return profiles
-      .filter((profile): profile is ContextMenuProfile => {
-        const name = profile.name;
-        if (typeof name !== 'string' || !this.isVisibleResultProfileName(name) || seen.has(name)) {
-          return false;
-        }
-        seen.add(name);
-        return true;
-      })
-      .sort((a, b) => this.compareProfile(a, b));
+    return this.contextMenuProfilesMatching((name) => this.isVisibleResultProfileName(name));
   }
 
   private splitContextMenuProfiles(profiles: ContextMenuProfile[], activeProfileName?: string): ContextMenuProfileGroups {
@@ -1105,22 +1137,14 @@ class ChromeOptions extends OmegaTarget.Options {
             profileName: profile.name,
             target: root.target
           };
-          const baseItem = {
+          this.createContextMenuProfileItem({
             id,
             parentId: root.id,
-            title: this.contextMenuProfileTitle(profile, useIcons),
+            profile,
             contexts: ['link'],
-            targetUrlPatterns: WEB_LINK_PATTERNS
-          };
-          this.createContextMenuItem(
+            targetUrlPatterns: WEB_LINK_PATTERNS,
             useIcons
-              ? {
-                  ...baseItem,
-                  icons: this.contextMenuIconForProfile(profile)
-                }
-              : baseItem,
-            baseItem
-          );
+          });
         });
         if (profileGroups.hidden.length > 0) {
           const hiddenRootId = `${root.id}:hidden`;
@@ -1140,22 +1164,14 @@ class ChromeOptions extends OmegaTarget.Options {
               profileName: profile.name,
               target: root.target
             };
-            const baseItem = {
+            this.createContextMenuProfileItem({
               id,
               parentId: hiddenRootId,
-              title: this.contextMenuProfileTitle(profile, useIcons),
+              profile,
               contexts: ['link'],
-              targetUrlPatterns: WEB_LINK_PATTERNS
-            };
-            this.createContextMenuItem(
+              targetUrlPatterns: WEB_LINK_PATTERNS,
               useIcons
-                ? {
-                    ...baseItem,
-                    icons: this.contextMenuIconForProfile(profile)
-                  }
-                : baseItem,
-              baseItem
-            );
+            });
           });
         }
       }
@@ -1194,27 +1210,16 @@ class ChromeOptions extends OmegaTarget.Options {
         const checked = profile.name === this._currentProfileName;
         nextIds.push(id);
         nextProfiles[id] = profile.name;
-        const baseItem = {
+        this.createContextMenuProfileItem({
           id,
           parentId: SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID,
-          title: this.contextMenuProfileTitle(profile, useIcons),
+          profile,
+          checked,
           contexts: ['page'],
-          documentUrlPatterns: WEB_LINK_PATTERNS
-        };
-        const radioItem = {
-          ...baseItem,
-          type: 'radio',
-          checked
-        };
-        this.createContextMenuItem(
+          documentUrlPatterns: WEB_LINK_PATTERNS,
+          radio: true,
           useIcons
-            ? {
-                ...baseItem,
-                icons: this.contextMenuIconForProfile(profile, checked)
-              }
-            : radioItem,
-          radioItem
-        );
+        });
       });
       if (profileGroups.hidden.length > 0) {
         nextIds.push(SWITCH_PROFILE_HIDDEN_CONTEXT_MENU_ROOT_ID);
@@ -1229,22 +1234,14 @@ class ChromeOptions extends OmegaTarget.Options {
           const id = `${SWITCH_PROFILE_HIDDEN_CONTEXT_MENU_ITEM_PREFIX}${index}`;
           nextIds.push(id);
           nextProfiles[id] = profile.name;
-          const baseItem = {
+          this.createContextMenuProfileItem({
             id,
             parentId: SWITCH_PROFILE_HIDDEN_CONTEXT_MENU_ROOT_ID,
-            title: this.contextMenuProfileTitle(profile, useIcons),
+            profile,
             contexts: ['page'],
-            documentUrlPatterns: WEB_LINK_PATTERNS
-          };
-          this.createContextMenuItem(
+            documentUrlPatterns: WEB_LINK_PATTERNS,
             useIcons
-              ? {
-                  ...baseItem,
-                  icons: this.contextMenuIconForProfile(profile)
-                }
-              : baseItem,
-            baseItem
-          );
+          });
         });
       }
       this._switchProfileContextMenuIds = nextIds;
@@ -1393,27 +1390,16 @@ class ChromeOptions extends OmegaTarget.Options {
         ...target.setArgs,
         profileName: profile.name
       };
-      const baseItem = {
+      this.createContextMenuProfileItem({
         id,
         parentId: target.rootId,
-        title: this.contextMenuProfileTitle(profile, useIcons),
+        profile,
+        checked,
         contexts: ['page'],
-        documentUrlPatterns: WEB_LINK_PATTERNS
-      };
-      const radioItem = {
-        ...baseItem,
-        type: 'radio',
-        checked
-      };
-      this.createContextMenuItem(
+        documentUrlPatterns: WEB_LINK_PATTERNS,
+        radio: true,
         useIcons
-          ? {
-              ...baseItem,
-              icons: this.contextMenuIconForProfile(profile, checked)
-            }
-          : radioItem,
-        radioItem
-      );
+      });
     });
     if (profileGroups.hidden.length > 0) {
       const hiddenRootId = `${target.rootId}:hidden`;
@@ -1433,22 +1419,14 @@ class ChromeOptions extends OmegaTarget.Options {
           ...target.setArgs,
           profileName: profile.name
         };
-        const baseItem = {
+        this.createContextMenuProfileItem({
           id,
           parentId: hiddenRootId,
-          title: this.contextMenuProfileTitle(profile, useIcons),
+          profile,
           contexts: ['page'],
-          documentUrlPatterns: WEB_LINK_PATTERNS
-        };
-        this.createContextMenuItem(
+          documentUrlPatterns: WEB_LINK_PATTERNS,
           useIcons
-            ? {
-                ...baseItem,
-                icons: this.contextMenuIconForProfile(profile)
-              }
-            : baseItem,
-          baseItem
-        );
+        });
       });
     }
   }
