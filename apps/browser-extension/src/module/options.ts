@@ -1485,72 +1485,84 @@ class ChromeOptions extends OmegaTarget.Options {
     }
   }
 
+  private getContextMenuWindow(windowId: number, callback: (window?: ChromeWindow) => void) {
+    const windowsApi = chrome?.windows;
+    if (typeof windowId !== 'number' || typeof windowsApi?.get !== 'function') {
+      callback();
+      return;
+    }
+    try {
+      windowsApi.get.call(windowsApi, windowId, {populate: false}, (window) => {
+        callback(chrome.runtime.lastError ? undefined : window);
+      });
+    } catch (_error) {
+      callback();
+    }
+  }
+
+  private getLastFocusedContextMenuWindow(callback: (window?: ChromeWindow) => void) {
+    const windowsApi = chrome?.windows;
+    if (typeof windowsApi?.getLastFocused !== 'function') {
+      callback();
+      return;
+    }
+    try {
+      windowsApi.getLastFocused.call(windowsApi, {populate: false}, (window) => {
+        callback(chrome.runtime.lastError ? undefined : window);
+      });
+    } catch (_error) {
+      callback();
+    }
+  }
+
+  private queryCurrentContextMenuTab(callback: (tab?: ChromeTab) => void) {
+    const tabsApi = chrome?.tabs;
+    if (typeof tabsApi?.query !== 'function') {
+      callback();
+      return;
+    }
+    try {
+      tabsApi.query.call(tabsApi, {active: true, lastFocusedWindow: true}, (tabs: ChromeTab[]) => {
+        callback(chrome.runtime.lastError ? undefined : tabs[0]);
+      });
+    } catch (_error) {
+      callback();
+    }
+  }
+
   private resolveContextMenuWindowIncognitoForWindowId(
     windowId: number,
     fallback: boolean,
     callback: (privateWindow: boolean) => void
   ) {
-    const windowsApi = chrome?.windows;
-    if (typeof windowId !== 'number' || typeof windowsApi?.get !== 'function') {
+    this.getContextMenuWindow(windowId, (window) => {
+      if (typeof window?.incognito === 'boolean') {
+        this.rememberContextMenuWindowIncognito(window.incognito);
+        callback(window.incognito);
+        return;
+      }
       callback(fallback);
-      return;
-    }
-    try {
-      windowsApi.get.call(windowsApi, windowId, {populate: false}, (window) => {
-        const error = chrome.runtime.lastError;
-        if (!error && typeof window?.incognito === 'boolean') {
-          this.rememberContextMenuWindowIncognito(window.incognito);
-          callback(window.incognito);
-          return;
-        }
-        callback(fallback);
-      });
-    } catch (_error) {
-      callback(fallback);
-    }
+    });
   }
 
   private resolveLastFocusedContextMenuWindowIncognito(fallback: boolean, callback: (privateWindow: boolean) => void) {
-    const windowsApi = chrome?.windows;
-    if (typeof windowsApi?.getLastFocused === 'function') {
-      try {
-        windowsApi.getLastFocused.call(windowsApi, {populate: false}, (window) => {
-          const error = chrome.runtime.lastError;
-          if (!error && typeof window?.incognito === 'boolean') {
-            this.rememberContextMenuWindowIncognito(window.incognito);
-            callback(window.incognito);
-            return;
-          }
-          callback(fallback);
-        });
+    this.getLastFocusedContextMenuWindow((window) => {
+      if (typeof window?.incognito === 'boolean') {
+        this.rememberContextMenuWindowIncognito(window.incognito);
+        callback(window.incognito);
         return;
-      } catch (_error) {
-        // Fall through to the fallback below.
       }
-    }
-    callback(fallback);
+      callback(fallback);
+    });
   }
 
   private getCurrentContextMenuTab(callback: (tab?: ChromeTab) => void) {
-    if (typeof chrome?.tabs?.query !== 'function') {
-      callback();
-      return;
-    }
-    try {
-      chrome.tabs.query({active: true, lastFocusedWindow: true}, (tabs: ChromeTab[]) => {
-        if (chrome.runtime.lastError) {
-          callback();
-          return;
-        }
-        const activeTab = tabs[0];
-        if (activeTab?.id != null) {
-          this.updateTabProfileContext(activeTab.id, activeTab);
-        }
-        callback(activeTab);
-      });
-    } catch (_error) {
-      callback();
-    }
+    this.queryCurrentContextMenuTab((activeTab) => {
+      if (activeTab?.id != null) {
+        this.updateTabProfileContext(activeTab.id, activeTab);
+      }
+      callback(activeTab);
+    });
   }
 
   private resolveContextMenuTabWindowIncognito(tab: ChromeTab | undefined, callback: (privateWindow: boolean) => void) {
