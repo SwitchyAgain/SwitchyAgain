@@ -17,7 +17,7 @@ Changes from SwitchyOmega
 
 ### Project Comparison
 
-| Area | <img src="https://raw.githubusercontent.com/FelisCatus/SwitchyOmega/master/omega-web/img/icons/omega-action-24.png" width="18" alt="SwitchyOmega"> SwitchyOmega | <img src="packages/web-ui/img/icons/omega-24.png" width="18" alt="SwitchyAgain"> SwitchyAgain |
+| Area | <img src="https://raw.githubusercontent.com/FelisCatus/SwitchyOmega/master/omega-web/img/icons/omega-action-24.png" width="18" alt="SwitchyOmega"> SwitchyOmega | <img src="packages/web-ui/img/icons/app-icon-24.png" width="18" alt="SwitchyAgain"> SwitchyAgain |
 | --- | --- | --- |
 | Extension platform | Manifest V2 | Manifest V3 only |
 | Browser target | Legacy extension runtime | Modern browsers, including Chrome, Edge, and Firefox |

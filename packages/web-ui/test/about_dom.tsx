@@ -21,7 +21,7 @@ describe('about component', () => {
       screen.getByText('Mozilla Firefox support is highly experimental! If you encounter issues, please report using the buttons below.')
     ).toBeTruthy();
     expect(container.textContent).toContain('Version 1.2.3');
-    expect((container.querySelector('img.media-object') as HTMLImageElement).getAttribute('src')).toBe('img/icons/omega-32.png');
+    expect((container.querySelector('img.media-object') as HTMLImageElement).getAttribute('src')).toBe('img/icons/app-icon-32.png');
 
     fireEvent.click(screen.getByRole('button', {name: 'Error log'}));
     expect(onDownloadLog).toHaveBeenCalled();

@@ -5,12 +5,12 @@
   "description": "__MSG_manifest_app_description__",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoMpyvVR+qdx+53f1Z3cwOTl8AGWQ7lmOwMCthKUrYY3H9Kwki1Che1zEatImp7eCikBxl/POBU7NDaAiuahaKbTGe/bklKQ5+8V86llijBoYHjIWAIE4CNpUx+XoQYd/Mevj0g4mxcgHS0uB3D795mXFfb8VagoiA65XWD3iUu8tj54Wa/trNW+MTSq/SsmfG3CDyc03Zkg18sP8Yd6Ko85BOSC9JGcrchfD/CEfwW2H40jWipH0J0/qwDoiOXbgxodGTO7PVnIEYElBvw2BcoxsMsXWgsY3m/vffZiHXfRRGOL3UPtRMuy7Ri0xPVDKrHQgHE8xu0vghlD4Wixl0wIDAQAB",
   "icons": {
-    "16": "img/icons/omega-16.png",
-    "24": "img/icons/omega-24.png",
-    "32": "img/icons/omega-32.png",
-    "48": "img/icons/omega-48.png",
-    "64": "img/icons/omega-64.png",
-    "128": "img/icons/omega-128.png"
+    "16": "img/icons/app-icon-16.png",
+    "24": "img/icons/app-icon-24.png",
+    "32": "img/icons/app-icon-32.png",
+    "48": "img/icons/app-icon-48.png",
+    "64": "img/icons/app-icon-64.png",
+    "128": "img/icons/app-icon-128.png"
   },
   "default_locale": "en",
   "action": {

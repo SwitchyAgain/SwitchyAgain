@@ -33,7 +33,7 @@ export function About({embedded = false, isExperimental = false, version, onDown
   }, [embedded]);
 
   const shownVersion = version || manifestVersion();
-  const iconPath = embedded ? 'img/icons/omega-32.png' : '../img/icons/omega-32.png';
+  const iconPath = embedded ? 'img/icons/app-icon-32.png' : '../img/icons/app-icon-32.png';
   const content = (
     <>
       {isExperimental && (
