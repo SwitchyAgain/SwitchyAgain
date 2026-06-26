@@ -34,7 +34,7 @@ Changes from SwitchyOmega
 
 ### Browser Feature Support
 
-| Feature | ![Chrome / Edge](https://img.shields.io/badge/Chrome%20%2F%20Edge-4285F4) | ![Firefox](https://img.shields.io/badge/Firefox-FF7139?logo=firefoxbrowser&logoColor=white) |
+| Feature | ![Chrome / Edge](https://img.shields.io/badge/Chrome-Edge-0F766E?labelColor=1A73E8) | ![Firefox](https://img.shields.io/badge/Firefox-FF7139?logo=firefoxbrowser&logoColor=white) |
 | --- | :---: | :---: |
 | Install source | Release archive | [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/switchyagain/) |
 | Popup profile switching | ![Supported](https://img.shields.io/badge/Supported-2EA44F) | ![Supported](https://img.shields.io/badge/Supported-2EA44F) |
