@@ -1,5 +1,23 @@
 # Changelog
 
+## v1.2.2
+
+Profile scope menus, web UI hardening, and release packaging updates.
+
+- Added profile-scoped link, window, and context menu switching, including tab
+  group scope support and Chrome context menu labels for profile types.
+- Added context menu options for profile scope controls and hidden profiles,
+  with matching locale updates and popup loading-state styling refinements.
+- Persisted tab profile assignments across extension restarts and allowed the
+  System Proxy profile in profile scope menus.
+- Fixed Chrome window profile context menus, including incognito detection, and
+  tightened source-draft handling around profile actions and apply flows.
+- Split the web UI browser/client adapters, reduced options reloads and state
+  requests, enabled strict TypeScript checks, and expanded integration coverage.
+- Added Edge release packaging, refreshed extension icon assets and README
+  content, updated sync/source-editor help translations, and removed the
+  unused notifications permission.
+
 ## v1.2.1
 
 Proxy settings cleanup, profile editor fixes, and project identity updates.
