@@ -17,7 +17,7 @@ Changes from SwitchyOmega
 
 ### Project Comparison
 
-| Area | <img src="https://raw.githubusercontent.com/FelisCatus/SwitchyOmega/master/omega-web/img/icons/omega-24.png" width="18" alt="SwitchyOmega"> SwitchyOmega | <img src="packages/web-ui/img/icons/omega-24.png" width="18" alt="SwitchyAgain"> SwitchyAgain |
+| Area | <img src="https://raw.githubusercontent.com/FelisCatus/SwitchyOmega/master/omega-web/img/icons/omega-action-24.png" width="18" alt="SwitchyOmega"> SwitchyOmega | <img src="packages/web-ui/img/icons/omega-24.png" width="18" alt="SwitchyAgain"> SwitchyAgain |
 | --- | --- | --- |
 | Extension platform | Manifest V2 | Manifest V3 only |
 | Browser target | Legacy extension runtime | Modern browsers, including Chrome, Edge, and Firefox |
@@ -35,7 +35,7 @@ Changes from SwitchyOmega
 ### Browser Feature Support
 
 | Feature | ![Chrome / Edge](https://img.shields.io/badge/Chrome%20%2F%20Edge-4285F4) | ![Firefox](https://img.shields.io/badge/Firefox-FF7139?logo=firefoxbrowser&logoColor=white) |
-| --- | --- | --- |
+| --- | :---: | :---: |
 | Install source | Release archive | [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/switchyagain/) |
 | Popup profile switching | ![Supported](https://img.shields.io/badge/Supported-2EA44F) | ![Supported](https://img.shields.io/badge/Supported-2EA44F) |
 | Context menu profile switching | ![Supported](https://img.shields.io/badge/Supported-2EA44F) | ![Supported](https://img.shields.io/badge/Supported-2EA44F) |
