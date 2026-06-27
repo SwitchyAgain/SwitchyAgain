@@ -314,6 +314,47 @@ describe('profile content components', () => {
     );
   });
 
+  it('commits explicit direct settings for advanced fixed proxy schemes', () => {
+    const onProxyChange = vi.fn();
+    const profile: NamedFixedProfileModel = {
+      fallbackProxy: {
+        host: 'proxy.example',
+        port: 8080,
+        scheme: 'http'
+      },
+      name: 'proxy',
+      profileType: 'FixedProfile'
+    };
+
+    const {container} = render(<FixedProfileContent onProxyChange={onProxyChange} profile={profile} />);
+    fireEvent.click(screen.getByRole('button', {name: /Show Advanced/}));
+
+    const selects = container.querySelectorAll('select');
+    fireEvent.change(selects[1] as HTMLSelectElement, {
+      target: {
+        value: 'direct'
+      }
+    });
+
+    expect(onProxyChange).toHaveBeenLastCalledWith(
+      'proxyForHttp',
+      {
+        scheme: 'direct'
+      },
+      {
+        clearAuth: true
+      }
+    );
+
+    const httpRow = selects[1].closest('tr') as HTMLTableRowElement;
+    const inputs = httpRow.querySelectorAll('input');
+    expect(inputs[0].disabled).toBe(true);
+    expect(inputs[0].placeholder).toBe('');
+    expect(inputs[1].disabled).toBe(true);
+    expect(inputs[1].placeholder).toBe('');
+    expect(httpRow.querySelector('button')?.disabled).toBe(true);
+  });
+
   it('keeps an existing SOCKS5 local DNS protocol visible', () => {
     const profile: NamedFixedProfileModel = {
       fallbackProxy: {

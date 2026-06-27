@@ -122,6 +122,12 @@ const ProfilesApi: ProfilesApiType = {
       scheme: 'https',
       prop: 'proxyForHttps'
     }, {
+      scheme: 'ws',
+      prop: 'proxyForWs'
+    }, {
+      scheme: 'wss',
+      prop: 'proxyForWss'
+    }, {
       scheme: '',
       prop: 'fallbackProxy'
     }
@@ -156,6 +162,9 @@ const ProfilesApi: ProfilesApiType = {
   },
   pacResult(proxy?: ProxyServer | null): string {
     if (proxy) {
+      if (proxy.scheme === 'direct') {
+        return 'DIRECT';
+      }
       if (proxy.scheme === 'socks5' || proxy.scheme === 'socks5-local') {
         return "SOCKS5 " + proxy.host + ":" + proxy.port + "; SOCKS " + proxy.host + ":" + proxy.port;
       } else {
@@ -462,17 +471,23 @@ const ProfilesApi: ProfilesApiType = {
         }
         for (const s of this.schemes) {
           if (s.scheme === request.scheme && profile[s.prop]) {
+            const proxy = profile[s.prop];
             const authMap = profile.auth;
-            const auth = authMap != null && authMap[s.prop] != null ? authMap[s.prop] : authMap != null ? authMap['all'] : void 0;
-            return [this.pacResult(profile[s.prop]), s.scheme, profile[s.prop], auth];
+            const auth = proxy?.scheme === 'direct'
+              ? void 0
+              : authMap != null && authMap[s.prop] != null ? authMap[s.prop] : authMap != null ? authMap['all'] : void 0;
+            return [this.pacResult(proxy), s.scheme, proxy, auth];
           }
         }
         const authMap = profile.auth;
-        const auth = authMap != null && authMap.fallbackProxy != null ? authMap.fallbackProxy : authMap != null ? authMap['all'] : void 0;
+        const auth = profile.fallbackProxy?.scheme === 'direct'
+          ? void 0
+          : authMap != null && authMap.fallbackProxy != null ? authMap.fallbackProxy : authMap != null ? authMap['all'] : void 0;
         return [this.pacResult(profile.fallbackProxy), '', profile.fallbackProxy, auth];
       },
       compile(profile) {
-        if ((!profile.bypassList || !profile.fallbackProxy) && !profile.proxyForHttp && !profile.proxyForHttps) {
+        const hasProtocolProxy = this.schemes.some((scheme) => !!scheme.scheme && !!profile[scheme.prop]);
+        if ((!profile.bypassList || !profile.fallbackProxy) && !hasProtocolProxy) {
           return Ast.str(this.pacResult(profile.fallbackProxy));
         }
         const body = [
@@ -495,7 +510,7 @@ const ProfilesApi: ProfilesApiType = {
             body.push(Ast.ifStmt(conditions, Ast.returnStmt(Ast.str(this.pacResult()))));
           }
         }
-        if (!profile.proxyForHttp && !profile.proxyForHttps) {
+        if (!hasProtocolProxy) {
           body.push(Ast.returnStmt(Ast.str(this.pacResult(profile.fallbackProxy))));
         } else {
           body.push(Ast.switchStmt(

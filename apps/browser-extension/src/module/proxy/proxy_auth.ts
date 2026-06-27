@@ -90,6 +90,9 @@ class ProxyAuth {
           continue;
         }
         const proxy = profile[prop] as ProxyAuthEndpoint;
+        if ((proxy as {scheme?: unknown} | undefined)?.scheme === 'direct') {
+          continue;
+        }
         const key = this._keyForProxy(proxy);
         let list = this._proxies[key];
         if (list == null) {

@@ -166,7 +166,9 @@ describe('profile content logic', () => {
     expect(FIXED_PROFILE_PROXY_FIELDS).toEqual({
       '': 'fallbackProxy',
       http: 'proxyForHttp',
-      https: 'proxyForHttps'
+      https: 'proxyForHttps',
+      ws: 'proxyForWs',
+      wss: 'proxyForWss'
     });
     expect(FIXED_PROFILE_PROTOCOLS).toEqual(['http', 'https', 'socks4', 'socks5']);
     expect(FIXED_PROFILE_DEFAULT_PORT).toEqual({
@@ -193,7 +195,9 @@ describe('profile content logic', () => {
         host: 'http.example',
         scheme: 'https'
       },
-      https: {}
+      https: {},
+      ws: {},
+      wss: {}
     };
 
     const cloned = cloneProxyEditors(editors);
@@ -230,7 +234,9 @@ describe('profile content logic', () => {
         host: 'secure.example',
         port: 8443,
         scheme: 'https'
-      }
+      },
+      ws: {},
+      wss: {}
     });
   });
 
@@ -271,7 +277,9 @@ describe('profile content logic', () => {
           scheme: 'http'
         },
         http: {},
-        https: {}
+        https: {},
+        ws: {},
+        wss: {}
       })
     ).toBe(false);
     expect(
@@ -280,7 +288,20 @@ describe('profile content logic', () => {
         http: {
           scheme: 'https'
         },
-        https: {}
+        https: {},
+        ws: {},
+        wss: {}
+      })
+    ).toBe(true);
+    expect(
+      fixedProfileHasAdvancedProxy({
+        '': {},
+        http: {},
+        https: {},
+        ws: {
+          scheme: 'direct'
+        },
+        wss: {}
       })
     ).toBe(true);
     expect(
@@ -304,6 +325,7 @@ describe('profile content logic', () => {
     expect(fixedProfileAuthSupported('socks4')).toBe(false);
     expect(fixedProfileAuthSupported('socks5')).toBe(false);
     expect(fixedProfileAuthSupported('socks5-local')).toBe(false);
+    expect(fixedProfileAuthSupported('direct')).toBe(false);
     expect(fixedProfileAuthSupported()).toBe(false);
 
     expect(fixedProfileAuthSupported('socks5', {

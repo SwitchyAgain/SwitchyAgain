@@ -44,6 +44,10 @@ export type ProxyProfile = Record<string, unknown> & {
   pacScript?: string;
   pacUrl?: string;
   profileType?: string;
+  proxyForHttp?: ProxyServer;
+  proxyForHttps?: ProxyServer;
+  proxyForWs?: ProxyServer;
+  proxyForWss?: ProxyServer;
   revision?: string;
 };
 
@@ -65,6 +69,8 @@ export type ProxyRules = Record<string, unknown> & {
   fallbackProxy?: ProxyServer;
   proxyForHttp?: ProxyServer;
   proxyForHttps?: ProxyServer;
+  proxyForWs?: ProxyServer;
+  proxyForWss?: ProxyServer;
   singleProxy?: ProxyServer;
 };
 

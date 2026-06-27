@@ -74,6 +74,9 @@ describe('Profiles', function() {
       compatibleResult = "SOCKS5 127.0.0.1:8888; SOCKS 127.0.0.1:8888";
       assert.strictEqual(Profiles.pacResult(proxy), compatibleResult);
     });
+    it('should return DIRECT for an explicit direct proxy', function() {
+      assert.strictEqual(Profiles.pacResult({scheme: 'direct'}), 'DIRECT');
+    });
   });
   describe('#byName', function() {
     it('should get profiles from builtin profiles', function() {
@@ -181,6 +184,32 @@ describe('Profiles', function() {
     });
     it('should use fallback proxies for other protocols', function() {
       return testProfile(profile, 'wss://www.example.com/', ['SOCKS 127.0.0.1:3456', '', profile.fallbackProxy, void 0]);
+    });
+    it('should use websocket protocol-specific proxies if suitable', function() {
+      const wssProfile = {
+        ...profile,
+        proxyForWss: {
+          scheme: 'http',
+          host: '127.0.0.1',
+          port: 4567
+        }
+      };
+      return testProfile(wssProfile, 'wss://www.example.com/', ['PROXY 127.0.0.1:4567', 'wss', wssProfile.proxyForWss, void 0]);
+    });
+    it('should support explicit protocol-specific direct connections', function() {
+      const directProfile = {
+        ...profile,
+        auth: {
+          all: {
+            username: 'all',
+            password: 'secret'
+          }
+        },
+        proxyForHttp: {
+          scheme: 'direct'
+        }
+      };
+      return testProfile(directProfile, 'http://www.example.com/', ['DIRECT', 'http', directProfile.proxyForHttp, void 0]);
     });
     it('should not return authentication if not provided for protocol', function() {
       return testProfile(profile, 'http://www.example.com/', ['SOCKS 127.0.0.1:1234', 'http', profile.proxyForHttp, void 0]);

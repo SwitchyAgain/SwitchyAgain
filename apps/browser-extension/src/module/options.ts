@@ -98,7 +98,7 @@ type ProfileScopeContextMenuTarget = {
   setArgs: Omit<ProfileScopeSetArgs, 'profileName'>;
   titleKey: string;
 };
-type FixedProfileProxyField = 'fallbackProxy' | 'proxyForHttp' | 'proxyForHttps';
+type FixedProfileProxyField = 'fallbackProxy' | 'proxyForHttp' | 'proxyForHttps' | 'proxyForWs' | 'proxyForWss';
 
 const LINK_PROFILE_CONTEXT_MENU_ROOTS: Array<{
   fallbackTitle: string;
@@ -134,7 +134,13 @@ const LINK_PROFILE_CONTEXT_MENU_ROOTS: Array<{
   }
 ];
 
-const FIXED_PROFILE_PROXY_FIELDS: FixedProfileProxyField[] = ['fallbackProxy', 'proxyForHttp', 'proxyForHttps'];
+const FIXED_PROFILE_PROXY_FIELDS: FixedProfileProxyField[] = [
+  'fallbackProxy',
+  'proxyForHttp',
+  'proxyForHttps',
+  'proxyForWs',
+  'proxyForWss'
+];
 
 type ExternalApiLike = {
   disabled: boolean;

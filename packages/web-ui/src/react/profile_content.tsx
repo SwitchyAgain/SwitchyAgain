@@ -40,6 +40,7 @@ import {
   fixedProfileBypassText,
   fixedProfileEditors,
   fixedProfileHasAdvancedProxy,
+  FIXED_PROFILE_DIRECT_PROTOCOL,
   formatMediumDate,
   getRuleListFormats,
   groupedConditionTypes,
@@ -1134,6 +1135,10 @@ function fixedProfileOptionsForScheme(scheme: FixedProfileScheme, showSocks5Loca
       label: defaultLabel,
       value: ''
     },
+    ...(scheme ? [{
+      label: message('options_protocol_direct', 'Direct'),
+      value: FIXED_PROFILE_DIRECT_PROTOCOL
+    }] : []),
     ...protocols.map((protocol) => ({
       label: fixedProfileProtocolLabel(protocol),
       value: protocol
@@ -1165,7 +1170,7 @@ export function FixedProfileContent({
   onEditProxyAuth,
   onProxyChange
 }: FixedProfileProps) {
-  const {bypassList, fallbackProxy, name: profileName, proxyForHttp, proxyForHttps} = profile;
+  const {bypassList, fallbackProxy, name: profileName, proxyForHttp, proxyForHttps, proxyForWs, proxyForWss} = profile;
   const initialEditors = fixedProfileEditors(profile);
   const [draftEditors, setDraftEditors] = useState<FixedProfileProxyEditors>(() => cloneProxyEditors(initialEditors));
   const [draftBypassList, setDraftBypassList] = useState(fixedProfileBypassText(profile));
@@ -1175,7 +1180,7 @@ export function FixedProfileContent({
   const previousBypassProfileNameRef = useRef(profileName);
 
   useEffect(() => {
-    const editors = fixedProfileEditors({fallbackProxy, proxyForHttp, proxyForHttps});
+    const editors = fixedProfileEditors({fallbackProxy, proxyForHttp, proxyForHttps, proxyForWs, proxyForWss});
     const hasAdvancedProxy = fixedProfileHasAdvancedProxy(editors);
     const profileChanged = previousProfileNameRef.current !== profileName;
     previousProfileNameRef.current = profileName;
@@ -1185,7 +1190,7 @@ export function FixedProfileContent({
     } else if (hasAdvancedProxy) {
       setShowAdvanced(true);
     }
-  }, [profileName, fallbackProxy, proxyForHttp, proxyForHttps]);
+  }, [profileName, fallbackProxy, proxyForHttp, proxyForHttps, proxyForWs, proxyForWss]);
 
   useEffect(() => {
     const profileChanged = previousBypassProfileNameRef.current !== profileName;
@@ -1210,6 +1215,14 @@ export function FixedProfileContent({
         editors[scheme] = {};
       }
       onProxyChange?.(field, undefined, {clearAuth});
+      return;
+    }
+
+    if (nextEditor.scheme === FIXED_PROFILE_DIRECT_PROTOCOL) {
+      delete nextEditor.host;
+      delete nextEditor.port;
+      editors[scheme] = nextEditor;
+      onProxyChange?.(field, nextEditor, {clearAuth});
       return;
     }
 
@@ -1285,6 +1298,7 @@ export function FixedProfileContent({
               {visibleSchemes.map((scheme) => {
                 const editor = draftEditors[scheme] || {};
                 const hasScheme = !!editor.scheme;
+                const hasProxyServer = hasScheme && editor.scheme !== FIXED_PROFILE_DIRECT_PROTOCOL;
                 const authSupported = hasScheme && fixedProfileAuthSupported(editor.scheme, proxyAuthCapabilities);
                 const authTitle = fixedProfileAuthTitle(editor.scheme, authSupported);
                 return (
@@ -1304,7 +1318,7 @@ export function FixedProfileContent({
                       </select>
                     </td>
                     <td>
-                      {hasScheme ? (
+                      {hasProxyServer ? (
                         <input
                           className="form-control"
                           type="text"
@@ -1313,11 +1327,17 @@ export function FixedProfileContent({
                           onChange={(event) => changeProxyEditor(scheme, 'host', event.currentTarget.value)}
                         />
                       ) : (
-                        <input className="form-control" type="text" value="" placeholder={defaultEditor.host || ''} disabled />
+                        <input
+                          className="form-control"
+                          type="text"
+                          value=""
+                          placeholder={!hasScheme ? defaultEditor.host || '' : ''}
+                          disabled
+                        />
                       )}
                     </td>
                     <td>
-                      {hasScheme ? (
+                      {hasProxyServer ? (
                         <input
                           className="form-control"
                           type="number"
@@ -1333,7 +1353,7 @@ export function FixedProfileContent({
                           className="form-control"
                           type="number"
                           value=""
-                          placeholder={defaultEditor.port != null ? String(defaultEditor.port) : ''}
+                          placeholder={!hasScheme && defaultEditor.port != null ? String(defaultEditor.port) : ''}
                           disabled
                         />
                       )}

@@ -6,28 +6,34 @@ import type {
   FixedProfileProxyEditors,
   FixedProfileProxyField,
   FixedProfileProxyProtocol,
+  FixedProfileServerProtocol,
   FixedProfileScheme,
   ProxyAuthCapabilities
 } from './profile_types';
 
-export const FIXED_PROFILE_SCHEMES: FixedProfileScheme[] = ['', 'http', 'https'];
+export const FIXED_PROFILE_SCHEMES: FixedProfileScheme[] = ['', 'http', 'https', 'ws', 'wss'];
 export const FIXED_PROFILE_PROXY_FIELDS: Record<FixedProfileScheme, FixedProfileProxyField> = {
   '': 'fallbackProxy',
   http: 'proxyForHttp',
-  https: 'proxyForHttps'
+  https: 'proxyForHttps',
+  ws: 'proxyForWs',
+  wss: 'proxyForWss'
 };
 export const FIXED_PROFILE_SCHEME_DISP: Record<FixedProfileScheme, string | null> = {
   '': null,
   http: 'http://',
-  https: 'https://'
+  https: 'https://',
+  ws: 'ws://',
+  wss: 'wss://'
 };
-export const FIXED_PROFILE_DEFAULT_PORT: Record<FixedProfileProxyProtocol, number> = {
+export const FIXED_PROFILE_DEFAULT_PORT: Record<FixedProfileServerProtocol, number> = {
   http: 80,
   https: 443,
   socks4: 1080,
   socks5: 1080,
   'socks5-local': 1080
 };
+export const FIXED_PROFILE_DIRECT_PROTOCOL: FixedProfileProxyProtocol = 'direct';
 export const FIXED_PROFILE_PROTOCOLS: FixedProfileProxyProtocol[] = ['http', 'https', 'socks4', 'socks5'];
 export const FIXED_PROFILE_SOCKS5_LOCAL_DNS_PROTOCOL: FixedProfileProxyProtocol = 'socks5-local';
 export const FIXED_PROFILE_KNOWN_PROTOCOLS: FixedProfileProxyProtocol[] = [
@@ -120,15 +126,17 @@ export function getRuleListFormats(): string[] {
   return OmegaPac.Profiles.ruleListFormats || [];
 }
 
-export function isFixedProfileProxyProtocol(value?: string): value is FixedProfileProxyProtocol {
-  return FIXED_PROFILE_KNOWN_PROTOCOLS.includes(value as FixedProfileProxyProtocol);
+export function isFixedProfileProxyProtocol(value?: string): value is FixedProfileServerProtocol {
+  return FIXED_PROFILE_KNOWN_PROTOCOLS.includes(value as FixedProfileServerProtocol);
 }
 
 export function cloneProxyEditors(proxyEditors?: Partial<FixedProfileProxyEditors>): FixedProfileProxyEditors {
   const cloned: FixedProfileProxyEditors = {
     '': {},
     http: {},
-    https: {}
+    https: {},
+    ws: {},
+    wss: {}
   };
   for (const scheme of FIXED_PROFILE_SCHEMES) {
     cloned[scheme] = {...(proxyEditors?.[scheme] || {})};
@@ -167,7 +175,7 @@ export function fixedProfileBypassListEquals(left: FixedProfileBypassCondition[]
 }
 
 export function fixedProfileHasAdvancedProxy(editors: FixedProfileProxyEditors) {
-  return !!(editors.http?.scheme || editors.https?.scheme);
+  return FIXED_PROFILE_SCHEMES.some((scheme) => !!scheme && !!editors[scheme]?.scheme);
 }
 
 export function fixedProfileAuthActive(profile: FixedProfileModel, scheme: FixedProfileScheme) {
@@ -185,6 +193,9 @@ export function fixedProfileAuthSupported(
   protocol?: string,
   capabilities: ProxyAuthCapabilities = DEFAULT_FIXED_PROFILE_AUTH_CAPABILITIES
 ) {
+  if (protocol === FIXED_PROFILE_DIRECT_PROTOCOL) {
+    return false;
+  }
   if (protocol === FIXED_PROFILE_SOCKS5_LOCAL_DNS_PROTOCOL) {
     return capabilities.socks5 === true;
   }

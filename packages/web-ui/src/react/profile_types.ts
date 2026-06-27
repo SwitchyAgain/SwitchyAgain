@@ -129,9 +129,11 @@ export type NamedPacProfileModel = PacProfileModel & NamedProfileOfType<'PacProf
 
 export type PacProfileField = 'pacScript' | 'pacUrl';
 
-export type FixedProfileProxyProtocol = 'http' | 'https' | 'socks4' | 'socks5' | 'socks5-local';
+export type FixedProfileProxyProtocol = 'direct' | 'http' | 'https' | 'socks4' | 'socks5' | 'socks5-local';
 
-export type ProxyAuthCapabilities = Record<Exclude<FixedProfileProxyProtocol, 'socks5-local'>, boolean>;
+export type FixedProfileServerProtocol = Exclude<FixedProfileProxyProtocol, 'direct'>;
+
+export type ProxyAuthCapabilities = Record<Exclude<FixedProfileServerProtocol, 'socks5-local'>, boolean>;
 
 export type ProxyDnsCapabilities = {
   socks5: boolean;
@@ -143,11 +145,11 @@ export type ProxyEditor = {
   scheme?: FixedProfileProxyProtocol | (string & {});
 };
 
-export type FixedProfileProxyField = 'fallbackProxy' | 'proxyForHttp' | 'proxyForHttps';
+export type FixedProfileProxyField = 'fallbackProxy' | 'proxyForHttp' | 'proxyForHttps' | 'proxyForWs' | 'proxyForWss';
 
 export type ProfileAuthKey = 'all' | FixedProfileProxyField;
 
-export type FixedProfileScheme = '' | 'http' | 'https';
+export type FixedProfileScheme = '' | 'http' | 'https' | 'ws' | 'wss';
 
 export type FixedProfileProxyEditorField = 'host' | 'port' | 'scheme';
 
@@ -169,6 +171,8 @@ export type FixedProfileModel = Profile & {
   profileType?: 'FixedProfile';
   proxyForHttp?: ProxyEditor;
   proxyForHttps?: ProxyEditor;
+  proxyForWs?: ProxyEditor;
+  proxyForWss?: ProxyEditor;
 };
 
 export type NamedFixedProfileModel = FixedProfileModel & NamedProfileOfType<'FixedProfile'>;

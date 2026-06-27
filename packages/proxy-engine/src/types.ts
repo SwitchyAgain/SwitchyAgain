@@ -83,6 +83,8 @@ export type Profile = {
   profileType?: ProfileType;
   proxyForHttp?: ProxyServer;
   proxyForHttps?: ProxyServer;
+  proxyForWs?: ProxyServer;
+  proxyForWss?: ProxyServer;
   revision?: string;
   ruleList?: string;
   rules?: SwitchRule[];

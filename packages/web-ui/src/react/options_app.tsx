@@ -255,7 +255,9 @@ const PROFILE_COLORS = ['#9ce', '#9d9', '#fa8', '#fe9', '#d497ee', '#47b', '#5b5
 const FIXED_PROXY_AUTH_KEYS: Record<FixedProfileScheme, FixedProfileProxyField> = {
   '': 'fallbackProxy',
   http: 'proxyForHttp',
-  https: 'proxyForHttps'
+  https: 'proxyForHttps',
+  ws: 'proxyForWs',
+  wss: 'proxyForWss'
 };
 const OPTIONS_APP_STATE_KEYS = [
   'currentProfileName',

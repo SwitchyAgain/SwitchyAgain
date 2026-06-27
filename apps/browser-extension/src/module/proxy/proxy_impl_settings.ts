@@ -18,11 +18,14 @@ const OmegaPac = OmegaTarget.OmegaPac;
 const FIXED_PROXY_RULE_KEYS = [
   'proxyForHttp',
   'proxyForHttps',
+  'proxyForWs',
+  'proxyForWss',
   'fallbackProxy',
   'singleProxy'
 ] as const;
 
 const PROTOCOL_PROXY_RULE_KEYS = ['proxyForHttp', 'proxyForHttps'] as const;
+const WEBSOCKET_PROXY_RULE_KEYS = ['proxyForWs', 'proxyForWss'] as const;
 
 type FixedProxyRuleKey = typeof FIXED_PROXY_RULE_KEYS[number];
 type ProxySettingsScope = 'regular' | 'incognito_persistent';
@@ -109,7 +112,7 @@ class SettingsProxyImpl extends ProxyImpl {
         mandatory: true
       };
     } else if (profile.profileType === 'FixedProfile') {
-      config = this._fixedProfileConfig(profile);
+      config = this._fixedProfileConfig(profile, meta, options);
     } else {
       config.mode = 'pac_script';
       config.pacScript = {
@@ -170,7 +173,17 @@ class SettingsProxyImpl extends ProxyImpl {
     }).catch(() => {});
   }
 
-  private _fixedProfileConfig(profile: ProxyProfile) {
+  private _fixedProfileConfig(profile: ProxyProfile, meta: ProxyProfile = profile, options?: unknown) {
+    if (this._fixedProfileNeedsPacScript(profile)) {
+      return {
+        mode: 'pac_script',
+        pacScript: {
+          mandatory: true,
+          data: this.getProfilePacScript(profile, meta, options)
+        }
+      };
+    }
+
     const config: ProxySettingsConfig = {
       mode: 'fixed_servers'
     };
@@ -191,6 +204,7 @@ class SettingsProxyImpl extends ProxyImpl {
         if (!protocolProxySet) {
           rules.singleProxy = fallbackProxy;
         } else {
+          rules.fallbackProxy = fallbackProxy;
           for (const protocol of PROTOCOL_PROXY_RULE_KEYS) {
             if (rules[protocol] == null) {
               rules[protocol] = JSON.parse(JSON.stringify(fallbackProxy)) as ProxyServer;
@@ -216,7 +230,7 @@ class SettingsProxyImpl extends ProxyImpl {
   }
 
   private _proxyForSettings(proxy?: ProxyServer) {
-    if (!proxy) {
+    if (!proxy || proxy.scheme === 'direct') {
       return undefined;
     }
     if (proxy.scheme !== 'socks5-local') {
@@ -226,6 +240,27 @@ class SettingsProxyImpl extends ProxyImpl {
       ...proxy,
       scheme: 'socks5'
     };
+  }
+
+  private _fixedProfileNeedsPacScript(profile: ProxyProfile) {
+    const fallbackIsDirect = this._isDirectProxy(profile.fallbackProxy);
+    for (const protocol of PROTOCOL_PROXY_RULE_KEYS) {
+      const proxy = profile[protocol] as ProxyServer | undefined;
+      if (proxy?.scheme === 'direct' && !fallbackIsDirect) {
+        return true;
+      }
+    }
+    for (const protocol of WEBSOCKET_PROXY_RULE_KEYS) {
+      const proxy = profile[protocol] as ProxyServer | undefined;
+      if (proxy != null && !(proxy.scheme === 'direct' && fallbackIsDirect)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private _isDirectProxy(proxy?: ProxyServer) {
+    return !proxy || proxy.scheme === 'direct';
   }
 
   private _formatBypassItem(condition: ProxyCondition) {
@@ -375,7 +410,10 @@ class SettingsProxyImpl extends ProxyImpl {
           return;
         }
       }
-      const candidateRules = this._fixedProfileConfig(candidate).rules;
+      if (this._fixedProfileNeedsPacScript(candidate)) {
+        return;
+      }
+      const candidateRules = this._fixedProfileConfig(candidate, candidate, options).rules;
       if (!candidateRules) {
         return;
       }
