@@ -17,8 +17,7 @@ if (typeof version !== 'string' || version.length === 0) {
 }
 
 const packages = [
-  ['chromium-release.zip', `switchyagain-v${version}-chromium-release.zip`],
-  ['edge-release.zip', `switchyagain-v${version}-edge-release.zip`],
+  ['chromium-sideload.zip', `switchyagain-v${version}-chromium-sideload.zip`],
   ['firefox-unsigned.xpi', `switchyagain-v${version}-firefox-unsigned.xpi`],
 ];
 
