@@ -232,14 +232,11 @@ async function writeReleaseManifest(dest: string, target: ReleaseTarget) {
     delete manifest.background.scripts;
     delete manifest.background.preferred_environment;
     delete manifest.browser_specific_settings;
+    manifest.permissions = manifest.permissions.filter((permission) => permission !== 'contextualIdentities');
   }
   if (target === 'firefox') {
     delete manifest.key;
     delete manifest.minimum_chrome_version;
-    manifest.permissions = Array.from(new Set([
-      ...manifest.permissions,
-      'contextualIdentities'
-    ]));
   }
   await ensureDir(dest);
   await fsp.writeFile(dest, JSON.stringify(manifest));

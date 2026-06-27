@@ -51,7 +51,8 @@
     "storage",
     "webRequest",
     "webRequestAuthProvider",
-    "contextMenus"
+    "contextMenus",
+    "contextualIdentities"
   ],
   "host_permissions": [
     "http://*/*",
