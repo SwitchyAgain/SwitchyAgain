@@ -277,10 +277,10 @@ msgid "options_showSocks5LocalDnsOption"
 msgstr "顯示 SOCKS5 本機 DNS 選項。僅 Firefox 支援。"
 
 msgid "options_showHttpProxyOverrideRows"
-msgstr "在情境模式頁面顯示 HTTP/HTTPS 單獨代理設定。"
+msgstr "在代理情境模式中顯示 HTTP/HTTPS 單獨代理設定。"
 
 msgid "options_showWebSocketProxyOverrideRows"
-msgstr "在情境模式頁面顯示 WebSocket (ws/wss) 單獨代理設定。"
+msgstr "在代理情境模式中顯示 WebSocket (ws/wss) 單獨代理設定。"
 
 msgid "options_showBypassListGroups"
 msgstr "在代理情境模式中顯示不代理清單分組。"

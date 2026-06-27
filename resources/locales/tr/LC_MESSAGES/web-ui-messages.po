@@ -266,10 +266,10 @@ msgid "options_showSocks5LocalDnsOption"
 msgstr "SOCKS5 yerel DNS seçeneğini göster. Yalnızca Firefox."
 
 msgid "options_showHttpProxyOverrideRows"
-msgstr "Profil sayfalarında HTTP/HTTPS için ayrı proxy ayarlarını göster."
+msgstr "Proxy profillerinde HTTP/HTTPS için ayrı proxy ayarlarını göster."
 
 msgid "options_showWebSocketProxyOverrideRows"
-msgstr "Profil sayfalarında WebSocket (ws/wss) için ayrı proxy ayarlarını göster."
+msgstr "Proxy profillerinde WebSocket (ws/wss) için ayrı proxy ayarlarını göster."
 
 msgid "options_showBypassListGroups"
 msgstr "Proxy profillerinde bypass listesi gruplarını göster."

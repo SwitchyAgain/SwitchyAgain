@@ -742,7 +742,7 @@ export function UiSettings({
             />
             <span>
               {' '}
-              {message('options_showHttpProxyOverrideRows', 'Show HTTP/HTTPS proxy overrides on profile pages.')}
+              {message('options_showHttpProxyOverrideRows', 'Show HTTP/HTTPS proxy overrides in proxy profiles.')}
             </span>
           </label>
         </div>
@@ -755,7 +755,7 @@ export function UiSettings({
             />
             <span>
               {' '}
-              {message('options_showWebSocketProxyOverrideRows', 'Show WebSocket (ws/wss) proxy overrides on profile pages.')}
+              {message('options_showWebSocketProxyOverrideRows', 'Show WebSocket (ws/wss) proxy overrides in proxy profiles.')}
             </span>
           </label>
         </div>

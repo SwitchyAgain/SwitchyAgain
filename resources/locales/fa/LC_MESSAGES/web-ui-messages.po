@@ -303,10 +303,10 @@ msgid "options_showSocks5LocalDnsOption"
 msgstr "گزینه DNS محلی SOCKS5 را نشان بده. فقط Firefox."
 
 msgid "options_showHttpProxyOverrideRows"
-msgstr "نمایش تنظیمات جداگانه پروکسی HTTP/HTTPS در صفحه‌های پروفایل."
+msgstr "نمایش تنظیمات جداگانه پروکسی HTTP/HTTPS در پروفایل‌های پروکسی."
 
 msgid "options_showWebSocketProxyOverrideRows"
-msgstr "نمایش تنظیمات جداگانه پروکسی WebSocket (ws/wss) در صفحه‌های پروفایل."
+msgstr "نمایش تنظیمات جداگانه پروکسی WebSocket (ws/wss) در پروفایل‌های پروکسی."
 
 msgid "options_showBypassListGroups"
 msgstr "گروه‌های فهرست عبور را در پروفایل‌های پروکسی نشان بده."
