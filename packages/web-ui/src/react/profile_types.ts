@@ -86,6 +86,7 @@ export type OptionsData = {
   '-refreshOnProfileChange'?: boolean;
   '-showConditionTypes'?: number;
   '-showExternalProfile'?: boolean;
+  '-showBypassListGroups'?: boolean;
   '-showHttpProxyOverrideRows'?: boolean;
   '-showSocks5LocalDnsOption'?: boolean;
   '-showWebSocketProxyOverrideRows'?: boolean;
@@ -166,8 +167,15 @@ export type FixedProfileBypassCondition = {
   pattern: string;
 };
 
+export type FixedProfileBypassGroup = {
+  bypassList?: FixedProfileBypassCondition[];
+  enabled?: boolean;
+  name?: string;
+};
+
 export type FixedProfileModel = Profile & {
   auth?: ProfileAuthMap;
+  bypassGroups?: FixedProfileBypassGroup[];
   bypassList?: FixedProfileBypassCondition[];
   fallbackProxy?: ProxyEditor;
   profileType?: 'FixedProfile';

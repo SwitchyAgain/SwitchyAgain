@@ -69,6 +69,11 @@ export type ProfileType =
 export type Profile = {
   auth?: ProfileAuthMap;
   builtin?: boolean;
+  bypassGroups?: Array<{
+    bypassList?: Condition[];
+    enabled?: boolean;
+    name?: string;
+  }>;
   bypassList?: Condition[];
   color?: string;
   defaultProfileName?: string;

@@ -29,6 +29,7 @@ describe('ui settings logic', () => {
     };
     const after: Options = {
       '-quickSwitchProfiles': ['direct', 'proxy'],
+      '-showBypassListGroups': true,
       '-showCurrentProfileInGeneral': true,
       '-showHttpProxyOverrideRows': false,
       '-showProfileOptions': true,
@@ -45,6 +46,7 @@ describe('ui settings logic', () => {
     expect(uiOptionsDirty(before, after)).toBe(true);
     expect(uiOptionPatch(before, after)).toEqual({
       '-quickSwitchProfiles': [['direct'], ['direct', 'proxy']],
+      '-showBypassListGroups': [undefined, true],
       '-showCurrentProfileInGeneral': [undefined, true],
       '-showHttpProxyOverrideRows': [undefined, false],
       '-showProfileOptions': [undefined, true],

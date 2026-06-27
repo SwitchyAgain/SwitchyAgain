@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import React from 'react';
-import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {act, cleanup, fireEvent, render, screen, within} from '@testing-library/react';
 import {
   FixedProfileContent,
   PacProfile,
@@ -493,6 +493,144 @@ describe('profile content components', () => {
     });
     fireEvent.blur(bypassList);
     expect(onBypassListChange).not.toHaveBeenCalled();
+  });
+
+  it('hides fixed proxy bypass list group controls by default', () => {
+    const profile: NamedFixedProfileModel = {
+      bypassGroups: [
+        {
+          name: 'Internal',
+          bypassList: [
+            {
+              conditionType: 'BypassCondition',
+              pattern: '*.internal'
+            }
+          ]
+        }
+      ],
+      name: 'proxy',
+      profileType: 'FixedProfile'
+    };
+
+    const {container, rerender} = render(<FixedProfileContent profile={profile} />);
+
+    expect(screen.queryByRole('button', {name: 'Add a new list group'})).toBeNull();
+    expect(screen.queryByLabelText('Group name')).toBeNull();
+    expect(container.querySelectorAll('textarea')).toHaveLength(1);
+
+    rerender(<FixedProfileContent profile={profile} showBypassListGroups />);
+
+    expect(screen.getByRole('button', {name: 'Add a new list group'})).toBeTruthy();
+    expect(screen.getByLabelText('Group name')).toBeTruthy();
+    expect(container.querySelectorAll('textarea')).toHaveLength(2);
+  });
+
+  it('adds and edits fixed proxy bypass list groups', () => {
+    const onBypassGroupsChange = vi.fn();
+    const profile: NamedFixedProfileModel = {
+      name: 'proxy',
+      profileType: 'FixedProfile'
+    };
+
+    const {container} = render(
+      <FixedProfileContent onBypassGroupsChange={onBypassGroupsChange} profile={profile} showBypassListGroups />
+    );
+
+    fireEvent.click(screen.getByRole('button', {name: 'Add a new list group'}));
+    expect(onBypassGroupsChange).toHaveBeenLastCalledWith([
+      {
+        bypassList: []
+      }
+    ]);
+
+    fireEvent.change(screen.getByLabelText('Group name'), {
+      target: {
+        value: 'Internal'
+      }
+    });
+    expect(onBypassGroupsChange).toHaveBeenLastCalledWith([
+      {
+        bypassList: [],
+        name: 'Internal'
+      }
+    ]);
+
+    fireEvent.click(screen.getByRole('switch', {name: 'Enable this list group'}));
+    expect(onBypassGroupsChange).toHaveBeenLastCalledWith([
+      {
+        bypassList: [],
+        enabled: false,
+        name: 'Internal'
+      }
+    ]);
+
+    const groupBypassList = container.querySelectorAll('textarea')[1] as HTMLTextAreaElement;
+    fireEvent.change(groupBypassList, {
+      target: {
+        value: '*.internal\nlocalhost'
+      }
+    });
+    expect(onBypassGroupsChange).toHaveBeenLastCalledWith([
+      {
+        bypassList: [
+          {
+            conditionType: 'BypassCondition',
+            pattern: '*.internal'
+          },
+          {
+            conditionType: 'BypassCondition',
+            pattern: 'localhost'
+          }
+        ],
+        enabled: false,
+        name: 'Internal'
+      }
+    ]);
+  });
+
+  it('confirms deleting non-empty fixed proxy bypass list groups and removes empty groups directly', () => {
+    const onBypassGroupsChange = vi.fn();
+    const profile: NamedFixedProfileModel = {
+      bypassGroups: [
+        {
+          name: 'Internal',
+          bypassList: [
+            {
+              conditionType: 'BypassCondition',
+              pattern: '*.internal'
+            }
+          ]
+        }
+      ],
+      name: 'proxy',
+      profileType: 'FixedProfile'
+    };
+
+    const {rerender} = render(
+      <FixedProfileContent onBypassGroupsChange={onBypassGroupsChange} profile={profile} showBypassListGroups />
+    );
+
+    fireEvent.click(screen.getByTitle('Delete group'));
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Delete List Group'})).toBeTruthy();
+    expect(within(dialog).getByText('Internal')).toBeTruthy();
+    expect(onBypassGroupsChange).not.toHaveBeenCalled();
+
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Delete group'}));
+    expect(onBypassGroupsChange).toHaveBeenLastCalledWith([]);
+
+    onBypassGroupsChange.mockClear();
+    rerender(
+      <FixedProfileContent
+        onBypassGroupsChange={onBypassGroupsChange}
+        profile={{name: 'proxy', profileType: 'FixedProfile'}}
+        showBypassListGroups
+      />
+    );
+    fireEvent.click(screen.getByRole('button', {name: 'Add a new list group'}));
+    fireEvent.click(screen.getByTitle('Delete group'));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(onBypassGroupsChange).toHaveBeenLastCalledWith([]);
   });
 
   it('discards switch source editing without applying untouched source', () => {

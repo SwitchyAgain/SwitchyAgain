@@ -34,6 +34,16 @@ type RuleListFormat = {
 
 const RuleListFormats = RuleList as Record<string, RuleListFormat>;
 
+function effectiveBypassList(profile: ProfileRecord) {
+  const bypassList = (profile.bypassList || []).slice();
+  for (const group of profile.bypassGroups || []) {
+    if (group && group.enabled !== false) {
+      bypassList.push(...(group.bypassList || []));
+    }
+  }
+  return bypassList;
+}
+
 type ProfileCache = {
   analyzed?: any;
   compiled?: any;
@@ -458,8 +468,9 @@ const ProfilesApi: ProfilesApiType = {
         ];
       },
       match(profile, request) {
-        if (profile.bypassList) {
-          for (const cond of profile.bypassList) {
+        const bypassList = effectiveBypassList(profile);
+        if (bypassList.length) {
+          for (const cond of bypassList) {
             if (Conditions.match(cond, request)) {
               return [
                 this.pacResult(), cond, {
@@ -487,15 +498,16 @@ const ProfilesApi: ProfilesApiType = {
       },
       compile(profile) {
         const hasProtocolProxy = this.schemes.some((scheme) => !!scheme.scheme && !!profile[scheme.prop]);
-        if ((!profile.bypassList || !profile.fallbackProxy) && !hasProtocolProxy) {
+        const bypassList = effectiveBypassList(profile);
+        if ((!bypassList.length || !profile.fallbackProxy) && !hasProtocolProxy) {
           return Ast.str(this.pacResult(profile.fallbackProxy));
         }
         const body = [
           Ast.directive('use strict')
         ];
-        if (profile.bypassList && profile.bypassList.length) {
+        if (bypassList.length) {
           let conditions = null;
-          for (const cond of profile.bypassList) {
+          for (const cond of bypassList) {
             const condition = Conditions.compile(cond);
             if (condition == null) {
               continue;

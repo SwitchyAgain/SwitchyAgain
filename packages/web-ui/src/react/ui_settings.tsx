@@ -759,6 +759,16 @@ export function UiSettings({
             </span>
           </label>
         </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={Boolean(draftOptions['-showBypassListGroups'])}
+              onChange={(event) => updateOption('-showBypassListGroups', event.currentTarget.checked)}
+            />
+            <span> {message('options_showBypassListGroups', 'Show bypass list groups in proxy profiles.')}</span>
+          </label>
+        </div>
       </section>
 
       <section className="settings-group">

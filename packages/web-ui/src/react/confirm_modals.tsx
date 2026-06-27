@@ -7,6 +7,7 @@ import type {SwitchRule} from './switch_profile_runtime';
 
 export type ConfirmKind =
   | 'apply'
+  | 'bypassGroupRemove'
   | 'cannotDeleteProfile'
   | 'deleteAttached'
   | 'deleteProfile'
@@ -37,6 +38,10 @@ export type ConfirmModalProps = ConfirmModalBaseProps &
   (
     | {
         kind: 'apply';
+      }
+    | {
+        groupName?: string;
+        kind: 'bypassGroupRemove';
       }
     | {
         kind: 'cannotDeleteProfile';
@@ -88,6 +93,8 @@ function titleFor(kind: ConfirmKind) {
   switch (kind) {
     case 'apply':
       return message('options_modalHeader_applyOptions', 'Apply Options');
+    case 'bypassGroupRemove':
+      return message('options_modalHeader_deleteBypassGroup', 'Delete List Group');
     case 'cannotDeleteProfile':
       return message('options_modalHeader_cannotDeleteProfile', 'Unable to Delete Profile');
     case 'deleteAttached':
@@ -134,6 +141,13 @@ function bodyFor(
         <>
           <p>{message('options_applyOptionsRequired', 'Your changes to the options must be applied before you proceed.')}</p>
           <p>{message('options_applyOptionsConfirm', 'Do you want to save and apply the options?')}</p>
+        </>
+      );
+    case 'bypassGroupRemove':
+      return (
+        <>
+          <p>{message('options_deleteBypassGroupConfirm', 'Do you really want to delete this list group?')}</p>
+          {props.groupName && <div className="well">{props.groupName}</div>}
         </>
       );
     case 'cannotDeleteProfile':
@@ -264,6 +278,12 @@ function closeButtonFor(kind: ConfirmKind) {
       return {
         className: 'btn-primary',
         label: message('options_apply', 'Apply changes'),
+        value: 'ok'
+      };
+    case 'bypassGroupRemove':
+      return {
+        className: 'btn-danger',
+        label: message('options_deleteBypassGroup', 'Delete group'),
         value: 'ok'
       };
     case 'cannotDeleteProfile':

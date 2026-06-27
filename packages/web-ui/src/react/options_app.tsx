@@ -775,6 +775,16 @@ export function OptionsApp() {
     updateProfileField<FixedProfileModel, 'bypassList'>(profileName, 'bypassList', value);
   }
 
+  function updateFixedProfileBypassGroups(profileName: string, value: FixedProfileModel['bypassGroups']) {
+    updateProfile<FixedProfileModel>(profileName, (nextProfile) => {
+      if (!value || !value.length) {
+        delete nextProfile.bypassGroups;
+        return;
+      }
+      nextProfile.bypassGroups = value;
+    });
+  }
+
   function updatePacProfileField(profileName: string, field: PacProfileField, value: string) {
     updateProfileField<PacProfileModel, PacProfileField>(profileName, field, value);
   }
@@ -1493,9 +1503,11 @@ export function OptionsApp() {
             <FixedProfileContent
               profile={profile}
               proxyAuthCapabilities={proxyAuthCapabilities}
+              showBypassListGroups={options['-showBypassListGroups'] === true}
               showHttpProxyOverrideRows={options['-showHttpProxyOverrideRows'] !== false}
               showSocks5LocalDnsOption={proxyDnsCapabilities.socks5 === true && options['-showSocks5LocalDnsOption'] === true}
               showWebSocketProxyOverrideRows={options['-showWebSocketProxyOverrideRows'] === true}
+              onBypassGroupsChange={(value) => updateFixedProfileBypassGroups(profile.name, value)}
               onBypassListChange={(value) => updateFixedProfileBypassList(profile.name, value)}
               onEditProxyAuth={(scheme) => requestFixedProxyAuth(profile, scheme)}
               onProxyChange={(field, value, changeOptions) => updateFixedProfileProxy(profile.name, field, value, changeOptions)}

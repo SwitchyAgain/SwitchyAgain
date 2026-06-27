@@ -220,7 +220,7 @@ class SettingsProxyImpl extends ProxyImpl {
 
     if (config.mode !== 'direct') {
       const bypassList: string[] = [];
-      for (const condition of profile.bypassList || []) {
+      for (const condition of this._fixedProfileBypassList(profile)) {
         bypassList.push(this._formatBypassItem(condition));
       }
       rules.bypassList = bypassList;
@@ -261,6 +261,16 @@ class SettingsProxyImpl extends ProxyImpl {
 
   private _isDirectProxy(proxy?: ProxyServer) {
     return !proxy || proxy.scheme === 'direct';
+  }
+
+  private _fixedProfileBypassList(profile: ProxyProfile) {
+    const bypassList = [...(profile.bypassList || [])];
+    for (const group of profile.bypassGroups || []) {
+      if (group && group.enabled !== false) {
+        bypassList.push(...(group.bypassList || []));
+      }
+    }
+    return bypassList;
   }
 
   private _formatBypassItem(condition: ProxyCondition) {
@@ -402,10 +412,11 @@ class SettingsProxyImpl extends ProxyImpl {
       if (candidate.profileType !== 'FixedProfile') {
         return;
       }
-      if ((candidate.bypassList || []).length !== bypassCount) {
+      const candidateBypassList = this._fixedProfileBypassList(candidate);
+      if (candidateBypassList.length !== bypassCount) {
         return;
       }
-      for (const condition of candidate.bypassList || []) {
+      for (const condition of candidateBypassList) {
         if (!condition.pattern || !bypassSet[condition.pattern]) {
           return;
         }

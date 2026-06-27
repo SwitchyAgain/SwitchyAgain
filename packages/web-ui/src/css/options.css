@@ -1138,6 +1138,42 @@ main .profile-header {
   padding: 0;
 }
 
+.fixed-bypass-group {
+  border-top: 1px solid #eee;
+  margin-top: 16px;
+  padding-top: 16px;
+}
+
+.theme-dark .fixed-bypass-group {
+  border-top-color: #3a3f44;
+}
+
+.fixed-bypass-group-header {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.fixed-bypass-group-header label {
+  flex: none;
+  font-weight: normal;
+  margin-bottom: 0;
+}
+
+.fixed-bypass-group-header .form-control {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.fixed-bypass-group-switch {
+  margin-bottom: 10px;
+}
+
+.fixed-bypass-group-add {
+  margin-top: 12px;
+}
+
 .proxy-actions {
   text-align: center;
   padding: 0 !important;

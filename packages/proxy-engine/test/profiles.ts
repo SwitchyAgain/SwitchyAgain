@@ -231,6 +231,40 @@ describe('Profiles', function() {
         }, void 0
       ]);
     });
+    it('should use enabled bypass groups', function() {
+      const groupedProfile = {
+        ...profile,
+        bypassGroups: [
+          {
+            name: 'internal',
+            bypassList: [
+              {
+                conditionType: 'BypassCondition',
+                pattern: '*.internal'
+              }
+            ]
+          },
+          {
+            enabled: false,
+            name: 'disabled',
+            bypassList: [
+              {
+                conditionType: 'BypassCondition',
+                pattern: '*.disabled'
+              }
+            ]
+          }
+        ]
+      };
+      return Promise.all([
+        testProfile(groupedProfile, 'http://app.internal/', [
+          'DIRECT', groupedProfile.bypassGroups[0].bypassList[0], {
+            scheme: 'direct'
+          }, void 0
+        ]),
+        testProfile(groupedProfile, 'http://app.disabled/', ['SOCKS 127.0.0.1:1234', 'http', groupedProfile.proxyForHttp, void 0])
+      ]);
+    });
   });
   describe('PacProfile', function() {
     let profile: any;

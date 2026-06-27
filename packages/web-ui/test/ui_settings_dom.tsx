@@ -94,6 +94,7 @@ describe('ui settings component', () => {
     expect((screen.getByLabelText('Show SOCKS5 local DNS option. Firefox only.') as HTMLInputElement).disabled).toBe(true);
     expect((screen.getByLabelText('Show HTTP/HTTPS proxy overrides on profile pages.') as HTMLInputElement).checked).toBe(true);
     expect((screen.getByLabelText('Show WebSocket (ws/wss) proxy overrides on profile pages.') as HTMLInputElement).checked).toBe(false);
+    expect((screen.getByLabelText('Show bypass list groups in proxy profiles.') as HTMLInputElement).checked).toBe(false);
 
     fireEvent.click(screen.getByLabelText('Show HTTP/HTTPS proxy overrides on profile pages.'));
     expect(onOptionsChange).toHaveBeenLastCalledWith(
@@ -106,6 +107,13 @@ describe('ui settings component', () => {
     expect(onOptionsChange).toHaveBeenLastCalledWith(
       expect.objectContaining({
         '-showWebSocketProxyOverrideRows': true
+      })
+    );
+
+    fireEvent.click(screen.getByLabelText('Show bypass list groups in proxy profiles.'));
+    expect(onOptionsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        '-showBypassListGroups': true
       })
     );
 
@@ -214,14 +222,17 @@ describe('ui settings component', () => {
     const windowProfiles = screen.getByLabelText('Normal/private defaults') as HTMLInputElement;
     const socks5LocalDns = screen.getByLabelText('Show SOCKS5 local DNS option. Firefox only.') as HTMLInputElement;
     const websocketProxyRows = screen.getByLabelText('Show WebSocket (ws/wss) proxy overrides on profile pages.') as HTMLInputElement;
+    const bypassListGroups = screen.getByLabelText('Show bypass list groups in proxy profiles.') as HTMLInputElement;
     expect(tabProfiles.disabled).toBe(false);
     expect(windowProfiles.disabled).toBe(true);
     expect(socks5LocalDns.disabled).toBe(false);
     expect(websocketProxyRows.checked).toBe(false);
+    expect(bypassListGroups.checked).toBe(false);
 
     fireEvent.click(tabProfiles);
     fireEvent.click(socks5LocalDns);
     fireEvent.click(websocketProxyRows);
+    fireEvent.click(bypassListGroups);
     fireEvent.click(screen.getByRole('button', {name: /Apply changes/}));
 
     await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('Options saved.'));
@@ -237,6 +248,7 @@ describe('ui settings component', () => {
               window: false
             }
           ],
+          '-showBypassListGroups': [undefined, true],
           '-showSocks5LocalDnsOption': [undefined, true],
           '-showWebSocketProxyOverrideRows': [undefined, true]
         }
