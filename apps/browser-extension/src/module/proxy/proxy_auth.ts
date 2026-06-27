@@ -1,4 +1,5 @@
 import OmegaTarget from '@switchyagain/extension-runtime';
+import {NETWORK_REQUEST_URLS} from '../network_request_urls';
 import type {
   ProxyAuthEndpoint,
   ProxyCredentials,
@@ -56,13 +57,13 @@ class ProxyAuth {
       return;
     }
     chrome.webRequest.onAuthRequired.addListener(this.authHandler.bind(this), {
-      urls: ['<all_urls>']
+      urls: NETWORK_REQUEST_URLS
     }, ['asyncBlocking']);
     chrome.webRequest.onCompleted.addListener(this._requestDone.bind(this), {
-      urls: ['<all_urls>']
+      urls: NETWORK_REQUEST_URLS
     });
     chrome.webRequest.onErrorOccurred.addListener(this._requestDone.bind(this), {
-      urls: ['<all_urls>']
+      urls: NETWORK_REQUEST_URLS
     });
     this.listening = true;
   }

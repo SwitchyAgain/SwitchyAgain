@@ -1,4 +1,5 @@
 import OmegaTarget from '@switchyagain/extension-runtime';
+import {NETWORK_REQUEST_URLS} from '../network_request_urls';
 import ProxyImpl from './proxy_impl';
 import type {
   ProxyCredentials,
@@ -70,7 +71,7 @@ class ListenerProxyImpl extends ProxyImpl {
 
   private _initRequestListeners() {
     browser.proxy.onRequest.addListener(this.onRequest.bind(this), {
-      urls: ['<all_urls>']
+      urls: NETWORK_REQUEST_URLS
     });
     return browser.proxy.onError.addListener(this.onError.bind(this));
   }

@@ -57,7 +57,8 @@
   "host_permissions": [
     "http://*/*",
     "https://*/*",
-    "<all_urls>"
+    "ws://*/*",
+    "wss://*/*"
   ],
   "commands": {
     "_execute_action": {

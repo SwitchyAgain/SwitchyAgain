@@ -1,3 +1,5 @@
+import {NETWORK_REQUEST_URLS} from './network_request_urls';
+
 type HeapQueue<T> = {
   peek(): T | undefined;
   pop(): T | undefined;
@@ -178,19 +180,19 @@ class WebRequestMonitor {
       return;
     }
     chrome.webRequest.onBeforeRequest.addListener(this._requestStart.bind(this), {
-      urls: ['<all_urls>']
+      urls: NETWORK_REQUEST_URLS
     });
     chrome.webRequest.onHeadersReceived.addListener(this._requestHeadersReceived.bind(this), {
-      urls: ['<all_urls>']
+      urls: NETWORK_REQUEST_URLS
     });
     chrome.webRequest.onBeforeRedirect.addListener(this._requestRedirected.bind(this), {
-      urls: ['<all_urls>']
+      urls: NETWORK_REQUEST_URLS
     });
     chrome.webRequest.onCompleted.addListener(this._requestDone.bind(this), {
-      urls: ['<all_urls>']
+      urls: NETWORK_REQUEST_URLS
     });
     chrome.webRequest.onErrorOccurred.addListener(this._requestError.bind(this), {
-      urls: ['<all_urls>']
+      urls: NETWORK_REQUEST_URLS
     });
     this.watching = true;
   }
