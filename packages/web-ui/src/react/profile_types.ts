@@ -86,7 +86,9 @@ export type OptionsData = {
   '-refreshOnProfileChange'?: boolean;
   '-showConditionTypes'?: number;
   '-showExternalProfile'?: boolean;
+  '-showHttpProxyOverrideRows'?: boolean;
   '-showSocks5LocalDnsOption'?: boolean;
+  '-showWebSocketProxyOverrideRows'?: boolean;
   '-showProfileOptions'?: boolean;
   '-showPopupAddCondition'?: boolean;
   '-showPopupAddTempRule'?: boolean;

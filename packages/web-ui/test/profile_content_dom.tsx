@@ -355,6 +355,51 @@ describe('profile content components', () => {
     expect(httpRow.querySelector('button')?.disabled).toBe(true);
   });
 
+  it('hides websocket proxy override rows by default', () => {
+    const profile: NamedFixedProfileModel = {
+      name: 'proxy',
+      profileType: 'FixedProfile'
+    };
+
+    render(<FixedProfileContent profile={profile} />);
+    fireEvent.click(screen.getByRole('button', {name: /Show Advanced/}));
+
+    expect(screen.getByText('http://')).toBeTruthy();
+    expect(screen.getByText('https://')).toBeTruthy();
+    expect(screen.queryByText('ws://')).toBeNull();
+    expect(screen.queryByText('wss://')).toBeNull();
+  });
+
+  it('hides the advanced fixed proxy expander when no override rows are enabled', () => {
+    const profile: NamedFixedProfileModel = {
+      name: 'proxy',
+      profileType: 'FixedProfile'
+    };
+
+    render(<FixedProfileContent profile={profile} showHttpProxyOverrideRows={false} showWebSocketProxyOverrideRows={false} />);
+
+    expect(screen.queryByRole('button', {name: /Show Advanced/})).toBeNull();
+    expect(screen.getByText('Default')).toBeTruthy();
+    expect(screen.queryByText('http://')).toBeNull();
+    expect(screen.queryByText('ws://')).toBeNull();
+  });
+
+  it('keeps configured fixed proxy override rows visible when their display option is disabled', () => {
+    const profile: NamedFixedProfileModel = {
+      name: 'proxy',
+      profileType: 'FixedProfile',
+      proxyForWss: {
+        scheme: 'direct'
+      }
+    };
+
+    render(<FixedProfileContent profile={profile} showHttpProxyOverrideRows={false} showWebSocketProxyOverrideRows={false} />);
+
+    expect(screen.getByText('wss://')).toBeTruthy();
+    expect(screen.queryByText('http://')).toBeNull();
+    expect(screen.queryByText('ws://')).toBeNull();
+  });
+
   it('keeps an existing SOCKS5 local DNS protocol visible', () => {
     const profile: NamedFixedProfileModel = {
       fallbackProxy: {

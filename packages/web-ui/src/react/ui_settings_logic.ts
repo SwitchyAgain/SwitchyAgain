@@ -13,6 +13,8 @@ export const UI_KEYS = [
   '-refreshOnProfileChange',
   '-showCurrentProfileInGeneral',
   '-showSocks5LocalDnsOption',
+  '-showHttpProxyOverrideRows',
+  '-showWebSocketProxyOverrideRows',
   '-addConditionsToBottom',
   '-showProfileOptions',
   '-showPopupAddCondition',

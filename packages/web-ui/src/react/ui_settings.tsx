@@ -733,6 +733,32 @@ export function UiSettings({
             <span> {message('options_showSocks5LocalDnsOption', 'Show SOCKS5 local DNS option. Firefox only.')}</span>
           </label>
         </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={draftOptions['-showHttpProxyOverrideRows'] !== false}
+              onChange={(event) => updateOption('-showHttpProxyOverrideRows', event.currentTarget.checked)}
+            />
+            <span>
+              {' '}
+              {message('options_showHttpProxyOverrideRows', 'Show HTTP/HTTPS proxy overrides on profile pages.')}
+            </span>
+          </label>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={Boolean(draftOptions['-showWebSocketProxyOverrideRows'])}
+              onChange={(event) => updateOption('-showWebSocketProxyOverrideRows', event.currentTarget.checked)}
+            />
+            <span>
+              {' '}
+              {message('options_showWebSocketProxyOverrideRows', 'Show WebSocket (ws/wss) proxy overrides on profile pages.')}
+            </span>
+          </label>
+        </div>
       </section>
 
       <section className="settings-group">

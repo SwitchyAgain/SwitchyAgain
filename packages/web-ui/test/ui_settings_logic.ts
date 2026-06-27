@@ -30,8 +30,10 @@ describe('ui settings logic', () => {
     const after: Options = {
       '-quickSwitchProfiles': ['direct', 'proxy'],
       '-showCurrentProfileInGeneral': true,
+      '-showHttpProxyOverrideRows': false,
       '-showProfileOptions': true,
       '-showSocks5LocalDnsOption': true,
+      '-showWebSocketProxyOverrideRows': true,
       '-uiLocale': 'en',
       '-uiTheme': 'dark',
       '+proxy': {
@@ -44,8 +46,10 @@ describe('ui settings logic', () => {
     expect(uiOptionPatch(before, after)).toEqual({
       '-quickSwitchProfiles': [['direct'], ['direct', 'proxy']],
       '-showCurrentProfileInGeneral': [undefined, true],
+      '-showHttpProxyOverrideRows': [undefined, false],
       '-showProfileOptions': [undefined, true],
       '-showSocks5LocalDnsOption': [undefined, true],
+      '-showWebSocketProxyOverrideRows': [undefined, true],
       '-uiTheme': ['light', 'dark']
     });
     expect(uiOptionsDirty(before, before)).toBe(false);

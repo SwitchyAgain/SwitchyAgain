@@ -92,6 +92,22 @@ describe('ui settings component', () => {
     );
 
     expect((screen.getByLabelText('Show SOCKS5 local DNS option. Firefox only.') as HTMLInputElement).disabled).toBe(true);
+    expect((screen.getByLabelText('Show HTTP/HTTPS proxy overrides on profile pages.') as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByLabelText('Show WebSocket (ws/wss) proxy overrides on profile pages.') as HTMLInputElement).checked).toBe(false);
+
+    fireEvent.click(screen.getByLabelText('Show HTTP/HTTPS proxy overrides on profile pages.'));
+    expect(onOptionsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        '-showHttpProxyOverrideRows': false
+      })
+    );
+
+    fireEvent.click(screen.getByLabelText('Show WebSocket (ws/wss) proxy overrides on profile pages.'));
+    expect(onOptionsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        '-showWebSocketProxyOverrideRows': true
+      })
+    );
 
     fireEvent.click(container.querySelector('#react-ui-locale') as HTMLButtonElement);
     fireEvent.click(screen.getByRole('option', {name: /Espa/}).querySelector('a') as HTMLAnchorElement);
@@ -197,12 +213,15 @@ describe('ui settings component', () => {
     const tabProfiles = screen.getByLabelText('Tab profiles') as HTMLInputElement;
     const windowProfiles = screen.getByLabelText('Normal/private defaults') as HTMLInputElement;
     const socks5LocalDns = screen.getByLabelText('Show SOCKS5 local DNS option. Firefox only.') as HTMLInputElement;
+    const websocketProxyRows = screen.getByLabelText('Show WebSocket (ws/wss) proxy overrides on profile pages.') as HTMLInputElement;
     expect(tabProfiles.disabled).toBe(false);
     expect(windowProfiles.disabled).toBe(true);
     expect(socks5LocalDns.disabled).toBe(false);
+    expect(websocketProxyRows.checked).toBe(false);
 
     fireEvent.click(tabProfiles);
     fireEvent.click(socks5LocalDns);
+    fireEvent.click(websocketProxyRows);
     fireEvent.click(screen.getByRole('button', {name: /Apply changes/}));
 
     await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('Options saved.'));
@@ -218,7 +237,8 @@ describe('ui settings component', () => {
               window: false
             }
           ],
-          '-showSocks5LocalDnsOption': [undefined, true]
+          '-showSocks5LocalDnsOption': [undefined, true],
+          '-showWebSocketProxyOverrideRows': [undefined, true]
         }
       ],
       method: 'patch'

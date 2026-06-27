@@ -1493,7 +1493,9 @@ export function OptionsApp() {
             <FixedProfileContent
               profile={profile}
               proxyAuthCapabilities={proxyAuthCapabilities}
+              showHttpProxyOverrideRows={options['-showHttpProxyOverrideRows'] !== false}
               showSocks5LocalDnsOption={proxyDnsCapabilities.socks5 === true && options['-showSocks5LocalDnsOption'] === true}
+              showWebSocketProxyOverrideRows={options['-showWebSocketProxyOverrideRows'] === true}
               onBypassListChange={(value) => updateFixedProfileBypassList(profile.name, value)}
               onEditProxyAuth={(scheme) => requestFixedProxyAuth(profile, scheme)}
               onProxyChange={(field, value, changeOptions) => updateFixedProfileProxy(profile.name, field, value, changeOptions)}

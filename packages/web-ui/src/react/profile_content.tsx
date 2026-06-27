@@ -110,7 +110,9 @@ export type FixedProfileProps = {
   onProxyChange?: (field: FixedProfileProxyField, value?: ProxyEditor, options?: FixedProfileProxyChangeOptions) => void;
   profile: NamedFixedProfileModel;
   proxyAuthCapabilities?: ProxyAuthCapabilities;
+  showHttpProxyOverrideRows?: boolean;
   showSocks5LocalDnsOption?: boolean;
+  showWebSocketProxyOverrideRows?: boolean;
 };
 
 export type SwitchAttachedProfileProps = {
@@ -1162,10 +1164,30 @@ function fixedProfileAuthTitle(protocol?: string, supported = false) {
   return message('options_proxy_authUnsupportedProtocol', '$1 proxy authentication is not supported.', protocol.toUpperCase());
 }
 
+function fixedProfileSchemeGroupVisible(
+  scheme: FixedProfileScheme,
+  editor: ProxyEditor | undefined,
+  showHttpProxyOverrideRows: boolean,
+  showWebSocketProxyOverrideRows: boolean
+) {
+  if (!scheme) {
+    return true;
+  }
+  if (editor?.scheme) {
+    return true;
+  }
+  if (scheme === 'http' || scheme === 'https') {
+    return showHttpProxyOverrideRows;
+  }
+  return showWebSocketProxyOverrideRows;
+}
+
 export function FixedProfileContent({
   profile,
   proxyAuthCapabilities,
+  showHttpProxyOverrideRows = true,
   showSocks5LocalDnsOption = false,
+  showWebSocketProxyOverrideRows = false,
   onBypassListChange,
   onEditProxyAuth,
   onProxyChange
@@ -1277,7 +1299,11 @@ export function FixedProfileContent({
   }
 
   const defaultEditor = draftEditors[''] || {};
-  const visibleSchemes = FIXED_PROFILE_SCHEMES.filter((scheme) => scheme === '' || showAdvanced);
+  const advancedSchemes = FIXED_PROFILE_SCHEMES.filter((scheme) =>
+    fixedProfileSchemeGroupVisible(scheme, draftEditors[scheme], showHttpProxyOverrideRows, showWebSocketProxyOverrideRows)
+  );
+  const hasVisibleAdvancedSchemes = advancedSchemes.some((scheme) => !!scheme);
+  const visibleSchemes = advancedSchemes.filter((scheme) => scheme === '' || showAdvanced);
 
   return (
     <div>
@@ -1378,7 +1404,7 @@ export function FixedProfileContent({
                 );
               })}
             </tbody>
-            {!showAdvanced && (
+            {!showAdvanced && hasVisibleAdvancedSchemes && (
               <tbody>
                 <tr className="fixed-show-advanced">
                   <td colSpan={7}>
