@@ -307,6 +307,12 @@ msgstr ""
 msgid "options_showSocks5LocalDnsOption"
 msgstr "Показывать вариант локального DNS для SOCKS5. Только Firefox."
 
+msgid "options_showHttpProxyOverrideRows"
+msgstr "Показывать отдельные настройки прокси для HTTP/HTTPS на страницах профилей."
+
+msgid "options_showWebSocketProxyOverrideRows"
+msgstr "Показывать отдельные настройки прокси для WebSocket (ws/wss) на страницах профилей."
+
 msgid "options_group_contextMenuOptions"
 msgstr "Контекстное меню"
 

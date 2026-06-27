@@ -281,6 +281,12 @@ msgstr "在情景模式页面显示“情景模式选项”，用于从弹出菜
 msgid "options_showSocks5LocalDnsOption"
 msgstr "显示 SOCKS5 本地 DNS 选项。仅 Firefox 支持。"
 
+msgid "options_showHttpProxyOverrideRows"
+msgstr "在情景模式页面显示 HTTP/HTTPS 单独代理配置。"
+
+msgid "options_showWebSocketProxyOverrideRows"
+msgstr "在情景模式页面显示 WebSocket (ws/wss) 单独代理配置。"
+
 msgid "options_group_contextMenuOptions"
 msgstr "右键菜单"
 

@@ -301,6 +301,12 @@ msgstr ""
 msgid "options_showSocks5LocalDnsOption"
 msgstr "Show SOCKS5 local DNS option. Firefox only."
 
+msgid "options_showHttpProxyOverrideRows"
+msgstr "Show HTTP/HTTPS proxy overrides on profile pages."
+
+msgid "options_showWebSocketProxyOverrideRows"
+msgstr "Show WebSocket (ws/wss) proxy overrides on profile pages."
+
 msgid "options_group_contextMenuOptions"
 msgstr "Context Menu"
 

@@ -256,6 +256,12 @@ msgstr "Vis profilalternativer på profilsider for å skjule profiler fra sprett
 msgid "options_showSocks5LocalDnsOption"
 msgstr "Vis alternativet for lokal DNS med SOCKS5. Bare Firefox."
 
+msgid "options_showHttpProxyOverrideRows"
+msgstr "Vis egne proxyinnstillinger for HTTP/HTTPS på profilsider."
+
+msgid "options_showWebSocketProxyOverrideRows"
+msgstr "Vis egne proxyinnstillinger for WebSocket (ws/wss) på profilsider."
+
 msgid "options_group_contextMenuOptions"
 msgstr "Kontekstmeny"
 

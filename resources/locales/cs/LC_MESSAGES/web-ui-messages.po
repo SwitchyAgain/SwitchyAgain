@@ -300,6 +300,12 @@ msgstr "Zobrazit možnosti profilu na stránkách profilů pro skrytí profilů 
 msgid "options_showSocks5LocalDnsOption"
 msgstr "Zobrazit volbu místního DNS pro SOCKS5. Pouze Firefox."
 
+msgid "options_showHttpProxyOverrideRows"
+msgstr "Zobrazit samostatná nastavení proxy pro HTTP/HTTPS na stránkách profilů."
+
+msgid "options_showWebSocketProxyOverrideRows"
+msgstr "Zobrazit samostatná nastavení proxy pro WebSocket (ws/wss) na stránkách profilů."
+
 msgid "options_group_contextMenuOptions"
 msgstr "Kontextové menu"
 

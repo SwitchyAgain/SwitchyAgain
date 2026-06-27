@@ -276,6 +276,12 @@ msgstr "在情境模式頁面顯示「情境模式選項」，用於從彈出選
 msgid "options_showSocks5LocalDnsOption"
 msgstr "顯示 SOCKS5 本機 DNS 選項。僅 Firefox 支援。"
 
+msgid "options_showHttpProxyOverrideRows"
+msgstr "在情境模式頁面顯示 HTTP/HTTPS 單獨代理設定。"
+
+msgid "options_showWebSocketProxyOverrideRows"
+msgstr "在情境模式頁面顯示 WebSocket (ws/wss) 單獨代理設定。"
+
 msgid "options_group_contextMenuOptions"
 msgstr "右鍵選單"
 

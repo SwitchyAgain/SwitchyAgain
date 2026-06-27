@@ -265,6 +265,12 @@ msgstr "Açılır ve bağlam menülerinden profilleri gizlemek için profil sayf
 msgid "options_showSocks5LocalDnsOption"
 msgstr "SOCKS5 yerel DNS seçeneğini göster. Yalnızca Firefox."
 
+msgid "options_showHttpProxyOverrideRows"
+msgstr "Profil sayfalarında HTTP/HTTPS için ayrı proxy ayarlarını göster."
+
+msgid "options_showWebSocketProxyOverrideRows"
+msgstr "Profil sayfalarında WebSocket (ws/wss) için ayrı proxy ayarlarını göster."
+
 msgid "options_group_contextMenuOptions"
 msgstr "Bağlam Menüsü"
 
