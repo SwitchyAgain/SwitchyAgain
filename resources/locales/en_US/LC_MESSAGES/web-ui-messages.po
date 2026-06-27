@@ -307,6 +307,9 @@ msgstr "Show HTTP/HTTPS proxy overrides on profile pages."
 msgid "options_showWebSocketProxyOverrideRows"
 msgstr "Show WebSocket (ws/wss) proxy overrides on profile pages."
 
+msgid "options_showBypassListGroups"
+msgstr "Show bypass list groups in proxy profiles."
+
 msgid "options_group_contextMenuOptions"
 msgstr "Context Menu"
 
@@ -710,6 +713,24 @@ msgstr "Servers for which you do not want to use any proxy: (One server on each 
 
 msgid "options_bypassListHelpLinkText"
 msgstr "(Wildcards and more available…)"
+
+msgid "options_bypassGroupName"
+msgstr "Group name"
+
+msgid "options_enableBypassGroup"
+msgstr "Enable this list group"
+
+msgid "options_addBypassGroup"
+msgstr "Add a new list group"
+
+msgid "options_modalHeader_deleteBypassGroup"
+msgstr "Delete List Group"
+
+msgid "options_deleteBypassGroupConfirm"
+msgstr "Do you really want to delete this list group?"
+
+msgid "options_deleteBypassGroup"
+msgstr "Delete group"
 
 msgid "options_group_pacUrl"
 msgstr "PAC URL"

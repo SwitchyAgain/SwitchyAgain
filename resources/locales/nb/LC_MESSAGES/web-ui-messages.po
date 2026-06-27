@@ -262,6 +262,9 @@ msgstr "Vis egne proxyinnstillinger for HTTP/HTTPS på profilsider."
 msgid "options_showWebSocketProxyOverrideRows"
 msgstr "Vis egne proxyinnstillinger for WebSocket (ws/wss) på profilsider."
 
+msgid "options_showBypassListGroups"
+msgstr "Vis grupper for forbikoblingslisten i proxyprofiler."
+
 msgid "options_group_contextMenuOptions"
 msgstr "Kontekstmeny"
 
@@ -641,6 +644,24 @@ msgstr ""
 
 msgid "options_bypassListHelpLinkText"
 msgstr ""
+
+msgid "options_bypassGroupName"
+msgstr "Gruppenavn"
+
+msgid "options_enableBypassGroup"
+msgstr "Aktiver denne listegruppen"
+
+msgid "options_addBypassGroup"
+msgstr "Legg til en ny listegruppe"
+
+msgid "options_modalHeader_deleteBypassGroup"
+msgstr "Slett listegruppe"
+
+msgid "options_deleteBypassGroupConfirm"
+msgstr "Vil du virkelig slette denne listegruppen?"
+
+msgid "options_deleteBypassGroup"
+msgstr "Slett gruppe"
 
 msgid "options_group_pacUrl"
 msgstr ""

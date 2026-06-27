@@ -271,6 +271,9 @@ msgstr "Profil sayfalarında HTTP/HTTPS için ayrı proxy ayarlarını göster."
 msgid "options_showWebSocketProxyOverrideRows"
 msgstr "Profil sayfalarında WebSocket (ws/wss) için ayrı proxy ayarlarını göster."
 
+msgid "options_showBypassListGroups"
+msgstr "Proxy profillerinde bypass listesi gruplarını göster."
+
 msgid "options_group_contextMenuOptions"
 msgstr "Bağlam Menüsü"
 
@@ -633,6 +636,24 @@ msgstr ""
 
 msgid "options_bypassListHelpLinkText"
 msgstr "(Joker karakterleri ve daha fazlası…)"
+
+msgid "options_bypassGroupName"
+msgstr "Grup adı"
+
+msgid "options_enableBypassGroup"
+msgstr "Bu liste grubunu etkinleştir"
+
+msgid "options_addBypassGroup"
+msgstr "Yeni liste grubu ekle"
+
+msgid "options_modalHeader_deleteBypassGroup"
+msgstr "Liste Grubunu Sil"
+
+msgid "options_deleteBypassGroupConfirm"
+msgstr "Bu liste grubunu gerçekten silmek istiyor musunuz?"
+
+msgid "options_deleteBypassGroup"
+msgstr "Grubu sil"
 
 msgid "options_group_pacUrl"
 msgstr "PAC Bağlantısı"

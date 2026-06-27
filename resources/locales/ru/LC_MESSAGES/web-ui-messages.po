@@ -313,6 +313,9 @@ msgstr "Показывать отдельные настройки прокси 
 msgid "options_showWebSocketProxyOverrideRows"
 msgstr "Показывать отдельные настройки прокси для WebSocket (ws/wss) на страницах профилей."
 
+msgid "options_showBypassListGroups"
+msgstr "Показывать группы списка обхода в прокси-профилях."
+
 msgid "options_group_contextMenuOptions"
 msgstr "Контекстное меню"
 
@@ -738,6 +741,24 @@ msgstr ""
 
 msgid "options_bypassListHelpLinkText"
 msgstr "(Доступны шаблоны и прочее…)"
+
+msgid "options_bypassGroupName"
+msgstr "Имя группы"
+
+msgid "options_enableBypassGroup"
+msgstr "Включить эту группу списка"
+
+msgid "options_addBypassGroup"
+msgstr "Добавить новую группу списка"
+
+msgid "options_modalHeader_deleteBypassGroup"
+msgstr "Удалить группу списка"
+
+msgid "options_deleteBypassGroupConfirm"
+msgstr "Вы действительно хотите удалить эту группу списка?"
+
+msgid "options_deleteBypassGroup"
+msgstr "Удалить группу"
 
 msgid "options_group_pacUrl"
 msgstr "URL-адрес PAC"

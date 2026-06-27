@@ -308,6 +308,9 @@ msgstr "نمایش تنظیمات جداگانه پروکسی HTTP/HTTPS در ص
 msgid "options_showWebSocketProxyOverrideRows"
 msgstr "نمایش تنظیمات جداگانه پروکسی WebSocket (ws/wss) در صفحه‌های پروفایل."
 
+msgid "options_showBypassListGroups"
+msgstr "گروه‌های فهرست عبور را در پروفایل‌های پروکسی نشان بده."
+
 msgid "options_group_contextMenuOptions"
 msgstr "منوی زمینه"
 
@@ -724,6 +727,24 @@ msgstr ""
 
 msgid "options_bypassListHelpLinkText"
 msgstr "( فرانویسه و بیشتر فراهم است .... )"
+
+msgid "options_bypassGroupName"
+msgstr "نام گروه"
+
+msgid "options_enableBypassGroup"
+msgstr "فعال کردن این گروه فهرست"
+
+msgid "options_addBypassGroup"
+msgstr "افزودن گروه فهرست جدید"
+
+msgid "options_modalHeader_deleteBypassGroup"
+msgstr "حذف گروه فهرست"
+
+msgid "options_deleteBypassGroupConfirm"
+msgstr "آیا واقعاً می‌خواهید این گروه فهرست را حذف کنید؟"
+
+msgid "options_deleteBypassGroup"
+msgstr "حذف گروه"
 
 msgid "options_group_pacUrl"
 msgstr "نشانی PAC"

@@ -282,6 +282,9 @@ msgstr "在情境模式頁面顯示 HTTP/HTTPS 單獨代理設定。"
 msgid "options_showWebSocketProxyOverrideRows"
 msgstr "在情境模式頁面顯示 WebSocket (ws/wss) 單獨代理設定。"
 
+msgid "options_showBypassListGroups"
+msgstr "在代理情境模式中顯示不代理清單分組。"
+
 msgid "options_group_contextMenuOptions"
 msgstr "右鍵選單"
 
@@ -637,6 +640,24 @@ msgstr "不經過代理連線的主機清單: (每行一個主機)"
 
 msgid "options_bypassListHelpLinkText"
 msgstr "(可使用萬用字元等比對規則…)"
+
+msgid "options_bypassGroupName"
+msgstr "分組名稱"
+
+msgid "options_enableBypassGroup"
+msgstr "啟用此清單分組"
+
+msgid "options_addBypassGroup"
+msgstr "新增新的清單分組"
+
+msgid "options_modalHeader_deleteBypassGroup"
+msgstr "刪除清單分組"
+
+msgid "options_deleteBypassGroupConfirm"
+msgstr "確定要刪除此清單分組嗎？"
+
+msgid "options_deleteBypassGroup"
+msgstr "刪除分組"
 
 msgid "options_group_pacUrl"
 msgstr "PAC 網址"

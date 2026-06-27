@@ -306,6 +306,9 @@ msgstr "Zobrazit samostatná nastavení proxy pro HTTP/HTTPS na stránkách prof
 msgid "options_showWebSocketProxyOverrideRows"
 msgstr "Zobrazit samostatná nastavení proxy pro WebSocket (ws/wss) na stránkách profilů."
 
+msgid "options_showBypassListGroups"
+msgstr "Zobrazit skupiny seznamu výjimek proxy v proxy profilech."
+
 msgid "options_group_contextMenuOptions"
 msgstr "Kontextové menu"
 
@@ -717,6 +720,24 @@ msgstr ""
 
 msgid "options_bypassListHelpLinkText"
 msgstr "(Wildcards and more available...)"
+
+msgid "options_bypassGroupName"
+msgstr "Název skupiny"
+
+msgid "options_enableBypassGroup"
+msgstr "Povolit tuto skupinu seznamu"
+
+msgid "options_addBypassGroup"
+msgstr "Přidat novou skupinu seznamu"
+
+msgid "options_modalHeader_deleteBypassGroup"
+msgstr "Odstranit skupinu seznamu"
+
+msgid "options_deleteBypassGroupConfirm"
+msgstr "Opravdu chcete odstranit tuto skupinu seznamu?"
+
+msgid "options_deleteBypassGroup"
+msgstr "Odstranit skupinu"
 
 msgid "options_group_pacUrl"
 msgstr "PAC URL"

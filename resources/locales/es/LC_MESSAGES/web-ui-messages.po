@@ -318,6 +318,9 @@ msgstr "Mostrar configuraciones de proxy independientes para HTTP/HTTPS en las p
 msgid "options_showWebSocketProxyOverrideRows"
 msgstr "Mostrar configuraciones de proxy independientes para WebSocket (ws/wss) en las páginas de perfil."
 
+msgid "options_showBypassListGroups"
+msgstr "Mostrar grupos de lista de omisión en perfiles proxy."
+
 msgid "options_group_contextMenuOptions"
 msgstr "Menú contextual"
 
@@ -745,6 +748,24 @@ msgstr ""
 
 msgid "options_bypassListHelpLinkText"
 msgstr "(Comodines y más disponible ...)"
+
+msgid "options_bypassGroupName"
+msgstr "Nombre del grupo"
+
+msgid "options_enableBypassGroup"
+msgstr "Activar este grupo de lista"
+
+msgid "options_addBypassGroup"
+msgstr "Añadir un nuevo grupo de lista"
+
+msgid "options_modalHeader_deleteBypassGroup"
+msgstr "Eliminar grupo de lista"
+
+msgid "options_deleteBypassGroupConfirm"
+msgstr "¿Seguro que quieres eliminar este grupo de lista?"
+
+msgid "options_deleteBypassGroup"
+msgstr "Eliminar grupo"
 
 msgid "options_group_pacUrl"
 msgstr "URL PAC"
