@@ -86,7 +86,12 @@ export type SwitchRuleSourceState = {
     | BackgroundError
     | Error
     | {
+        args?: unknown[];
         message?: string;
+        profile?: string;
+        reason?: string;
+        source?: string;
+        sourceLineNo?: number;
       };
   touched?: boolean;
 };
@@ -527,10 +532,20 @@ export function parseSource(code: string, options: Options | null | undefined) {
   }
   try {
     const refs = OmegaPac.RuleList.Switchy.directReferenceSet({ruleList: code});
+    if (!refs) {
+      return {
+        error: Object.assign(new Error("Missing '@with result' directive!"), {
+          reason: 'resultNotEnabled'
+        })
+      };
+    }
     for (const key of Object.keys(refs || {})) {
       if (!sourceResultProfileExists(key, options, profilesByKey)) {
         return {
-          error: new Error(`Unknown profile: ${refs[key]}`)
+          error: Object.assign(new Error(`Unknown profile: ${refs[key]}`), {
+            profile: refs[key],
+            reason: 'unknownProfile'
+          })
         };
       }
     }

@@ -41,6 +41,9 @@ function installOmegaPacMock() {
     RuleList: {
       Switchy: {
         directReferenceSet({ruleList}: {ruleList: string}) {
+          if (!/(^|\n)@with\s+results?(\r|\n|$)/i.test(ruleList)) {
+            return undefined;
+          }
           const refs: Record<string, string> = {};
           for (let line of ruleList.split(/\n|\r/)) {
             line = line.trim();
@@ -249,6 +252,12 @@ describe('switch profile runtime', () => {
   it('rejects unknown and non-result profiles in source editing', () => {
     expect(parseSource('[SwitchyOmega Conditions]\n@with result\n* +missing', {}).error?.message).toBe('Unknown profile: missing');
     expect(parseSource('[SwitchyOmega Conditions]\n@with result\n* +system', {}).error?.message).toBe('Unknown profile: system');
+  });
+
+  it('requires result-enabled switch source editing', () => {
+    const error = parseSource('[SwitchyOmega Conditions]\n*', {}).error as {message?: string; reason?: string} | undefined;
+    expect(error?.reason).toBe('resultNotEnabled');
+    expect(error?.message).toBe("Missing '@with result' directive!");
   });
 
   it('applies parsed source rules to profile and attached defaults', () => {

@@ -217,6 +217,7 @@ function PopupApp() {
           return;
         }
         return setUiLocale(nextState.uiLocale).then(() => {
+          document.title = popupMessage('popup_title', 'SwitchyAgain Popup');
           applyUiTheme(nextState.uiTheme);
           setState(nextState);
           setPageInfo(nextPageInfo);

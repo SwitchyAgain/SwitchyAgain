@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {createRoot} from 'react-dom/client';
+import {setUiLocale} from './i18n_client';
 import {closePopup, popupMessage, popupTarget} from './popup_target';
 import {applyUiTheme} from './ui_theme';
 
@@ -8,11 +9,15 @@ function ProxyNotControllableDialog() {
   const [detailsText, setDetailsText] = useState('');
 
   useEffect(() => {
-    popupTarget().getState?.(['proxyNotControllable', 'uiTheme'], (_error, state) => {
+    popupTarget().getState?.(['proxyNotControllable', 'uiLocale', 'uiTheme'], (_error, state) => {
+      document.title = popupMessage('popup_title', 'SwitchyAgain Popup');
       applyUiTheme(state?.uiTheme);
       const reason = state?.proxyNotControllable || '';
-      setMainText(popupMessage(`popup_proxyNotControllable_${reason}`));
-      setDetailsText(popupMessage(`popup_proxyNotControllableDetails_${reason}`) || popupMessage('popup_proxyNotControllableDetails'));
+      setUiLocale(state?.uiLocale).then(() => {
+        document.title = popupMessage('popup_title', 'SwitchyAgain Popup');
+        setMainText(popupMessage(`popup_proxyNotControllable_${reason}`));
+        setDetailsText(popupMessage(`popup_proxyNotControllableDetails_${reason}`) || popupMessage('popup_proxyNotControllableDetails'));
+      });
     });
   }, []);
 

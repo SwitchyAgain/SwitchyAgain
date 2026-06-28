@@ -403,12 +403,6 @@ msgstr ""
 msgid "options_notCycledProfiles"
 msgstr "Незадействованные профили"
 
-msgid "options_group_proxyChanges"
-msgstr "Изменения прокси"
-
-msgid "options_revertProxyChanges"
-msgstr "Отменить изменения прокси, сделанные другими приложениями."
-
 msgid "options_group_conflicts"
 msgstr "Конфликты"
 
@@ -764,9 +758,6 @@ msgstr "НАПРЯМУЮ"
 msgid "options_protocol_useDefault"
 msgstr "(настройки по умолчанию)"
 
-msgid "options_proxy_single"
-msgstr "Использовать прокси выше для всех протоколов."
-
 msgid "options_proxy_expand"
 msgstr "Показать расширенный вид"
 
@@ -857,9 +848,6 @@ msgstr "Настройка списка правил"
 
 msgid "options_ruleListFormat"
 msgstr "Формат списка правил"
-
-msgid "options_group_ruleListResult"
-msgstr "Итоговые профили списка правил"
 
 msgid "options_ruleListMatchProfile"
 msgstr "Сопоставить профиль"
@@ -1192,13 +1180,6 @@ msgstr ""
 " Вы также можете импортировать опубликованные в онлайн правила для более "
 "удобного переключения. (Заменяет режим автопереключение + список правил.)"
 
-msgid "options_profileTypeRuleListProfile"
-msgstr "Профиль списка правил"
-
-msgid "options_profileDescRuleListProfile"
-msgstr ""
-"Используется онлайн-набор условий, опубликованных другими пользователями."
-
 msgid "options_profileTypeVirtualProfile"
 msgstr "Виртуальный профиль"
 
@@ -1397,12 +1378,6 @@ msgstr "Сообщить о неполадках"
 msgid "popup_errorLog"
 msgstr "Сохранить журнал ошибок"
 
-msgid "popup_requestErrorCount"
-msgstr "$COUNT$ неудачных ресурсов"
-
-msgid "popup_requestErrorHeading"
-msgstr "Ресурсы, которые не удалось загрузить"
-
 msgid "popup_requestErrorWarning"
 msgstr ""
 "Невозможно загрузить несколько ресурсов из-за проблем с сетью, прокси-"
@@ -1447,23 +1422,10 @@ msgstr "(переключение на основе условий)"
 msgid "browserAction_profileDetails_RuleListProfile"
 msgstr "(переключение на основе правил)"
 
-msgid "browserAction_titleNormal"
-msgstr "SwitchyAgain:: $PROFILE$"
-
 msgid "browserAction_titleWithResult"
 msgstr ""
 "SwitchyAgain:: $1:PROFILE$\n"
 "$3:DETAILS$"
-
-msgid "browserAction_titleNewerOptions"
-msgstr ""
-"ОШИБКА: для загрузки сохранённых параметров требуется более новая версия "
-"SwitchOmega."
-
-msgid "browserAction_titleOptionError"
-msgstr ""
-"ОШИБКА: сохранённые параметры повреждены. Нажмите здесь, чтобы СБРОСИТЬ "
-"ПАРАМЕТРЫ."
 
 msgid "browserAction_titleDownloadFail"
 msgstr "Предупреждение: невозможно загрузить PAC-скрипт и/или список правил."
@@ -1774,3 +1736,4 @@ msgstr "Использовать профиль для обычных окон"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "Использовать профиль для приватных окон"
+

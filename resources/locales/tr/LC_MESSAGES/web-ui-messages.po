@@ -356,12 +356,6 @@ msgstr ""
 msgid "options_notCycledProfiles"
 msgstr ""
 
-msgid "options_group_proxyChanges"
-msgstr ""
-
-msgid "options_revertProxyChanges"
-msgstr ""
-
 msgid "options_group_conflicts"
 msgstr "Çakışmalar"
 
@@ -662,9 +656,6 @@ msgstr ""
 msgid "options_protocol_useDefault"
 msgstr "(varsayılanı kullan)"
 
-msgid "options_proxy_single"
-msgstr ""
-
 msgid "options_proxy_expand"
 msgstr "Gelişmişi Göster"
 
@@ -741,9 +732,6 @@ msgstr "Kural Listesi Ayarı"
 
 msgid "options_ruleListFormat"
 msgstr "Kural Listesi Biçimi"
-
-msgid "options_group_ruleListResult"
-msgstr "Kural listesi sonuç profilleri"
 
 msgid "options_ruleListMatchProfile"
 msgstr "Profili eşle"
@@ -1049,12 +1037,6 @@ msgstr "Profile Geç"
 msgid "options_profileDescSwitchProfile"
 msgstr ""
 
-msgid "options_profileTypeRuleListProfile"
-msgstr "Kural Listesi Profili"
-
-msgid "options_profileDescRuleListProfile"
-msgstr ""
-
 msgid "options_profileTypeVirtualProfile"
 msgstr "Sanal Profil"
 
@@ -1207,12 +1189,6 @@ msgstr "Hataları raporla"
 msgid "popup_errorLog"
 msgstr "Hata kayıtlarını kaydet"
 
-msgid "popup_requestErrorCount"
-msgstr ""
-
-msgid "popup_requestErrorHeading"
-msgstr "Yüklemesi başarısız olan kaynaklar"
-
 msgid "popup_requestErrorWarning"
 msgstr ""
 
@@ -1249,19 +1225,10 @@ msgstr "(şart temelli geçiş yapma)"
 msgid "browserAction_profileDetails_RuleListProfile"
 msgstr "(kural listesi temelli geçiş yapma)"
 
-msgid "browserAction_titleNormal"
-msgstr "SwitchyAgain:: $PROFILE$"
-
 msgid "browserAction_titleWithResult"
 msgstr ""
 "SwitchyAgain:: $1:PROFILE$\n"
 "$3:DETAILS$"
-
-msgid "browserAction_titleNewerOptions"
-msgstr ""
-
-msgid "browserAction_titleOptionError"
-msgstr ""
 
 msgid "browserAction_titleDownloadFail"
 msgstr ""
@@ -1570,3 +1537,4 @@ msgstr "Normal pencereler için profil kullan"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "Gizli pencereler için profil kullan"
+

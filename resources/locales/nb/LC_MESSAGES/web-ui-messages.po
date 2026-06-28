@@ -340,12 +340,6 @@ msgstr ""
 msgid "options_notCycledProfiles"
 msgstr ""
 
-msgid "options_group_proxyChanges"
-msgstr "Mellomtjenerendringer"
-
-msgid "options_revertProxyChanges"
-msgstr "Tilbakestill mellomtjenerinnstillinger gjort av andre programmer."
-
 msgid "options_group_conflicts"
 msgstr "Conflicts"
 
@@ -666,9 +660,6 @@ msgstr "DIREKTE"
 msgid "options_protocol_useDefault"
 msgstr "(bruk forvalg)"
 
-msgid "options_proxy_single"
-msgstr "Bruk mellomtjeneren ovenfor for alle protokoller."
-
 msgid "options_proxy_expand"
 msgstr "Vis avanserte valg"
 
@@ -742,9 +733,6 @@ msgid "options_group_ruleListConfig"
 msgstr ""
 
 msgid "options_ruleListFormat"
-msgstr ""
-
-msgid "options_group_ruleListResult"
 msgstr ""
 
 msgid "options_ruleListMatchProfile"
@@ -1048,12 +1036,6 @@ msgstr "Bytt profil"
 msgid "options_profileDescSwitchProfile"
 msgstr ""
 
-msgid "options_profileTypeRuleListProfile"
-msgstr ""
-
-msgid "options_profileDescRuleListProfile"
-msgstr ""
-
 msgid "options_profileTypeVirtualProfile"
 msgstr "Virtuell profil"
 
@@ -1207,12 +1189,6 @@ msgstr "Rapporter feil"
 msgid "popup_errorLog"
 msgstr "Lagre feilrettingslogg"
 
-msgid "popup_requestErrorCount"
-msgstr "$COUNT$ failede ressurser"
-
-msgid "popup_requestErrorHeading"
-msgstr "Ressurser som ikke kunne lastes inn"
-
 msgid "popup_requestErrorWarning"
 msgstr ""
 "En del ressurser kunne ikke lastes inn på grunn av feil med ditt nettverk, "
@@ -1254,20 +1230,10 @@ msgstr ""
 msgid "browserAction_profileDetails_RuleListProfile"
 msgstr ""
 
-msgid "browserAction_titleNormal"
-msgstr "SwitchyAgain:: $PROFILE$"
-
 msgid "browserAction_titleWithResult"
 msgstr ""
 "SwitchyAgain:: $1:PROFILE$\n"
 "$3:DETAILS$"
-
-msgid "browserAction_titleNewerOptions"
-msgstr ""
-"FEIL: En nyere versjon av SwitchOmega kreves for å laste de lagrede valgene."
-
-msgid "browserAction_titleOptionError"
-msgstr "FEIL: Lagrede valg skadet. Klikk her for å TILBAKESTILLE VALG."
 
 msgid "browserAction_titleDownloadFail"
 msgstr "Advarsel: Kunne ikke laste ned PAC-skript og/eller regellister."
@@ -1575,3 +1541,4 @@ msgstr "Bruk profil for normale vinduer"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "Bruk profil for private vinduer"
+

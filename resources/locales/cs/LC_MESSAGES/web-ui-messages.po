@@ -393,12 +393,6 @@ msgstr ""
 msgid "options_notCycledProfiles"
 msgstr "Ne-opakované profily"
 
-msgid "options_group_proxyChanges"
-msgstr "Změny proxy"
-
-msgid "options_revertProxyChanges"
-msgstr "Reverzní proxy změněné jinou aplikací."
-
 msgid "options_group_conflicts"
 msgstr "Konflikty"
 
@@ -743,9 +737,6 @@ msgstr "PŘÍMÉ"
 msgid "options_protocol_useDefault"
 msgstr "(použít výchozí)"
 
-msgid "options_proxy_single"
-msgstr "Používejte proxy výše pro všechny protokoly."
-
 msgid "options_proxy_expand"
 msgstr "Zobraz pokročilé"
 
@@ -834,9 +825,6 @@ msgstr "Konfigurace seznamu pravidel"
 
 msgid "options_ruleListFormat"
 msgstr "Formát seznamu podmínek"
-
-msgid "options_group_ruleListResult"
-msgstr "Seznam pravidel výsledků profilů"
 
 msgid "options_ruleListMatchProfile"
 msgstr "Porovnat profil"
@@ -1162,12 +1150,6 @@ msgstr ""
 " Můžete také importovat pravidla zveřejněny online pro snadnější přepínání. ("
 "Nahrazuje automatické přepínání režimu + seznam pravidlo.)"
 
-msgid "options_profileTypeRuleListProfile"
-msgstr "Pravidla seznamu profilu"
-
-msgid "options_profileDescRuleListProfile"
-msgstr "Opětovné použití on-line sbírku podmínek vydané ostatní."
-
 msgid "options_profileTypeVirtualProfile"
 msgstr "Virtuální profil"
 
@@ -1362,12 +1344,6 @@ msgstr "Report problémů"
 msgid "popup_errorLog"
 msgstr "Uložit protokol chyb"
 
-msgid "popup_requestErrorCount"
-msgstr "$COUNT$ chybových požadavků"
-
-msgid "popup_requestErrorHeading"
-msgstr "Zdroje, které se nepodařilo načíst"
-
 msgid "popup_requestErrorWarning"
 msgstr "Několik zdrojů se nepodařilo načíst kvůli potížím se sítí."
 
@@ -1408,21 +1384,10 @@ msgstr "(přepínání na základě podmínek)"
 msgid "browserAction_profileDetails_RuleListProfile"
 msgstr "(přepínání na základě seznamu pravidel)"
 
-msgid "browserAction_titleNormal"
-msgstr "SwitchyAgain:: $PROFILE$"
-
 msgid "browserAction_titleWithResult"
 msgstr ""
 "SwitchyAgain:: $1:PROFILE$\n"
 "$3:DETAILS$"
-
-msgid "browserAction_titleNewerOptions"
-msgstr ""
-"Chyba: Novější verze SwitchOmega je potřeba pro uložené nastavení/možnosti."
-
-msgid "browserAction_titleOptionError"
-msgstr ""
-"Chyba: Uložené volby jsou poškozeny. Chcete-li obnovit možnosti klikněte zde."
 
 msgid "browserAction_titleDownloadFail"
 msgstr "Upozornění: Nepodařilo se stáhnout PAC skripty nebo seznam pravidel."
@@ -1731,3 +1696,4 @@ msgstr "Použít profil pro normální okna"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "Použít profil pro soukromá okna"
+

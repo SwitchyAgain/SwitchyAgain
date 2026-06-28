@@ -21,9 +21,16 @@ function sourceProfileNames(ruleList: string) {
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean)
+    .filter((line) => line[0] !== '[' && line[0] !== '@')
     .map((line) => (line.startsWith('default:') ? line.slice('default:'.length) : line.split(':')[0] || ''))
     .map((name) => name.trim())
     .filter(Boolean);
+}
+
+function switchSource(value: string) {
+  return /^\s*\[SwitchyOmega Conditions\]/.test(value) || /(^|\n)@with\s+results?(\r|\n|$)/i.test(value)
+    ? value
+    : `[SwitchyOmega Conditions]\n@with result\n\n${value}`;
 }
 
 function parseSwitchSource(ruleList: string) {
@@ -32,6 +39,9 @@ function parseSwitchSource(ruleList: string) {
   for (const rawLine of ruleList.split(/\r?\n/)) {
     const line = rawLine.trim();
     if (!line) {
+      continue;
+    }
+    if (line[0] === '[' || line[0] === '@') {
       continue;
     }
     if (line.startsWith('error:')) {
@@ -135,6 +145,9 @@ function installOmegaPacMock() {
           rules: Array<{condition?: {conditionType?: string; pattern?: string}; profileName?: string}>;
         }) {
           return [
+            '[SwitchyOmega Conditions]',
+            '@with result',
+            '',
             `default:${defaultProfileName}`,
             ...(rules || []).map(
               (rule) => `${rule.profileName || ''}:${rule.condition?.conditionType || ''}:${rule.condition?.pattern || ''}`
@@ -142,6 +155,9 @@ function installOmegaPacMock() {
           ].join('\n');
         },
         directReferenceSet({ruleList}: {ruleList?: string}) {
+          if (!/(^|\n)@with\s+results?(\r|\n|$)/i.test(ruleList || '')) {
+            return undefined;
+          }
           return Object.fromEntries(sourceProfileNames(ruleList || '').map((name) => [`+${name}`, name]));
         },
         parseOmega(ruleList: string) {
@@ -306,7 +322,7 @@ function editSwitchSourceDraft(value: string) {
   fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
   fireEvent.change(sourceEditor(), {
     target: {
-      value
+      value: switchSource(value)
     }
   });
 }
@@ -1374,7 +1390,7 @@ describe('options app', () => {
     });
 
     fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
-    expect(sourceEditor().value).toBe('default:proxy');
+    expect(sourceEditor().value).toBe(switchSource('default:proxy'));
   });
 
   it('renames switch profile attached rule lists over existing target attached profiles', async () => {
@@ -1580,7 +1596,7 @@ describe('options app', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
     fireEvent.change(sourceEditor(), {
       target: {
-        value: 'proxy:HostWildcardCondition:*.example.com\ndefault:virtual'
+        value: switchSource('proxy:HostWildcardCondition:*.example.com\ndefault:virtual')
       }
     });
     fireEvent.click(screen.getByRole('button', {name: 'Apply Source'}));
@@ -1623,7 +1639,7 @@ describe('options app', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
     fireEvent.change(sourceEditor(), {
       target: {
-        value: 'proxy:HostWildcardCondition:*.example.com\ndefault:virtual'
+        value: switchSource('proxy:HostWildcardCondition:*.example.com\ndefault:virtual')
       }
     });
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
@@ -1667,7 +1683,7 @@ describe('options app', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
     fireEvent.change(sourceEditor(), {
       target: {
-        value: 'proxy:HostWildcardCondition:*.example.com\ndefault:virtual'
+        value: switchSource('proxy:HostWildcardCondition:*.example.com\ndefault:virtual')
       }
     });
     expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.');
@@ -1679,7 +1695,7 @@ describe('options app', () => {
     await screen.findByRole('heading', {name: /Profile :: auto/});
     fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
 
-    expect(sourceEditor().value).toBe('default:direct');
+    expect(sourceEditor().value).toBe(switchSource('default:direct'));
     expect(patchRequests(requests)).toHaveLength(0);
     expect(getAllRequests(requests)).toHaveLength(1);
   });
@@ -1732,7 +1748,7 @@ describe('options app', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
     fireEvent.change(sourceEditor(), {
       target: {
-        value: 'default:missing'
+        value: '[SwitchyOmega Conditions]\n@with result\n\ndefault:missing'
       }
     });
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
@@ -1766,7 +1782,7 @@ describe('options app', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
     fireEvent.change(sourceEditor(), {
       target: {
-        value: 'default:missing'
+        value: '[SwitchyOmega Conditions]\n@with result\n\ndefault:missing'
       }
     });
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
@@ -1778,7 +1794,7 @@ describe('options app', () => {
 
     fireEvent.change(sourceEditor(), {
       target: {
-        value: 'proxy:HostWildcardCondition:*.example.com\ndefault:virtual'
+        value: '[SwitchyOmega Conditions]\n@with result\n\nproxy:HostWildcardCondition:*.example.com\ndefault:virtual'
       }
     });
     expect(screen.queryByText('Unknown profile: missing')).toBeNull();
@@ -1830,7 +1846,7 @@ describe('options app', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
     fireEvent.change(sourceEditor(), {
       target: {
-        value: 'default:proxy'
+        value: switchSource('default:proxy')
       }
     });
     fireEvent.click(screen.getByRole('button', {name: 'Apply Source'}));
@@ -1865,7 +1881,7 @@ describe('options app', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
     fireEvent.change(sourceEditor(), {
       target: {
-        value: 'default:missing'
+        value: switchSource('default:missing')
       }
     });
     fireEvent.click(screen.getByRole('button', {name: 'Apply Source'}));
@@ -2509,7 +2525,7 @@ describe('options app', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
     fireEvent.change(sourceEditor(), {
       target: {
-        value: 'proxy:HostWildcardCondition:*.example.com\ndefault:virtual'
+        value: switchSource('proxy:HostWildcardCondition:*.example.com\ndefault:virtual')
       }
     });
     fireEvent.click(screen.getByRole('link', {name: 'Import/Export'}));
@@ -2767,7 +2783,7 @@ describe('options app', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
     fireEvent.change(sourceEditor(), {
       target: {
-        value: 'proxy:HostWildcardCondition:*.example.com\ndefault:virtual'
+        value: switchSource('proxy:HostWildcardCondition:*.example.com\ndefault:virtual')
       }
     });
     fireEvent.click(screen.getByRole('button', {name: 'Export Rule List'}));

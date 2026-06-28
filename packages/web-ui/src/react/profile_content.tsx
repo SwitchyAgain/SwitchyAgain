@@ -84,6 +84,52 @@ function shouldShowChromiumHttpsUrlInfo(proxyFeatures: ProxyFeature[] = []) {
   return proxyFeatures.includes('fullUrlHttp') && !proxyFeatures.includes('fullUrl');
 }
 
+function ruleListSourceErrorMessage(error?: SwitchRuleSourceState['error']) {
+  if (!error) {
+    return '';
+  }
+  const fields = error as {
+    args?: unknown[];
+    message?: string;
+    profile?: unknown;
+    reason?: string;
+    source?: unknown;
+    sourceLineNo?: unknown;
+  };
+  switch (fields.reason) {
+    case 'resultNotEnabled':
+      return message('ruleList_error_resultNotEnabled', fields.message || "Missing '@with result' directive!");
+    case 'unknownProfile': {
+      const profile = String(fields.profile ?? fields.args?.[0] ?? '');
+      return message('ruleList_error_unknownProfile', fields.message || `Unknown profile: ${profile}`, profile);
+    }
+    case 'missingResultProfile': {
+      const lineNo = String(fields.sourceLineNo ?? fields.args?.[0] ?? '');
+      const source = String(fields.source ?? fields.args?.[1] ?? '');
+      return message(
+        'ruleList_error_missingResultProfile',
+        lineNo || source ? `Missing result profile name at Line ${lineNo}: ${source}` : fields.message || 'Missing result profile name.',
+        [lineNo, source]
+      );
+    }
+    case 'invalidRule': {
+      const lineNo = String(fields.sourceLineNo ?? fields.args?.[0] ?? '');
+      const source = String(fields.source ?? fields.args?.[1] ?? '');
+      return message('ruleList_error_invalidRule', lineNo || source ? `Invalid rule at Line ${lineNo}: ${source}` : fields.message || 'Invalid rule.', [
+        lineNo,
+        source
+      ]);
+    }
+    case 'noDefaultRule':
+      return message(
+        'ruleList_error_noDefaultRule',
+        fields.message || "Missing default rule with catch-all '*' condition!"
+      );
+    default:
+      return fields.message || String(error);
+  }
+}
+
 export type UnsupportedProfileProps = {
   profile?: {
     profileType?: ProfileType;
@@ -1874,7 +1920,7 @@ export function SwitchRulesHeader({
       </h3>
       {source?.error && (
         <div className="alert alert-danger width-limit">
-          <span className="glyphicon glyphicon-remove" /> {source.error.message}
+          <span className="glyphicon glyphicon-remove" /> {ruleListSourceErrorMessage(source.error)}
         </div>
       )}
       {editSource && (

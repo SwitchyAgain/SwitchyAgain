@@ -406,12 +406,6 @@ msgstr ""
 msgid "options_notCycledProfiles"
 msgstr "Perfiles no cíclicos"
 
-msgid "options_group_proxyChanges"
-msgstr "Cambios Proxy"
-
-msgid "options_revertProxyChanges"
-msgstr "Deshacer cambios de proxy realizados por otras aplicaciones."
-
 msgid "options_group_conflicts"
 msgstr "Conflictos"
 
@@ -770,9 +764,6 @@ msgstr "DIRECTO"
 msgid "options_protocol_useDefault"
 msgstr "(usa por defecto)"
 
-msgid "options_proxy_single"
-msgstr "Use el proxy anterior para todos los protocolos."
-
 msgid "options_proxy_expand"
 msgstr "Mostrar avanzado"
 
@@ -864,9 +855,6 @@ msgstr "Configuración de la Lista de Reglas"
 
 msgid "options_ruleListFormat"
 msgstr "Formato de la Lista de Reglas"
-
-msgid "options_group_ruleListResult"
-msgstr "Perfiles de resultados de la lista de reglas"
 
 msgid "options_ruleListMatchProfile"
 msgstr "Emparejar perfil"
@@ -1203,12 +1191,6 @@ msgstr ""
 " También puedes importar reglas publicadas en línea para un cambio más "
 "fácil. (Reemplaza el modo AutoSwitch + Lista de Reglas.)"
 
-msgid "options_profileTypeRuleListProfile"
-msgstr "Perfil de Lista de Reglas"
-
-msgid "options_profileDescRuleListProfile"
-msgstr "Reusando una colección en línea de condiciones publicadas por otros."
-
 msgid "options_profileTypeVirtualProfile"
 msgstr "Perfil Virtual"
 
@@ -1414,12 +1396,6 @@ msgstr "Reportar problemas"
 msgid "popup_errorLog"
 msgstr "Guardar registro de errores"
 
-msgid "popup_requestErrorCount"
-msgstr "$COUNT$ recursos fallidos"
-
-msgid "popup_requestErrorHeading"
-msgstr "Recursos que no se pudieron cargar"
-
 msgid "popup_requestErrorWarning"
 msgstr ""
 "Algunos recursos no se pudieron cargar debido a problemas con tu red, "
@@ -1464,23 +1440,10 @@ msgstr "(cambio basado en condiciones)"
 msgid "browserAction_profileDetails_RuleListProfile"
 msgstr "(cambio basado en la lista de reglas)"
 
-msgid "browserAction_titleNormal"
-msgstr "SwitchyAgain:: $PROFILE$"
-
 msgid "browserAction_titleWithResult"
 msgstr ""
 "SwitchyAgain:: $1:PROFILE$\n"
 "$3:DETAILS$"
-
-msgid "browserAction_titleNewerOptions"
-msgstr ""
-"ERROR: Una nueva versión de SwitchOmega es necesaria para cargar las "
-"opciones guardadas."
-
-msgid "browserAction_titleOptionError"
-msgstr ""
-"ERROR: Las opciones guardadas están corrompidas. Haz clic aquí para "
-"REINICIAR LAS OPCIONES."
 
 msgid "browserAction_titleDownloadFail"
 msgstr ""
@@ -1792,3 +1755,4 @@ msgstr "Usar perfil para ventanas normales"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "Usar perfil para ventanas privadas"
+

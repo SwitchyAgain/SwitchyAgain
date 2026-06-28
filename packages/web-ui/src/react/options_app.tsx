@@ -596,6 +596,10 @@ export function OptionsApp() {
   const pacProfilesUnsupported = isExperimental;
 
   useEffect(() => {
+    document.title = message('options_title', 'SwitchyAgain Options');
+  });
+
+  useEffect(() => {
     Promise.all([loadOptions(), loadOptionsAppInitialState()])
       .then(([loadedOptions, initialState]) => {
         const cloned = cloneOptions(loadedOptions);

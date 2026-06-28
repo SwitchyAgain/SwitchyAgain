@@ -395,12 +395,6 @@ msgstr ""
 msgid "options_notCycledProfiles"
 msgstr "Not Cycled Profiles"
 
-msgid "options_group_proxyChanges"
-msgstr "Proxy Changes"
-
-msgid "options_revertProxyChanges"
-msgstr "Revert proxy changes done by other apps."
-
 msgid "options_group_conflicts"
 msgstr "Conflicts"
 
@@ -734,9 +728,6 @@ msgstr "DIRECT"
 msgid "options_protocol_useDefault"
 msgstr "(use default)"
 
-msgid "options_proxy_single"
-msgstr "Use the proxy above for all protocols."
-
 msgid "options_proxy_expand"
 msgstr "Show Advanced"
 
@@ -826,9 +817,6 @@ msgstr "Rule List Config"
 
 msgid "options_ruleListFormat"
 msgstr "Rule List Format"
-
-msgid "options_group_ruleListResult"
-msgstr "Rule list result profiles"
 
 msgid "options_ruleListMatchProfile"
 msgstr "Match profile"
@@ -1158,12 +1146,6 @@ msgstr ""
 " You can also import rules published online for easier switching. (Replaces "
 "AutoSwitch mode + Rule List.)"
 
-msgid "options_profileTypeRuleListProfile"
-msgstr "Rule List Profile"
-
-msgid "options_profileDescRuleListProfile"
-msgstr "Reusing an online collection of conditions published by others."
-
 msgid "options_profileTypeVirtualProfile"
 msgstr "Virtual Profile"
 
@@ -1358,12 +1340,6 @@ msgstr "Report issues"
 msgid "popup_errorLog"
 msgstr "Save error log"
 
-msgid "popup_requestErrorCount"
-msgstr "$COUNT$ failed resources"
-
-msgid "popup_requestErrorHeading"
-msgstr "Resources that failed to load"
-
 msgid "popup_requestErrorWarning"
 msgstr "A few resources failed to load due to issues with your network, proxy server or the webpage."
 
@@ -1400,19 +1376,10 @@ msgstr "(switching based on conditions)"
 msgid "browserAction_profileDetails_RuleListProfile"
 msgstr "(switching based on rule list)"
 
-msgid "browserAction_titleNormal"
-msgstr "SwitchyAgain:: $PROFILE$"
-
 msgid "browserAction_titleWithResult"
 msgstr ""
 "SwitchyAgain:: $1:PROFILE$\n"
 "$3:DETAILS$"
-
-msgid "browserAction_titleNewerOptions"
-msgstr "ERROR: A newer version of SwitchOmega is required to load the stored options."
-
-msgid "browserAction_titleOptionError"
-msgstr "ERROR: The stored options are corrupted. Click here to RESET OPTIONS."
 
 msgid "browserAction_titleDownloadFail"
 msgstr "Warning: Failed to download PAC scripts and/or rule lists."
@@ -1719,3 +1686,4 @@ msgstr "Use Profile for Normal Windows"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "Use Profile for Private Windows"
+

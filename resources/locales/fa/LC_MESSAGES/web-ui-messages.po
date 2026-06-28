@@ -395,12 +395,6 @@ msgstr ""
 msgid "options_notCycledProfiles"
 msgstr "پروفایل های غیرچرخشی"
 
-msgid "options_group_proxyChanges"
-msgstr "تغییرات پیشکار"
-
-msgid "options_revertProxyChanges"
-msgstr "بازگرداندن تغییرات پروکسی انجام شده توسط دیگر برنامه ها."
-
 msgid "options_group_conflicts"
 msgstr "تداخل‌ها"
 
@@ -748,9 +742,6 @@ msgstr "مستقیم"
 msgid "options_protocol_useDefault"
 msgstr "(استفاده از پیش‌گزیده)"
 
-msgid "options_proxy_single"
-msgstr "استفاده از پروکسی بالا برای همه ی پروتکل ها."
-
 msgid "options_proxy_expand"
 msgstr "نمایش پیش‌رفته"
 
@@ -842,9 +833,6 @@ msgstr "تنظیمات لیست قوانین"
 
 msgid "options_ruleListFormat"
 msgstr "فرمت لیست قوانین"
-
-msgid "options_group_ruleListResult"
-msgstr "نتایج پروفایل های لیست قوانین"
 
 msgid "options_ruleListMatchProfile"
 msgstr "انطباق پروفایل"
@@ -1171,12 +1159,6 @@ msgstr ""
 " شما میتوانید از قوانین منتظر شده ی آنلاین برای جا به جایی راحتر بین پروفایل "
 "نیز استفاده کنید ( جایگزین مود AutoSwitch + لیست قوانین .)"
 
-msgid "options_profileTypeRuleListProfile"
-msgstr "پروفایل لیست پروفایل"
-
-msgid "options_profileDescRuleListProfile"
-msgstr "استفاده ی مجدد از مجموعه ی قوانین آنلاین منتشر شده توسط دیگران ."
-
 msgid "options_profileTypeVirtualProfile"
 msgstr "پروفایل مجازی"
 
@@ -1373,12 +1355,6 @@ msgstr "گزارش مشکلات"
 msgid "popup_errorLog"
 msgstr "ذخیره لاگ خطا"
 
-msgid "popup_requestErrorCount"
-msgstr "$COUNT$ خطای منبع"
-
-msgid "popup_requestErrorHeading"
-msgstr "عدم موفقیت در بارگزاری منابع"
-
 msgid "popup_requestErrorWarning"
 msgstr ""
 "بارگزاری تعدا کمی از منابع بخاطر مشکلات شبکه ، سرور پروکسی یا صفحه ی وب به "
@@ -1424,22 +1400,10 @@ msgstr "(جابه جایی بر اساس شروط)"
 msgid "browserAction_profileDetails_RuleListProfile"
 msgstr "(جابه جایی بر اساس لیست قوانین)"
 
-msgid "browserAction_titleNormal"
-msgstr "SwitchyAgain:: $PROFILE$"
-
 msgid "browserAction_titleWithResult"
 msgstr ""
 "SwitchyAgain::  $1:PROFILE$\n"
 " $3:DETAILS$"
-
-msgid "browserAction_titleNewerOptions"
-msgstr ""
-"خطا: برای بارگیری گزینه های ذخیره شده ، نسخه جدیدتر SwitchyAgain مورد نیاز "
-"است."
-
-msgid "browserAction_titleOptionError"
-msgstr ""
-"خطا : تنظیمات دخیره شده خراب شده اند .برای ریست کردن تنظیمات کلیک کنید ."
 
 msgid "browserAction_titleDownloadFail"
 msgstr "اخطار: شکست در دانلود اسکریپت PAC و/یا لیست های قوانین ."
@@ -1748,3 +1712,4 @@ msgstr "استفاده از نمایه برای پنجره‌های عادی"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "استفاده از نمایه برای پنجره‌های خصوصی"
+
