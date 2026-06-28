@@ -301,6 +301,10 @@ function actionApi(): ChromeActionApi {
   return (chrome.action || chrome[legacyKey]) as ChromeActionApi;
 }
 
+function ignoreChromeLastError() {
+  chrome.runtime.lastError;
+}
+
 function explainableRequestUrl(url?: string) {
   return !!url && /^(https?|ws|wss):/i.test(url);
 }
@@ -2336,15 +2340,15 @@ class ChromeOptions extends OmegaTarget.Options {
     }
     actionApi().setBadgeText({
       text: options.text
-    });
+    }, ignoreChromeLastError);
     actionApi().setBadgeBackgroundColor({
       color: options.color
-    });
+    }, ignoreChromeLastError);
     if (options.title) {
       this._badgeTitle = options.title;
       return actionApi().setTitle({
         title: options.title
-      });
+      }, ignoreChromeLastError);
     }
     this._badgeTitle = null;
   }
@@ -2363,7 +2367,7 @@ class ChromeOptions extends OmegaTarget.Options {
       if (typeof api.setBadgeText === 'function') {
         api.setBadgeText({
           text: ''
-        });
+        }, ignoreChromeLastError);
       }
     }
   }
@@ -2467,17 +2471,17 @@ class ChromeOptions extends OmegaTarget.Options {
           actionApi().setBadgeText({
             text: badge.text,
             tabId
-          });
+          }, ignoreChromeLastError);
           actionApi().setBadgeBackgroundColor({
             color: badge.color,
             tabId
-          });
+          }, ignoreChromeLastError);
         } else if (info.badgeSet) {
           info.badgeSet = false;
           actionApi().setBadgeText({
             text: '',
             tabId
-          });
+          }, ignoreChromeLastError);
         }
         return this._tabRequestInfoPorts?.[tabId]?.postMessage({
           errorCount: info.errorCount,

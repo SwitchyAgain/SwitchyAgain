@@ -245,14 +245,27 @@ function removeOptionsTab(tabId: number | undefined, callback: () => void) {
           return;
         }
         if (optionsTabSameWindowType(targetTab, currentTab)) {
+          if (typeof targetTab.id !== 'number') {
+            chrome.tabs.create({
+              url: targetUrl
+            });
+            if (cb) return cb();
+            return;
+          }
           const props: {active: boolean; url?: string} = {
             active: true
           };
           if (hash) {
             props.url = targetUrl;
           }
-          chrome.tabs.update(targetTab.id, props);
-          if (cb) return cb();
+          chrome.tabs.update(targetTab.id, props, () => {
+            if (chrome.runtime.lastError) {
+              chrome.tabs.create({
+                url: targetUrl
+              });
+            }
+            if (cb) return cb();
+          });
           return;
         }
         if (typeof targetTab.id !== 'number') {

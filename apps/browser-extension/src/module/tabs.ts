@@ -73,11 +73,11 @@ class ChromeTabs {
     if (actionApi().setPopup != null) {
       actionApi().setTitle({
         title: action.title
-      });
+      }, this.ignoreError);
     } else {
       actionApi().setTitle({
         title: action.shortTitle
-      });
+      }, this.ignoreError);
     }
     return this.setIcon(action.icon);
   }
@@ -100,7 +100,7 @@ class ChromeTabs {
             api.setBadgeText({
               text: '',
               tabId: Number(id)
-            });
+            }, this.ignoreError);
           }
         } catch (error) {
         }
@@ -113,7 +113,7 @@ class ChromeTabs {
         actionApi().setTitle({
           title: this._defaultAction.title,
           tabId: tab.id
-        });
+        }, this.ignoreError);
         this.clearIcon(tab.id);
       }
       return;
@@ -128,12 +128,12 @@ class ChromeTabs {
         return actionApi().setTitle({
           title: action.title,
           tabId: tab.id
-        });
+        }, this.ignoreError);
       }
       return actionApi().setTitle({
         title: action.shortTitle,
         tabId: tab.id
-      });
+      }, this.ignoreError);
     });
   }
 
@@ -150,14 +150,14 @@ class ChromeTabs {
       api.setBadgeText({
         text: badge.text,
         tabId: tab.id
-      });
+      }, this.ignoreError);
     }
     const apiForColor = actionApi();
     if (typeof apiForColor.setBadgeBackgroundColor === 'function') {
       return apiForColor.setBadgeBackgroundColor({
         color: badge.color,
         tabId: tab.id
-      });
+      }, this.ignoreError);
     }
   }
 
