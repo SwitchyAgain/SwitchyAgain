@@ -36,6 +36,13 @@ beforeEach(() => {
   installOmegaPacMock();
 });
 
+const CHROMIUM_HTTPS_URL_LIMITATION_INTRO =
+  'Chromium-based browsers do not expose the path or query of HTTPS requests to URL conditions.';
+const CHROMIUM_HTTPS_URL_LIMITATION_DETAIL =
+  'URL wildcard or URL regex rules that depend on the full HTTPS URL may not match; host conditions are unaffected.';
+const CHROMIUM_HTTPS_URL_LIMITATION_TOOLTIP =
+  'Chromium-based browsers cannot match the path or query of HTTPS URLs with URL wildcard or URL regex rules. Host conditions are unaffected.';
+
 describe('profile content components', () => {
   it('toggles popup and context menu visibility from profile options', () => {
     const onContextMenuHiddenChange = vi.fn();
@@ -758,6 +765,88 @@ describe('profile content components', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Discard Source'}));
     expect(onApplySource).not.toHaveBeenCalled();
     expect(screen.queryByRole('textbox')).toBeNull();
+  });
+
+  it('shows Chromium HTTPS URL condition info without a rule-table banner', () => {
+    const {container} = render(
+      <SwitchProfileStatefulContent
+        loadRules
+        profile={{
+          defaultProfileName: 'direct',
+          name: 'auto switch',
+          profileType: 'SwitchProfile',
+          rules: [
+            {
+              condition: {
+                conditionType: 'UrlRegexCondition',
+                pattern: '^https://example\\.com/path'
+              },
+              profileName: 'direct'
+            }
+          ]
+        }}
+        proxyFeatures={['fullUrlHttp']}
+        rules={[
+          {
+            condition: {
+              conditionType: 'UrlRegexCondition',
+              pattern: '^https://example\\.com/path'
+            },
+            profileName: 'direct'
+          }
+        ]}
+        show
+      />
+    );
+
+    expect(screen.getByTitle(CHROMIUM_HTTPS_URL_LIMITATION_TOOLTIP)).toBeTruthy();
+    expect(screen.getAllByText(CHROMIUM_HTTPS_URL_LIMITATION_INTRO)).not.toHaveLength(0);
+    expect(screen.getAllByText(CHROMIUM_HTTPS_URL_LIMITATION_DETAIL)).not.toHaveLength(0);
+    expect(container.querySelector('.glyphicon-info-sign.text-info')).toBeTruthy();
+    expect(container.querySelector('.condition-url-info')).toBeTruthy();
+    expect(container.querySelector('.glyphicon-alert.text-danger')).toBeNull();
+    expect(container.querySelector('.switch-rules-header-host .alert')).toBeNull();
+    expect(container.querySelector('.icon-wrapper[href]')).toBeNull();
+  });
+
+  it('hides Chromium HTTPS URL condition info when full URLs are available', () => {
+    const {container} = render(
+      <SwitchProfileStatefulContent
+        loadRules
+        profile={{
+          defaultProfileName: 'direct',
+          name: 'auto switch',
+          profileType: 'SwitchProfile',
+          rules: [
+            {
+              condition: {
+                conditionType: 'UrlWildcardCondition',
+                pattern: 'https://example.com/path*'
+              },
+              profileName: 'direct'
+            }
+          ]
+        }}
+        proxyFeatures={['fullUrl']}
+        rules={[
+          {
+            condition: {
+              conditionType: 'UrlWildcardCondition',
+              pattern: 'https://example.com/path*'
+            },
+            profileName: 'direct'
+          }
+        ]}
+        show
+      />
+    );
+
+    expect(screen.queryByTitle(CHROMIUM_HTTPS_URL_LIMITATION_TOOLTIP)).toBeNull();
+    expect(screen.queryByText(CHROMIUM_HTTPS_URL_LIMITATION_INTRO)).toBeNull();
+    expect(screen.queryByText(CHROMIUM_HTTPS_URL_LIMITATION_DETAIL)).toBeNull();
+    expect(container.querySelector('.glyphicon-info-sign.text-info')).toBeNull();
+    expect(container.querySelector('.condition-url-info')).toBeNull();
+    expect(container.querySelector('.switch-rules-header-host .alert')).toBeNull();
   });
 
   it('keeps loaded switch rules visible after deleting a rule', () => {

@@ -161,6 +161,21 @@ msgstr ""
 msgid "condition_alert_fullUrlLimitationLink"
 msgstr "https://github.com/FelisCatus/SwitchyOmega/wiki/Chromium-Full-URL-Limitation"
 
+msgid "condition_info_chromiumHttpsUrlLimitationIntro"
+msgstr ""
+"Chromium-based browsers do not expose the path or query of HTTPS requests to "
+"URL conditions."
+
+msgid "condition_info_chromiumHttpsUrlLimitationDetail"
+msgstr ""
+"URL wildcard or URL regex rules that depend on the full HTTPS "
+"URL may not match; host conditions are unaffected."
+
+msgid "condition_info_chromiumHttpsUrlLimitationTooltip"
+msgstr ""
+"Chromium-based browsers cannot match the path or query of HTTPS URLs with URL "
+"wildcard or URL regex rules. Host conditions are unaffected."
+
 msgid "condition_group_default"
 msgstr " "
 

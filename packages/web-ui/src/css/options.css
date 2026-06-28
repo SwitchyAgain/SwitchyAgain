@@ -1099,6 +1099,26 @@ main .profile-header {
   padding-left: 20px;
 }
 
+.condition-url-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.condition-url-info > .glyphicon {
+  flex: 0 0 auto;
+  line-height: 1.42857143;
+}
+
+.condition-url-info-body > p {
+  margin: 0 0 4px;
+}
+
+.condition-url-info-body > p:last-child {
+  margin-bottom: 0;
+}
+
 .close-condition-help {
   float: none !important;
   margin-left: 15px !important;

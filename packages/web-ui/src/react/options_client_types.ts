@@ -28,6 +28,8 @@ export type ProfileScopeContainerInfo = {
   name?: string;
 };
 
+export type ProxyFeature = string;
+
 export type RequestExplainProfile = {
   attachedToProfileName?: string;
   builtin?: boolean;

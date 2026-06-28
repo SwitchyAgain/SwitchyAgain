@@ -1,7 +1,7 @@
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {ConfirmModal} from './confirm_modals';
 import {message} from './i18n_client';
-import type {Options} from './options_client_types';
+import type {Options, ProxyFeature} from './options_client_types';
 import {richMessage} from './rich_message';
 import {Profile, ProfileInline, ProfileSelect, PROFILE_ICONS, isVirtualProfile, profileByName, resultProfilesFor} from './profile_widgets';
 import {
@@ -73,6 +73,16 @@ import type {
 const INITIAL_SWITCH_RULE_BATCH_SIZE = 15;
 const SWITCH_RULE_BATCH_SIZE = 8;
 const SWITCH_RULE_BATCH_DELAY_MS = 32;
+const CHROMIUM_HTTPS_URL_LIMITATION_INTRO =
+  'Chromium-based browsers do not expose the path or query of HTTPS requests to URL conditions.';
+const CHROMIUM_HTTPS_URL_LIMITATION_DETAIL =
+  'URL wildcard or URL regex rules that depend on the full HTTPS URL may not match; host conditions are unaffected.';
+const CHROMIUM_HTTPS_URL_LIMITATION_TOOLTIP =
+  'Chromium-based browsers cannot match the path or query of HTTPS URLs with URL wildcard or URL regex rules. Host conditions are unaffected.';
+
+function shouldShowChromiumHttpsUrlInfo(proxyFeatures: ProxyFeature[] = []) {
+  return proxyFeatures.includes('fullUrlHttp') && !proxyFeatures.includes('fullUrl');
+}
 
 export type UnsupportedProfileProps = {
   profile?: {
@@ -135,6 +145,7 @@ export type SwitchAttachedProfileProps = {
 
 export type SwitchConditionHelpProps = {
   onClose?: () => void;
+  proxyFeatures?: ProxyFeature[];
   show?: boolean;
   showConditionTypes?: number;
 };
@@ -144,7 +155,6 @@ export type SwitchRulesHeaderProps = {
   onDiscardSource?: () => void;
   onSourceChange?: (code: string) => void;
   onToggleSource?: () => void;
-  rules?: SwitchRule[];
   source?: SwitchRuleSourceState | null;
 };
 
@@ -170,6 +180,7 @@ export type SwitchRuleRowProps = {
   onSortPointerDown?: (index: number, event: React.PointerEvent<HTMLTableCellElement>) => void;
   onWeekdayChange?: (index: number, dayIndex: number, selected: boolean) => void;
   options?: Options | null;
+  proxyFeatures?: ProxyFeature[];
   resultProfiles?: Profile[];
   rule: SwitchRule;
   selectConditionDetailsIndex?: number;
@@ -193,6 +204,7 @@ export type SwitchRuleRowsProps = {
   onWeekdayChange?: (index: number, dayIndex: number, selected: boolean) => void;
   options?: Options | null;
   profile: NamedSwitchProfileModel;
+  proxyFeatures?: ProxyFeature[];
   ruleKeys?: number[];
   rules?: SwitchRule[];
   selectConditionDetailsIndex?: number;
@@ -594,6 +606,7 @@ function SwitchRuleRow({
   onSortPointerDown,
   onWeekdayChange,
   options,
+  proxyFeatures,
   resultProfiles,
   rule,
   selectConditionDetailsIndex,
@@ -605,7 +618,7 @@ function SwitchRuleRow({
   const conditionType = condition.conditionType || '';
   const conditionGroups = groupedConditionTypes(conditionTypes);
   const isUrlConditionType = getUrlConditionTypeMap();
-  const hasUrlIcon = !!isUrlConditionType[conditionType];
+  const hasUrlInfo = !!isUrlConditionType[conditionType] && shouldShowChromiumHttpsUrlInfo(proxyFeatures);
   const hasWarning = conditionHasWarning(condition);
   const cellStyle = (cellIndex: number): React.CSSProperties | undefined =>
     cellWidths?.[cellIndex] != null ? {width: `${cellWidths[cellIndex]}px`} : undefined;
@@ -739,7 +752,7 @@ function SwitchRuleRow({
       <td className="sort-bar" style={cellStyle(0)} onPointerDown={(event) => onSortPointerDown?.(index, event)}>
         <span className="glyphicon glyphicon-sort" />
       </td>
-      <td className={hasUrlIcon ? 'has-icon' : undefined} style={cellStyle(1)}>
+      <td className={hasUrlInfo ? 'has-icon' : undefined} style={cellStyle(1)}>
         <select className="form-control" value={conditionType} onChange={(event) => changeConditionType(event.currentTarget.value)}>
           {conditionGroups.map(({group, types}) => (
             <optgroup key={group} label={message(group, group)}>
@@ -751,10 +764,13 @@ function SwitchRuleRow({
             </optgroup>
           ))}
         </select>
-        {hasUrlIcon && (
-          <a className="icon-wrapper" href={message('condition_alert_fullUrlLimitationLink', '#')} target="_blank" rel="noreferrer">
-            <span className="glyphicon glyphicon-alert text-danger" />
-          </a>
+        {hasUrlInfo && (
+          <span
+            className="icon-wrapper"
+            title={message('condition_info_chromiumHttpsUrlLimitationTooltip', CHROMIUM_HTTPS_URL_LIMITATION_TOOLTIP)}
+          >
+            <span className="glyphicon glyphicon-info-sign text-info" />
+          </span>
         )}
       </td>
       <td className={hasWarning ? 'has-warning' : undefined} style={cellStyle(2)}>
@@ -822,6 +838,7 @@ function SwitchRuleRows({
   onWeekdayChange,
   options,
   profile,
+  proxyFeatures,
   ruleKeys,
   rules = [],
   selectConditionDetailsIndex,
@@ -860,6 +877,7 @@ function SwitchRuleRows({
             onSortPointerDown={onSortPointerDown}
             onWeekdayChange={onWeekdayChange}
             options={options}
+            proxyFeatures={proxyFeatures}
             resultProfiles={resultProfiles}
             rule={rule}
             selectConditionDetailsIndex={selectConditionDetailsIndex}
@@ -877,6 +895,7 @@ function SwitchRuleDragPreview({
   drag,
   options,
   profile,
+  proxyFeatures,
   rules = [],
   showConditionTypes = 0,
   showNotes = false
@@ -884,6 +903,7 @@ function SwitchRuleDragPreview({
   drag?: RuleDragState | null;
   options?: Options | null;
   profile: NamedSwitchProfileModel;
+  proxyFeatures?: ProxyFeature[];
   rules?: SwitchRule[];
   showConditionTypes?: number;
   showNotes?: boolean;
@@ -910,6 +930,7 @@ function SwitchRuleDragPreview({
           conditionTypes={conditionTypes}
           index={drag.startIndex}
           options={options}
+          proxyFeatures={proxyFeatures}
           resultProfiles={resultProfiles}
           rule={rule}
           showNotes={showNotes}
@@ -1745,10 +1766,11 @@ export function SwitchAttachedProfile({
   );
 }
 
-export function SwitchConditionHelp({onClose, show = false, showConditionTypes = 0}: SwitchConditionHelpProps) {
+export function SwitchConditionHelp({onClose, proxyFeatures, show = false, showConditionTypes = 0}: SwitchConditionHelpProps) {
   const [expandedId, setExpandedId] = useState(0);
   const groups = showConditionTypes === 0 ? getBasicConditionGroups() : getAdvancedConditionGroups();
   const isUrlConditionType = getUrlConditionTypeMap();
+  const showChromiumHttpsUrlInfo = shouldShowChromiumHttpsUrlInfo(proxyFeatures);
 
   if (!show) {
     return null;
@@ -1782,9 +1804,13 @@ export function SwitchConditionHelp({onClose, show = false, showConditionTypes =
                     <dt>{message(`condition_${type}`, type)}</dt>
                     <dd>
                       <div>{richMessage(`condition_help_${type}`, '')}</div>
-                      {isUrlConditionType[type] && (
-                        <div className="text-danger">
-                          <span className="glyphicon glyphicon-alert" /> <span>{richMessage('condition_alert_fullUrlLimitation', '')}</span>
+                      {showChromiumHttpsUrlInfo && isUrlConditionType[type] && (
+                        <div className="condition-url-info text-info">
+                          <span className="glyphicon glyphicon-info-sign" />
+                          <div className="condition-url-info-body">
+                            <p>{richMessage('condition_info_chromiumHttpsUrlLimitationIntro', CHROMIUM_HTTPS_URL_LIMITATION_INTRO)}</p>
+                            <p>{richMessage('condition_info_chromiumHttpsUrlLimitationDetail', CHROMIUM_HTTPS_URL_LIMITATION_DETAIL)}</p>
+                          </div>
                         </div>
                       )}
                     </dd>
@@ -1804,15 +1830,9 @@ export function SwitchRulesHeader({
   onDiscardSource,
   onSourceChange,
   onToggleSource,
-  rules = [],
   source
 }: SwitchRulesHeaderProps) {
   const [sourceCode, setSourceCode] = useState(source?.code || '');
-  const isUrlConditionType = getUrlConditionTypeMap();
-  const hasUrlConditions = rules.some((rule) => {
-    const conditionType = rule?.condition?.conditionType;
-    return !!(conditionType && isUrlConditionType[conditionType]);
-  });
 
   useEffect(() => {
     setSourceCode(source?.code || '');
@@ -1855,11 +1875,6 @@ export function SwitchRulesHeader({
       {source?.error && (
         <div className="alert alert-danger width-limit">
           <span className="glyphicon glyphicon-remove" /> {source.error.message}
-        </div>
-      )}
-      {hasUrlConditions && (
-        <div className="alert alert-danger">
-          <span className="glyphicon glyphicon-alert" /> <span>{richMessage('condition_alert_fullUrlLimitation', '')}</span>
         </div>
       )}
       {editSource && (
@@ -2028,6 +2043,7 @@ export function SwitchRulesSection({
   onWeekdayChange,
   options,
   profile,
+  proxyFeatures,
   rules = [],
   show = false,
   showConditionTypes = 0,
@@ -2298,7 +2314,7 @@ export function SwitchRulesSection({
 
   return (
     <>
-      <SwitchConditionHelp onClose={onClose} show={show} showConditionTypes={showConditionTypes} />
+      <SwitchConditionHelp onClose={onClose} proxyFeatures={proxyFeatures} show={show} showConditionTypes={showConditionTypes} />
       <section className="settings-group">
         <div className="switch-rules-header-host">
           <SwitchRulesHeader
@@ -2306,7 +2322,6 @@ export function SwitchRulesSection({
             onDiscardSource={onDiscardSource}
             onSourceChange={onSourceChange}
             onToggleSource={onToggleSource}
-            rules={rules}
             source={source}
           />
         </div>
@@ -2335,6 +2350,7 @@ export function SwitchRulesSection({
                     onWeekdayChange={onWeekdayChange}
                     options={options}
                     profile={profile}
+                    proxyFeatures={proxyFeatures}
                     draggingRuleIndex={ruleDrag?.startIndex}
                     ruleKeys={ruleKeys}
                     rules={rules}
@@ -2367,6 +2383,7 @@ export function SwitchRulesSection({
               drag={ruleDrag}
               options={options}
               profile={profile}
+              proxyFeatures={proxyFeatures}
               rules={rules}
               showConditionTypes={showConditionTypes}
               showNotes={showNotes}

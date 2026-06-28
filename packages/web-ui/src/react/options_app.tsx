@@ -15,7 +15,7 @@ import {
   resetOptions,
   updateProfile as updateProfileFromBackground
 } from './options_api_client';
-import type {Options} from './options_client_types';
+import type {Options, ProxyFeature} from './options_client_types';
 import {getState, lastUrl, lastUrlAsync, setState} from './state_client';
 import {OptionsAlert, OptionsShell} from './options_shell';
 import {
@@ -273,6 +273,7 @@ const OPTIONS_APP_STATE_KEYS = [
   'profileScopeCapabilities',
   'proxyAuthCapabilities',
   'proxyDnsCapabilities',
+  'proxyFeatures',
   'profileScopeContainers',
   'firstRun'
 ];
@@ -284,6 +285,7 @@ type OptionsAppInitialState = {
   profileScopeContainers: ProfileScopeContainerInfo[];
   proxyAuthCapabilities: ProxyAuthCapabilities;
   proxyDnsCapabilities: ProxyDnsCapabilities;
+  proxyFeatures: ProxyFeature[];
 };
 
 function defaultOptionsAppInitialState(): OptionsAppInitialState {
@@ -293,7 +295,8 @@ function defaultOptionsAppInitialState(): OptionsAppInitialState {
     profileScopeCapabilities: DEFAULT_PROFILE_SCOPE_CAPABILITIES,
     profileScopeContainers: [],
     proxyAuthCapabilities: DEFAULT_PROXY_AUTH_CAPABILITIES,
-    proxyDnsCapabilities: DEFAULT_PROXY_DNS_CAPABILITIES
+    proxyDnsCapabilities: DEFAULT_PROXY_DNS_CAPABILITIES,
+    proxyFeatures: []
   };
 }
 
@@ -302,16 +305,17 @@ function activeProfileNameFromState(name: unknown, isSystem: unknown) {
 }
 
 function loadOptionsAppInitialState(): Promise<OptionsAppInitialState> {
-  return getState<ProfileScopeCapabilities | ProxyAuthCapabilities | ProxyDnsCapabilities | ProfileScopeContainerInfo[] | string | boolean>(
+  return getState<ProfileScopeCapabilities | ProxyAuthCapabilities | ProxyDnsCapabilities | ProxyFeature[] | ProfileScopeContainerInfo[] | string | boolean>(
     OPTIONS_APP_STATE_KEYS
   )
-    .then(([currentProfileName, isSystemProfile, capabilities, authCapabilities, dnsCapabilities, containers, firstRun]) => ({
+    .then(([currentProfileName, isSystemProfile, capabilities, authCapabilities, dnsCapabilities, proxyFeatures, containers, firstRun]) => ({
       activeProfileName: activeProfileNameFromState(currentProfileName, isSystemProfile),
       firstRun: typeof firstRun === 'string' ? firstRun : '',
       profileScopeCapabilities: (capabilities as ProfileScopeCapabilities | undefined) || DEFAULT_PROFILE_SCOPE_CAPABILITIES,
       profileScopeContainers: Array.isArray(containers) ? (containers as ProfileScopeContainerInfo[]) : [],
       proxyAuthCapabilities: (authCapabilities as ProxyAuthCapabilities | undefined) || DEFAULT_PROXY_AUTH_CAPABILITIES,
-      proxyDnsCapabilities: (dnsCapabilities as ProxyDnsCapabilities | undefined) || DEFAULT_PROXY_DNS_CAPABILITIES
+      proxyDnsCapabilities: (dnsCapabilities as ProxyDnsCapabilities | undefined) || DEFAULT_PROXY_DNS_CAPABILITIES,
+      proxyFeatures: Array.isArray(proxyFeatures) ? (proxyFeatures as ProxyFeature[]) : []
     }))
     .catch(() => defaultOptionsAppInitialState());
 }
@@ -390,6 +394,7 @@ function SwitchProfilePreview({
   onSourceEditorStateChange,
   options,
   profile,
+  proxyFeatures,
   sourceEditor,
   showConditionHelp = false,
   updatingProfiles,
@@ -406,6 +411,7 @@ function SwitchProfilePreview({
   updatingProfiles: Record<string, boolean>;
   updateOptionsDraft: (updater: (options: Options) => void | false) => void;
   updateProfile: <TProfile extends ProfileModel = ProfileModel>(profileName: string, updater: (profile: TProfile) => void) => void;
+  proxyFeatures?: ProxyFeature[];
 }) {
   const identity = attachedIdentity(profile.name);
   const attached = attachedProfileOption(options, identity) || null;
@@ -543,6 +549,7 @@ function SwitchProfilePreview({
       }
       options={options}
       profile={profile}
+      proxyFeatures={proxyFeatures}
       rules={profile.rules || []}
       show={showConditionHelp}
       showConditionTypes={showConditionTypes}
@@ -578,6 +585,7 @@ export function OptionsApp() {
   const [profileScopeCapabilities, setProfileScopeCapabilities] = useState<ProfileScopeCapabilities>(DEFAULT_PROFILE_SCOPE_CAPABILITIES);
   const [proxyAuthCapabilities, setProxyAuthCapabilities] = useState<ProxyAuthCapabilities>(DEFAULT_PROXY_AUTH_CAPABILITIES);
   const [proxyDnsCapabilities, setProxyDnsCapabilities] = useState<ProxyDnsCapabilities>(DEFAULT_PROXY_DNS_CAPABILITIES);
+  const [proxyFeatures, setProxyFeatures] = useState<ProxyFeature[]>([]);
   const [profileScopeContainers, setProfileScopeContainers] = useState<ProfileScopeContainerInfo[]>([]);
   const [activeProfileName, setActiveProfileName] = useState('direct');
   const optionsHandoffConnectionRef = useRef<ReturnType<typeof connectOptionsHandoff> | null>(null);
@@ -596,6 +604,7 @@ export function OptionsApp() {
         setProfileScopeCapabilities(initialState.profileScopeCapabilities);
         setProxyAuthCapabilities(initialState.proxyAuthCapabilities);
         setProxyDnsCapabilities(initialState.proxyDnsCapabilities);
+        setProxyFeatures(initialState.proxyFeatures);
         setProfileScopeContainers(initialState.profileScopeContainers);
         setActiveProfileName(initialState.activeProfileName);
         setStatus('ready');
@@ -1717,6 +1726,7 @@ export function OptionsApp() {
               }
               options={options}
               profile={profile}
+              proxyFeatures={proxyFeatures}
               sourceEditor={sourceEditor}
               updatingProfiles={updatingProfiles}
               updateOptionsDraft={updateOptionsDraft}

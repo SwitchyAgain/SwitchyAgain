@@ -442,6 +442,7 @@ function installBackground({
         proxyDnsCapabilities: proxyDnsCapabilities || {
           socks5: false
         },
+        proxyFeatures: ['fullUrlHttp'],
         ...stateOverrides
       };
       callback({
@@ -550,6 +551,7 @@ describe('options app', () => {
           'profileScopeCapabilities',
           'proxyAuthCapabilities',
           'proxyDnsCapabilities',
+          'proxyFeatures',
           'profileScopeContainers',
           'firstRun'
         ]

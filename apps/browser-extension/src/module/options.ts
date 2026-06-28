@@ -546,7 +546,8 @@ class ChromeOptions extends OmegaTarget.Options {
     this._state.set({
       profileScopeCapabilities: this.profileScopeCapabilities(),
       proxyAuthCapabilities: this.proxyImpl.proxyAuthCapabilities,
-      proxyDnsCapabilities: this.proxyImpl.proxyDnsCapabilities
+      proxyDnsCapabilities: this.proxyImpl.proxyDnsCapabilities,
+      proxyFeatures: this.proxyImpl.features
     });
     this.refreshProfileScopeContainers();
     this.watchTabProfileContexts();
