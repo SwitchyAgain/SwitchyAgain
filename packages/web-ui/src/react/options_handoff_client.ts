@@ -81,19 +81,42 @@ export function connectOptionsHandoff(onMessage: (message: OptionsHandoffPortMes
   if (!port) {
     return null;
   }
+  let connected = true;
   const handleMessage = (message: unknown) => {
+    if (!connected) {
+      return;
+    }
     if (isOptionsHandoffPortMessage(message)) {
       onMessage(message);
     }
   };
+  const handleDisconnect = () => {
+    connected = false;
+  };
+  const postMessage = (message: unknown) => {
+    if (!connected) {
+      return;
+    }
+    try {
+      port.postMessage?.(message);
+    } catch (_err) {
+      connected = false;
+    }
+  };
   port.onMessage?.addListener?.(handleMessage);
+  port.onDisconnect?.addListener?.(handleDisconnect);
   return {
     dispose() {
+      connected = false;
       port.onMessage?.removeListener?.(handleMessage);
-      port.disconnect?.();
+      port.onDisconnect?.removeListener?.(handleDisconnect);
+      try {
+        port.disconnect?.();
+      } catch (_err) {
+      }
     },
     claim(handoffId: string) {
-      port.postMessage?.({
+      postMessage({
         handoffId,
         type: 'optionsHandoffClaim'
       });
@@ -106,14 +129,14 @@ export function connectOptionsHandoff(onMessage: (message: OptionsHandoffPortMes
         ok,
         type: 'optionsHandoffResolved'
       };
-      port.postMessage?.(message);
+      postMessage(message);
     },
     updateState(dirty: boolean) {
       const message: OptionsHandoffStateMessage = {
         dirty,
         type: 'optionsHandoffState'
       };
-      port.postMessage?.(message);
+      postMessage(message);
     }
   };
 }
