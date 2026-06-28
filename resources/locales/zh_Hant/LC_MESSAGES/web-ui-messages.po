@@ -572,6 +572,30 @@ msgstr "繼續之前，必須套用或放棄原始碼編輯器中的變更。"
 msgid "options_sourceDraftApplyHelp"
 msgstr "套用原始碼變更會解析原始碼並更新切換規則。如果解析失敗，你可以繼續編輯。"
 
+msgid "options_modalHeader_optionsHandoff"
+msgstr "套用選項變更"
+
+msgid "options_optionsHandoffConfirm"
+msgstr "另一個不同視窗類型中的設定頁面有變更。請先套用或放棄這些變更，然後再在此處開啟設定。"
+
+msgid "options_discardChanges"
+msgstr "放棄變更"
+
+msgid "options_optionsHandoffWorking"
+msgstr "正在處理..."
+
+msgid "options_applyChanges"
+msgstr "套用變更"
+
+msgid "options_modalHeader_optionsHandoffLocked"
+msgstr "設定頁面已鎖定"
+
+msgid "options_optionsHandoffLocked"
+msgstr "此設定頁面正在移動到另一個視窗類型。請在新的設定頁面中完成或取消提示，然後再繼續在此處操作。"
+
+msgid "options_optionsHandoffCloseFailed"
+msgstr "無法關閉此設定頁面。請手動關閉此分頁以在另一個設定頁面中繼續，或在此處套用/放棄這些變更。"
+
 msgid "options_group_profileOptions"
 msgstr "情境模式選項"
 

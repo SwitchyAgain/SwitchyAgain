@@ -583,6 +583,30 @@ msgstr "继续之前，必须应用或放弃源代码编辑器中的更改。"
 msgid "options_sourceDraftApplyHelp"
 msgstr "应用源代码更改将解析源代码并更新切换规则。如果解析失败，你可以继续编辑。"
 
+msgid "options_modalHeader_optionsHandoff"
+msgstr "应用选项更改"
+
+msgid "options_optionsHandoffConfirm"
+msgstr "另一个不同窗口类型中的设置页面有更改。请先应用或放弃这些更改，然后再在此处打开设置。"
+
+msgid "options_discardChanges"
+msgstr "放弃更改"
+
+msgid "options_optionsHandoffWorking"
+msgstr "正在处理..."
+
+msgid "options_applyChanges"
+msgstr "应用更改"
+
+msgid "options_modalHeader_optionsHandoffLocked"
+msgstr "设置页面已锁定"
+
+msgid "options_optionsHandoffLocked"
+msgstr "此设置页面正在移动到另一个窗口类型。请在新的设置页面中完成或取消提示，然后再继续在此处操作。"
+
+msgid "options_optionsHandoffCloseFailed"
+msgstr "无法关闭此设置页面。请手动关闭此标签页以在另一个设置页面中继续，或在此处应用/放弃这些更改。"
+
 msgid "options_group_profileOptions"
 msgstr "情景模式选项"
 

@@ -634,6 +634,36 @@ msgstr ""
 "Applying source changes will parse the source and update the switch rules. "
 "If parsing fails, you can keep editing."
 
+msgid "options_modalHeader_optionsHandoff"
+msgstr "Apply Options Changes"
+
+msgid "options_optionsHandoffConfirm"
+msgstr ""
+"Another settings page in a different window type has changes. Apply or "
+"discard those changes before opening settings here."
+
+msgid "options_discardChanges"
+msgstr "Discard Changes"
+
+msgid "options_optionsHandoffWorking"
+msgstr "Working..."
+
+msgid "options_applyChanges"
+msgstr "Apply Changes"
+
+msgid "options_modalHeader_optionsHandoffLocked"
+msgstr "Settings Page Locked"
+
+msgid "options_optionsHandoffLocked"
+msgstr ""
+"This settings page is being moved to another window type. Finish or cancel "
+"the prompt in the new settings page to continue here."
+
+msgid "options_optionsHandoffCloseFailed"
+msgstr ""
+"Could not close this settings page. Close this tab manually to continue in "
+"the other settings page, or apply/discard the changes here."
+
 msgid "options_group_profileOptions"
 msgstr "Profile Options"
 

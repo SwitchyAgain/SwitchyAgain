@@ -641,6 +641,37 @@ msgstr ""
 "Použití změn zdroje analyzuje zdrojový kód a aktualizuje pravidla "
 "přepínání. Pokud analýza selže, můžete pokračovat v úpravách."
 
+msgid "options_modalHeader_optionsHandoff"
+msgstr "Použít změny nastavení"
+
+msgid "options_optionsHandoffConfirm"
+msgstr ""
+"Jiná stránka nastavení v jiném typu okna obsahuje změny. Než zde otevřete "
+"nastavení, použijte nebo zahoďte tyto změny."
+
+msgid "options_discardChanges"
+msgstr "Zahodit změny"
+
+msgid "options_optionsHandoffWorking"
+msgstr "Pracuji..."
+
+msgid "options_applyChanges"
+msgstr "Použít změny"
+
+msgid "options_modalHeader_optionsHandoffLocked"
+msgstr "Stránka nastavení je uzamčena"
+
+msgid "options_optionsHandoffLocked"
+msgstr ""
+"Tato stránka nastavení se přesouvá do jiného typu okna. Dokončete nebo "
+"zrušte výzvu na nové stránce nastavení, abyste zde mohli pokračovat."
+
+msgid "options_optionsHandoffCloseFailed"
+msgstr ""
+"Tuto stránku nastavení se nepodařilo zavřít. Zavřete tuto kartu ručně, "
+"chcete-li pokračovat na druhé stránce nastavení, nebo zde použijte/zahoďte "
+"změny."
+
 msgid "options_group_profileOptions"
 msgstr "Možnosti profilu"
 

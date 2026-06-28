@@ -646,6 +646,36 @@ msgstr ""
 "اعمال تغییرات سورس، سورس را تجزیه می‌کند و قوانین تغییر را به‌روزرسانی "
 "می‌کند. اگر تجزیه ناموفق باشد، می‌توانید به ویرایش ادامه دهید."
 
+msgid "options_modalHeader_optionsHandoff"
+msgstr "اعمال تغییرات گزینه‌ها"
+
+msgid "options_optionsHandoffConfirm"
+msgstr ""
+"یک صفحه تنظیمات دیگر در نوع پنجره‌ای متفاوت تغییراتی دارد. پیش از باز کردن "
+"تنظیمات در اینجا، آن تغییرات را اعمال یا نادیده بگیرید."
+
+msgid "options_discardChanges"
+msgstr "نادیده گرفتن تغییرات"
+
+msgid "options_optionsHandoffWorking"
+msgstr "در حال انجام..."
+
+msgid "options_applyChanges"
+msgstr "اعمال تغییرات"
+
+msgid "options_modalHeader_optionsHandoffLocked"
+msgstr "صفحه تنظیمات قفل شده است"
+
+msgid "options_optionsHandoffLocked"
+msgstr ""
+"این صفحه تنظیمات در حال انتقال به نوع پنجره‌ای دیگر است. برای ادامه در "
+"اینجا، پیام را در صفحه تنظیمات جدید کامل یا لغو کنید."
+
+msgid "options_optionsHandoffCloseFailed"
+msgstr ""
+"این صفحه تنظیمات بسته نشد. برای ادامه در صفحه تنظیمات دیگر، این زبانه را "
+"دستی ببندید، یا تغییرات را در اینجا اعمال/نادیده بگیرید."
+
 msgid "options_group_profileOptions"
 msgstr "گزینه‌های پروفایل"
 

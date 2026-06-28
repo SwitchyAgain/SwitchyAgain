@@ -566,6 +566,36 @@ msgstr ""
 "Kaynak değişikliklerini uygulamak kaynağı ayrıştırır ve geçiş kurallarını "
 "günceller. Ayrıştırma başarısız olursa düzenlemeye devam edebilirsiniz."
 
+msgid "options_modalHeader_optionsHandoff"
+msgstr "Seçenek değişikliklerini uygula"
+
+msgid "options_optionsHandoffConfirm"
+msgstr ""
+"Farklı bir pencere türündeki başka bir ayarlar sayfasında değişiklikler var. "
+"Ayarları burada açmadan önce bu değişiklikleri uygulayın veya atın."
+
+msgid "options_discardChanges"
+msgstr "Değişiklikleri at"
+
+msgid "options_optionsHandoffWorking"
+msgstr "Çalışıyor..."
+
+msgid "options_applyChanges"
+msgstr "Değişiklikleri uygula"
+
+msgid "options_modalHeader_optionsHandoffLocked"
+msgstr "Ayarlar sayfası kilitlendi"
+
+msgid "options_optionsHandoffLocked"
+msgstr ""
+"Bu ayarlar sayfası başka bir pencere türüne taşınıyor. Burada devam etmek "
+"için yeni ayarlar sayfasındaki istemi tamamlayın veya iptal edin."
+
+msgid "options_optionsHandoffCloseFailed"
+msgstr ""
+"Bu ayarlar sayfası kapatılamadı. Diğer ayarlar sayfasında devam etmek için "
+"bu sekmeyi elle kapatın veya değişiklikleri burada uygulayın/atın."
+
 msgid "options_group_profileOptions"
 msgstr "Profil seçenekleri"
 

@@ -667,6 +667,38 @@ msgstr ""
 "actualizarán las reglas de cambio. Si el análisis falla, puedes seguir "
 "editando."
 
+msgid "options_modalHeader_optionsHandoff"
+msgstr "Aplicar cambios de opciones"
+
+msgid "options_optionsHandoffConfirm"
+msgstr ""
+"Otra página de configuración en un tipo de ventana diferente tiene cambios. "
+"Aplica o descarta esos cambios antes de abrir la configuración aquí."
+
+msgid "options_discardChanges"
+msgstr "Descartar cambios"
+
+msgid "options_optionsHandoffWorking"
+msgstr "Trabajando..."
+
+msgid "options_applyChanges"
+msgstr "Aplicar cambios"
+
+msgid "options_modalHeader_optionsHandoffLocked"
+msgstr "Página de configuración bloqueada"
+
+msgid "options_optionsHandoffLocked"
+msgstr ""
+"Esta página de configuración se está moviendo a otro tipo de ventana. "
+"Termina o cancela el aviso en la nueva página de configuración para "
+"continuar aquí."
+
+msgid "options_optionsHandoffCloseFailed"
+msgstr ""
+"No se pudo cerrar esta página de configuración. Cierra esta pestaña "
+"manualmente para continuar en la otra página de configuración, o aplica/"
+"descarta los cambios aquí."
+
 msgid "options_group_profileOptions"
 msgstr "Opciones del perfil"
 

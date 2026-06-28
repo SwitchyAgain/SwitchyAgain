@@ -570,6 +570,36 @@ msgstr ""
 "Når kildekodeendringer brukes, tolkes kildekoden og brytereglene oppdateres. "
 "Hvis tolkingen mislykkes, kan du fortsette å redigere."
 
+msgid "options_modalHeader_optionsHandoff"
+msgstr "Bruk endringer i valg"
+
+msgid "options_optionsHandoffConfirm"
+msgstr ""
+"En annen innstillingsside i en annen vindustype har endringer. Bruk eller "
+"forkast disse endringene før du åpner innstillingene her."
+
+msgid "options_discardChanges"
+msgstr "Forkast endringer"
+
+msgid "options_optionsHandoffWorking"
+msgstr "Arbeider..."
+
+msgid "options_applyChanges"
+msgstr "Bruk endringer"
+
+msgid "options_modalHeader_optionsHandoffLocked"
+msgstr "Innstillingssiden er låst"
+
+msgid "options_optionsHandoffLocked"
+msgstr ""
+"Denne innstillingssiden flyttes til en annen vindustype. Fullfør eller "
+"avbryt dialogen på den nye innstillingssiden for å fortsette her."
+
+msgid "options_optionsHandoffCloseFailed"
+msgstr ""
+"Kunne ikke lukke denne innstillingssiden. Lukk denne fanen manuelt for å "
+"fortsette på den andre innstillingssiden, eller bruk/forkast endringene her."
+
 msgid "options_group_profileOptions"
 msgstr "Profilvalg"
 

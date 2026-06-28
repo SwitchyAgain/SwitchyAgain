@@ -661,6 +661,37 @@ msgstr ""
 "будут обновлены. Если разбор завершится ошибкой, вы сможете продолжить "
 "редактирование."
 
+msgid "options_modalHeader_optionsHandoff"
+msgstr "Применить изменения настроек"
+
+msgid "options_optionsHandoffConfirm"
+msgstr ""
+"На другой странице настроек в окне другого типа есть изменения. Примените "
+"или отбросьте эти изменения перед открытием настроек здесь."
+
+msgid "options_discardChanges"
+msgstr "Отбросить изменения"
+
+msgid "options_optionsHandoffWorking"
+msgstr "Выполняется..."
+
+msgid "options_applyChanges"
+msgstr "Применить изменения"
+
+msgid "options_modalHeader_optionsHandoffLocked"
+msgstr "Страница настроек заблокирована"
+
+msgid "options_optionsHandoffLocked"
+msgstr ""
+"Эта страница настроек переносится в окно другого типа. Завершите или "
+"отмените запрос на новой странице настроек, чтобы продолжить здесь."
+
+msgid "options_optionsHandoffCloseFailed"
+msgstr ""
+"Не удалось закрыть эту страницу настроек. Закройте эту вкладку вручную, "
+"чтобы продолжить на другой странице настроек, или примените/отбросьте "
+"изменения здесь."
+
 msgid "options_group_profileOptions"
 msgstr "Параметры профиля"
 
