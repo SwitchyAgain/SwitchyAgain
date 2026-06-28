@@ -129,14 +129,14 @@ msgstr ""
 "只在每週的某幾天才比對。可以在條件詳情中勾選<b>星期幾有效</b>。依據當地時區來計算現在是星期幾，然後再檢視當天是否選取。<br>假設在請求傳送時是星"
 "期X：如果星期X被勾選，則比對所有請求。否則不比對任何請求。<br>除了日期以外，在比對過程中不會參考請求的網址或任何其他資訊。"
 
-msgid "condition_alert_fullUrlLimitation"
-msgstr ""
-"Chrome 52 起，<code>https://</code>協定下的完整網址無法正常比對。<a href='https://github.com/"
-"FelisCatus/SwitchyOmega/wiki/"
-"Chromium-%E5%AE%8C%E6%95%B4%E7%BD%91%E5%9D%80%E9%99%90%E5%88%B6'>更多訊息...</a>"
+msgid "condition_info_chromiumHttpsUrlLimitationIntro"
+msgstr "Chromium 系瀏覽器不會向網址條件暴露 HTTPS 請求的路徑或查詢部分。"
 
-msgid "condition_alert_fullUrlLimitationLink"
-msgstr "https://github.com/FelisCatus/SwitchyOmega/wiki/Chromium-%E5%AE%8C%E6%95%B4%E7%BD%91%E5%9D%80%E9%99%90%E5%88%B6"
+msgid "condition_info_chromiumHttpsUrlLimitationDetail"
+msgstr "依賴完整 HTTPS 網址的網址萬用字元或網址正規表示式規則可能無法比對；網域條件不受影響。"
+
+msgid "condition_info_chromiumHttpsUrlLimitationTooltip"
+msgstr "Chromium 系瀏覽器無法使用網址萬用字元或網址正規表示式規則比對 HTTPS 網址的路徑或查詢部分。網域條件不受影響。"
 
 msgid "condition_group_default"
 msgstr " "

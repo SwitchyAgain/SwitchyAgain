@@ -151,16 +151,6 @@ msgstr ""
 "The request and its URL don't matter to this condition. "
 "The result is solely based on the day of the week when the request is sent."
 
-msgid "condition_alert_fullUrlLimitation"
-msgstr ""
-"Full URL matching is no longer possible for <code>https://</code> "
-"URLs as of Chrome 52. "
-"<a href='https://github.com/FelisCatus/SwitchyOmega/wiki/Chromium-Full-URL-Limitation'>"
-"Learn more...</a>"
-
-msgid "condition_alert_fullUrlLimitationLink"
-msgstr "https://github.com/FelisCatus/SwitchyOmega/wiki/Chromium-Full-URL-Limitation"
-
 msgid "condition_info_chromiumHttpsUrlLimitationIntro"
 msgstr ""
 "Chromium-based browsers do not expose the path or query of HTTPS requests to "
