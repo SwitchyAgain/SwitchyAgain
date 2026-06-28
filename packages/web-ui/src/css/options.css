@@ -1140,6 +1140,7 @@ main .profile-header {
 
 .fixed-bypass-group {
   border-top: 1px solid #eee;
+  margin-left: 0;
   margin-top: 16px;
   padding-top: 16px;
 }
@@ -1152,6 +1153,7 @@ main .profile-header {
   align-items: center;
   display: flex;
   gap: 8px;
+  margin-left: 30px;
   margin-bottom: 10px;
 }
 
@@ -1167,7 +1169,12 @@ main .profile-header {
 }
 
 .fixed-bypass-group-switch {
+  margin-left: 30px;
   margin-bottom: 10px;
+}
+
+.fixed-bypass-group-textarea {
+  margin-left: 30px;
 }
 
 .fixed-bypass-group-add {

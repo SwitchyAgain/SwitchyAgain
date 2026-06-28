@@ -400,6 +400,61 @@ describe('profile content components', () => {
     expect(screen.queryByText('ws://')).toBeNull();
   });
 
+  it('keeps a configured fixed proxy override row visible after changing it to use default', () => {
+    const onProxyChange = vi.fn();
+    const profile: NamedFixedProfileModel = {
+      name: 'proxy',
+      profileType: 'FixedProfile',
+      proxyForWss: {
+        scheme: 'direct'
+      }
+    };
+
+    render(
+      <FixedProfileContent
+        onProxyChange={onProxyChange}
+        profile={profile}
+        showHttpProxyOverrideRows={false}
+        showWebSocketProxyOverrideRows={false}
+      />
+    );
+
+    const wssRow = screen.getByText('wss://').closest('tr') as HTMLTableRowElement;
+    const select = wssRow.querySelector('select') as HTMLSelectElement;
+    fireEvent.change(select, {
+      target: {
+        value: ''
+      }
+    });
+
+    expect(onProxyChange).toHaveBeenLastCalledWith('proxyForWss', undefined, {clearAuth: true});
+    expect(screen.getByText('wss://')).toBeTruthy();
+  });
+
+  it('recomputes pinned fixed proxy override rows after switching profiles', () => {
+    const firstProfile: NamedFixedProfileModel = {
+      name: 'proxy',
+      profileType: 'FixedProfile',
+      proxyForWss: {
+        scheme: 'direct'
+      }
+    };
+    const secondProfile: NamedFixedProfileModel = {
+      name: 'proxy2',
+      profileType: 'FixedProfile'
+    };
+
+    const {rerender} = render(
+      <FixedProfileContent profile={firstProfile} showHttpProxyOverrideRows={false} showWebSocketProxyOverrideRows={false} />
+    );
+    expect(screen.getByText('wss://')).toBeTruthy();
+
+    rerender(<FixedProfileContent profile={secondProfile} showHttpProxyOverrideRows={false} showWebSocketProxyOverrideRows={false} />);
+
+    expect(screen.queryByText('wss://')).toBeNull();
+    expect(screen.queryByText('http://')).toBeNull();
+  });
+
   it('keeps an existing SOCKS5 local DNS protocol visible', () => {
     const profile: NamedFixedProfileModel = {
       fallbackProxy: {
@@ -586,6 +641,51 @@ describe('profile content components', () => {
         name: 'Internal'
       }
     ]);
+  });
+
+  it('keeps fixed proxy bypass group textarea drafts while focused', () => {
+    function ControlledFixedProfileContent() {
+      const [profile, setProfile] = React.useState<NamedFixedProfileModel>({
+        bypassGroups: [
+          {
+            name: 'Internal',
+            bypassList: [
+              {
+                conditionType: 'BypassCondition',
+                pattern: '*.internal'
+              },
+              {
+                conditionType: 'BypassCondition',
+                pattern: 'localhost'
+              }
+            ]
+          }
+        ],
+        name: 'proxy',
+        profileType: 'FixedProfile'
+      });
+
+      return (
+        <FixedProfileContent
+          onBypassGroupsChange={(bypassGroups) => setProfile((current) => ({...current, bypassGroups}))}
+          profile={profile}
+          showBypassListGroups
+        />
+      );
+    }
+
+    const {container} = render(<ControlledFixedProfileContent />);
+    const groupBypassList = container.querySelectorAll('textarea')[1] as HTMLTextAreaElement;
+
+    groupBypassList.focus();
+    expect(document.activeElement).toBe(groupBypassList);
+    fireEvent.change(groupBypassList, {
+      target: {
+        value: '*.internal\n\nlocalhost'
+      }
+    });
+
+    expect(groupBypassList.value).toBe('*.internal\n\nlocalhost');
   });
 
   it('confirms deleting non-empty fixed proxy bypass list groups and removes empty groups directly', () => {

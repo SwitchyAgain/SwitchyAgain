@@ -974,7 +974,7 @@ function RuleListExportContentSwitch({
 
 function DownloadedRuleListContentToggle({shown, onToggle}: {shown: boolean; onToggle: () => void}) {
   return (
-    <button type="button" className="btn btn-default btn-sm" onClick={onToggle}>
+    <button type="button" className="btn btn-default" onClick={onToggle}>
       <span className={`glyphicon ${shown ? 'glyphicon-eye-close' : 'glyphicon-eye-open'}`} />{' '}
       {shown
         ? message('options_ruleListHideDownloadedContent', 'Hide downloaded rule list content')
@@ -1200,16 +1200,22 @@ function fixedProfileBypassGroupIsEmpty(draft: FixedProfileBypassGroupDraft) {
   return !draft.name && !fixedProfileBypassList(draft.text).length;
 }
 
+function fixedProfileBypassGroupHasFocus() {
+  const activeElement = document.activeElement;
+  return activeElement instanceof HTMLElement && !!activeElement.closest('.fixed-bypass-group');
+}
+
 function fixedProfileSchemeGroupVisible(
   scheme: FixedProfileScheme,
   editor: ProxyEditor | undefined,
+  pinnedSchemes: Set<FixedProfileScheme>,
   showHttpProxyOverrideRows: boolean,
   showWebSocketProxyOverrideRows: boolean
 ) {
   if (!scheme) {
     return true;
   }
-  if (editor?.scheme) {
+  if (editor?.scheme || pinnedSchemes.has(scheme)) {
     return true;
   }
   if (scheme === 'http' || scheme === 'https') {
@@ -1237,11 +1243,15 @@ export function FixedProfileContent({
   const [draftBypassGroups, setDraftBypassGroups] = useState<FixedProfileBypassGroupDraft[]>(() =>
     fixedProfileBypassGroupDrafts(bypassGroups)
   );
+  const [pinnedOverrideSchemes, setPinnedOverrideSchemes] = useState<Set<FixedProfileScheme>>(
+    () => new Set(FIXED_PROFILE_SCHEMES.filter((scheme) => !!scheme && !!initialEditors[scheme]?.scheme))
+  );
   const [pendingDeleteBypassGroupIndex, setPendingDeleteBypassGroupIndex] = useState<number | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(() => fixedProfileHasAdvancedProxy(initialEditors));
   const bypassEditorRef = useRef<HTMLTextAreaElement | null>(null);
   const previousProfileNameRef = useRef(profileName);
   const previousBypassProfileNameRef = useRef(profileName);
+  const previousBypassGroupsProfileNameRef = useRef(profileName);
 
   useEffect(() => {
     const editors = fixedProfileEditors({fallbackProxy, proxyForHttp, proxyForHttps, proxyForWs, proxyForWss});
@@ -1251,6 +1261,7 @@ export function FixedProfileContent({
     setDraftEditors(cloneProxyEditors(editors));
     if (profileChanged) {
       setShowAdvanced(hasAdvancedProxy);
+      setPinnedOverrideSchemes(new Set(FIXED_PROFILE_SCHEMES.filter((scheme) => !!scheme && !!editors[scheme]?.scheme)));
     } else if (hasAdvancedProxy) {
       setShowAdvanced(true);
     }
@@ -1265,8 +1276,12 @@ export function FixedProfileContent({
   }, [profileName, bypassList]);
 
   useEffect(() => {
-    setDraftBypassGroups(fixedProfileBypassGroupDrafts(bypassGroups));
-    setPendingDeleteBypassGroupIndex(null);
+    const profileChanged = previousBypassGroupsProfileNameRef.current !== profileName;
+    previousBypassGroupsProfileNameRef.current = profileName;
+    if (profileChanged || !fixedProfileBypassGroupHasFocus()) {
+      setDraftBypassGroups(fixedProfileBypassGroupDrafts(bypassGroups));
+      setPendingDeleteBypassGroupIndex(null);
+    }
   }, [profileName, bypassGroups]);
 
   function commitProxyEditor(
@@ -1392,7 +1407,13 @@ export function FixedProfileContent({
 
   const defaultEditor = draftEditors[''] || {};
   const advancedSchemes = FIXED_PROFILE_SCHEMES.filter((scheme) =>
-    fixedProfileSchemeGroupVisible(scheme, draftEditors[scheme], showHttpProxyOverrideRows, showWebSocketProxyOverrideRows)
+    fixedProfileSchemeGroupVisible(
+      scheme,
+      draftEditors[scheme],
+      pinnedOverrideSchemes,
+      showHttpProxyOverrideRows,
+      showWebSocketProxyOverrideRows
+    )
   );
   const hasVisibleAdvancedSchemes = advancedSchemes.some((scheme) => !!scheme);
   const visibleSchemes = advancedSchemes.filter((scheme) => scheme === '' || showAdvanced);
@@ -1529,8 +1550,8 @@ export function FixedProfileContent({
         {showBypassListGroups && (
           <>
             {draftBypassGroups.map((group, index) => (
-              <div className="fixed-bypass-group width-limit" key={index}>
-                <div className="fixed-bypass-group-header">
+              <div className="fixed-bypass-group" key={index}>
+                <div className="fixed-bypass-group-header width-limit">
                   <label htmlFor={`fixed-bypass-group-name-${index}`}>
                     {message('options_bypassGroupName', 'Group name')}
                   </label>
@@ -1563,7 +1584,7 @@ export function FixedProfileContent({
                   <span>{message('options_enableBypassGroup', 'Enable this list group')}</span>
                 </label>
                 <textarea
-                  className="monospace form-control"
+                  className="monospace form-control width-limit fixed-bypass-group-textarea"
                   rows={10}
                   value={group.text}
                   onChange={(event) => updateBypassGroup(index, {text: event.currentTarget.value})}
@@ -1571,7 +1592,7 @@ export function FixedProfileContent({
               </div>
             ))}
             <p className="fixed-bypass-group-add">
-              <button type="button" className="btn btn-default btn-sm" onClick={addBypassGroup}>
+              <button type="button" className="btn btn-default" onClick={addBypassGroup}>
                 <span className="glyphicon glyphicon-plus" /> <span>{message('options_addBypassGroup', 'Add a new list group')}</span>
               </button>
             </p>
