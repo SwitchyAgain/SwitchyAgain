@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import {getLocalState, getState, lastUrl, setLocalState, setState} from '../src/react/state_client';
+import {getLocalState, getState, lastUrl, lastUrlAsync, setLocalState, setState} from '../src/react/state_client';
 import type {ExtensionChromeApi, ExtensionRuntimeApi} from '../src/react/browser_env';
 
 type TestGlobal = typeof globalThis & {
@@ -149,5 +149,39 @@ describe('state client', () => {
     expect(lastUrl('https://example.com/options')).toBe('https://example.com/options');
     await expect(getState('web.last_url')).resolves.toBe('https://example.com/options');
     expect(lastUrl()).toBe('https://example.com/options');
+  });
+
+  it('keeps lastUrl synchronously readable after manifest v3 writes', () => {
+    const {messages} = installBackgroundResponses([
+      {
+        result: {}
+      }
+    ]);
+
+    expect(lastUrl('/profile/proxy')).toBe('/profile/proxy');
+    expect(lastUrl()).toBe('/profile/proxy');
+    expect(messages).toEqual([
+      {
+        args: [
+          {
+            'web.last_url': '/profile/proxy'
+          }
+        ],
+        method: 'setState'
+      }
+    ]);
+  });
+
+  it('restores lastUrl from background state when local cache is empty', async () => {
+    installBackgroundResponses([
+      {
+        result: {
+          'web.last_url': '/profile/proxy'
+        }
+      }
+    ]);
+
+    await expect(lastUrlAsync()).resolves.toBe('/profile/proxy');
+    expect(lastUrl()).toBe('/profile/proxy');
   });
 });

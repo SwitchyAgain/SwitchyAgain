@@ -51,9 +51,24 @@ export function setState<T = unknown>(name: string, value: T) {
 export function lastUrl(url?: string) {
   const name = 'web.last_url';
   if (url) {
+    setLocalState(name, url);
     setState(name, url);
     return url;
   }
   return getLocalState<string>(name);
 }
 
+export function lastUrlAsync() {
+  const cached = lastUrl();
+  if (cached) {
+    return Promise.resolve(cached);
+  }
+  return getState<string>('web.last_url')
+    .then((storedUrl) => {
+      if (storedUrl) {
+        setLocalState('web.last_url', storedUrl);
+      }
+      return storedUrl || '';
+    })
+    .catch(() => '');
+}

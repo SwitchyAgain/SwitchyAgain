@@ -19,6 +19,8 @@ type PageInfoOptions = {
   includeExplanations?: boolean;
 };
 
+type OptionsTab = Pick<ChromeTab, 'id' | 'incognito' | 'url' | 'windowId'>;
+
 function popupTabUrl(tab?: Pick<ChromeTab, 'pendingUrl' | 'url'> | null) {
   return tab?.pendingUrl || tab?.url;
 }
@@ -38,6 +40,8 @@ type PopupBackgroundMethodArgs = {
   addProfile: [profile: PopupApiProfile];
   addTempRule: [domain: string, profileName: string];
   applyProfile: [name: string];
+  beginOptionsHandoff: [tabId: number];
+  getOptionsPageState: [tabId: number];
   getPageInfo: [args: PageInfoRequest];
   getState: [keys: PopupApiStateKey[]];
   setDefaultProfile: [profileName: string, defaultProfileName: string];
@@ -50,6 +54,11 @@ type PopupBackgroundMethodResult = {
   addProfile: unknown;
   addTempRule: unknown;
   applyProfile: unknown;
+  beginOptionsHandoff: string;
+  getOptionsPageState: {
+    dirty: boolean;
+    registered: boolean;
+  };
   getPageInfo: PopupApiPageInfo;
   getState: PopupApiState;
   setDefaultProfile: unknown;
@@ -142,6 +151,58 @@ function cacheActivePageInfo(info?: PopupApiPageInfo | null) {
   }
 }
 
+function optionsTabSameWindowType(tab: OptionsTab | undefined, currentTab: OptionsTab | undefined) {
+  if (typeof tab?.incognito !== 'boolean' || typeof currentTab?.incognito !== 'boolean') {
+    return true;
+  }
+  return tab.incognito === currentTab.incognito;
+}
+
+function optionsUrlForOpen(optionsUrl: string, sourceUrl: string | undefined, hash?: string | null) {
+  let targetUrl = optionsUrl;
+  if (!hash) {
+    return targetUrl;
+  }
+  try {
+    const url = new URL(sourceUrl || optionsUrl);
+    url.hash = hash;
+    targetUrl = url.href;
+  } catch (_) {
+    targetUrl = optionsUrl + hash;
+  }
+  return targetUrl;
+}
+
+function optionsUrlWithHandoff(url: string, handoffId: string) {
+  try {
+    const parsed = new URL(url);
+    parsed.searchParams.set('handoff', handoffId);
+    return parsed.href;
+  } catch (_) {
+    const [base, hash = ''] = url.split('#');
+    const separator = base.indexOf('?') >= 0 ? '&' : '?';
+    return `${base}${separator}handoff=${encodeURIComponent(handoffId)}${hash ? `#${hash}` : ''}`;
+  }
+}
+
+function removeOptionsTab(tabId: number | undefined, callback: () => void) {
+  if (typeof tabId !== 'number') {
+    callback();
+    return;
+  }
+  const tabs = chrome.tabs as typeof chrome.tabs & {
+    remove?: (tabId: number, callback?: () => void) => void;
+  };
+  if (typeof tabs.remove !== 'function') {
+    callback();
+    return;
+  }
+  tabs.remove(tabId, () => {
+    chrome.runtime.lastError;
+    callback();
+  });
+}
+
 (globalThis as typeof globalThis & {OmegaTargetPopup: OmegaTargetPopupApi}).OmegaTargetPopup = {
   getState(keys: PopupApiStateKey[], cb?: PopupCallback<PopupApiState>) {
     if (isManifestV3 || typeof localStorage === 'undefined' ||
@@ -167,33 +228,71 @@ function cacheActivePageInfo(info?: PopupApiPageInfo | null) {
   openOptions(hash?: string | null, cb?: PopupCallback) {
     const optionsUrl = chrome.runtime.getURL('options.html');
 
-    chrome.tabs.query({
-      url: optionsUrl
-    }, (tabs) => {
-      let targetUrl = optionsUrl;
-      if (hash) {
-        try {
-          const url = new URL((tabs && tabs[0] && tabs[0].url) || optionsUrl);
-          url.hash = hash;
-          targetUrl = url.href;
-        } catch (_) {
-          targetUrl = optionsUrl + hash;
+    chrome.tabs.query({active: true, lastFocusedWindow: true}, (currentTabs) => {
+      const currentTab = currentTabs?.[0] as OptionsTab | undefined;
+      chrome.tabs.query({
+        url: optionsUrl
+      }, (tabs) => {
+        const optionTabs = (tabs || []) as OptionsTab[];
+        const sameWindowTypeTab = optionTabs.find((tab) => optionsTabSameWindowType(tab, currentTab));
+        const targetTab = sameWindowTypeTab || optionTabs[0];
+        const targetUrl = optionsUrlForOpen(optionsUrl, targetTab?.url, hash);
+        if (chrome.runtime.lastError || !targetTab) {
+          chrome.tabs.create({
+            url: targetUrl
+          });
+          if (cb) return cb();
+          return;
         }
-      }
-      if (!chrome.runtime.lastError && tabs && tabs.length > 0) {
-        const props: {active: boolean; url?: string} = {
-          active: true
-        };
-        if (hash) {
-          props.url = targetUrl;
+        if (optionsTabSameWindowType(targetTab, currentTab)) {
+          const props: {active: boolean; url?: string} = {
+            active: true
+          };
+          if (hash) {
+            props.url = targetUrl;
+          }
+          chrome.tabs.update(targetTab.id, props);
+          if (cb) return cb();
+          return;
         }
-        chrome.tabs.update(tabs[0].id, props);
-      } else {
-        chrome.tabs.create({
-          url: targetUrl
+        if (typeof targetTab.id !== 'number') {
+          chrome.tabs.create({
+            url: targetUrl
+          });
+          if (cb) return cb();
+          return;
+        }
+        const targetTabId = targetTab.id;
+        callBackground('getOptionsPageState', [targetTabId], (stateError, state) => {
+          if (stateError) {
+            if (cb) return cb(stateError);
+            return;
+          }
+          if (!state?.registered) {
+            if (cb) return cb(new Error('The existing settings page is not ready.'));
+            return;
+          }
+          if (!state?.dirty) {
+            removeOptionsTab(targetTabId, () => {
+              chrome.tabs.create({
+                url: targetUrl
+              });
+              if (cb) return cb();
+            });
+            return;
+          }
+          callBackground('beginOptionsHandoff', [targetTabId], (handoffError, handoffId) => {
+            if (handoffError || !handoffId) {
+              if (cb) return cb(handoffError);
+              return;
+            }
+            chrome.tabs.create({
+              url: optionsUrlWithHandoff(targetUrl, handoffId)
+            });
+            if (cb) return cb();
+          });
         });
-      }
-      if (cb) return cb();
+      });
     });
   },
   getActivePageInfo(optionsOrCallback?: PageInfoOptions | PopupCallback<PopupApiPageInfo>, cb?: PopupCallback<PopupApiPageInfo>) {

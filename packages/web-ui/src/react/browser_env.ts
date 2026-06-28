@@ -4,11 +4,25 @@ export type ExtensionManifest = {
 };
 
 export type ExtensionRuntimeApi = {
+  connect?: (connectInfo: {name: string}) => ExtensionRuntimePort;
   getManifest?: () => ExtensionManifest;
   getURL?: (path: string) => string;
   id?: string;
   lastError?: {message?: string};
   sendMessage?: (message: unknown, callback: (response?: unknown) => void) => void;
+};
+
+export type ExtensionRuntimePort = {
+  disconnect?: () => void;
+  onDisconnect?: {
+    addListener?: (callback: () => void) => void;
+    removeListener?: (callback: () => void) => void;
+  };
+  onMessage?: {
+    addListener?: (callback: (message: unknown) => void) => void;
+    removeListener?: (callback: (message: unknown) => void) => void;
+  };
+  postMessage?: (message: unknown) => void;
 };
 
 export type ExtensionChromeApi = {
@@ -67,6 +81,14 @@ export function sendRuntimeMessage(message: unknown, callback: (response?: unkno
   }
   runtime.sendMessage(message, callback);
   return true;
+}
+
+export function connectRuntimePort(name: string) {
+  const runtime = extensionRuntime();
+  if (!runtime?.connect) {
+    return null;
+  }
+  return runtime.connect({name});
 }
 
 export function extensionManifest() {

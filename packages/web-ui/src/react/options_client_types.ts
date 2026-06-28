@@ -84,6 +84,7 @@ export type RequestExplainArgs = {
 
 export type BackgroundMethodArgs = {
   applyProfile: [name: string];
+  cancelOptionsHandoff: [handoffId: string];
   explainRequest: [args: RequestExplainArgs | string];
   getAll: [];
   getState: [name: string | string[]];
@@ -93,6 +94,7 @@ export type BackgroundMethodArgs = {
   reset: [options?: Options | string];
   resetOptionsSync: [];
   refreshProfileScopeContainerNames: [];
+  resolveOptionsHandoff: [handoffId: string, action: 'apply' | 'discard'];
   setOptionsSync: [enabled: boolean, args?: unknown];
   setState: [items: Record<string, unknown>];
   updateProfile: [name?: string | string[] | null, bypassCache?: boolean | string];
@@ -100,6 +102,7 @@ export type BackgroundMethodArgs = {
 
 export type BackgroundMethodResult = {
   applyProfile: unknown;
+  cancelOptionsHandoff: void;
   explainRequest: RequestExplanation;
   getAll: Options;
   getState: Record<string, unknown>;
@@ -109,6 +112,7 @@ export type BackgroundMethodResult = {
   reset: Options;
   resetOptionsSync: void;
   refreshProfileScopeContainerNames: ProfileScopeContainerInfo[];
+  resolveOptionsHandoff: void;
   setOptionsSync: void;
   setState: Record<string, unknown>;
   updateProfile: Record<string, unknown>;
@@ -122,4 +126,3 @@ export type BackgroundMessage<M extends BackgroundMethod = BackgroundMethod> = {
   noReply?: boolean;
   refreshActivePage?: boolean;
 };
-

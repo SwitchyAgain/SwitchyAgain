@@ -393,6 +393,7 @@ function installBackground({
   replacedOptions,
   refreshedProfileScopeContainers,
   resetOptions = options,
+  stateOverrides = {},
   updateProfileOptions,
   updateProfileResults = {}
 }: {
@@ -406,6 +407,7 @@ function installBackground({
   replacedOptions?: Options;
   refreshedProfileScopeContainers?: ProfileScopeContainerInfo[];
   resetOptions?: Options;
+  stateOverrides?: Record<string, unknown>;
   updateProfileOptions?: Options;
   updateProfileResults?: Record<string, unknown>;
 } = {}) {
@@ -439,7 +441,8 @@ function installBackground({
         },
         proxyDnsCapabilities: proxyDnsCapabilities || {
           socks5: false
-        }
+        },
+        ...stateOverrides
       };
       callback({
         result: Array.isArray(key)
@@ -562,6 +565,29 @@ describe('options app', () => {
       args: [
         {
           'web.last_url': '/general'
+        }
+      ],
+      method: 'setState'
+    });
+  });
+
+  it('restores the last options route before falling back to about', async () => {
+    const {requests} = installBackground({
+      stateOverrides: {
+        'web.last_url': '/profile/proxy'
+      }
+    });
+    window.location.hash = '';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: proxy/});
+    expect(window.location.hash).toBe('#/profile/proxy');
+    expect(localStorage.getItem('omega.local.web.last_url')).toBe(JSON.stringify('/profile/proxy'));
+    expect(requests).not.toContainEqual({
+      args: [
+        {
+          'web.last_url': '/about'
         }
       ],
       method: 'setState'

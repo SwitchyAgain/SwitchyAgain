@@ -383,3 +383,67 @@ export function ConfirmModal(props: ConfirmModalProps) {
     </>
   );
 }
+
+export function OptionsHandoffModal({
+  busy,
+  error,
+  onApply,
+  onDiscard,
+  onDismiss
+}: {
+  busy?: boolean;
+  error?: string;
+  onApply: () => void;
+  onDiscard: () => void;
+  onDismiss: () => void;
+}) {
+  return (
+    <>
+      <div className="modal-header">
+        <button type="button" className="close" disabled={busy} onClick={onDismiss}>
+          <span aria-hidden="true">{'\u00d7'}</span>
+          <span className="sr-only">{message('dialog_close', 'Close')}</span>
+        </button>
+        <h4 className="modal-title">{message('options_modalHeader_optionsHandoff', 'Apply Options Changes')}</h4>
+      </div>
+      <div className="modal-body">
+        <p>
+          {message(
+            'options_optionsHandoffConfirm',
+            'Another settings page in a different window type has changes. Apply or discard those changes before opening settings here.'
+          )}
+        </p>
+        {error && <p className="text-danger">{error}</p>}
+      </div>
+      <div className="modal-footer">
+        <button type="button" className="btn btn-default" disabled={busy} onClick={onDismiss}>
+          {message('dialog_cancel', 'Cancel')}
+        </button>
+        <button type="button" className="btn btn-warning" disabled={busy} onClick={onDiscard}>
+          {message('options_discardChanges', 'Discard Changes')}
+        </button>
+        <button type="button" className="btn btn-primary" disabled={busy} onClick={onApply}>
+          {busy ? message('options_optionsHandoffWorking', 'Working...') : message('options_applyChanges', 'Apply Changes')}
+        </button>
+      </div>
+    </>
+  );
+}
+
+export function OptionsHandoffLockedModal() {
+  return (
+    <>
+      <div className="modal-header">
+        <h4 className="modal-title">{message('options_modalHeader_optionsHandoffLocked', 'Settings Page Locked')}</h4>
+      </div>
+      <div className="modal-body">
+        <p>
+          {message(
+            'options_optionsHandoffLocked',
+            'This settings page is being moved to another window type. Finish or cancel the prompt in the new settings page to continue here.'
+          )}
+        </p>
+      </div>
+    </>
+  );
+}

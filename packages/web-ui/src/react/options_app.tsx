@@ -1,7 +1,7 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import {About} from './about';
-import {clearWindowTimeout, locationHash, setLocationHash, setWindowTimeout} from './browser_env';
+import {clearWindowTimeout, closeWindow, locationHash, setLocationHash, setWindowTimeout} from './browser_env';
 import {GeneralSettings} from './general_settings';
 import {ImportExport} from './import_export';
 import {callBackground} from './background_client';
@@ -16,7 +16,7 @@ import {
   updateProfile as updateProfileFromBackground
 } from './options_api_client';
 import type {Options} from './options_client_types';
-import {getState, lastUrl, setState} from './state_client';
+import {getState, lastUrl, lastUrlAsync, setState} from './state_client';
 import {OptionsAlert, OptionsShell} from './options_shell';
 import {
   attachedProfileDraft,
@@ -54,7 +54,7 @@ import {
   updateProfileRevision
 } from './options_logic';
 import {parseRoute, routeHref} from './options_routes';
-import {ConfirmModal} from './confirm_modals';
+import {ConfirmModal, OptionsHandoffLockedModal, OptionsHandoffModal} from './confirm_modals';
 import {useBeforeUnload, useWindowEvent} from './dom_event_hooks';
 import {OPTIONS_GUIDE_STEPS, OptionsGuide, SWITCH_PROFILE_GUIDE_STEPS, type OptionsGuideState} from './options_guide';
 import {WelcomeModal} from './options_modals';
@@ -114,6 +114,14 @@ import {
   updateRuleWeekday
 } from './switch_profile_runtime';
 import {UiSettings} from './ui_settings';
+import {
+  cancelOptionsHandoff,
+  clearOptionsHandoffFromLocation,
+  connectOptionsHandoff,
+  optionsHandoffIdFromLocation,
+  resolveOptionsHandoff,
+  type OptionsHandoffAction
+} from './options_handoff_client';
 import type {
   FixedProfileModel,
   FixedProfileBypassCondition,
@@ -337,9 +345,11 @@ function ModalFrame({children, onDismiss}: {children: React.ReactNode; onDismiss
 
 function useHashRoute() {
   const [route, setRoute] = useState(() => parseRoute(locationHash()));
-  function updateRoute(nextRoute = parseRoute(locationHash())) {
+  function updateRoute(nextRoute = parseRoute(locationHash()), opts?: {remember?: boolean}) {
     setRoute(nextRoute);
-    lastUrl(routeHref(nextRoute.name, nextRoute.profileName ? {name: nextRoute.profileName} : undefined).replace(/^#/, ''));
+    if (opts?.remember !== false) {
+      lastUrl(routeHref(nextRoute.name, nextRoute.profileName ? {name: nextRoute.profileName} : undefined).replace(/^#/, ''));
+    }
   }
   function syncRoute() {
     updateRoute();
@@ -352,11 +362,24 @@ function useHashRoute() {
   useWindowEvent('hashchange', syncRoute);
 
   useEffect(() => {
-    if (!locationHash()) {
-      const storedUrl = lastUrl();
-      setLocationHash(storedUrl || routeHref('about'));
+    let cancelled = false;
+    if (locationHash()) {
+      syncRoute();
+      return;
     }
-    syncRoute();
+    lastUrlAsync().then((storedUrl) => {
+      if (cancelled) {
+        return;
+      }
+      const href = storedUrl ? `#${storedUrl.replace(/^#/, '')}` : routeHref('about');
+      setLocationHash(href);
+      updateRoute(parseRoute(href), {
+        remember: Boolean(storedUrl)
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
   return {navigateRoute, route};
 }
@@ -541,6 +564,15 @@ export function OptionsApp() {
   const [pendingApplyAction, setPendingApplyAction] = useState<AppliedOptionsAction | null>(null);
   const [pendingSourceDraftAction, setPendingSourceDraftAction] = useState<PendingDraftAction | null>(null);
   const [pendingSourceEditor, setPendingSourceEditor] = useState<PendingSourceEditorState>(null);
+  const [optionsHandoffModal, setOptionsHandoffModal] = useState<{
+    busy?: boolean;
+    error?: string;
+    handoffId: string;
+  } | null>(() => {
+    const handoffId = optionsHandoffIdFromLocation();
+    return handoffId ? {handoffId} : null;
+  });
+  const [optionsHandoffLock, setOptionsHandoffLock] = useState<{handoffId: string} | null>(null);
   const [alert, setAlert] = useState<AlertState>(null);
   const [alertShown, setAlertShown] = useState(false);
   const [profileScopeCapabilities, setProfileScopeCapabilities] = useState<ProfileScopeCapabilities>(DEFAULT_PROFILE_SCOPE_CAPABILITIES);
@@ -548,6 +580,10 @@ export function OptionsApp() {
   const [proxyDnsCapabilities, setProxyDnsCapabilities] = useState<ProxyDnsCapabilities>(DEFAULT_PROXY_DNS_CAPABILITIES);
   const [profileScopeContainers, setProfileScopeContainers] = useState<ProfileScopeContainerInfo[]>([]);
   const [activeProfileName, setActiveProfileName] = useState('direct');
+  const optionsHandoffConnectionRef = useRef<ReturnType<typeof connectOptionsHandoff> | null>(null);
+  const applyOptionsRef = useRef<((opts?: {silent?: boolean}) => Promise<Options | void>) | null>(null);
+  const discardOptionsRef = useRef<(() => void) | null>(null);
+  const allowHandoffCloseRef = useRef(false);
   const isExperimental = useMemo(hasProxyScriptApi, []);
   const pacProfilesUnsupported = isExperimental;
 
@@ -582,6 +618,7 @@ export function OptionsApp() {
     return !sameValue(savedOptions, options);
   }, [options, savedOptions]);
   const pendingSourceDraftDirty = Boolean(pendingSourceEditor?.editSource && pendingSourceEditor.source?.touched);
+  const optionsHandoffDirty = dirty || pendingSourceDraftDirty || status === 'saving';
   const showProfileScope = useMemo(
     () => hasVisibleProfileScopes(savedOptions, profileScopeCapabilities),
     [savedOptions, profileScopeCapabilities]
@@ -644,8 +681,69 @@ export function OptionsApp() {
     };
   }, [modal, pendingOptionsGuideProfileName, route.name, route.profileName, status]);
 
+  useEffect(() => {
+    const connection = connectOptionsHandoff((handoffMessage) => {
+      if (handoffMessage.type === 'optionsHandoffLock') {
+        setOptionsHandoffLock({handoffId: handoffMessage.handoffId});
+        return;
+      }
+      if (handoffMessage.type === 'optionsHandoffUnlock') {
+        allowHandoffCloseRef.current = false;
+        setOptionsHandoffLock((current) => {
+          if (!handoffMessage.handoffId || current?.handoffId === handoffMessage.handoffId) {
+            return null;
+          }
+          return current;
+        });
+        return;
+      }
+      if (handoffMessage.type === 'optionsHandoffResolve') {
+        const {action, handoffId} = handoffMessage;
+        setOptionsHandoffLock({handoffId});
+        Promise.resolve()
+          .then(() => {
+            if (action === 'apply') {
+              return applyOptionsRef.current?.({silent: true});
+            }
+            discardOptionsRef.current?.();
+            return undefined;
+          })
+          .then(() => {
+            allowHandoffCloseRef.current = true;
+            optionsHandoffConnectionRef.current?.resolved(handoffId, action, true);
+          })
+          .catch((err) => {
+            allowHandoffCloseRef.current = false;
+            optionsHandoffConnectionRef.current?.resolved(handoffId, action, false, err?.message || String(err));
+          });
+      }
+    });
+    optionsHandoffConnectionRef.current = connection;
+    return () => {
+      optionsHandoffConnectionRef.current = null;
+      connection?.dispose();
+    };
+  }, []);
+
+  useEffect(() => {
+    optionsHandoffConnectionRef.current?.updateState(optionsHandoffDirty);
+  }, [optionsHandoffDirty]);
+
+  useEffect(() => {
+    if (optionsHandoffModal?.handoffId) {
+      optionsHandoffConnectionRef.current?.claim(optionsHandoffModal.handoffId);
+    }
+  }, [optionsHandoffModal?.handoffId]);
+
   useBeforeUnload(
-    dirty || pendingSourceDraftDirty ? () => message('options_optionsNotSaved', 'Options are not saved.') : null
+    dirty || pendingSourceDraftDirty
+      ? () => {
+          if (allowHandoffCloseRef.current) {
+            return;
+          }
+          return message('options_optionsNotSaved', 'Options are not saved.');
+        }
+      : null
   );
 
   function showFirstRun(loadedOptions: Options, firstRun: string) {
@@ -881,6 +979,58 @@ export function OptionsApp() {
     if (route.name === 'profile' && route.profileName && !profileByName(nextOptions, route.profileName)) {
       navigate('ui');
     }
+  }
+
+  applyOptionsRef.current = applyOptions;
+  discardOptionsRef.current = discardOptions;
+
+  function updateOptionsHandoffModal(updater: (current: NonNullable<typeof optionsHandoffModal>) => NonNullable<typeof optionsHandoffModal>) {
+    setOptionsHandoffModal((current) => (current ? updater(current) : current));
+  }
+
+  function completeOptionsHandoff(action: OptionsHandoffAction) {
+    if (!optionsHandoffModal?.handoffId) {
+      return;
+    }
+    const handoffId = optionsHandoffModal.handoffId;
+    updateOptionsHandoffModal((current) => ({
+      handoffId: current.handoffId,
+      busy: true
+    }));
+    resolveOptionsHandoff(handoffId, action)
+      .then(() => loadOptions())
+      .then((loadedOptions) => {
+        replaceOptions(loadedOptions);
+        clearOptionsHandoffFromLocation();
+        setOptionsHandoffModal(null);
+      })
+      .catch((err) => {
+        updateOptionsHandoffModal((current) => ({
+          handoffId: current.handoffId,
+          error: err?.message || String(err)
+        }));
+      });
+  }
+
+  function cancelOptionsHandoffModal() {
+    if (!optionsHandoffModal?.handoffId) {
+      closeWindow();
+      return;
+    }
+    const handoffId = optionsHandoffModal.handoffId;
+    updateOptionsHandoffModal((current) => ({
+      handoffId: current.handoffId,
+      busy: true
+    }));
+    cancelOptionsHandoff(handoffId).catch(() => {
+      updateOptionsHandoffModal((current) => ({
+        handoffId: current.handoffId,
+        error: message(
+          'options_optionsHandoffCloseFailed',
+          'Could not close this settings page. Close this tab manually to continue in the other settings page, or apply/discard the changes here.'
+        )
+      }));
+    });
   }
 
   function requireAppliedOptions(action: AppliedOptionsAction) {
@@ -1779,6 +1929,22 @@ export function OptionsApp() {
             onDismiss={() => setModal(null)}
             upgrade={modal.upgrade}
           />
+        </ModalFrame>
+      )}
+      {optionsHandoffModal && (
+        <ModalFrame onDismiss={cancelOptionsHandoffModal}>
+          <OptionsHandoffModal
+            busy={optionsHandoffModal.busy}
+            error={optionsHandoffModal.error}
+            onApply={() => completeOptionsHandoff('apply')}
+            onDiscard={() => completeOptionsHandoff('discard')}
+            onDismiss={cancelOptionsHandoffModal}
+          />
+        </ModalFrame>
+      )}
+      {optionsHandoffLock && (
+        <ModalFrame onDismiss={() => undefined}>
+          <OptionsHandoffLockedModal />
         </ModalFrame>
       )}
       {guide && <OptionsGuide guide={guide} onDone={skipGuide} onNext={nextGuide} onSkip={skipGuide} />}

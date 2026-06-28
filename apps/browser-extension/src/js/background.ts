@@ -3,8 +3,11 @@ type BackgroundMethodArgs = {
   addProfile: [profile: unknown];
   addTempRule: [domain: string, profileName: string];
   applyProfile: [name: string];
+  beginOptionsHandoff: [tabId: number];
+  cancelOptionsHandoff: [handoffId: string];
   explainRequest: [args: unknown];
   getAll: [];
+  getOptionsPageState: [tabId: number];
   getPageInfo: [args: PageInfoArgs];
   getState: [name: string | string[]];
   patch: [patch: Record<string, unknown>];
@@ -13,6 +16,7 @@ type BackgroundMethodArgs = {
   reset: [options?: OmegaOptionsData | string];
   resetOptionsSync: [];
   refreshProfileScopeContainerNames: [];
+  resolveOptionsHandoff: [handoffId: string, action: OptionsHandoffAction];
   setDefaultProfile: [profileName: string, defaultProfileName: string];
   setOptionsSync: [enabled: boolean, args?: unknown];
   setProfileScope: [args: ProfileScopeSetArgs];
@@ -164,6 +168,23 @@ type BackgroundCallable = (...args: unknown[]) => unknown;
 type BackgroundDispatch = {
   method: BackgroundCallable;
   target: object;
+};
+
+type OptionsHandoffAction = 'apply' | 'discard';
+
+type OptionsHandoffPortEntry = {
+  dirty: boolean;
+  port: ChromeRuntimePort;
+  tabId: number;
+};
+
+type OptionsHandoffEntry = {
+  handoffId: string;
+  reject?: (error: Error) => void;
+  resolve?: () => void;
+  sourceTabId: number;
+  targetTabId?: number;
+  timeout?: ReturnType<typeof setTimeout>;
 };
 
 type BackgroundIcon = Record<number, ImageData>;
@@ -770,14 +791,148 @@ type BackgroundOmegaTarget = {
     });
   }
 
+  const optionsHandoffPorts: Record<number, OptionsHandoffPortEntry> = {};
+  const optionsHandoffs: Record<string, OptionsHandoffEntry> = {};
+
+  function optionsHandoffId() {
+    return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
+
+  function isOptionsHandoffRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null;
+  }
+
+  function removeTab(tabId: number) {
+    return new Promise<void>((resolve, reject) => {
+      const remove = chrome.tabs.remove;
+      if (typeof remove !== 'function') {
+        reject(new Error('tabs.remove is unavailable.'));
+        return;
+      }
+      remove.call(chrome.tabs, tabId, () => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message || 'Unable to close the old settings page.'));
+          return;
+        }
+        resolve();
+      });
+    });
+  }
+
+  function postOptionsHandoffMessage(tabId: number, message: Record<string, unknown>) {
+    const entry = optionsHandoffPorts[tabId];
+    if (!entry) {
+      return false;
+    }
+    try {
+      entry.port.postMessage(message);
+      return true;
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  function clearOptionsHandoffCallbacks(handoff: OptionsHandoffEntry) {
+    if (handoff.timeout != null) {
+      clearTimeout(handoff.timeout);
+      delete handoff.timeout;
+    }
+    delete handoff.resolve;
+    delete handoff.reject;
+  }
+
+  function getOptionsPageState(tabId: number) {
+    const entry = optionsHandoffPorts[tabId];
+    return {
+      dirty: Boolean(entry?.dirty),
+      registered: Boolean(entry)
+    };
+  }
+
+  function beginOptionsHandoff(tabId: number) {
+    if (!optionsHandoffPorts[tabId]) {
+      throw new Error('The existing settings page is not ready.');
+    }
+    const handoffId = optionsHandoffId();
+    optionsHandoffs[handoffId] = {
+      handoffId,
+      sourceTabId: tabId
+    };
+    if (!postOptionsHandoffMessage(tabId, {
+      handoffId,
+      type: 'optionsHandoffLock'
+    })) {
+      delete optionsHandoffs[handoffId];
+      throw new Error('Unable to lock the existing settings page.');
+    }
+    return handoffId;
+  }
+
+  function unlockOptionsHandoffSource(handoff: OptionsHandoffEntry) {
+    postOptionsHandoffMessage(handoff.sourceTabId, {
+      handoffId: handoff.handoffId,
+      type: 'optionsHandoffUnlock'
+    });
+    delete optionsHandoffs[handoff.handoffId];
+  }
+
+  function cancelOptionsHandoff(handoffId: string) {
+    const handoff = optionsHandoffs[handoffId];
+    if (!handoff) {
+      return;
+    }
+    const targetTabId = handoff.targetTabId;
+    if (typeof targetTabId !== 'number') {
+      return Promise.reject(new Error('The new settings page is not ready.'));
+    }
+    clearOptionsHandoffCallbacks(handoff);
+    return removeTab(targetTabId).then(() => {
+      unlockOptionsHandoffSource(handoff);
+    });
+  }
+
+  function resolveOptionsHandoff(handoffId: string, action: OptionsHandoffAction) {
+    const handoff = optionsHandoffs[handoffId];
+    if (!handoff) {
+      return Promise.reject(new Error('The settings page handoff is no longer available.'));
+    }
+    clearOptionsHandoffCallbacks(handoff);
+    return new Promise<void>((resolve, reject) => {
+      handoff.resolve = resolve;
+      handoff.reject = reject;
+      handoff.timeout = setTimeout(() => {
+        clearOptionsHandoffCallbacks(handoff);
+        reject(new Error('Timed out waiting for the existing settings page.'));
+      }, 30000);
+      if (!postOptionsHandoffMessage(handoff.sourceTabId, {
+        action,
+        handoffId,
+        type: 'optionsHandoffResolve'
+      })) {
+        clearOptionsHandoffCallbacks(handoff);
+        reject(new Error('Unable to reach the existing settings page.'));
+      }
+    });
+  }
+
+  const optionsHandoffApi = {
+    beginOptionsHandoff,
+    cancelOptionsHandoff,
+    getOptionsPageState,
+    resolveOptionsHandoff
+  };
+
   function isBackgroundMethod(method: unknown): method is BackgroundMethod {
     switch (method) {
       case 'addCondition':
       case 'addProfile':
       case 'addTempRule':
       case 'applyProfile':
+      case 'beginOptionsHandoff':
+      case 'cancelOptionsHandoff':
       case 'explainRequest':
       case 'getAll':
+      case 'getOptionsPageState':
       case 'getPageInfo':
       case 'getState':
       case 'patch':
@@ -786,6 +941,7 @@ type BackgroundOmegaTarget = {
       case 'reset':
       case 'resetOptionsSync':
       case 'refreshProfileScopeContainerNames':
+      case 'resolveOptionsHandoff':
       case 'setDefaultProfile':
       case 'setOptionsSync':
       case 'setProfileScope':
@@ -816,6 +972,14 @@ type BackgroundOmegaTarget = {
         }
         return state.set(itemsOrName);
       };
+    } else if (
+      request.method === 'beginOptionsHandoff' ||
+      request.method === 'cancelOptionsHandoff' ||
+      request.method === 'getOptionsPageState' ||
+      request.method === 'resolveOptionsHandoff'
+    ) {
+      target = optionsHandoffApi;
+      method = optionsHandoffApi[request.method];
     } else {
       target = options;
       method = options[request.method];
@@ -839,6 +1003,82 @@ type BackgroundOmegaTarget = {
         return options.ready;
     }
   }
+
+  chrome.runtime.onConnect.addListener((port: ChromeRuntimePort) => {
+    if (port.name !== 'optionsHandoff') {
+      return;
+    }
+    const sender = port.sender as {tab?: {id?: unknown}} | undefined;
+    const tabId = sender?.tab?.id;
+    if (typeof tabId !== 'number') {
+      port.disconnect();
+      return;
+    }
+    optionsHandoffPorts[tabId] = {
+      dirty: false,
+      port,
+      tabId
+    };
+    port.onMessage.addListener((message: unknown) => {
+      if (!isOptionsHandoffRecord(message) || typeof message.type !== 'string') {
+        return;
+      }
+      if (message.type === 'optionsHandoffState') {
+        const entry = optionsHandoffPorts[tabId];
+        if (entry) {
+          entry.dirty = message.dirty === true;
+        }
+        return;
+      }
+      if (message.type === 'optionsHandoffClaim' && typeof message.handoffId === 'string') {
+        const handoff = optionsHandoffs[message.handoffId];
+        if (handoff && handoff.sourceTabId !== tabId) {
+          handoff.targetTabId = tabId;
+        }
+        return;
+      }
+      if (message.type !== 'optionsHandoffResolved' || typeof message.handoffId !== 'string') {
+        return;
+      }
+      const handoff = optionsHandoffs[message.handoffId];
+      if (!handoff || handoff.sourceTabId !== tabId) {
+        return;
+      }
+      const resolve = handoff.resolve;
+      const reject = handoff.reject;
+      clearOptionsHandoffCallbacks(handoff);
+      if (message.ok !== true) {
+        reject?.(new Error(typeof message.error === 'string' && message.error ? message.error : 'Unable to apply changes.'));
+        return;
+      }
+      removeTab(tabId)
+        .then(() => {
+          delete optionsHandoffs[handoff.handoffId];
+          resolve?.();
+        })
+        .catch((error) => {
+          reject?.(error instanceof Error ? error : new Error(String(error)));
+        });
+    });
+    port.onDisconnect.addListener(() => {
+      delete optionsHandoffPorts[tabId];
+      for (const handoffId in optionsHandoffs) {
+        if (!hasProp.call(optionsHandoffs, handoffId)) continue;
+        const handoff = optionsHandoffs[handoffId];
+        if (handoff.sourceTabId === tabId) {
+          const reject = handoff.reject;
+          clearOptionsHandoffCallbacks(handoff);
+          delete optionsHandoffs[handoffId];
+          reject?.(new Error('The existing settings page was closed.'));
+          continue;
+        }
+        if (handoff.targetTabId === tabId && !handoff.resolve && !handoff.reject) {
+          clearOptionsHandoffCallbacks(handoff);
+          unlockOptionsHandoffSource(handoff);
+        }
+      }
+    });
+  });
 
   chrome.runtime.onMessage.addListener((request: unknown, _sender: unknown, respond: BackgroundRespond) => {
     if (!isRecord(request) || typeof request.method !== 'string') {
