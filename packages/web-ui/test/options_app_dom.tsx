@@ -728,15 +728,15 @@ describe('options app', () => {
     await screen.findByRole('heading', {name: /Profile :: proxy/});
     const normalProfiles = () => container.querySelector('.options-shell-profile-list') as HTMLElement;
     expect(within(normalProfiles()).getByRole('link', {name: /proxy/})).toBeTruthy();
-    expect(screen.queryByRole('button', {name: 'Hidden Profiles'})).toBeNull();
+    expect(screen.queryByRole('button', {name: 'Hidden'})).toBeNull();
 
     fireEvent.click(screen.getByRole('switch', {name: 'Hide from options sidebar'}));
     expect(within(normalProfiles()).getByRole('link', {name: /proxy/})).toBeTruthy();
-    expect(screen.queryByRole('button', {name: 'Hidden Profiles'})).toBeNull();
+    expect(screen.queryByRole('button', {name: 'Hidden'})).toBeNull();
 
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
 
-    const hiddenProfiles = await screen.findByRole('button', {name: 'Hidden Profiles'});
+    const hiddenProfiles = await screen.findByRole('button', {name: 'Hidden'});
     expect(patchedOptionValue<Record<string, unknown>>(firstPatch(requests), '+proxy')).toMatchObject({
       hiddenInOptions: true
     });
@@ -748,11 +748,11 @@ describe('options app', () => {
     expect(screen.getByRole('link', {name: /proxy/})).toBeTruthy();
 
     fireEvent.click(screen.getByRole('switch', {name: 'Hide from options sidebar'}));
-    expect(screen.getByRole('button', {name: 'Hidden Profiles'})).toBeTruthy();
+    expect(screen.getByRole('button', {name: 'Hidden'})).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
 
-    await waitFor(() => expect(screen.queryByRole('button', {name: 'Hidden Profiles'})).toBeNull());
+    await waitFor(() => expect(screen.queryByRole('button', {name: 'Hidden'})).toBeNull());
     expect(within(normalProfiles()).getByRole('link', {name: /proxy/})).toBeTruthy();
   });
 

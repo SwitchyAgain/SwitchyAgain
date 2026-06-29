@@ -124,7 +124,7 @@ describe('options shell components', () => {
     expect(within(profileList).queryByRole('link', {name: /auto/})).toBeNull();
     expect(within(profileList).getByRole('link', {name: /proxy/})).toBeTruthy();
 
-    const hiddenProfiles = screen.getByRole('button', {name: 'Hidden Profiles'});
+    const hiddenProfiles = screen.getByRole('button', {name: 'Hidden'});
     expect(hiddenProfiles.getAttribute('aria-expanded')).toBe('false');
     expect(screen.queryByRole('link', {name: /auto/})).toBeNull();
 
@@ -132,6 +132,60 @@ describe('options shell components', () => {
 
     expect(hiddenProfiles.getAttribute('aria-expanded')).toBe('true');
     expect(screen.getByRole('link', {name: /auto/})).toBeTruthy();
+  });
+
+  it('opens profile flyouts from section headers and navigates from them', () => {
+    const onNavigate = vi.fn();
+    const options = {
+      ...optionsFixture(),
+      '+auto': {
+        name: 'auto',
+        hiddenInOptions: true,
+        profileType: 'SwitchProfile'
+      }
+    };
+
+    render(
+      <OptionsShell
+        appliedOptions={options}
+        currentProfileName="proxy"
+        currentState="profile"
+        onNavigate={onNavigate}
+        options={options}
+        profileHref={(profile) => `#/profile/${profile.name}`}
+      />
+    );
+
+    const profilesButton = screen.getAllByRole('button', {name: 'Show all'})[0];
+    fireEvent.click(profilesButton);
+
+    let profilesControlMenu = screen.getByRole('menu', {name: 'Show all'});
+    fireEvent.mouseEnter(within(profilesControlMenu).getByRole('menuitem', {name: 'Show all'}));
+
+    let profilesMenu = screen.getByRole('menu', {name: 'Profiles'});
+    expect(within(profilesMenu).getByRole('menuitem', {name: /proxy/}).classList.contains('active')).toBe(true);
+    expect(within(profilesMenu).queryByRole('menuitem', {name: /auto/})).toBeNull();
+
+    fireEvent.mouseDown(document.body);
+    expect(screen.queryByRole('menu', {name: 'Profiles'})).toBeNull();
+
+    fireEvent.click(profilesButton);
+    profilesControlMenu = screen.getByRole('menu', {name: 'Show all'});
+    fireEvent.focus(within(profilesControlMenu).getByRole('menuitem', {name: 'Show all'}));
+    profilesMenu = screen.getByRole('menu', {name: 'Profiles'});
+    fireEvent.click(within(profilesMenu).getByRole('menuitem', {name: /proxy/}));
+    expect(onNavigate).toHaveBeenCalledWith('profile', {name: 'proxy'});
+    expect(screen.queryByRole('menu', {name: 'Profiles'})).toBeNull();
+
+    fireEvent.click(screen.getAllByRole('button', {name: 'Show all'})[1]);
+    const hiddenProfilesControlMenu = screen.getByRole('menu', {name: 'Show all'});
+    fireEvent.mouseEnter(within(hiddenProfilesControlMenu).getByRole('menuitem', {name: 'Show all'}));
+    const hiddenProfilesMenu = screen.getByRole('menu', {name: 'Hidden'});
+    expect(within(hiddenProfilesMenu).getByRole('menuitem', {name: /auto/})).toBeTruthy();
+
+    fireEvent.click(within(hiddenProfilesMenu).getByRole('menuitem', {name: /auto/}));
+    expect(onNavigate).toHaveBeenCalledWith('profile', {name: 'auto'});
+    expect(screen.queryByRole('menu', {name: 'Hidden'})).toBeNull();
   });
 
   it('shows dismissible alerts with mapped alert classes', () => {

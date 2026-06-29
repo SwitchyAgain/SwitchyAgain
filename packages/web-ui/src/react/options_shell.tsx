@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
+import {useOutsidePointer} from './dom_event_hooks';
 import {message} from './i18n_client';
 import type {Options} from './options_client_types';
 import {Profile, ProfileInline, profilesForFilter} from './profile_widgets';
@@ -106,6 +107,141 @@ function ProfileNavItem({
   );
 }
 
+function ProfileSectionMenuButton({
+  activeProfileName,
+  ariaLabel,
+  currentState,
+  label,
+  onNavigate,
+  profileHref,
+  profiles
+}: {
+  activeProfileName: string;
+  ariaLabel: string;
+  currentState: string;
+  label: string;
+  onNavigate?: (state: string, params?: Record<string, string>) => void;
+  profileHref?: (profile: Profile) => string;
+  profiles: Profile[];
+}) {
+  const viewportGap = 12;
+  const [open, setOpen] = useState(false);
+  const [submenuOpen, setSubmenuOpen] = useState(false);
+  const [submenuAnchorTop, setSubmenuAnchorTop] = useState(0);
+  const [submenuStyle, setSubmenuStyle] = useState<React.CSSProperties | undefined>();
+  const rootRef = useRef<HTMLSpanElement>(null);
+  const submenuRef = useRef<HTMLSpanElement>(null);
+  useOutsidePointer(
+    rootRef,
+    () => {
+      setOpen(false);
+      setSubmenuOpen(false);
+    },
+    open
+  );
+
+  useLayoutEffect(() => {
+    if (!submenuOpen || !submenuRef.current) {
+      return;
+    }
+    const maxHeight = Math.floor(window.innerHeight * 0.9);
+    const height = Math.min(submenuRef.current.scrollHeight, maxHeight);
+    const top = Math.max(viewportGap, Math.min(submenuAnchorTop, window.innerHeight - viewportGap - height));
+    setSubmenuStyle((current) => ({
+      ...current,
+      maxHeight,
+      top
+    }));
+  }, [submenuAnchorTop, submenuOpen]);
+
+  if (profiles.length === 0) {
+    return null;
+  }
+
+  function toggleMenu() {
+    if (!open) {
+      setSubmenuOpen(false);
+    }
+    setOpen(!open);
+  }
+
+  function closeMenu() {
+    setOpen(false);
+    setSubmenuOpen(false);
+  }
+
+  function openSubmenu(event: React.FocusEvent<HTMLButtonElement> | React.MouseEvent<HTMLButtonElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const left = Math.max(viewportGap, Math.round(rect.right + 2));
+    const top = Math.max(viewportGap, Math.round(rect.top));
+    setSubmenuAnchorTop(top);
+    setSubmenuStyle({
+      left,
+      maxHeight: Math.floor(window.innerHeight * 0.9),
+      maxWidth: `calc(100vw - ${left}px - ${viewportGap}px)`,
+      top
+    });
+    setSubmenuOpen(true);
+  }
+
+  return (
+    <span ref={rootRef} className={`options-shell-profile-menu ${open ? 'open' : ''}`}>
+      <button
+        type="button"
+        className="options-shell-profile-menu-button"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        aria-label={ariaLabel}
+        onClick={toggleMenu}
+      >
+        <span className="glyphicon glyphicon-option-vertical" />
+      </button>
+      {open && (
+        <span className="options-shell-profile-menu-panel" role="menu" aria-label={ariaLabel}>
+          <span className="options-shell-profile-menu-entry">
+            <button
+              type="button"
+              className="options-shell-profile-menu-item"
+              aria-expanded={submenuOpen}
+              aria-haspopup="menu"
+              role="menuitem"
+              onFocus={openSubmenu}
+              onMouseEnter={openSubmenu}
+            >
+              <span>{ariaLabel}</span>
+              <span className="glyphicon glyphicon-chevron-right" />
+            </button>
+            {submenuOpen && (
+              <span
+                ref={submenuRef}
+                className="options-shell-profile-submenu"
+                role="menu"
+                aria-label={label}
+                style={submenuStyle}
+              >
+                {profiles.map((profile) => (
+                  <a
+                    key={profile.name}
+                    className={currentState === 'profile' && profile.name === activeProfileName ? 'active' : ''}
+                    href={profileHref?.(profile) || '#'}
+                    role="menuitem"
+                    onClick={(event) => {
+                      navClick(event, () => onNavigate?.('profile', {name: profile.name}));
+                      closeMenu();
+                    }}
+                  >
+                    <ProfileInline profile={profile} />
+                  </a>
+                ))}
+              </span>
+            )}
+          </span>
+        </span>
+      )}
+    </span>
+  );
+}
+
 export function OptionsShell({
   appliedOptions,
   currentProfileName = '',
@@ -133,6 +269,8 @@ export function OptionsShell({
   const hiddenProfileNames = new Set(appliedProfiles.filter((profile) => !!profile.hiddenInOptions).map((profile) => profile.name));
   const visibleProfiles = profiles.filter((profile) => !hiddenProfileNames.has(profile.name));
   const hiddenProfiles = profiles.filter((profile) => hiddenProfileNames.has(profile.name));
+  const profilesLabel = message('options_navHeader_profiles', 'Profiles');
+  const hiddenProfilesLabel = message('options_navHeader_hiddenProfiles', 'Hidden');
 
   return (
     <>
@@ -187,7 +325,18 @@ export function OptionsShell({
           <li className="divider" />
         </ul>
         <ul className="nav nav-pills nav-stacked options-shell-profile-header">
-          <li className="nav-header">{message('options_navHeader_profiles', 'Profiles')}</li>
+          <li className="nav-header options-shell-section-header">
+            <span>{profilesLabel}</span>
+            <ProfileSectionMenuButton
+              activeProfileName={currentProfileName}
+              ariaLabel={message('options_showProfilesFlyout', 'Show all')}
+              currentState={currentState}
+              label={profilesLabel}
+              onNavigate={onNavigate}
+              profileHref={profileHref}
+              profiles={visibleProfiles}
+            />
+          </li>
         </ul>
         <div className="options-shell-profile-list">
           <ul className="nav nav-pills nav-stacked">
@@ -206,19 +355,25 @@ export function OptionsShell({
         {hiddenProfiles.length > 0 && (
           <>
             <ul className="nav nav-pills nav-stacked options-shell-hidden-profile-header">
-              <li className="nav-header">
-                <a
+              <li className="nav-header options-shell-section-header">
+                <button
+                  type="button"
+                  className="options-shell-hidden-profile-toggle"
                   aria-expanded={hiddenProfilesOpen}
-                  href="#"
-                  role="button"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    setHiddenProfilesOpen(!hiddenProfilesOpen);
-                  }}
+                  onClick={() => setHiddenProfilesOpen(!hiddenProfilesOpen)}
                 >
                   <span className={`glyphicon ${hiddenProfilesOpen ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right'}`} />{' '}
-                  {message('options_navHeader_hiddenProfiles', 'Hidden Profiles')}
-                </a>
+                  <span>{hiddenProfilesLabel}</span>
+                </button>
+                <ProfileSectionMenuButton
+                  activeProfileName={currentProfileName}
+                  ariaLabel={message('options_showHiddenProfilesFlyout', 'Show all')}
+                  currentState={currentState}
+                  label={hiddenProfilesLabel}
+                  onNavigate={onNavigate}
+                  profileHref={profileHref}
+                  profiles={hiddenProfiles}
+                />
               </li>
             </ul>
             {hiddenProfilesOpen && (

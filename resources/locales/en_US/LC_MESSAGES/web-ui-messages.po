@@ -254,7 +254,13 @@ msgid "options_navHeader_profiles"
 msgstr "Profiles"
 
 msgid "options_navHeader_hiddenProfiles"
-msgstr "Hidden Profiles"
+msgstr "Hidden"
+
+msgid "options_showProfilesFlyout"
+msgstr "Show all"
+
+msgid "options_showHiddenProfilesFlyout"
+msgstr "Show all"
 
 msgid "options_navHeader_actions"
 msgstr "Actions"

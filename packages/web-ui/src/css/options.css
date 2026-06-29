@@ -612,8 +612,9 @@ h1 {
   flex-direction: column;
   position: fixed;
   height: 100%;
-  overflow: hidden;
+  overflow: visible;
   padding-bottom: 20px;
+  z-index: 1200;
 }
 
 .side-nav h1 {
@@ -653,20 +654,138 @@ h1 {
   margin-bottom: 0;
 }
 
-.options-shell-hidden-profile-header .nav-header > a {
+.options-shell-section-header {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  position: relative;
+}
+
+.options-shell-hidden-profile-toggle,
+.options-shell-profile-menu-button,
+.options-shell-profile-menu-item {
+  background: transparent;
+  border: 0;
   color: inherit;
-  display: block;
-  margin: -3px -15px;
-  padding: 3px 15px;
-  text-decoration: none;
+  font: inherit;
+  line-height: inherit;
+  padding: 0;
+}
+
+.options-shell-hidden-profile-toggle {
+  text-align: left;
   text-transform: uppercase;
 }
 
-.options-shell-hidden-profile-header .nav-header > a:hover,
-.options-shell-hidden-profile-header .nav-header > a:focus {
-  background: transparent;
-  color: inherit;
+.options-shell-profile-menu {
+  display: inline-block;
+  line-height: 1;
+  position: relative;
+}
+
+.options-shell-profile-menu-button {
+  border-radius: 3px;
+  opacity: .9;
+  padding: 1px 3px;
+}
+
+.options-shell-profile-menu-button:hover,
+.options-shell-profile-menu-button:focus {
+  background-color: var(--sa-hover-bg);
+  opacity: 1;
+  outline: none;
+}
+
+.options-shell-profile-menu-panel,
+.options-shell-profile-submenu {
+  background-color: var(--sa-panel-bg);
+  border: 1px solid var(--sa-border);
+  border-radius: 4px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
+  position: absolute;
+  text-transform: none;
+  z-index: 1300;
+}
+
+.options-shell-profile-menu-panel {
+  left: 0;
+  min-width: 14em;
+  padding: 4px 0;
+  top: 100%;
+}
+
+.options-shell-profile-menu-entry {
+  display: block;
+  position: relative;
+}
+
+.options-shell-profile-menu-item {
+  align-items: center;
+  color: var(--sa-text);
+  display: flex;
+  font-size: 14px;
+  font-weight: normal;
+  gap: 16px;
+  justify-content: space-between;
+  line-height: 1.5em;
+  padding: 5px 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.options-shell-profile-menu-item:hover,
+.options-shell-profile-menu-item:focus {
+  background-color: var(--sa-hover-bg);
+  color: var(--sa-text);
+  outline: none;
+}
+
+.options-shell-profile-submenu {
+  min-width: 12em;
+  overflow: auto;
+  padding: 5px 0;
+  position: fixed;
+  width: 16em;
+}
+
+.options-shell-profile-submenu > a {
+  border-radius: 4px;
+  color: var(--sa-link);
+  display: block;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 1.5em;
+  margin: 2px 0;
+  overflow: hidden;
+  padding: 5px 25px 5px 8px;
   text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.options-shell-profile-submenu > a .glyphicon {
+  margin-right: 8px;
+}
+
+.options-shell-profile-submenu > a:hover,
+.options-shell-profile-submenu > a:focus {
+  background-color: var(--sa-hover-bg);
+  color: var(--sa-link-hover);
+  text-decoration: none;
+}
+
+.options-shell-profile-submenu > a.active,
+.options-shell-profile-submenu > a.active:hover,
+.options-shell-profile-submenu > a.active:focus {
+  background-color: var(--sa-active-bg);
+  color: var(--sa-active-text);
+}
+
+.options-shell-hidden-profile-toggle:hover,
+.options-shell-hidden-profile-toggle:focus {
+  color: inherit;
+  outline: none;
 }
 
 @media (max-width: 767px) {
