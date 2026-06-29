@@ -262,6 +262,18 @@ msgstr "Show all"
 msgid "options_showHiddenProfilesFlyout"
 msgstr "Show all"
 
+msgid "options_browseAllProfiles"
+msgstr "Browse all"
+
+msgid "options_browseAllProfilesTitle"
+msgstr "Browse all profiles"
+
+msgid "options_searchProfilesPlaceholder"
+msgstr "Search profiles"
+
+msgid "options_noProfilesMatchSearch"
+msgstr "No profiles match your search."
+
 msgid "options_navHeader_actions"
 msgstr "Actions"
 

@@ -1,8 +1,8 @@
-import React, {useLayoutEffect, useRef, useState} from 'react';
+import React, {useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {useOutsidePointer} from './dom_event_hooks';
 import {message} from './i18n_client';
 import type {Options} from './options_client_types';
-import {Profile, ProfileInline, profilesForFilter} from './profile_widgets';
+import {Profile, ProfileInline, profileName, profilesForFilter} from './profile_widgets';
 
 export type OptionsShellProps = {
   appliedOptions?: Options | null;
@@ -110,16 +110,20 @@ function ProfileNavItem({
 function ProfileSectionMenuButton({
   activeProfileName,
   ariaLabel,
+  browseAllLabel,
   currentState,
   label,
+  onBrowseAll,
   onNavigate,
   profileHref,
   profiles
 }: {
   activeProfileName: string;
   ariaLabel: string;
+  browseAllLabel?: string;
   currentState: string;
   label: string;
+  onBrowseAll?: () => void;
   onNavigate?: (state: string, params?: Record<string, string>) => void;
   profileHref?: (profile: Profile) => string;
   profiles: Profile[];
@@ -212,13 +216,7 @@ function ProfileSectionMenuButton({
               <span className="glyphicon glyphicon-chevron-right" />
             </button>
             {submenuOpen && (
-              <span
-                ref={submenuRef}
-                className="options-shell-profile-submenu"
-                role="menu"
-                aria-label={label}
-                style={submenuStyle}
-              >
+              <span ref={submenuRef} className="options-shell-profile-submenu" role="menu" aria-label={label} style={submenuStyle}>
                 {profiles.map((profile) => (
                   <a
                     key={profile.name}
@@ -236,10 +234,172 @@ function ProfileSectionMenuButton({
               </span>
             )}
           </span>
+          {onBrowseAll && (
+            <span className="options-shell-profile-menu-entry">
+              <button
+                type="button"
+                className="options-shell-profile-menu-item"
+                role="menuitem"
+                onClick={() => {
+                  closeMenu();
+                  onBrowseAll();
+                }}
+              >
+                <span>{browseAllLabel || message('options_browseAllProfiles', 'Browse all')}</span>
+              </button>
+            </span>
+          )}
         </span>
       )}
     </span>
   );
+}
+
+function ProfileBrowserModal({
+  activeProfileName,
+  currentState,
+  hiddenProfiles,
+  onClose,
+  onNavigate,
+  profileHref,
+  profiles
+}: {
+  activeProfileName: string;
+  currentState: string;
+  hiddenProfiles: Profile[];
+  onClose: () => void;
+  onNavigate?: (state: string, params?: Record<string, string>) => void;
+  profileHref?: (profile: Profile) => string;
+  profiles: Profile[];
+}) {
+  const [query, setQuery] = useState('');
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  const profilesLabel = message('options_navHeader_profiles', 'Profiles');
+  const hiddenProfilesLabel = message('options_navHeader_hiddenProfiles', 'Hidden');
+  const filteredProfiles = useMemo(
+    () => profiles.filter((profile) => profileMatchesQuery(profile, normalizedQuery)),
+    [normalizedQuery, profiles]
+  );
+  const filteredHiddenProfiles = useMemo(
+    () => hiddenProfiles.filter((profile) => profileMatchesQuery(profile, normalizedQuery)),
+    [hiddenProfiles, normalizedQuery]
+  );
+  const hasResults = filteredProfiles.length > 0 || filteredHiddenProfiles.length > 0;
+
+  function navigateToProfile(profile: Profile) {
+    onClose();
+    onNavigate?.('profile', {name: profile.name});
+  }
+
+  return (
+    <>
+      <div className="modal-backdrop fade in" />
+      <div
+        className="modal fade in options-shell-profile-browser-modal"
+        role="dialog"
+        style={{display: 'block'}}
+        tabIndex={-1}
+        onMouseDown={(event) => {
+          if (event.target === event.currentTarget) {
+            onClose();
+          }
+        }}
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <button type="button" className="close" onClick={onClose}>
+                <span aria-hidden="true">{'\u00d7'}</span>
+                <span className="sr-only">{message('dialog_close', 'Close')}</span>
+              </button>
+              <h4 className="modal-title">{message('options_browseAllProfilesTitle', 'Browse all profiles')}</h4>
+            </div>
+            <div className="modal-body">
+              <input
+                autoFocus
+                className="form-control options-shell-profile-browser-search"
+                placeholder={message('options_searchProfilesPlaceholder', 'Search profiles')}
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.currentTarget.value)}
+              />
+              {hasResults ? (
+                <>
+                  {filteredProfiles.length > 0 && (
+                    <ProfileBrowserSection
+                      activeProfileName={activeProfileName}
+                      currentState={currentState}
+                      label={profilesLabel}
+                      onNavigate={navigateToProfile}
+                      profileHref={profileHref}
+                      profiles={filteredProfiles}
+                    />
+                  )}
+                  {hiddenProfiles.length > 0 && filteredHiddenProfiles.length > 0 && (
+                    <ProfileBrowserSection
+                      activeProfileName={activeProfileName}
+                      currentState={currentState}
+                      label={hiddenProfilesLabel}
+                      onNavigate={navigateToProfile}
+                      profileHref={profileHref}
+                      profiles={filteredHiddenProfiles}
+                    />
+                  )}
+                </>
+              ) : (
+                <p className="text-muted options-shell-profile-browser-empty">
+                  {message('options_noProfilesMatchSearch', 'No profiles match your search.')}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function ProfileBrowserSection({
+  activeProfileName,
+  currentState,
+  label,
+  onNavigate,
+  profileHref,
+  profiles
+}: {
+  activeProfileName: string;
+  currentState: string;
+  label: string;
+  onNavigate: (profile: Profile) => void;
+  profileHref?: (profile: Profile) => string;
+  profiles: Profile[];
+}) {
+  return (
+    <section className="options-shell-profile-browser-section">
+      <h5>{label}</h5>
+      <div className="options-shell-profile-browser-grid">
+        {profiles.map((profile) => (
+          <a
+            key={profile.name}
+            className={`options-shell-profile-browser-item ${
+              currentState === 'profile' && profile.name === activeProfileName ? 'active' : ''
+            }`}
+            href={profileHref?.(profile) || '#'}
+            onClick={(event) => navClick(event, () => onNavigate(profile))}
+          >
+            <ProfileInline profile={profile} />
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function profileMatchesQuery(profile: Profile, normalizedQuery: string) {
+  if (!normalizedQuery) {
+    return true;
+  }
+  return `${profile.name} ${profileName(profile)}`.toLocaleLowerCase().includes(normalizedQuery);
 }
 
 export function OptionsShell({
@@ -264,6 +424,7 @@ export function OptionsShell({
   uiHref = '#'
 }: OptionsShellProps) {
   const [hiddenProfilesOpen, setHiddenProfilesOpen] = useState(false);
+  const [profileBrowserOpen, setProfileBrowserOpen] = useState(false);
   const profiles = profilesForFilter(options, 'sorted');
   const appliedProfiles = profilesForFilter(appliedOptions || options, 'sorted');
   const hiddenProfileNames = new Set(appliedProfiles.filter((profile) => !!profile.hiddenInOptions).map((profile) => profile.name));
@@ -330,8 +491,10 @@ export function OptionsShell({
             <ProfileSectionMenuButton
               activeProfileName={currentProfileName}
               ariaLabel={message('options_showProfilesFlyout', 'Show all')}
+              browseAllLabel={message('options_browseAllProfiles', 'Browse all')}
               currentState={currentState}
               label={profilesLabel}
+              onBrowseAll={() => setProfileBrowserOpen(true)}
               onNavigate={onNavigate}
               profileHref={profileHref}
               profiles={visibleProfiles}
@@ -419,6 +582,17 @@ export function OptionsShell({
           </li>
         </ul>
       </nav>
+      {profileBrowserOpen && (
+        <ProfileBrowserModal
+          activeProfileName={currentProfileName}
+          currentState={currentState}
+          hiddenProfiles={hiddenProfiles}
+          onClose={() => setProfileBrowserOpen(false)}
+          onNavigate={onNavigate}
+          profileHref={profileHref}
+          profiles={visibleProfiles}
+        />
+      )}
     </>
   );
 }

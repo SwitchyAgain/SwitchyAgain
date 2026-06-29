@@ -188,6 +188,53 @@ describe('options shell components', () => {
     expect(screen.queryByRole('menu', {name: 'Hidden'})).toBeNull();
   });
 
+  it('opens the profile browser modal and filters all profile groups', () => {
+    const onNavigate = vi.fn();
+    const options = {
+      ...optionsFixture(),
+      '+auto': {
+        name: 'auto',
+        hiddenInOptions: true,
+        profileType: 'SwitchProfile'
+      }
+    };
+
+    render(
+      <OptionsShell
+        appliedOptions={options}
+        currentProfileName="proxy"
+        currentState="profile"
+        onNavigate={onNavigate}
+        options={options}
+        profileHref={(profile) => `#/profile/${profile.name}`}
+      />
+    );
+
+    fireEvent.click(screen.getAllByRole('button', {name: 'Show all'})[0]);
+    fireEvent.click(screen.getByRole('menuitem', {name: 'Browse all'}));
+
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByText('Browse all profiles')).toBeTruthy();
+    expect(within(dialog).getByText('Profiles')).toBeTruthy();
+    expect(within(dialog).getByText('Hidden')).toBeTruthy();
+    expect(within(dialog).getByRole('link', {name: /proxy/})).toBeTruthy();
+    expect(within(dialog).getByRole('link', {name: /auto/})).toBeTruthy();
+
+    fireEvent.change(within(dialog).getByPlaceholderText('Search profiles'), {
+      target: {
+        value: 'auto'
+      }
+    });
+
+    expect(within(dialog).queryByRole('link', {name: /proxy/})).toBeNull();
+    const autoLink = within(dialog).getByRole('link', {name: /auto/});
+
+    fireEvent.click(autoLink);
+
+    expect(onNavigate).toHaveBeenCalledWith('profile', {name: 'auto'});
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
   it('shows dismissible alerts with mapped alert classes', () => {
     const onClose = vi.fn();
 
