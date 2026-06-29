@@ -295,6 +295,9 @@ msgstr "Show Add Temporary Rule in the popup menu."
 msgid "options_showCurrentProfileInGeneral"
 msgstr "Show Current Profile on the General settings page."
 
+msgid "options_showRouteTrace"
+msgstr "Show Route Trace in the settings sidebar."
+
 msgid "options_addConditionsToBottom"
 msgstr "Put new conditions added using the popup menu to the bottom of the list."
 

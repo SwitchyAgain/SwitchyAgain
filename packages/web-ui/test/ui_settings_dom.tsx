@@ -91,6 +91,13 @@ describe('ui settings component', () => {
       })
     );
 
+    fireEvent.click(screen.getByLabelText('Show Route Trace in the settings sidebar.'));
+    expect(onOptionsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        '-showRouteTrace': false
+      })
+    );
+
     expect((screen.getByLabelText('Show SOCKS5 local DNS option. Firefox only.') as HTMLInputElement).disabled).toBe(true);
     expect((screen.getByLabelText('Show HTTP/HTTPS proxy overrides in proxy profiles.') as HTMLInputElement).checked).toBe(true);
     expect((screen.getByLabelText('Show WebSocket (ws/wss) proxy overrides in proxy profiles.') as HTMLInputElement).checked).toBe(false);

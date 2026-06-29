@@ -636,6 +636,7 @@ export function OptionsApp() {
     () => hasVisibleProfileScopes(savedOptions, profileScopeCapabilities),
     [savedOptions, profileScopeCapabilities]
   );
+  const showRouteTrace = savedOptions?.['-showRouteTrace'] !== false;
   const appliedVisibleProfileScopes = useMemo(
     () => visibleProfileScopes(savedOptions, profileScopeCapabilities),
     [savedOptions, profileScopeCapabilities]
@@ -647,6 +648,13 @@ export function OptionsApp() {
     }
     navigate('ui');
   }, [route.name, showProfileScope, status]);
+
+  useEffect(() => {
+    if (status !== 'ready' || route.name !== 'routeTrace' || showRouteTrace) {
+      return;
+    }
+    navigate('ui');
+  }, [route.name, showRouteTrace, status]);
 
   useEffect(() => {
     if (status !== 'ready' || !appliedVisibleProfileScopes.container) {
@@ -1813,6 +1821,7 @@ export function OptionsApp() {
             profileScopeHref={routeHref('profileScope')}
             routeTraceHref={routeHref('routeTrace')}
             showProfileScope={showProfileScope}
+            showRouteTrace={showRouteTrace}
             isExperimental={isExperimental}
             uiHref={routeHref('ui')}
           />

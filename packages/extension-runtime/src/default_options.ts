@@ -29,6 +29,7 @@ export default function defaultOptions() {
     '-revertProxyChanges': true,
     '-confirmDeletion': true,
     '-showCurrentProfileInGeneral': false,
+    '-showRouteTrace': true,
     '-addConditionsToBottom': false,
     '-showProfileOptions': false,
     '-showPopupAddCondition': true,

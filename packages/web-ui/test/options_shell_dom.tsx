@@ -103,6 +103,12 @@ describe('options shell components', () => {
     expect(onNavigate).toHaveBeenCalledWith('profileScope');
   });
 
+  it('hides route trace navigation when disabled', () => {
+    render(<OptionsShell options={optionsFixture()} showRouteTrace={false} />);
+
+    expect(screen.queryByRole('link', {name: 'Route Trace'})).toBeNull();
+  });
+
   it('shows dismissible alerts with mapped alert classes', () => {
     const onClose = vi.fn();
 

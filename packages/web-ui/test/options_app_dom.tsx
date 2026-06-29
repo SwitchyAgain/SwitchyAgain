@@ -688,6 +688,31 @@ describe('options app', () => {
     expect(getAllRequests(requests)).toHaveLength(1);
   });
 
+  it('hides route trace after saving the interface option and blocks direct route access', async () => {
+    const loadedOptions = optionsFixture();
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/ui';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: 'Interface'});
+    expect(screen.getByRole('link', {name: 'Route Trace'})).toBeTruthy();
+
+    fireEvent.click(screen.getByLabelText('Show Route Trace in the settings sidebar.'));
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(screen.queryByRole('link', {name: 'Route Trace'})).toBeNull());
+    expect(patchedOptionValue<boolean>(firstPatch(requests), '-showRouteTrace')).toBe(false);
+
+    window.location.hash = '#/routeTrace';
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+
+    await waitFor(() => expect(screen.getByRole('heading', {name: 'Interface'})).toBeTruthy());
+    expect(window.location.hash).toBe('#/ui');
+  });
+
   it('enables profile scope settings through the top-level apply flow', async () => {
     const loadedOptions = optionsFixture();
     const {requests} = installBackground({

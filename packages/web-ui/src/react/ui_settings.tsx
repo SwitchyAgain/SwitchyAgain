@@ -677,6 +677,16 @@ export function UiSettings({
           <label>
             <input
               type="checkbox"
+              checked={draftOptions['-showRouteTrace'] !== false}
+              onChange={(event) => updateOption('-showRouteTrace', event.currentTarget.checked)}
+            />
+            <span> {message('options_showRouteTrace', 'Show Route Trace in the settings sidebar.')}</span>
+          </label>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
               checked={Boolean(draftOptions['-addConditionsToBottom'])}
               onChange={(event) => updateOption('-addConditionsToBottom', event.currentTarget.checked)}
             />
