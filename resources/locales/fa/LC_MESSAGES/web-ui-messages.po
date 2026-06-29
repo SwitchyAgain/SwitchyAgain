@@ -256,6 +256,27 @@ msgstr "تنظیمات"
 msgid "options_navHeader_profiles"
 msgstr "نمایه‌ها"
 
+msgid "options_navHeader_hiddenProfiles"
+msgstr "پنهان"
+
+msgid "options_showProfilesFlyout"
+msgstr "نمایش همه"
+
+msgid "options_showHiddenProfilesFlyout"
+msgstr "نمایش همه"
+
+msgid "options_browseAllProfiles"
+msgstr "مرور همه"
+
+msgid "options_browseAllProfilesTitle"
+msgstr "مرور همهٔ پروفایل‌ها"
+
+msgid "options_searchProfilesPlaceholder"
+msgstr "جستجوی پروفایل‌ها"
+
+msgid "options_noProfilesMatchSearch"
+msgstr "هیچ پروفایلی با جستجوی شما مطابقت ندارد."
+
 msgid "options_navHeader_actions"
 msgstr "کنش‌ها"
 
@@ -299,6 +320,9 @@ msgstr "نمایش «افزودن قانون موقت» در منوی بازشو
 
 msgid "options_showCurrentProfileInGeneral"
 msgstr "نمایه فعلی را در صفحه تنظیمات عمومی نشان دهید."
+
+msgid "options_showRouteTrace"
+msgstr "ردیابی مسیر را در نوار کناری تنظیمات نشان بده."
 
 msgid "options_addConditionsToBottom"
 msgstr "شرایط جدید افزوده‌شده از منوی بازشو را در انتهای فهرست قرار بده."
@@ -1029,6 +1053,14 @@ msgid "options_hideFromContextMenuHelp"
 msgstr ""
 "پس از فعال‌سازی، این پروفایل به بخش پروفایل‌های پنهان در منوهای زمینهٔ "
 "پروفایل منتقل می‌شود."
+
+msgid "options_hideFromOptionsSidebar"
+msgstr "پنهان کردن از نوار کناری تنظیمات"
+
+msgid "options_hideFromOptionsSidebarHelp"
+msgstr ""
+"پس از فعال‌سازی، این پروفایل به بخش پروفایل‌های پنهان در نوار کناری "
+"تنظیمات منتقل می‌شود."
 
 msgid "options_modalHeader_replaceProfile"
 msgstr "جایگزینی پروفایل"

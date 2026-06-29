@@ -224,6 +224,27 @@ msgstr "Ayarlar"
 msgid "options_navHeader_profiles"
 msgstr "Profiller"
 
+msgid "options_navHeader_hiddenProfiles"
+msgstr "Gizli"
+
+msgid "options_showProfilesFlyout"
+msgstr "Tümünü göster"
+
+msgid "options_showHiddenProfilesFlyout"
+msgstr "Tümünü göster"
+
+msgid "options_browseAllProfiles"
+msgstr "Tümüne göz at"
+
+msgid "options_browseAllProfilesTitle"
+msgstr "Tüm profillere göz at"
+
+msgid "options_searchProfilesPlaceholder"
+msgstr "Profilleri ara"
+
+msgid "options_noProfilesMatchSearch"
+msgstr "Aramanızla eşleşen profil yok."
+
 msgid "options_navHeader_actions"
 msgstr "Hareketler"
 
@@ -231,7 +252,7 @@ msgid "options_tab_ui"
 msgstr "Arayüz"
 
 msgid "options_tab_general"
-msgstr "General"
+msgstr "Genel"
 
 msgid "options_tab_importExport"
 msgstr "İçe veya Dışa Aktar"
@@ -265,6 +286,9 @@ msgstr "Açılır menüde \"Geçici Kural Ekle\" öğesini göster."
 
 msgid "options_showCurrentProfileInGeneral"
 msgstr "Genel ayarlar sayfasında Geçerli Profil'i göster."
+
+msgid "options_showRouteTrace"
+msgstr "Ayarlar kenar çubuğunda Rota İzleme'yi göster."
 
 msgid "options_addConditionsToBottom"
 msgstr ""
@@ -914,6 +938,14 @@ msgstr "Bağlam menüsünde gizle"
 msgid "options_hideFromContextMenuHelp"
 msgstr ""
 "Etkinleştirildiğinde bu profil profil bağlam menülerindeki gizli profiller "
+"bölümüne taşınır."
+
+msgid "options_hideFromOptionsSidebar"
+msgstr "Ayarlar kenar çubuğunda gizle"
+
+msgid "options_hideFromOptionsSidebarHelp"
+msgstr ""
+"Etkinleştirildiğinde bu profil ayarlar kenar çubuğundaki gizli profiller "
 "bölümüne taşınır."
 
 msgid "options_modalHeader_replaceProfile"

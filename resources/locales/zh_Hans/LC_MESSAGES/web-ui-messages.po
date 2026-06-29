@@ -230,6 +230,27 @@ msgstr "设置"
 msgid "options_navHeader_profiles"
 msgstr "情景模式"
 
+msgid "options_navHeader_hiddenProfiles"
+msgstr "隐藏"
+
+msgid "options_showProfilesFlyout"
+msgstr "显示全部"
+
+msgid "options_showHiddenProfilesFlyout"
+msgstr "显示全部"
+
+msgid "options_browseAllProfiles"
+msgstr "浏览全部"
+
+msgid "options_browseAllProfilesTitle"
+msgstr "浏览所有情景模式"
+
+msgid "options_searchProfilesPlaceholder"
+msgstr "搜索情景模式"
+
+msgid "options_noProfilesMatchSearch"
+msgstr "没有情景模式匹配你的搜索。"
+
 msgid "options_navHeader_actions"
 msgstr "操作"
 
@@ -270,7 +291,10 @@ msgid "options_showPopupAddTempRule"
 msgstr "在弹出菜单中显示“添加临时规则”入口。"
 
 msgid "options_showCurrentProfileInGeneral"
-msgstr "在常规设置页面显示当前情景模式。"
+msgstr "在通用设置页面显示当前情景模式。"
+
+msgid "options_showRouteTrace"
+msgstr "在设置侧栏显示路由追踪。"
 
 msgid "options_addConditionsToBottom"
 msgstr "把以弹出菜单方式创建的规则添加到列表末尾。"
@@ -908,6 +932,12 @@ msgstr "在右键菜单中隐藏"
 
 msgid "options_hideFromContextMenuHelp"
 msgstr "启用后，此情景模式会移动到情景模式右键菜单的隐藏区域。"
+
+msgid "options_hideFromOptionsSidebar"
+msgstr "在设置侧栏中隐藏"
+
+msgid "options_hideFromOptionsSidebarHelp"
+msgstr "启用后，此情景模式会移动到设置侧栏的隐藏区域。"
 
 msgid "options_modalHeader_replaceProfile"
 msgstr "替换情景模式"

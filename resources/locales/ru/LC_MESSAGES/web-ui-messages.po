@@ -258,6 +258,27 @@ msgstr "Настройки"
 msgid "options_navHeader_profiles"
 msgstr "Профили"
 
+msgid "options_navHeader_hiddenProfiles"
+msgstr "Скрытые"
+
+msgid "options_showProfilesFlyout"
+msgstr "Показать все"
+
+msgid "options_showHiddenProfilesFlyout"
+msgstr "Показать все"
+
+msgid "options_browseAllProfiles"
+msgstr "Просмотреть все"
+
+msgid "options_browseAllProfilesTitle"
+msgstr "Просмотреть все профили"
+
+msgid "options_searchProfilesPlaceholder"
+msgstr "Поиск профилей"
+
+msgid "options_noProfilesMatchSearch"
+msgstr "Нет профилей, соответствующих поиску."
+
 msgid "options_navHeader_actions"
 msgstr "Действия"
 
@@ -300,7 +321,10 @@ msgid "options_showPopupAddTempRule"
 msgstr "Показывать «Добавить временное правило» во всплывающем меню."
 
 msgid "options_showCurrentProfileInGeneral"
-msgstr "Показывать Текущий профиль на странице общих настроек."
+msgstr "Показывать Текущий профиль на странице «Основные»."
+
+msgid "options_showRouteTrace"
+msgstr "Показывать трассировку маршрута на боковой панели настроек."
 
 msgid "options_addConditionsToBottom"
 msgstr ""
@@ -1049,6 +1073,14 @@ msgid "options_hideFromContextMenuHelp"
 msgstr ""
 "Если включено, этот профиль будет перемещён в раздел скрытых профилей в "
 "контекстных меню профилей."
+
+msgid "options_hideFromOptionsSidebar"
+msgstr "Скрыть на боковой панели настроек"
+
+msgid "options_hideFromOptionsSidebarHelp"
+msgstr ""
+"Если включено, этот профиль будет перемещён в раздел скрытых профилей на "
+"боковой панели настроек."
 
 msgid "options_modalHeader_replaceProfile"
 msgstr "Заменить профиль"

@@ -262,6 +262,27 @@ msgstr "Ajustes"
 msgid "options_navHeader_profiles"
 msgstr "Perfiles"
 
+msgid "options_navHeader_hiddenProfiles"
+msgstr "Ocultos"
+
+msgid "options_showProfilesFlyout"
+msgstr "Mostrar todo"
+
+msgid "options_showHiddenProfilesFlyout"
+msgstr "Mostrar todo"
+
+msgid "options_browseAllProfiles"
+msgstr "Examinar todos"
+
+msgid "options_browseAllProfilesTitle"
+msgstr "Examinar todos los perfiles"
+
+msgid "options_searchProfilesPlaceholder"
+msgstr "Buscar perfiles"
+
+msgid "options_noProfilesMatchSearch"
+msgstr "Ningún perfil coincide con tu búsqueda."
+
 msgid "options_navHeader_actions"
 msgstr "Acciones"
 
@@ -305,6 +326,9 @@ msgstr "Mostrar «Añadir regla temporal» en el menú emergente."
 
 msgid "options_showCurrentProfileInGeneral"
 msgstr "Mostrar Perfil actual en la página de configuración General."
+
+msgid "options_showRouteTrace"
+msgstr "Mostrar Traza de ruta en la barra lateral de ajustes."
 
 msgid "options_addConditionsToBottom"
 msgstr ""
@@ -1056,6 +1080,14 @@ msgid "options_hideFromContextMenuHelp"
 msgstr ""
 "Al activarlo, este perfil se moverá a la sección de perfiles ocultos de los "
 "menús contextuales de perfiles."
+
+msgid "options_hideFromOptionsSidebar"
+msgstr "Ocultar en la barra lateral de ajustes"
+
+msgid "options_hideFromOptionsSidebarHelp"
+msgstr ""
+"Al activarlo, este perfil se moverá a la sección de perfiles ocultos de la "
+"barra lateral de ajustes."
 
 msgid "options_modalHeader_replaceProfile"
 msgstr "Reemplazar Perfil"

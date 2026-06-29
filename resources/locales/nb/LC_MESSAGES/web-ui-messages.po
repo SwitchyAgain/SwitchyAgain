@@ -211,6 +211,27 @@ msgstr "Innstillinger"
 msgid "options_navHeader_profiles"
 msgstr "Profiler"
 
+msgid "options_navHeader_hiddenProfiles"
+msgstr "Skjult"
+
+msgid "options_showProfilesFlyout"
+msgstr "Vis alle"
+
+msgid "options_showHiddenProfilesFlyout"
+msgstr "Vis alle"
+
+msgid "options_browseAllProfiles"
+msgstr "Bla gjennom alle"
+
+msgid "options_browseAllProfilesTitle"
+msgstr "Bla gjennom alle profiler"
+
+msgid "options_searchProfilesPlaceholder"
+msgstr "Søk i profiler"
+
+msgid "options_noProfilesMatchSearch"
+msgstr "Ingen profiler samsvarer med søket."
+
 msgid "options_navHeader_actions"
 msgstr "Handlinger"
 
@@ -218,7 +239,7 @@ msgid "options_tab_ui"
 msgstr "Grensesnitt"
 
 msgid "options_tab_general"
-msgstr ""
+msgstr "Generelt"
 
 msgid "options_tab_importExport"
 msgstr "Importer/Exporter"
@@ -251,7 +272,10 @@ msgid "options_showPopupAddTempRule"
 msgstr "Vis «Legg til midlertidig regel» i oppsprettsmenyen."
 
 msgid "options_showCurrentProfileInGeneral"
-msgstr "Vis Gjeldende profil på siden Generelle innstillinger."
+msgstr "Vis Gjeldende profil på siden Generelt."
+
+msgid "options_showRouteTrace"
+msgstr "Vis Rutesporing i sidepanelet for innstillinger."
 
 msgid "options_addConditionsToBottom"
 msgstr "Put new conditions added using the popup menu to the bottom of the list."
@@ -917,6 +941,14 @@ msgid "options_hideFromContextMenuHelp"
 msgstr ""
 "Når dette er aktivert, flyttes denne profilen til delen for skjulte profiler "
 "i profilkontekstmenyer."
+
+msgid "options_hideFromOptionsSidebar"
+msgstr "Skjul i sidepanelet for innstillinger"
+
+msgid "options_hideFromOptionsSidebarHelp"
+msgstr ""
+"Når dette er aktivert, flyttes denne profilen til delen for skjulte profiler "
+"i sidepanelet for innstillinger."
 
 msgid "options_modalHeader_replaceProfile"
 msgstr "Erstatt profil"

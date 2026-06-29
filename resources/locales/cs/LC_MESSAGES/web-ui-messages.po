@@ -256,6 +256,27 @@ msgstr "Nastavení"
 msgid "options_navHeader_profiles"
 msgstr "Profily"
 
+msgid "options_navHeader_hiddenProfiles"
+msgstr "Skryté"
+
+msgid "options_showProfilesFlyout"
+msgstr "Zobrazit vše"
+
+msgid "options_showHiddenProfilesFlyout"
+msgstr "Zobrazit vše"
+
+msgid "options_browseAllProfiles"
+msgstr "Procházet všechny"
+
+msgid "options_browseAllProfilesTitle"
+msgstr "Procházet všechny profily"
+
+msgid "options_searchProfilesPlaceholder"
+msgstr "Hledat profily"
+
+msgid "options_noProfilesMatchSearch"
+msgstr "Žádné profily neodpovídají hledání."
+
 msgid "options_navHeader_actions"
 msgstr "Akce"
 
@@ -296,7 +317,10 @@ msgid "options_showPopupAddTempRule"
 msgstr "Zobrazit „Přidat dočasné pravidlo“ ve vyskakovacím menu."
 
 msgid "options_showCurrentProfileInGeneral"
-msgstr "Zobrazit Aktuální profil na stránce Obecná nastavení."
+msgstr "Zobrazit Aktuální profil na stránce Obecné."
+
+msgid "options_showRouteTrace"
+msgstr "Zobrazit trasování trasy v postranním panelu nastavení."
 
 msgid "options_addConditionsToBottom"
 msgstr "Put new conditions added using the popup menu to the bottom of the list."
@@ -1020,6 +1044,14 @@ msgid "options_hideFromContextMenuHelp"
 msgstr ""
 "Po zapnutí se tento profil přesune do části skrytých profilů v kontextových "
 "menu profilů."
+
+msgid "options_hideFromOptionsSidebar"
+msgstr "Skrýt v postranním panelu nastavení"
+
+msgid "options_hideFromOptionsSidebarHelp"
+msgstr ""
+"Po zapnutí se tento profil přesune do části skrytých profilů v postranním "
+"panelu nastavení."
 
 msgid "options_modalHeader_replaceProfile"
 msgstr "Nahradit profil"
