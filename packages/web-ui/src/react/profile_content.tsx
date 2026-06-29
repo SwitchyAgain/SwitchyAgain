@@ -2853,6 +2853,7 @@ export function RuleListProfile({onDownload, onProfileChange, options, profile, 
         <div className="form-group">
           <label>{message('options_ruleListMatchProfile', 'Match Profile')}</label>{' '}
           <ProfileSelect
+            inline
             name={draft.matchProfileName}
             onChange={(name) => changeField('matchProfileName', name)}
             options={options}
@@ -2862,6 +2863,7 @@ export function RuleListProfile({onDownload, onProfileChange, options, profile, 
         <div className="form-group">
           <label>{message('options_ruleListDefaultProfile', 'Default Profile')}</label>{' '}
           <ProfileSelect
+            inline
             name={draft.defaultProfileName}
             onChange={(name) => changeField('defaultProfileName', name)}
             options={options}
@@ -2954,7 +2956,7 @@ export function VirtualProfile({onReplaceProfile, onTargetChange, options, profi
         </p>
         <div className="form-group">
           <label>{message('options_virtualProfileTarget', 'Target')}</label>{' '}
-          <ProfileSelect name={targetName} onChange={changeTarget} options={options} profiles={targetProfiles} />
+          <ProfileSelect inline name={targetName} onChange={changeTarget} options={options} profiles={targetProfiles} />
         </div>
       </section>
       <section className="settings-group">
