@@ -188,6 +188,10 @@ function ProfileSectionMenuButton({
     setSubmenuOpen(true);
   }
 
+  function closeSubmenu() {
+    setSubmenuOpen(false);
+  }
+
   return (
     <span ref={rootRef} className={`options-shell-profile-menu ${open ? 'open' : ''}`}>
       <button
@@ -202,7 +206,7 @@ function ProfileSectionMenuButton({
       </button>
       {open && (
         <span className="options-shell-profile-menu-panel" role="menu" aria-label={ariaLabel}>
-          <span className="options-shell-profile-menu-entry">
+          <span className="options-shell-profile-menu-entry" onMouseLeave={closeSubmenu}>
             <button
               type="button"
               className="options-shell-profile-menu-item"

@@ -166,6 +166,12 @@ describe('options shell components', () => {
     expect(within(profilesMenu).getByRole('menuitem', {name: /proxy/}).classList.contains('active')).toBe(true);
     expect(within(profilesMenu).queryByRole('menuitem', {name: /auto/})).toBeNull();
 
+    fireEvent.mouseLeave(within(profilesControlMenu).getByRole('menuitem', {name: 'Show all'}).parentElement as HTMLElement);
+    expect(screen.queryByRole('menu', {name: 'Profiles'})).toBeNull();
+
+    fireEvent.mouseEnter(within(profilesControlMenu).getByRole('menuitem', {name: 'Show all'}));
+    profilesMenu = screen.getByRole('menu', {name: 'Profiles'});
+
     fireEvent.mouseDown(document.body);
     expect(screen.queryByRole('menu', {name: 'Profiles'})).toBeNull();
 
