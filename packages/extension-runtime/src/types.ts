@@ -104,6 +104,7 @@ export type ProfileLike = Record<string, unknown> & {
   color?: string;
   defaultProfileName?: string;
   hiddenInContextMenu?: boolean;
+  hiddenInOptions?: boolean;
   hiddenInPopup?: boolean;
   name?: string;
   profileType?: string;

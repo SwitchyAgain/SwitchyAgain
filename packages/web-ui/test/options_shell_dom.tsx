@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import React from 'react';
-import {cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {cleanup, fireEvent, render, screen, within} from '@testing-library/react';
 import {OptionsAlert, OptionsShell} from '../src/react/options_shell';
 import type {Options} from '../src/react/options_client_types';
 
@@ -107,6 +107,31 @@ describe('options shell components', () => {
     render(<OptionsShell options={optionsFixture()} showRouteTrace={false} />);
 
     expect(screen.queryByRole('link', {name: 'Route Trace'})).toBeNull();
+  });
+
+  it('keeps hidden profiles collapsed in a separate navigation group', () => {
+    const options = {
+      ...optionsFixture(),
+      '+auto': {
+        name: 'auto',
+        hiddenInOptions: true,
+        profileType: 'SwitchProfile'
+      }
+    };
+    const {container} = render(<OptionsShell appliedOptions={options} options={options} />);
+    const profileList = container.querySelector('.options-shell-profile-list') as HTMLElement;
+
+    expect(within(profileList).queryByRole('link', {name: /auto/})).toBeNull();
+    expect(within(profileList).getByRole('link', {name: /proxy/})).toBeTruthy();
+
+    const hiddenProfiles = screen.getByRole('button', {name: 'Hidden Profiles'});
+    expect(hiddenProfiles.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.queryByRole('link', {name: /auto/})).toBeNull();
+
+    fireEvent.click(hiddenProfiles);
+
+    expect(hiddenProfiles.getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByRole('link', {name: /auto/})).toBeTruthy();
   });
 
   it('shows dismissible alerts with mapped alert classes', () => {

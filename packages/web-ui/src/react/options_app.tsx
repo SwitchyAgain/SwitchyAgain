@@ -1781,6 +1781,15 @@ export function OptionsApp() {
                   }
                 })
               }
+              onOptionsSidebarHiddenChange={(hidden) =>
+                updateProfile(profile.name, (nextProfile) => {
+                  if (hidden) {
+                    nextProfile.hiddenInOptions = true;
+                  } else {
+                    delete nextProfile.hiddenInOptions;
+                  }
+                })
+              }
               onPopupHiddenChange={(hidden) =>
                 updateProfile(profile.name, (nextProfile) => {
                   if (hidden) {
@@ -1807,6 +1816,7 @@ export function OptionsApp() {
       <div className="container-fluid">
         <header className="col-lg-2 col-sm-3 side-nav">
           <OptionsShell
+            appliedOptions={savedOptions}
             currentProfileName={route.profileName || ''}
             currentState={route.name}
             generalHref={routeHref('general')}

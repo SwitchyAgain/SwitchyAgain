@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {message} from './i18n_client';
 import type {Options} from './options_client_types';
 import {Profile, ProfileInline, profilesForFilter} from './profile_widgets';
 
 export type OptionsShellProps = {
+  appliedOptions?: Options | null;
   currentProfileName?: string;
   currentState?: string;
   generalHref?: string;
@@ -80,7 +81,33 @@ function SettingsLink({
   );
 }
 
+function ProfileNavItem({
+  currentProfileName,
+  currentState,
+  onNavigate,
+  profile,
+  profileHref
+}: {
+  currentProfileName: string;
+  currentState: string;
+  onNavigate?: (state: string, params?: Record<string, string>) => void;
+  profile: Profile;
+  profileHref?: (profile: Profile) => string;
+}) {
+  return (
+    <li
+      className={`nav-profile ${currentState === 'profile' && profile.name === currentProfileName ? 'active' : ''}`}
+      data-profile-type={profile.profileType}
+    >
+      <a href={profileHref?.(profile) || '#'} onClick={(event) => navClick(event, () => onNavigate?.('profile', {name: profile.name}))}>
+        <ProfileInline profile={profile} />
+      </a>
+    </li>
+  );
+}
+
 export function OptionsShell({
+  appliedOptions,
   currentProfileName = '',
   currentState = '',
   generalHref = '#',
@@ -100,7 +127,12 @@ export function OptionsShell({
   showRouteTrace = true,
   uiHref = '#'
 }: OptionsShellProps) {
+  const [hiddenProfilesOpen, setHiddenProfilesOpen] = useState(false);
   const profiles = profilesForFilter(options, 'sorted');
+  const appliedProfiles = profilesForFilter(appliedOptions || options, 'sorted');
+  const hiddenProfileNames = new Set(appliedProfiles.filter((profile) => !!profile.hiddenInOptions).map((profile) => profile.name));
+  const visibleProfiles = profiles.filter((profile) => !hiddenProfileNames.has(profile.name));
+  const hiddenProfiles = profiles.filter((profile) => hiddenProfileNames.has(profile.name));
 
   return (
     <>
@@ -153,26 +185,60 @@ export function OptionsShell({
             onClick={() => onNavigate?.('io')}
           />
           <li className="divider" />
+        </ul>
+        <ul className="nav nav-pills nav-stacked options-shell-profile-header">
           <li className="nav-header">{message('options_navHeader_profiles', 'Profiles')}</li>
         </ul>
         <div className="options-shell-profile-list">
           <ul className="nav nav-pills nav-stacked">
-            {profiles.map((profile) => (
-              <li
+            {visibleProfiles.map((profile) => (
+              <ProfileNavItem
                 key={profile.name}
-                className={`nav-profile ${currentState === 'profile' && profile.name === currentProfileName ? 'active' : ''}`}
-                data-profile-type={profile.profileType}
-              >
-                <a
-                  href={profileHref?.(profile) || '#'}
-                  onClick={(event) => navClick(event, () => onNavigate?.('profile', {name: profile.name}))}
-                >
-                  <ProfileInline profile={profile} />
-                </a>
-              </li>
+                currentProfileName={currentProfileName}
+                currentState={currentState}
+                onNavigate={onNavigate}
+                profile={profile}
+                profileHref={profileHref}
+              />
             ))}
           </ul>
         </div>
+        {hiddenProfiles.length > 0 && (
+          <>
+            <ul className="nav nav-pills nav-stacked options-shell-hidden-profile-header">
+              <li className="nav-header">
+                <a
+                  aria-expanded={hiddenProfilesOpen}
+                  href="#"
+                  role="button"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    setHiddenProfilesOpen(!hiddenProfilesOpen);
+                  }}
+                >
+                  <span className={`glyphicon ${hiddenProfilesOpen ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right'}`} />{' '}
+                  {message('options_navHeader_hiddenProfiles', 'Hidden Profiles')}
+                </a>
+              </li>
+            </ul>
+            {hiddenProfilesOpen && (
+              <div className="options-shell-hidden-profile-list">
+                <ul className="nav nav-pills nav-stacked">
+                  {hiddenProfiles.map((profile) => (
+                    <ProfileNavItem
+                      key={profile.name}
+                      currentProfileName={currentProfileName}
+                      currentState={currentState}
+                      onNavigate={onNavigate}
+                      profile={profile}
+                      profileHref={profileHref}
+                    />
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
+        )}
         <ul className="nav nav-pills nav-stacked options-shell-actions">
           <li className="nav-new-profile">
             <a href={newProfileHref} role="button" onClick={(event) => navClick(event, onNewProfile)}>

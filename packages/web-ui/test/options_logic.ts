@@ -407,6 +407,7 @@ describe('options logic', () => {
           }
         },
         hiddenInContextMenu: true,
+        hiddenInOptions: true,
         hiddenInPopup: true,
         name: 'proxy',
         profileType: 'FixedProfile',

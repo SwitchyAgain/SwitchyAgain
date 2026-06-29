@@ -44,13 +44,15 @@ const CHROMIUM_HTTPS_URL_LIMITATION_TOOLTIP =
   'Chromium-based browsers cannot match the path or query of HTTPS or WSS URLs with URL wildcard or URL regex rules. Host conditions are unaffected.';
 
 describe('profile content components', () => {
-  it('toggles popup and context menu visibility from profile options', () => {
+  it('toggles profile visibility from profile options', () => {
     const onContextMenuHiddenChange = vi.fn();
+    const onOptionsSidebarHiddenChange = vi.fn();
     const onPopupHiddenChange = vi.fn();
 
     render(
       <ProfileShell
         onContextMenuHiddenChange={onContextMenuHiddenChange}
+        onOptionsSidebarHiddenChange={onOptionsSidebarHiddenChange}
         onPopupHiddenChange={onPopupHiddenChange}
         profile={{
           name: 'proxy',
@@ -63,6 +65,7 @@ describe('profile content components', () => {
     expect(screen.getByRole('heading', {name: 'Profile Options'})).toBeTruthy();
     expect(screen.getByText('When enabled, this profile is moved to the hidden profiles section in the popup menu.')).toBeTruthy();
     expect(screen.getByText('When enabled, this profile is moved to the hidden profiles section in profile context menus.')).toBeTruthy();
+    expect(screen.getByText('When enabled, this profile is moved to the hidden profiles section in the options sidebar.')).toBeTruthy();
 
     const popupSwitch = screen.getByRole('switch', {name: 'Hide from popup menu'}) as HTMLInputElement;
     expect(popupSwitch.checked).toBe(false);
@@ -75,6 +78,12 @@ describe('profile content components', () => {
 
     fireEvent.click(contextMenuSwitch);
     expect(onContextMenuHiddenChange).toHaveBeenCalledWith(true);
+
+    const optionsSidebarSwitch = screen.getByRole('switch', {name: 'Hide from options sidebar'}) as HTMLInputElement;
+    expect(optionsSidebarSwitch.checked).toBe(false);
+
+    fireEvent.click(optionsSidebarSwitch);
+    expect(onOptionsSidebarHiddenChange).toHaveBeenCalledWith(true);
   });
 
   it('hides profile options when profile options are disabled', () => {

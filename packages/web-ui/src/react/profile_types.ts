@@ -25,6 +25,7 @@ export type Profile = {
   builtin?: boolean;
   color?: string;
   hiddenInContextMenu?: boolean;
+  hiddenInOptions?: boolean;
   hiddenInPopup?: boolean;
   name?: string;
   profileType?: ProfileType;

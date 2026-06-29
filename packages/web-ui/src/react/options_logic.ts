@@ -231,6 +231,7 @@ function cloneDuplicatedProfile<TProfile extends NamedProfile>(profile: TProfile
   const nextProfile = cloneOptions(profile);
   nextProfile.name = name;
   delete nextProfile.hiddenInContextMenu;
+  delete nextProfile.hiddenInOptions;
   delete nextProfile.hiddenInPopup;
   delete nextProfile.revision;
   updateProfileRevision(nextProfile);

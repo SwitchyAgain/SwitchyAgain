@@ -713,6 +713,49 @@ describe('options app', () => {
     expect(window.location.hash).toBe('#/ui');
   });
 
+  it('moves options-sidebar hidden profiles only after applying changes', async () => {
+    const loadedOptions = {
+      ...optionsFixture(),
+      '-showProfileOptions': true
+    };
+    const {requests} = installBackground({
+      options: loadedOptions
+    });
+    window.location.hash = '#/profile/proxy';
+
+    const {container} = render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: /Profile :: proxy/});
+    const normalProfiles = () => container.querySelector('.options-shell-profile-list') as HTMLElement;
+    expect(within(normalProfiles()).getByRole('link', {name: /proxy/})).toBeTruthy();
+    expect(screen.queryByRole('button', {name: 'Hidden Profiles'})).toBeNull();
+
+    fireEvent.click(screen.getByRole('switch', {name: 'Hide from options sidebar'}));
+    expect(within(normalProfiles()).getByRole('link', {name: /proxy/})).toBeTruthy();
+    expect(screen.queryByRole('button', {name: 'Hidden Profiles'})).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    const hiddenProfiles = await screen.findByRole('button', {name: 'Hidden Profiles'});
+    expect(patchedOptionValue<Record<string, unknown>>(firstPatch(requests), '+proxy')).toMatchObject({
+      hiddenInOptions: true
+    });
+    expect(within(normalProfiles()).queryByRole('link', {name: /proxy/})).toBeNull();
+    expect(hiddenProfiles.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.queryByRole('link', {name: /proxy/})).toBeNull();
+
+    fireEvent.click(hiddenProfiles);
+    expect(screen.getByRole('link', {name: /proxy/})).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('switch', {name: 'Hide from options sidebar'}));
+    expect(screen.getByRole('button', {name: 'Hidden Profiles'})).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(screen.queryByRole('button', {name: 'Hidden Profiles'})).toBeNull());
+    expect(within(normalProfiles()).getByRole('link', {name: /proxy/})).toBeTruthy();
+  });
+
   it('enables profile scope settings through the top-level apply flow', async () => {
     const loadedOptions = optionsFixture();
     const {requests} = installBackground({

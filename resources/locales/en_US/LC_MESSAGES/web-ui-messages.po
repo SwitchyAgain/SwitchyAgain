@@ -253,6 +253,9 @@ msgstr "Settings"
 msgid "options_navHeader_profiles"
 msgstr "Profiles"
 
+msgid "options_navHeader_hiddenProfiles"
+msgstr "Hidden Profiles"
+
 msgid "options_navHeader_actions"
 msgstr "Actions"
 
@@ -1017,6 +1020,14 @@ msgid "options_hideFromContextMenuHelp"
 msgstr ""
 "When enabled, this profile is moved to the hidden profiles section in profile "
 "context menus."
+
+msgid "options_hideFromOptionsSidebar"
+msgstr "Hide from options sidebar"
+
+msgid "options_hideFromOptionsSidebarHelp"
+msgstr ""
+"When enabled, this profile is moved to the hidden profiles section in the "
+"options sidebar."
 
 msgid "options_modalHeader_replaceProfile"
 msgstr "Replace Profile"

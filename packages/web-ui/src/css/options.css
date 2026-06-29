@@ -628,11 +628,14 @@ h1 {
 }
 
 .options-shell-settings,
+.options-shell-profile-header,
+.options-shell-hidden-profile-header,
 .options-shell-actions {
   flex: 0 0 auto;
 }
 
-.options-shell-profile-list {
+.options-shell-profile-list,
+.options-shell-hidden-profile-list {
   flex: 0 1 auto;
   min-height: 0;
   overflow-x: hidden;
@@ -640,8 +643,30 @@ h1 {
 }
 
 .options-shell-profile-list .nav,
+.options-shell-hidden-profile-list .nav,
 .options-shell-actions {
   margin-bottom: 0;
+}
+
+.options-shell-profile-header,
+.options-shell-hidden-profile-header {
+  margin-bottom: 0;
+}
+
+.options-shell-hidden-profile-header .nav-header > a {
+  color: inherit;
+  display: block;
+  margin: -3px -15px;
+  padding: 3px 15px;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.options-shell-hidden-profile-header .nav-header > a:hover,
+.options-shell-hidden-profile-header .nav-header > a:focus {
+  background: transparent;
+  color: inherit;
+  text-decoration: none;
 }
 
 @media (max-width: 767px) {
@@ -658,7 +683,8 @@ h1 {
     display: block;
   }
 
-  .options-shell-profile-list {
+  .options-shell-profile-list,
+  .options-shell-hidden-profile-list {
     overflow: visible;
     overflow: initial;
   }
