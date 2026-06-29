@@ -74,11 +74,11 @@ const INITIAL_SWITCH_RULE_BATCH_SIZE = 15;
 const SWITCH_RULE_BATCH_SIZE = 8;
 const SWITCH_RULE_BATCH_DELAY_MS = 32;
 const CHROMIUM_HTTPS_URL_LIMITATION_INTRO =
-  'Chromium-based browsers do not expose the path or query of HTTPS requests to URL conditions.';
+  'Chromium-based browsers do not expose the path or query of HTTPS and WSS requests to URL conditions.';
 const CHROMIUM_HTTPS_URL_LIMITATION_DETAIL =
-  'URL wildcard or URL regex rules that depend on the full HTTPS URL may not match; host conditions are unaffected.';
+  'URL wildcard or URL regex rules that depend on the full HTTPS or WSS URL may not match; host conditions are unaffected.';
 const CHROMIUM_HTTPS_URL_LIMITATION_TOOLTIP =
-  'Chromium-based browsers cannot match the path or query of HTTPS URLs with URL wildcard or URL regex rules. Host conditions are unaffected.';
+  'Chromium-based browsers cannot match the path or query of HTTPS or WSS URLs with URL wildcard or URL regex rules. Host conditions are unaffected.';
 
 function shouldShowChromiumHttpsUrlInfo(proxyFeatures: ProxyFeature[] = []) {
   return proxyFeatures.includes('fullUrlHttp') && !proxyFeatures.includes('fullUrl');

@@ -155,18 +155,18 @@ msgstr ""
 
 msgid "condition_info_chromiumHttpsUrlLimitationIntro"
 msgstr ""
-"مرورگرهای مبتنی بر Chromium مسیر یا بخش پرس‌وجوی درخواست‌های HTTPS را در "
+"مرورگرهای مبتنی بر Chromium مسیر یا بخش پرس‌وجوی درخواست‌های HTTPS و WSS را در "
 "اختیار شرط‌های URL قرار نمی‌دهند."
 
 msgid "condition_info_chromiumHttpsUrlLimitationDetail"
 msgstr ""
-"قواعد wildcard یا regex نشانی که به نشانی کامل HTTPS وابسته‌اند ممکن است "
+"قواعد wildcard یا regex نشانی که به نشانی کامل HTTPS یا WSS وابسته‌اند ممکن است "
 "مطابقت نکنند؛ شرط‌های میزبان تحت تأثیر نیستند."
 
 msgid "condition_info_chromiumHttpsUrlLimitationTooltip"
 msgstr ""
-"مرورگرهای مبتنی بر Chromium نمی‌توانند مسیر یا پرس‌وجوی نشانی‌های HTTPS را "
-"با قواعد wildcard یا regex نشانی مطابقت دهند. شرط‌های میزبان تحت تأثیر "
+"مرورگرهای مبتنی بر Chromium نمی‌توانند مسیر یا پرس‌وجوی نشانی‌های HTTPS یا WSS "
+"را با قواعد wildcard یا regex نشانی مطابقت دهند. شرط‌های میزبان تحت تأثیر "
 "نیستند."
 
 msgid "condition_group_default"
@@ -1712,4 +1712,3 @@ msgstr "استفاده از نمایه برای پنجره‌های عادی"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "استفاده از نمایه برای پنجره‌های خصوصی"
-

@@ -155,18 +155,18 @@ msgstr ""
 msgid "condition_info_chromiumHttpsUrlLimitationIntro"
 msgstr ""
 "Prohlížeče založené na Chromiu neposkytují podmínkám URL cestu ani dotaz "
-"požadavků HTTPS."
+"požadavků HTTPS a WSS."
 
 msgid "condition_info_chromiumHttpsUrlLimitationDetail"
 msgstr ""
 "Pravidla se zástupnými znaky v URL nebo regulárními výrazy URL, která závisí "
-"na celé HTTPS URL, se nemusí shodovat; podmínky pro hostitele tím nejsou "
+"na celé HTTPS nebo WSS URL, se nemusí shodovat; podmínky pro hostitele tím nejsou "
 "ovlivněny."
 
 msgid "condition_info_chromiumHttpsUrlLimitationTooltip"
 msgstr ""
-"Prohlížeče založené na Chromiu nemohou porovnávat cestu ani dotaz HTTPS URL "
-"pomocí pravidel se zástupnými znaky v URL nebo regulárními výrazy URL. "
+"Prohlížeče založené na Chromiu nemohou porovnávat cestu ani dotaz HTTPS nebo "
+"WSS URL pomocí pravidel se zástupnými znaky v URL nebo regulárními výrazy URL. "
 "Podmínky pro hostitele tím nejsou ovlivněny."
 
 msgid "condition_group_default"
@@ -1696,4 +1696,3 @@ msgstr "Použít profil pro normální okna"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "Použít profil pro soukromá okna"
-

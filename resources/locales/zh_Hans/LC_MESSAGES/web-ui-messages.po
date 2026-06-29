@@ -135,13 +135,13 @@ msgstr ""
 "除了日期以外，在匹配过程中不会参考请求的网址或任何其他信息。"
 
 msgid "condition_info_chromiumHttpsUrlLimitationIntro"
-msgstr "基于 Chromium 的浏览器不会向网址条件暴露 HTTPS 请求的路径或查询部分。"
+msgstr "基于 Chromium 的浏览器不会向网址条件暴露 HTTPS 和 WSS 请求的路径或查询部分。"
 
 msgid "condition_info_chromiumHttpsUrlLimitationDetail"
-msgstr "依赖完整 HTTPS 网址的网址通配符或网址正则规则可能无法匹配；域名条件不受影响。"
+msgstr "依赖完整 HTTPS 或 WSS 网址的网址通配符或网址正则规则可能无法匹配；域名条件不受影响。"
 
 msgid "condition_info_chromiumHttpsUrlLimitationTooltip"
-msgstr "基于 Chromium 的浏览器无法使用网址通配符或网址正则规则匹配 HTTPS 网址的路径或查询部分。域名条件不受影响。"
+msgstr "基于 Chromium 的浏览器无法使用网址通配符或网址正则规则匹配 HTTPS 或 WSS 网址的路径或查询部分。域名条件不受影响。"
 
 msgid "condition_group_default"
 msgstr " "
@@ -1539,4 +1539,3 @@ msgstr "为普通窗口使用情景模式"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "为隐私窗口使用情景模式"
-

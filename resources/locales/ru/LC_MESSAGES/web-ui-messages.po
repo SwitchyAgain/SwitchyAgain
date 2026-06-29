@@ -158,17 +158,17 @@ msgstr ""
 msgid "condition_info_chromiumHttpsUrlLimitationIntro"
 msgstr ""
 "Браузеры на базе Chromium не предоставляют условиям URL путь или строку "
-"запроса HTTPS-запросов."
+"запроса HTTPS- и WSS-запросов."
 
 msgid "condition_info_chromiumHttpsUrlLimitationDetail"
 msgstr ""
 "Правила с шаблоном URL или регулярным выражением URL, зависящие от полного "
-"HTTPS URL, могут не сработать; условия хоста не затрагиваются."
+"HTTPS или WSS URL, могут не сработать; условия хоста не затрагиваются."
 
 msgid "condition_info_chromiumHttpsUrlLimitationTooltip"
 msgstr ""
 "Браузеры на базе Chromium не могут сопоставлять путь или строку запроса "
-"HTTPS URL с помощью правил с шаблоном URL или регулярным выражением URL. "
+"HTTPS или WSS URL с помощью правил с шаблоном URL или регулярным выражением URL. "
 "Условия хоста не затрагиваются."
 
 msgid "condition_group_default"
@@ -1736,4 +1736,3 @@ msgstr "Использовать профиль для обычных окон"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "Использовать профиль для приватных окон"
-

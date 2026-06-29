@@ -117,17 +117,17 @@ msgstr ""
 msgid "condition_info_chromiumHttpsUrlLimitationIntro"
 msgstr ""
 "Chromium-baserte nettlesere eksponerer ikke sti eller spørring i "
-"HTTPS-forespørsler for URL-betingelser."
+"HTTPS- og WSS-forespørsler for URL-betingelser."
 
 msgid "condition_info_chromiumHttpsUrlLimitationDetail"
 msgstr ""
 "URL-jokertegn eller URL-regulære uttrykk som er avhengige av hele "
-"HTTPS-URL-en, kan ikke samsvare; vertsbetingelser påvirkes ikke."
+"HTTPS- eller WSS-URL-en, kan ikke samsvare; vertsbetingelser påvirkes ikke."
 
 msgid "condition_info_chromiumHttpsUrlLimitationTooltip"
 msgstr ""
-"Chromium-baserte nettlesere kan ikke samsvare sti eller spørring i HTTPS-URL-"
-"er med URL-jokertegn eller URL-regulære uttrykk. Vertsbetingelser påvirkes "
+"Chromium-baserte nettlesere kan ikke samsvare sti eller spørring i HTTPS- "
+"eller WSS-URL-er med URL-jokertegn eller URL-regulære uttrykk. Vertsbetingelser påvirkes "
 "ikke."
 
 msgid "condition_group_default"
@@ -1541,4 +1541,3 @@ msgstr "Bruk profil for normale vinduer"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "Bruk profil for private vinduer"
-

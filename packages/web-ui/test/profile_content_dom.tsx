@@ -37,11 +37,11 @@ beforeEach(() => {
 });
 
 const CHROMIUM_HTTPS_URL_LIMITATION_INTRO =
-  'Chromium-based browsers do not expose the path or query of HTTPS requests to URL conditions.';
+  'Chromium-based browsers do not expose the path or query of HTTPS and WSS requests to URL conditions.';
 const CHROMIUM_HTTPS_URL_LIMITATION_DETAIL =
-  'URL wildcard or URL regex rules that depend on the full HTTPS URL may not match; host conditions are unaffected.';
+  'URL wildcard or URL regex rules that depend on the full HTTPS or WSS URL may not match; host conditions are unaffected.';
 const CHROMIUM_HTTPS_URL_LIMITATION_TOOLTIP =
-  'Chromium-based browsers cannot match the path or query of HTTPS URLs with URL wildcard or URL regex rules. Host conditions are unaffected.';
+  'Chromium-based browsers cannot match the path or query of HTTPS or WSS URLs with URL wildcard or URL regex rules. Host conditions are unaffected.';
 
 describe('profile content components', () => {
   it('toggles popup and context menu visibility from profile options', () => {
@@ -767,7 +767,7 @@ describe('profile content components', () => {
     expect(screen.queryByRole('textbox')).toBeNull();
   });
 
-  it('shows Chromium HTTPS URL condition info without a rule-table banner', () => {
+  it('shows Chromium secure URL condition info without a rule-table banner', () => {
     const {container} = render(
       <SwitchProfileStatefulContent
         loadRules
@@ -809,7 +809,7 @@ describe('profile content components', () => {
     expect(container.querySelector('.icon-wrapper[href]')).toBeNull();
   });
 
-  it('hides Chromium HTTPS URL condition info when full URLs are available', () => {
+  it('hides Chromium secure URL condition info when full URLs are available', () => {
     const {container} = render(
       <SwitchProfileStatefulContent
         loadRules

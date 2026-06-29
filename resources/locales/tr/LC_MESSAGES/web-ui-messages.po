@@ -129,19 +129,19 @@ msgstr ""
 
 msgid "condition_info_chromiumHttpsUrlLimitationIntro"
 msgstr ""
-"Chromium tabanlı tarayıcılar HTTPS isteklerinin yolunu veya sorgusunu URL "
+"Chromium tabanlı tarayıcılar HTTPS ve WSS isteklerinin yolunu veya sorgusunu URL "
 "koşullarına sunmaz."
 
 msgid "condition_info_chromiumHttpsUrlLimitationDetail"
 msgstr ""
-"Tam HTTPS URL'sine bağlı URL joker karakteri veya URL düzenli ifade kuralları "
-"eşleşmeyebilir; sunucu koşulları etkilenmez."
+"Tam HTTPS veya WSS URL'sine bağlı URL joker karakteri veya URL düzenli ifade "
+"kuralları eşleşmeyebilir; sunucu koşulları etkilenmez."
 
 msgid "condition_info_chromiumHttpsUrlLimitationTooltip"
 msgstr ""
-"Chromium tabanlı tarayıcılar HTTPS URL'lerinin yolunu veya sorgusunu URL "
-"joker karakteri ya da URL düzenli ifade kurallarıyla eşleştiremez. Sunucu "
-"koşulları etkilenmez."
+"Chromium tabanlı tarayıcılar HTTPS veya WSS URL'lerinin yolunu veya sorgusunu "
+"URL joker karakteri ya da URL düzenli ifade kurallarıyla eşleştiremez. "
+"Sunucu koşulları etkilenmez."
 
 msgid "condition_group_default"
 msgstr " "
@@ -1537,4 +1537,3 @@ msgstr "Normal pencereler için profil kullan"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "Gizli pencereler için profil kullan"
-

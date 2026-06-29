@@ -130,13 +130,13 @@ msgstr ""
 "期X：如果星期X被勾選，則比對所有請求。否則不比對任何請求。<br>除了日期以外，在比對過程中不會參考請求的網址或任何其他資訊。"
 
 msgid "condition_info_chromiumHttpsUrlLimitationIntro"
-msgstr "Chromium 系瀏覽器不會向網址條件暴露 HTTPS 請求的路徑或查詢部分。"
+msgstr "Chromium 系瀏覽器不會向網址條件暴露 HTTPS 和 WSS 請求的路徑或查詢部分。"
 
 msgid "condition_info_chromiumHttpsUrlLimitationDetail"
-msgstr "依賴完整 HTTPS 網址的網址萬用字元或網址正規表示式規則可能無法比對；網域條件不受影響。"
+msgstr "依賴完整 HTTPS 或 WSS 網址的網址萬用字元或網址正規表示式規則可能無法比對；網域條件不受影響。"
 
 msgid "condition_info_chromiumHttpsUrlLimitationTooltip"
-msgstr "Chromium 系瀏覽器無法使用網址萬用字元或網址正規表示式規則比對 HTTPS 網址的路徑或查詢部分。網域條件不受影響。"
+msgstr "Chromium 系瀏覽器無法使用網址萬用字元或網址正規表示式規則比對 HTTPS 或 WSS 網址的路徑或查詢部分。網域條件不受影響。"
 
 msgid "condition_group_default"
 msgstr " "
@@ -1526,4 +1526,3 @@ msgstr "為一般視窗使用情境模式"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "為隱私視窗使用情境模式"
-
