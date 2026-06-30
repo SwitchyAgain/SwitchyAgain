@@ -6,7 +6,6 @@ import type {
   ProfileAuth,
   ProxyAuthCapabilities,
   ProxyDnsCapabilities,
-  FixedProfileProxyProtocol,
   Profile as ProfileModel,
   RuleListProfileModel
 } from './profile_types';

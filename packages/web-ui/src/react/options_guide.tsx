@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useWindowEvent} from './dom_event_hooks';
 import {message} from './i18n_client';
 
@@ -267,12 +267,12 @@ export function OptionsGuide({
   const contentNodes = useMemo(() => renderGuideContent(content), [content]);
   const nowrapContent = guide.kind === 'options';
 
-  function updatePosition() {
+  const updatePosition = useCallback(() => {
     if (!targetRef.current || !step) {
       return;
     }
     setPosition(positionForTarget(targetRef.current, step, popoverRef.current));
-  }
+  }, [step]);
 
   useWindowEvent('resize', updatePosition, undefined, !!step);
   useWindowEvent('scroll', updatePosition, true, !!step);
@@ -322,7 +322,7 @@ export function OptionsGuide({
       document.body.classList.remove('options-guide-active');
       document.body.removeAttribute('data-options-guide-step');
     };
-  }, [step]);
+  }, [step, updatePosition]);
 
   useEffect(() => {
     const target = targetRef.current;
@@ -330,7 +330,7 @@ export function OptionsGuide({
       return;
     }
     setPosition(positionForTarget(target, step, popoverRef.current));
-  }, [content, step]);
+  }, [content, step, updatePosition]);
 
   if (!step) {
     return null;

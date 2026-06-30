@@ -265,12 +265,6 @@ type BackgroundExtensionRuntime = {
 
   Promise.longStackTraces();
 
-  function actionApi(): ChromeActionApi {
-    let legacyKey = 'browser';
-    legacyKey += 'Action';
-    return (chrome.action || chrome[legacyKey]) as ChromeActionApi;
-  }
-
   ExtensionRuntimeCurrent.Log = Object.create(ExtensionRuntimeCurrent.Log);
 
   const Log = ExtensionRuntimeCurrent.Log;

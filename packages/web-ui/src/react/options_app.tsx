@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import {About} from './about';
 import {clearWindowTimeout, closeWindow, locationHash, setLocationHash, setWindowTimeout} from './browser_env';
@@ -137,7 +137,6 @@ import type {
   ProfileAuthKey,
   ProxyAuthCapabilities,
   ProxyDnsCapabilities,
-  ProfileType,
   PacProfileField,
   RuleListProfileAttachedField,
   RuleListProfileField,
@@ -357,20 +356,23 @@ function ModalFrame({children, onDismiss}: {children: React.ReactNode; onDismiss
 
 function useHashRoute() {
   const [route, setRoute] = useState(() => parseRoute(locationHash()));
-  function updateRoute(nextRoute = parseRoute(locationHash()), opts?: {remember?: boolean}) {
+  const updateRoute = useCallback((nextRoute = parseRoute(locationHash()), opts?: {remember?: boolean}) => {
     setRoute(nextRoute);
     if (opts?.remember !== false) {
       lastUrl(routeHref(nextRoute.name, nextRoute.profileName ? {name: nextRoute.profileName} : undefined).replace(/^#/, ''));
     }
-  }
-  function syncRoute() {
+  }, []);
+  const syncRoute = useCallback(() => {
     updateRoute();
-  }
-  function navigateRoute(name: RouteName, params?: Record<string, string>) {
-    const href = routeHref(name, params);
-    setLocationHash(href);
-    updateRoute(parseRoute(href));
-  }
+  }, [updateRoute]);
+  const navigateRoute = useCallback(
+    (name: RouteName, params?: Record<string, string>) => {
+      const href = routeHref(name, params);
+      setLocationHash(href);
+      updateRoute(parseRoute(href));
+    },
+    [updateRoute]
+  );
   useWindowEvent('hashchange', syncRoute);
 
   useEffect(() => {
@@ -392,7 +394,7 @@ function useHashRoute() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [syncRoute, updateRoute]);
   return {navigateRoute, route};
 }
 
@@ -649,20 +651,26 @@ export function OptionsApp() {
     () => visibleProfileScopes(savedOptions, profileScopeCapabilities),
     [savedOptions, profileScopeCapabilities]
   );
+  const navigate = useCallback(
+    (name: string, params?: Record<string, string>) => {
+      navigateRoute(name as RouteName, params);
+    },
+    [navigateRoute]
+  );
 
   useEffect(() => {
     if (status !== 'ready' || route.name !== 'profileScope' || showProfileScope) {
       return;
     }
     navigate('ui');
-  }, [route.name, showProfileScope, status]);
+  }, [navigate, route.name, showProfileScope, status]);
 
   useEffect(() => {
     if (status !== 'ready' || route.name !== 'routeTrace' || showRouteTrace) {
       return;
     }
     navigate('ui');
-  }, [route.name, showRouteTrace, status]);
+  }, [navigate, route.name, showRouteTrace, status]);
 
   useEffect(() => {
     if (status !== 'ready' || !appliedVisibleProfileScopes.container) {
@@ -1536,10 +1544,6 @@ export function OptionsApp() {
         stepIndex: current.stepIndex + 1
       };
     });
-  }
-
-  function navigate(name: string, params?: Record<string, string>) {
-    navigateRoute(name as RouteName, params);
   }
 
   function requestNavigate(name: string, params?: Record<string, string>) {
