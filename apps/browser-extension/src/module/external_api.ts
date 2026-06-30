@@ -24,18 +24,18 @@ type ExternalMessage = {
 
 type ExternalResponse =
   | {
-    action: 'error';
-    action_name?: string;
-    error: 'noSuchAction' | 'permission';
-  }
+      action: 'error';
+      action_name?: string;
+      error: 'noSuchAction' | 'permission';
+    }
   | {
-    action: 'options';
-    options: unknown;
-  }
+      action: 'options';
+      options: unknown;
+    }
   | {
-    action: 'state';
-    state: 'disabled' | 'enabled';
-  };
+      action: 'state';
+      state: 'disabled' | 'enabled';
+    };
 
 type ExternalPort = ChromePort & {
   postMessage: (message: Record<string, unknown>) => void;

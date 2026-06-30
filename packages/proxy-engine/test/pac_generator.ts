@@ -1,7 +1,7 @@
 import assert from 'assert';
 import * as PacGenerator from '../src/pac_generator';
 
-describe('PacGenerator', function() {
+describe('PacGenerator', function () {
   let options;
   options = {
     '+auto': {
@@ -16,20 +16,23 @@ describe('PacGenerator', function() {
             conditionType: 'UrlRegexCondition',
             pattern: '^http://(www|www2)\\.example\\.com/'
           }
-        }, {
+        },
+        {
           profileName: 'direct',
           condition: {
             conditionType: 'HostLevelsCondition',
             minValue: 3,
             maxValue: 8
           }
-        }, {
+        },
+        {
           profileName: 'proxy',
           condition: {
             conditionType: 'KeywordCondition',
             pattern: 'keyword'
           }
-        }, {
+        },
+        {
           profileName: 'proxy',
           condition: {
             conditionType: 'UrlWildcardCondition',
@@ -51,17 +54,19 @@ describe('PacGenerator', function() {
         {
           conditionType: 'BypassCondition',
           pattern: '127.0.0.1:8080'
-        }, {
+        },
+        {
           conditionType: 'BypassCondition',
           pattern: '127.0.0.1'
-        }, {
+        },
+        {
           conditionType: 'BypassCondition',
           pattern: '<local>'
         }
       ]
     }
   };
-  it('should generate pac scripts from options', function() {
+  it('should generate pac scripts from options', function () {
     let ast, func, pac, result;
     ast = PacGenerator.script(options, 'auto');
     pac = ast.print_to_string({
@@ -69,20 +74,20 @@ describe('PacGenerator', function() {
       comments: true
     });
     assert.notStrictEqual(pac, '');
-    func = eval("(function () { " + pac + "\n return FindProxyForURL; })()");
+    func = eval('(function () { ' + pac + '\n return FindProxyForURL; })()');
     result = func('http://www.example.com/', 'www.example.com');
     return assert.strictEqual(result, 'PROXY 127.0.0.1:8888');
   });
-  it('should be able to compress pac scripts', function() {
+  it('should be able to compress pac scripts', function () {
     let ast, func, pac, result;
     ast = PacGenerator.script(options, 'auto');
     pac = (PacGenerator.compress(ast) as any).print_to_string();
     assert.notStrictEqual(pac, '');
-    func = eval("(function () { " + pac + "\n return FindProxyForURL; })()");
+    func = eval('(function () { ' + pac + '\n return FindProxyForURL; })()');
     result = func('http://www.example.com/', 'www.example.com');
     return assert.strictEqual(result, 'PROXY 127.0.0.1:8888');
   });
-  it('should only match URL path rules when the browser provides the full URL', function() {
+  it('should only match URL path rules when the browser provides the full URL', function () {
     const pathOptions = {
       '+auto': {
         name: 'auto',
@@ -133,7 +138,7 @@ describe('PacGenerator', function() {
     };
     const ast = PacGenerator.script(pathOptions, 'auto');
     const pac = (PacGenerator.compress(ast) as any).print_to_string();
-    const func = eval("(function () { " + pac + "\n return FindProxyForURL; })()");
+    const func = eval('(function () { ' + pac + '\n return FindProxyForURL; })()');
 
     assert.strictEqual(func('http://example.com/path?a=1', 'example.com'), 'PROXY 127.0.0.1:8888');
     assert.strictEqual(func('https://example.com/path?a=1', 'example.com'), 'PROXY 127.0.0.1:8888');

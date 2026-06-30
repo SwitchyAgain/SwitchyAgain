@@ -7,7 +7,7 @@ import {assertCalledOnce, assertCalledTwice, assertCalledWith, spyOn, stubOn} fr
 
 const slice = [].slice;
 
-describe('OptionsSync', function() {
+describe('OptionsSync', function () {
   let Log: any,
     OptionsSync: any,
     Storage: any,
@@ -16,35 +16,35 @@ describe('OptionsSync', function() {
   OptionsSync = OptionsSyncClass;
   Storage = StorageClass;
   Log = LogClass;
-  beforeAll(function() {
+  beforeAll(function () {
     return stubOn(Log, 'log');
   });
-  afterAll(function() {
+  afterAll(function () {
     return Log.log.restore();
   });
-  hookPostBasic = function(func: (...args: any[]) => any, hook: (...args: any[]) => any): (...args: any[]) => any {
-    return function(this: any, ...args: any[]): any {
+  hookPostBasic = function (func: (...args: any[]) => any, hook: (...args: any[]) => any): (...args: any[]) => any {
+    return function (this: any, ...args: any[]): any {
       let result;
       result = func.apply(this, args);
       hook.apply(this, args);
       return result;
     };
   };
-  hookPost = function(...hookArgs: any[]): any {
+  hookPost = function (...hookArgs: any[]): any {
     let args: any[], func, hook, method, obj;
     args = 1 <= hookArgs.length ? slice.call(hookArgs, 0) : [];
     if (args.length === 2) {
-      func = args[0], hook = args[1];
+      ((func = args[0]), (hook = args[1]));
       return hookPostBasic(func, hook);
     } else {
-      obj = args[0], method = args[1], hook = args[2];
-      return obj[method] = hookPostBasic(obj[method], hook);
+      ((obj = args[0]), (method = args[1]), (hook = args[2]));
+      return (obj[method] = hookPostBasic(obj[method], hook));
     }
   };
-  describe('#merge', function() {
+  describe('#merge', function () {
     let sync;
     sync = new OptionsSync();
-    it('should choose the one with newer revision', function() {
+    it('should choose the one with newer revision', function () {
       let newVal, oldVal;
       newVal = {
         revision: '2'
@@ -54,7 +54,7 @@ describe('OptionsSync', function() {
       };
       return assert.strictEqual(sync.merge('example', newVal, oldVal), newVal);
     });
-    it('should use oldVal when sync is disabled in newVal', function() {
+    it('should use oldVal when sync is disabled in newVal', function () {
       let newVal, oldVal;
       newVal = {
         revision: '2',
@@ -67,7 +67,7 @@ describe('OptionsSync', function() {
       };
       return assert.strictEqual(sync.merge('example', newVal, oldVal), oldVal);
     });
-    it('should use oldVal when sync is disabled in oldVal', function() {
+    it('should use oldVal when sync is disabled in oldVal', function () {
       let newVal, oldVal;
       newVal = {
         revision: '2',
@@ -80,7 +80,7 @@ describe('OptionsSync', function() {
       };
       return assert.strictEqual(sync.merge('example', newVal, oldVal), oldVal);
     });
-    it('should favor oldVal when revisions are equal', function() {
+    it('should favor oldVal when revisions are equal', function () {
       let newVal, oldVal;
       newVal = {
         revision: '1',
@@ -92,7 +92,7 @@ describe('OptionsSync', function() {
       };
       return assert.strictEqual(sync.merge('example', newVal, oldVal), oldVal);
     });
-    it('should favor oldVal when newVal deeply equals oldVal', function() {
+    it('should favor oldVal when newVal deeply equals oldVal', function () {
       let newVal, oldVal;
       newVal = {
         they: 'are',
@@ -104,7 +104,7 @@ describe('OptionsSync', function() {
       };
       return assert.strictEqual(sync.merge('example', newVal, oldVal), oldVal);
     });
-    it('should choose newVal when newVal is different', function() {
+    it('should choose newVal when newVal is different', function () {
       let newVal, oldVal;
       newVal = {
         they: 'are',
@@ -117,14 +117,14 @@ describe('OptionsSync', function() {
       return assert.strictEqual(sync.merge('example', newVal, oldVal), newVal);
     });
   });
-  describe('#requestPush', function() {
+  describe('#requestPush', function () {
     let unlimited;
     unlimited = new OptionsSync.TokenBucket({
       bucketSize: 0,
       tokensPerInterval: 0,
       interval: 'minute'
     });
-    it('should store pendingChanges', function() {
+    it('should store pendingChanges', function () {
       let sync;
       sync = new OptionsSync();
       sync.enabled = false;
@@ -135,10 +135,10 @@ describe('OptionsSync', function() {
         a: 1
       });
     });
-    it('should schedule storage write', function() {
+    it('should schedule storage write', function () {
       return new Promise<void>((resolve, reject) => {
         let check: () => void, storage: any, sync: any;
-        check = function(): void {
+        check = function (): void {
           if (storage.set.callCount === 0 || storage.remove.callCount === 0) {
             return;
           }
@@ -170,10 +170,10 @@ describe('OptionsSync', function() {
         });
       });
     });
-    it('should combine multiple write operations', function() {
+    it('should combine multiple write operations', function () {
       return new Promise<void>((resolve, reject) => {
         let check: () => void, storage: any, sync: any;
-        check = function(): void {
+        check = function (): void {
           if (storage.set.callCount === 0 || storage.remove.callCount === 0) {
             return;
           }
@@ -224,7 +224,7 @@ describe('OptionsSync', function() {
         });
       });
     });
-    it('should disable syncing for the profiles if quota is exceeded', function() {
+    it('should disable syncing for the profiles if quota is exceeded', function () {
       return new Promise<void>((resolve, reject) => {
         let options: any, storage: any, sync: any;
         options = {
@@ -237,7 +237,7 @@ describe('OptionsSync', function() {
           }
         };
         storage = new Storage();
-        storage.set = function(changes: Record<string, any>) {
+        storage.set = function (changes: Record<string, any>) {
           let err, key, value;
           for (key in changes) {
             value = changes[key];
@@ -270,8 +270,8 @@ describe('OptionsSync', function() {
       });
     });
   });
-  describe('#copyTo', function() {
-    it('should fetch all items from remote storage', function() {
+  describe('#copyTo', function () {
+    it('should fetch all items from remote storage', function () {
       return new Promise<void>((resolve, reject) => {
         let remote: any, storage: any, sync: any;
         remote = new Storage();
@@ -281,7 +281,7 @@ describe('OptionsSync', function() {
           c: 3
         });
         storage = new Storage();
-        hookPost(storage, 'set', function() {
+        hookPost(storage, 'set', function () {
           try {
             assertCalledOnce(storage.set);
             assertCalledWith(storage.set, {
@@ -299,10 +299,10 @@ describe('OptionsSync', function() {
         sync.copyTo(storage).catch(reject);
       });
     });
-    it('should merge with local as base', function() {
+    it('should merge with local as base', function () {
       return new Promise<void>((resolve, reject) => {
         let check: () => void, remote: any, storage: any, sync: any;
-        check = function(): void {
+        check = function (): void {
           if (storage.set.callCount === 0 || storage.remove.callCount === 0) {
             return;
           }
@@ -341,11 +341,11 @@ describe('OptionsSync', function() {
       });
     });
   });
-  describe('#watchAndPull', function() {
-    it('should pull changes into local when remote changes', function() {
+  describe('#watchAndPull', function () {
+    it('should pull changes into local when remote changes', function () {
       return new Promise<void>((resolve, reject) => {
         let check: () => void, remote: any, storage: any, sync: any;
-        check = function(): void {
+        check = function (): void {
           if (storage.set.callCount === 0 || storage.remove.callCount === 0) {
             return;
           }
@@ -364,8 +364,8 @@ describe('OptionsSync', function() {
           }
         };
         remote = new Storage();
-        hookPost(remote, 'watch', function(_: any, callback: any) {
-          return setTimeout((function() {
+        hookPost(remote, 'watch', function (_: any, callback: any) {
+          return setTimeout(function () {
             callback({
               a: 1
             });
@@ -378,7 +378,7 @@ describe('OptionsSync', function() {
             return callback({
               d: void 0
             });
-          }), 10);
+          }, 10);
         });
         spyOn(remote, 'watch');
         storage = new Storage();

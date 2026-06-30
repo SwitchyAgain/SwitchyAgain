@@ -1,11 +1,6 @@
 import ExtensionRuntime from '@switchyagain/extension-runtime';
 import {NETWORK_REQUEST_URLS} from '../network_request_urls';
-import type {
-  ProxyAuthEndpoint,
-  ProxyCredentials,
-  ProxyLog,
-  ProxyProfile
-} from './proxy_types';
+import type {ProxyAuthEndpoint, ProxyCredentials, ProxyLog, ProxyProfile} from './proxy_types';
 
 const ProxyEngine = ExtensionRuntime.ProxyEngine;
 
@@ -56,9 +51,13 @@ class ProxyAuth {
       this.log.error('Proxy auth disabled! onAuthRequired not available.');
       return;
     }
-    chrome.webRequest.onAuthRequired.addListener(this.authHandler.bind(this), {
-      urls: NETWORK_REQUEST_URLS
-    }, ['asyncBlocking']);
+    chrome.webRequest.onAuthRequired.addListener(
+      this.authHandler.bind(this),
+      {
+        urls: NETWORK_REQUEST_URLS
+      },
+      ['asyncBlocking']
+    );
     chrome.webRequest.onCompleted.addListener(this._requestDone.bind(this), {
       urls: NETWORK_REQUEST_URLS
     });
@@ -106,10 +105,12 @@ class ProxyAuth {
       }
       const fallback = profile.auth?.all;
       if (fallback != null) {
-        results.push(this._fallbacks.push({
-          auth: fallback,
-          name: `${profile.name}.all`
-        }));
+        results.push(
+          this._fallbacks.push({
+            auth: fallback,
+            name: `${profile.name}.all`
+          })
+        );
       } else {
         results.push(undefined);
       }
@@ -139,9 +140,7 @@ class ProxyAuth {
     });
     const list = this._proxies[key];
     const listLen = list != null ? list.length : 0;
-    const proxy = req.authTries < listLen
-      ? list[req.authTries]
-      : this._fallbacks[req.authTries - listLen];
+    const proxy = req.authTries < listLen ? list[req.authTries] : this._fallbacks[req.authTries - listLen];
     this.log.log('ProxyAuth', key, req.authTries, proxy?.name);
     if (proxy == null) {
       return respond({});

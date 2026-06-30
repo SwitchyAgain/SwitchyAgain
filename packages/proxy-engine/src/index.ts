@@ -18,13 +18,7 @@ for (const name of Object.keys(utilExports)) {
   proxyEngine[name] = utilExports[name];
 }
 
-export {
-  Conditions,
-  PacGenerator,
-  Profiles,
-  RuleList,
-  ShexpUtils
-};
+export {Conditions, PacGenerator, Profiles, RuleList, ShexpUtils};
 
 export * from './utils';
 

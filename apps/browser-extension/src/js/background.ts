@@ -125,11 +125,7 @@ type BackgroundTabBadge = {
 
 type BackgroundTabs = {
   processTab(tab: ChromeTab): unknown;
-  resetAll(details: {
-    icon: BackgroundIcon | null;
-    shortTitle: string;
-    title: string;
-  }): unknown;
+  resetAll(details: {icon: BackgroundIcon | null; shortTitle: string; title: string}): unknown;
   setTabBadge(tab: ChromeTab, badge: BackgroundTabBadge): unknown;
   watch(): unknown;
 };
@@ -214,11 +210,7 @@ type BackgroundMatchCondition = Record<string, unknown> & {
 
 type BackgroundMatchConditionSource = BackgroundMatchCondition | string | unknown[];
 
-type BackgroundMatchTuple = [
-  result: unknown,
-  condition?: BackgroundMatchConditionSource | null,
-  ...rest: unknown[]
-];
+type BackgroundMatchTuple = [result: unknown, condition?: BackgroundMatchConditionSource | null, ...rest: unknown[]];
 
 type BackgroundMatchRule = Record<string, unknown> & {
   condition?: unknown;
@@ -260,7 +252,7 @@ type BackgroundExtensionRuntime = {
   };
 };
 
-(function() {
+(function () {
   const hasProp = {}.hasOwnProperty;
 
   const BrowserExtensionRuntimeModule = BrowserExtensionRuntime as unknown as BackgroundExtensionRuntime & {
@@ -285,9 +277,9 @@ type BackgroundExtensionRuntime = {
 
   function writeLogToLocalStorage(content: string) {
     try {
-      return localStorage['log'] += content;
+      return (localStorage['log'] += content);
     } catch (_) {
-      return localStorage['log'] = content;
+      return (localStorage['log'] = content);
     }
   }
 
@@ -416,7 +408,7 @@ type BackgroundExtensionRuntime = {
       }
       icon = null;
     }
-    return iconCache[cacheKey] = icon;
+    return (iconCache[cacheKey] = icon);
   }
 
   const charCodeUnderscore = '_'.charCodeAt(0);
@@ -486,132 +478,135 @@ type BackgroundExtensionRuntime = {
   let proxyImpl: BackgroundProxyImpl;
 
   function actionForUrl(tab: ChromeTab, url: string) {
-    return options.ready.then(() => {
-      const request = ProxyEngine.Conditions.requestFromUrl(url);
-      const profileScope = options.getProfileScopeInfo({
-        cookieStoreId: tab.cookieStoreId,
-        groupId: tab.groupId,
-        incognito: tab.incognito,
-        tabId: tab.id,
-        windowId: tab.windowId
-      });
-      const scopeMarker = profileScopeMarker(profileScope.effectiveScope);
-      const match = scopeMarker && profileScope.effectiveProfileName
-        ? options.matchProfileFromProfileName(profileScope.effectiveProfileName, request)
-        : options.matchProfile(request);
-      return match.then((result) => ({
-        ...result,
-        profileScope,
-        scopeMarker
-      }));
-    }).then((arg) => {
-      const profile = arg.profile;
-      const profileScope = arg.profileScope;
-      const results = arg.results;
-      const scopeMarker = arg.scopeMarker;
-      let current = scopeMarker && profileScope.effectiveProfileName
-        ? options.profile(profileScope.effectiveProfileName)
-        : options.currentProfile() as BackgroundProfile;
-      let currentName = dispName(current.name);
-      let realCurrentName: string | undefined;
-      if (current.profileType === 'VirtualProfile') {
-        realCurrentName = current.defaultProfileName;
-        currentName += ` [${dispName(realCurrentName)}]`;
-        current = options.profile(realCurrentName) as BackgroundProfile;
-      }
-      let details = '';
-      let direct = false;
-      let attached = false;
-      const condition2Str = (condition: unknown): string => {
-        return isRecord(condition) && condition.pattern != null
-          ? String(condition.pattern)
-          : ProxyEngine.Conditions.str(condition);
-      };
-      for (let i = 0, len = results.length; i < len; i++) {
-        const result = results[i];
-        let condition: string;
-        if (Array.isArray(result)) {
-          if (result[1] == null) {
-            attached = false;
-            let name = String(result[0]);
-            if (name[0] === '+') {
-              name = name.substring(1);
-            }
-            if (isHidden(name)) {
-              attached = true;
-            } else if (name !== realCurrentName) {
-              details += chrome.i18n.getMessage('browserAction_defaultRuleDetails');
-              details += ` => ${dispName(name)}\n`;
-            }
-          } else if (result[1].length === 0) {
-            if (result[0] === 'DIRECT') {
-              details += chrome.i18n.getMessage('browserAction_directResult');
-              details += '\n';
-              direct = true;
-            } else {
-              details += `${result[0]}\n`;
-            }
-          } else if (typeof result[1] === 'string') {
-            details += `${result[1]} => ${result[0]}\n`;
-          } else {
-            const source = result[1];
-            condition = condition2Str(isRecord(source) && source.condition != null ? source.condition : source);
-            details += `${condition} => `;
-            if (result[0] === 'DIRECT') {
-              details += chrome.i18n.getMessage('browserAction_directResult');
-              details += '\n';
-              direct = true;
-            } else {
-              details += `${result[0]}\n`;
-            }
-          }
-        } else if (result.profileName) {
-          if (result.isTempRule) {
-            details += chrome.i18n.getMessage('browserAction_tempRulePrefix');
-          } else if (attached) {
-            details += chrome.i18n.getMessage('browserAction_attachedPrefix');
-            attached = false;
-          }
-          condition = result.source != null ? String(result.source) : condition2Str(result.condition);
-          details += `${condition} => ${dispName(stringOrUndefined(result.profileName))}\n`;
+    return options.ready
+      .then(() => {
+        const request = ProxyEngine.Conditions.requestFromUrl(url);
+        const profileScope = options.getProfileScopeInfo({
+          cookieStoreId: tab.cookieStoreId,
+          groupId: tab.groupId,
+          incognito: tab.incognito,
+          tabId: tab.id,
+          windowId: tab.windowId
+        });
+        const scopeMarker = profileScopeMarker(profileScope.effectiveScope);
+        const match =
+          scopeMarker && profileScope.effectiveProfileName
+            ? options.matchProfileFromProfileName(profileScope.effectiveProfileName, request)
+            : options.matchProfile(request);
+        return match.then((result) => ({
+          ...result,
+          profileScope,
+          scopeMarker
+        }));
+      })
+      .then((arg) => {
+        const profile = arg.profile;
+        const profileScope = arg.profileScope;
+        const results = arg.results;
+        const scopeMarker = arg.scopeMarker;
+        let current =
+          scopeMarker && profileScope.effectiveProfileName
+            ? options.profile(profileScope.effectiveProfileName)
+            : (options.currentProfile() as BackgroundProfile);
+        let currentName = dispName(current.name);
+        let realCurrentName: string | undefined;
+        if (current.profileType === 'VirtualProfile') {
+          realCurrentName = current.defaultProfileName;
+          currentName += ` [${dispName(realCurrentName)}]`;
+          current = options.profile(realCurrentName) as BackgroundProfile;
         }
-      }
-      if (!details) {
-        details = stringOrUndefined(options.printProfile(current)) || '';
-      }
-      if (scopeMarker) {
-        details = profileScopeTitleLine(profileScope, scopeMarker) + details;
-      }
-      let resultColor = profile.color;
-      let profileColor = current.color;
-      let icon = null;
-      if (direct) {
-        resultColor = stringOrUndefined(options.profile('direct').color);
-        profileColor = profile.color;
-      } else if (profile.name === current.name && (scopeMarker ? staticProfile(current) : options.isCurrentProfileStatic())) {
-        resultColor = profileColor = profile.color;
-        icon = drawIcon(profile.color, undefined, scopeMarker);
-      } else {
-        resultColor = profile.color;
-        profileColor = current.color;
-      }
-      if (icon == null) {
-        icon = drawIcon(resultColor, profileColor, scopeMarker);
-      }
-      let shortTitle = 'Again: ' + currentName;
-      if (profile.name !== currentName) {
-        shortTitle += ' => ' + profile.name;
-      }
-      return {
-        title: chrome.i18n.getMessage('browserAction_titleWithResult', [currentName, dispName(profile.name), details]),
-        shortTitle,
-        icon,
-        resultColor,
-        profileColor
-      };
-    }).catch((): null => {
-      return null;
-    });
+        let details = '';
+        let direct = false;
+        let attached = false;
+        const condition2Str = (condition: unknown): string => {
+          return isRecord(condition) && condition.pattern != null ? String(condition.pattern) : ProxyEngine.Conditions.str(condition);
+        };
+        for (let i = 0, len = results.length; i < len; i++) {
+          const result = results[i];
+          let condition: string;
+          if (Array.isArray(result)) {
+            if (result[1] == null) {
+              attached = false;
+              let name = String(result[0]);
+              if (name[0] === '+') {
+                name = name.substring(1);
+              }
+              if (isHidden(name)) {
+                attached = true;
+              } else if (name !== realCurrentName) {
+                details += chrome.i18n.getMessage('browserAction_defaultRuleDetails');
+                details += ` => ${dispName(name)}\n`;
+              }
+            } else if (result[1].length === 0) {
+              if (result[0] === 'DIRECT') {
+                details += chrome.i18n.getMessage('browserAction_directResult');
+                details += '\n';
+                direct = true;
+              } else {
+                details += `${result[0]}\n`;
+              }
+            } else if (typeof result[1] === 'string') {
+              details += `${result[1]} => ${result[0]}\n`;
+            } else {
+              const source = result[1];
+              condition = condition2Str(isRecord(source) && source.condition != null ? source.condition : source);
+              details += `${condition} => `;
+              if (result[0] === 'DIRECT') {
+                details += chrome.i18n.getMessage('browserAction_directResult');
+                details += '\n';
+                direct = true;
+              } else {
+                details += `${result[0]}\n`;
+              }
+            }
+          } else if (result.profileName) {
+            if (result.isTempRule) {
+              details += chrome.i18n.getMessage('browserAction_tempRulePrefix');
+            } else if (attached) {
+              details += chrome.i18n.getMessage('browserAction_attachedPrefix');
+              attached = false;
+            }
+            condition = result.source != null ? String(result.source) : condition2Str(result.condition);
+            details += `${condition} => ${dispName(stringOrUndefined(result.profileName))}\n`;
+          }
+        }
+        if (!details) {
+          details = stringOrUndefined(options.printProfile(current)) || '';
+        }
+        if (scopeMarker) {
+          details = profileScopeTitleLine(profileScope, scopeMarker) + details;
+        }
+        let resultColor = profile.color;
+        let profileColor = current.color;
+        let icon = null;
+        if (direct) {
+          resultColor = stringOrUndefined(options.profile('direct').color);
+          profileColor = profile.color;
+        } else if (profile.name === current.name && (scopeMarker ? staticProfile(current) : options.isCurrentProfileStatic())) {
+          resultColor = profileColor = profile.color;
+          icon = drawIcon(profile.color, undefined, scopeMarker);
+        } else {
+          resultColor = profile.color;
+          profileColor = current.color;
+        }
+        if (icon == null) {
+          icon = drawIcon(resultColor, profileColor, scopeMarker);
+        }
+        let shortTitle = 'Again: ' + currentName;
+        if (profile.name !== currentName) {
+          shortTitle += ' => ' + profile.name;
+        }
+        return {
+          title: chrome.i18n.getMessage('browserAction_titleWithResult', [currentName, dispName(profile.name), details]),
+          shortTitle,
+          icon,
+          resultColor,
+          profileColor
+        };
+      })
+      .catch((): null => {
+        return null;
+      });
   }
 
   const storage = new ExtensionRuntimeCurrent.Storage('local');
@@ -620,8 +615,8 @@ type BackgroundExtensionRuntime = {
 
   let sync: BackgroundSync | undefined;
   if (
-    (typeof chrome !== "undefined" && chrome !== null && chrome.storage?.sync) ||
-    (typeof browser !== "undefined" && browser !== null && browser.storage?.sync)
+    (typeof chrome !== 'undefined' && chrome !== null && chrome.storage?.sync) ||
+    (typeof browser !== 'undefined' && browser !== null && browser.storage?.sync)
   ) {
     const syncStorage = new ExtensionRuntimeCurrent.Storage('sync');
     sync = new ExtensionRuntimeCurrent.OptionsSync(syncStorage) as BackgroundSync;
@@ -662,8 +657,8 @@ type BackgroundExtensionRuntime = {
     let internal = false;
     let noRevert = false;
     switch (details['levelOfControl']) {
-      case "controlled_by_other_extensions":
-      case "not_controllable":
+      case 'controlled_by_other_extensions':
+      case 'not_controllable':
         const reason = details['levelOfControl'] === 'not_controllable' ? 'policy' : 'app';
         options.setProxyNotControllable(reason);
         noRevert = true;
@@ -762,33 +757,40 @@ type BackgroundExtensionRuntime = {
     if (!options._options['-refreshOnProfileChange']) {
       return;
     }
-    return chrome.tabs.query({
-      active: true,
-      lastFocusedWindow: true
-    }, (tabs) => {
-      const tab = tabs[0];
-      if (tab?.id == null) {
-        return;
+    return chrome.tabs.query(
+      {
+        active: true,
+        lastFocusedWindow: true
+      },
+      (tabs) => {
+        const tab = tabs[0];
+        if (tab?.id == null) {
+          return;
+        }
+        const url = options.getMonitoredTabUrl(tab.id, backgroundTabUrl(tab));
+        if (!url) {
+          return;
+        }
+        if (url.substring(0, 6) === 'chrome') {
+          return;
+        }
+        if (url.substring(0, 6) === 'about:') {
+          return;
+        }
+        if (url.substring(0, 4) === 'moz-') {
+          return;
+        }
+        return chrome.tabs.reload(
+          tab.id,
+          {
+            bypassCache: true
+          },
+          () => {
+            chrome.runtime.lastError;
+          }
+        );
       }
-      const url = options.getMonitoredTabUrl(tab.id, backgroundTabUrl(tab));
-      if (!url) {
-        return;
-      }
-      if (url.substring(0, 6) === 'chrome') {
-        return;
-      }
-      if (url.substring(0, 6) === 'about:') {
-        return;
-      }
-      if (url.substring(0, 4) === 'moz-') {
-        return;
-      }
-      return chrome.tabs.reload(tab.id, {
-        bypassCache: true
-      }, () => {
-        chrome.runtime.lastError;
-      });
-    });
+    );
   }
 
   const optionsHandoffPorts: Record<number, OptionsHandoffPortEntry> = {};
@@ -858,10 +860,12 @@ type BackgroundExtensionRuntime = {
       handoffId,
       sourceTabId: tabId
     };
-    if (!postOptionsHandoffMessage(tabId, {
-      handoffId,
-      type: 'optionsHandoffLock'
-    })) {
+    if (
+      !postOptionsHandoffMessage(tabId, {
+        handoffId,
+        type: 'optionsHandoffLock'
+      })
+    ) {
       delete optionsHandoffs[handoffId];
       throw new Error('Unable to lock the existing settings page.');
     }
@@ -904,11 +908,13 @@ type BackgroundExtensionRuntime = {
         clearOptionsHandoffCallbacks(handoff);
         reject(new Error('Timed out waiting for the existing settings page.'));
       }, 30000);
-      if (!postOptionsHandoffMessage(handoff.sourceTabId, {
-        action,
-        handoffId,
-        type: 'optionsHandoffResolve'
-      })) {
+      if (
+        !postOptionsHandoffMessage(handoff.sourceTabId, {
+          action,
+          handoffId,
+          type: 'optionsHandoffResolve'
+        })
+      ) {
         clearOptionsHandoffCallbacks(handoff);
         reject(new Error('Unable to reach the existing settings page.'));
       }
@@ -1095,63 +1101,71 @@ type BackgroundExtensionRuntime = {
       return;
     }
     const typedRequest = backgroundRequest as BackgroundRequest;
-    readinessForRequest(typedRequest).then(() => {
-      const dispatch = resolveBackgroundDispatch(backgroundRequest);
-      if (!dispatch) {
-        Log.error(`No such method ${backgroundRequest.method}!`);
-        respond({
-          error: {
-            reason: 'noSuchMethod'
-          }
-        });
-        return;
-      }
-      const promise = Promise.resolve().then(() => {
-        return dispatch.method.apply(dispatch.target, backgroundRequest.args || []);
-      });
-      if (backgroundRequest.noReply) {
-        return promise.then(() => {
-          if (backgroundRequest.refreshActivePage) {
-            return refreshActivePageIfEnabled();
-          }
-        }, (error: unknown) => {
-          return Log.error(backgroundRequest.method + ' ==>', error);
-        });
-      }
-      return promise.then((result: unknown) => {
-        if (backgroundRequest.refreshActivePage) {
-          refreshActivePageIfEnabled();
+    readinessForRequest(typedRequest).then(
+      () => {
+        const dispatch = resolveBackgroundDispatch(backgroundRequest);
+        if (!dispatch) {
+          Log.error(`No such method ${backgroundRequest.method}!`);
+          respond({
+            error: {
+              reason: 'noSuchMethod'
+            }
+          });
+          return;
         }
-        let responseResult: unknown = result;
-        if (backgroundRequest.method === 'updateProfile' && isRecord(result)) {
-          const encodedResult: Record<string, unknown> = {};
-          for (const key in result) {
-            if (!hasProp.call(result, key)) continue;
-            const value = result[key];
-            encodedResult[key] = encodeError(value);
-          }
-          responseResult = encodedResult;
-        }
-        return respond({
-          result: responseResult
+        const promise = Promise.resolve().then(() => {
+          return dispatch.method.apply(dispatch.target, backgroundRequest.args || []);
         });
-      }, (error: unknown) => {
+        if (backgroundRequest.noReply) {
+          return promise.then(
+            () => {
+              if (backgroundRequest.refreshActivePage) {
+                return refreshActivePageIfEnabled();
+              }
+            },
+            (error: unknown) => {
+              return Log.error(backgroundRequest.method + ' ==>', error);
+            }
+          );
+        }
+        return promise.then(
+          (result: unknown) => {
+            if (backgroundRequest.refreshActivePage) {
+              refreshActivePageIfEnabled();
+            }
+            let responseResult: unknown = result;
+            if (backgroundRequest.method === 'updateProfile' && isRecord(result)) {
+              const encodedResult: Record<string, unknown> = {};
+              for (const key in result) {
+                if (!hasProp.call(result, key)) continue;
+                const value = result[key];
+                encodedResult[key] = encodeError(value);
+              }
+              responseResult = encodedResult;
+            }
+            return respond({
+              result: responseResult
+            });
+          },
+          (error: unknown) => {
+            Log.error(backgroundRequest.method + ' ==>', error);
+            return respond({
+              error: encodeError(error)
+            });
+          }
+        );
+      },
+      (error: unknown) => {
         Log.error(backgroundRequest.method + ' ==>', error);
-        return respond({
-          error: encodeError(error)
-        });
-      });
-    }, (error: unknown) => {
-      Log.error(backgroundRequest.method + ' ==>', error);
-      if (!backgroundRequest.noReply) {
-        respond({
-          error: encodeError(error)
-        });
+        if (!backgroundRequest.noReply) {
+          respond({
+            error: encodeError(error)
+          });
+        }
       }
-    });
+    );
     if (!backgroundRequest.noReply) {
       return true;
     }
   });
-
 }).call(this);

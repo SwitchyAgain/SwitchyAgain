@@ -116,12 +116,7 @@ type TabInfo = {
 };
 
 type RequestCallback = (status: RequestStatus, req: RequestInfo) => unknown;
-type TabCallback = (
-  tabId: number,
-  info: TabInfo,
-  req: RequestInfo | null,
-  status: RequestStatus | 'updated'
-) => unknown;
+type TabCallback = (tabId: number, info: TabInfo, req: RequestInfo | null, status: RequestStatus | 'updated') => unknown;
 
 function shouldResetTabInfoForUpdatedUrl(url?: string) {
   if (!url) {
@@ -332,9 +327,7 @@ class WebRequestMonitor {
       if (tabId == null) {
         return;
       }
-      const info = this.tabInfo[tabId] != null
-        ? this.tabInfo[tabId]
-        : this.tabInfo[tabId] = this._newTabInfo();
+      const info = this.tabInfo[tabId] != null ? this.tabInfo[tabId] : (this.tabInfo[tabId] = this._newTabInfo());
       if (shouldResetTabInfoForUpdatedUrl(changeInfo.url)) {
         this.resetTabInfo(info, this._newTabInfo());
       }
@@ -347,9 +340,7 @@ class WebRequestMonitor {
         if (tab.id == null) {
           return undefined;
         }
-        return this.tabInfo[tab.id] != null
-          ? this.tabInfo[tab.id]
-          : this.tabInfo[tab.id] = this._newTabInfo();
+        return this.tabInfo[tab.id] != null ? this.tabInfo[tab.id] : (this.tabInfo[tab.id] = this._newTabInfo());
       });
     });
   }

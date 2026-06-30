@@ -39,14 +39,6 @@ for (const name of Object.keys(omegaTarget)) {
   }
 }
 
-export {
-  ChromeTabs,
-  ExternalApi,
-  Options,
-  Storage,
-  Url,
-  WebRequestMonitor,
-  proxy
-};
+export {ChromeTabs, ExternalApi, Options, Storage, Url, WebRequestMonitor, proxy};
 
 export default chromiumTarget;

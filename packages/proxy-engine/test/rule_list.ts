@@ -1,12 +1,11 @@
 import assert from 'assert';
 import * as RuleList from '../src/rule_list';
 
-
-describe('RuleList', function() {
-  describe('AutoProxy', function() {
+describe('RuleList', function () {
+  describe('AutoProxy', function () {
     let parse;
     parse = RuleList['AutoProxy'].parse;
-    it('should parse keyword conditions', function() {
+    it('should parse keyword conditions', function () {
       let line, result;
       line = 'example.com';
       result = parse(line, 'match', 'notmatch');
@@ -20,7 +19,7 @@ describe('RuleList', function() {
         }
       });
     });
-    it('should parse keyword conditions with asterisks', function() {
+    it('should parse keyword conditions with asterisks', function () {
       let line, result;
       line = 'example*.com';
       result = parse(line, 'match', 'notmatch');
@@ -34,7 +33,7 @@ describe('RuleList', function() {
         }
       });
     });
-    it('should parse host conditions', function() {
+    it('should parse host conditions', function () {
       let line, result;
       line = '||example.com';
       result = parse(line, 'match', 'notmatch');
@@ -48,7 +47,7 @@ describe('RuleList', function() {
         }
       });
     });
-    it('should parse "starts-with" conditions', function() {
+    it('should parse "starts-with" conditions', function () {
       let line, result;
       line = '|https://ssl.example.com';
       result = parse(line, 'match', 'notmatch');
@@ -62,7 +61,7 @@ describe('RuleList', function() {
         }
       });
     });
-    it('should parse "starts-with" conditions for the HTTP scheme', function() {
+    it('should parse "starts-with" conditions for the HTTP scheme', function () {
       let line, result;
       line = '|http://example.com';
       result = parse(line, 'match', 'notmatch');
@@ -76,7 +75,7 @@ describe('RuleList', function() {
         }
       });
     });
-    it('should parse url regex conditions', function() {
+    it('should parse url regex conditions', function () {
       let line, result;
       line = '/^https?:\\/\\/[^\\/]+example\.com/';
       result = parse(line, 'match', 'notmatch');
@@ -90,12 +89,12 @@ describe('RuleList', function() {
         }
       });
     });
-    it('should ignore comment lines', function() {
+    it('should ignore comment lines', function () {
       let result;
       result = parse('!example.com', 'match', 'notmatch');
       return assert.strictEqual(result.length, 0);
     });
-    it('should parse multiple lines', function() {
+    it('should parse multiple lines', function () {
       let result;
       result = parse('example.com\n!comment\n||example.com', 'match', 'notmatch');
       assert.strictEqual(result.length, 2);
@@ -116,7 +115,7 @@ describe('RuleList', function() {
         }
       });
     });
-    it('should put exclusive rules first', function() {
+    it('should put exclusive rules first', function () {
       let result;
       result = parse('example.com\n@@||example.com', 'match', 'notmatch');
       assert.strictEqual(result.length, 2);
@@ -138,30 +137,30 @@ describe('RuleList', function() {
       });
     });
   });
-  describe('Switchy', function() {
+  describe('Switchy', function () {
     let compose, parse;
     parse = RuleList['Switchy'].parse;
-    compose = function(sections: Record<string, string[]>): string {
+    compose = function (sections: Record<string, string[]>): string {
       let i, len, list, rule, rules, sec;
       list = '#BEGIN\r\n\r\n';
       for (sec in sections) {
         rules = sections[sec];
-        list += "[" + sec + "]\r\n";
+        list += '[' + sec + ']\r\n';
         for (i = 0, len = rules.length; i < len; i++) {
           rule = rules[i];
           list += rule;
           list += '\r\n';
         }
       }
-      return list += '\r\n\r\n#END\r\n';
+      return (list += '\r\n\r\n#END\r\n');
     };
-    it('should parse empty rule lists', function() {
+    it('should parse empty rule lists', function () {
       let list, result;
       list = compose({});
       result = parse(list, 'match', 'notmatch');
       return assert.strictEqual(result.length, 0);
     });
-    it('should ignore stuff before #BEGIN or after #END.', function() {
+    it('should ignore stuff before #BEGIN or after #END.', function () {
       let list, result;
       list = compose({});
       list += '[RegExp]\r\ntest\r\n';
@@ -169,10 +168,10 @@ describe('RuleList', function() {
       result = parse(list, 'match', 'notmatch');
       return assert.strictEqual(result.length, 0);
     });
-    it('should parse wildcard rules', function() {
+    it('should parse wildcard rules', function () {
       let list, result;
       list = compose({
-        'Wildcard': ['*://example.com/abc/*']
+        Wildcard: ['*://example.com/abc/*']
       });
       result = parse(list, 'match', 'notmatch');
       assert.strictEqual(result.length, 1);
@@ -185,10 +184,10 @@ describe('RuleList', function() {
         }
       });
     });
-    it('should parse RegExp rules', function() {
+    it('should parse RegExp rules', function () {
       let list, result;
       list = compose({
-        'RegExp': ['^http://www\.example\.com/.*']
+        RegExp: ['^http://www\.example\.com/.*']
       });
       result = parse(list, 'match', 'notmatch');
       assert.strictEqual(result.length, 1);
@@ -201,10 +200,10 @@ describe('RuleList', function() {
         }
       });
     });
-    it('should parse exclusive rules', function() {
+    it('should parse exclusive rules', function () {
       let list, result;
       list = compose({
-        'RegExp': ['!^http://www\.example\.com/.*']
+        RegExp: ['!^http://www\.example\.com/.*']
       });
       result = parse(list, 'match', 'notmatch');
       assert.strictEqual(result.length, 1);
@@ -217,11 +216,11 @@ describe('RuleList', function() {
         }
       });
     });
-    it('should parse multiple rules in multiple sections', function() {
+    it('should parse multiple rules in multiple sections', function () {
       let list, result;
       list = compose({
-        'Wildcard': ['http://www.example.com/*', 'http://example.com/*'],
-        'RegExp': ['^http://www\.example\.com/.*', '^http://example\.com/.*']
+        Wildcard: ['http://www.example.com/*', 'http://example.com/*'],
+        RegExp: ['^http://www\.example\.com/.*', '^http://example\.com/.*']
       });
       result = parse(list, 'match', 'notmatch');
       assert.strictEqual(result.length, 4);
@@ -258,11 +257,11 @@ describe('RuleList', function() {
         }
       });
     });
-    it('should put exclusive rules first', function() {
+    it('should put exclusive rules first', function () {
       let list, result;
       list = compose({
-        'Wildcard': ['http://www\.example\.com/*'],
-        'RegExp': ['!^http://www\.example\.com/.*']
+        Wildcard: ['http://www\.example\.com/*'],
+        RegExp: ['!^http://www\.example\.com/.*']
       });
       result = parse(list, 'match', 'notmatch');
       assert.strictEqual(result.length, 2);
@@ -284,11 +283,11 @@ describe('RuleList', function() {
       });
     });
   });
-  describe('Switchy (omega format)', function() {
+  describe('Switchy (omega format)', function () {
     let compose, parse;
     parse = RuleList['Switchy'].parse;
     compose = RuleList['Switchy'].compose;
-    it('should parse empty rule lists', function() {
+    it('should parse empty rule lists', function () {
       let list, result;
       list = compose({
         rules: []
@@ -296,7 +295,7 @@ describe('RuleList', function() {
       result = parse(list, 'match', 'notmatch');
       return assert.strictEqual(result.length, 0);
     });
-    it('should ignore comment lines.', function() {
+    it('should ignore comment lines.', function () {
       let list, result;
       list = compose({
         rules: []
@@ -305,7 +304,7 @@ describe('RuleList', function() {
       result = parse(list, 'match', 'notmatch');
       return assert.strictEqual(result.length, 0);
     });
-    it('should compose and parse HostWildcardCondition', function() {
+    it('should compose and parse HostWildcardCondition', function () {
       let list, result, rule;
       rule = {
         source: '*.example.com',
@@ -323,7 +322,7 @@ describe('RuleList', function() {
       assert.strictEqual(result.length, 1);
       return assert.deepStrictEqual(result[0], rule);
     });
-    it('should compose and parse HostRegexCondition', function() {
+    it('should compose and parse HostRegexCondition', function () {
       let list, result, rule;
       rule = {
         source: 'HostRegex: ^http://www\.example\.com/.*',
@@ -341,7 +340,7 @@ describe('RuleList', function() {
       assert.strictEqual(result.length, 1);
       return assert.deepStrictEqual(result[0], rule);
     });
-    it('should compose and parse disabled rules', function() {
+    it('should compose and parse disabled rules', function () {
       let list, result, rule;
       rule = {
         source: 'Disabled: *.example.com',
@@ -359,7 +358,7 @@ describe('RuleList', function() {
       assert.strictEqual(result.length, 1);
       return assert.deepStrictEqual(result[0], rule);
     });
-    it('should compose and parse exclusive rules', function() {
+    it('should compose and parse exclusive rules', function () {
       let list, result, rule;
       rule = {
         source: '!*.example.com',
@@ -377,7 +376,7 @@ describe('RuleList', function() {
       assert.strictEqual(result.length, 1);
       return assert.deepStrictEqual(result[0], rule);
     });
-    it('should compose and parse conditions starting with special chars', function() {
+    it('should compose and parse conditions starting with special chars', function () {
       let list, result, rule;
       rule = {
         source: ': ;abc',
@@ -395,7 +394,7 @@ describe('RuleList', function() {
       assert.strictEqual(result.length, 1);
       return assert.deepStrictEqual(result[0], rule);
     });
-    it('should parse multiple conditions', function() {
+    it('should parse multiple conditions', function () {
       let list, result, rules;
       rules = [
         {
@@ -405,7 +404,8 @@ describe('RuleList', function() {
             pattern: '*.example.com'
           },
           profileName: 'match'
-        }, {
+        },
+        {
           source: '*.example.org',
           condition: {
             conditionType: 'HostWildcardCondition',
@@ -421,7 +421,7 @@ describe('RuleList', function() {
       result = parse(list, 'match', 'notmatch');
       return assert.deepStrictEqual(result, rules);
     });
-    it('should respect the top-down order of conditions', function() {
+    it('should respect the top-down order of conditions', function () {
       let list, result, rules;
       rules = [
         {
@@ -431,7 +431,8 @@ describe('RuleList', function() {
             pattern: 'b.example.com'
           },
           profileName: 'match'
-        }, {
+        },
+        {
           source: '!a.example.org',
           condition: {
             conditionType: 'HostWildcardCondition',
@@ -447,14 +448,17 @@ describe('RuleList', function() {
       result = parse(list, 'match', 'notmatch');
       return assert.deepStrictEqual(result, rules);
     });
-    it('should add a default rule when results are enabled', function() {
+    it('should add a default rule when results are enabled', function () {
       let list, result;
-      list = compose({
-        rules: [],
-        defaultProfileName: 'notmatch'
-      }, {
-        withResult: true
-      });
+      list = compose(
+        {
+          rules: [],
+          defaultProfileName: 'notmatch'
+        },
+        {
+          withResult: true
+        }
+      );
       assert.ok(list.split(/\r|\n/).indexOf('@with result') >= 0);
       result = parse(list, 'ignored', 'alsoIgnored');
       assert.strictEqual(result.length, 1);
@@ -467,7 +471,7 @@ describe('RuleList', function() {
         profileName: 'notmatch'
       });
     });
-    it('should compose and parse conditions with results', function() {
+    it('should compose and parse conditions with results', function () {
       let list, result, rules;
       rules = [
         {
@@ -477,7 +481,8 @@ describe('RuleList', function() {
             pattern: 'b.example.com'
           },
           profileName: 'abc'
-        }, {
+        },
+        {
           source: 'a.example.org',
           condition: {
             conditionType: 'HostWildcardCondition',
@@ -486,12 +491,15 @@ describe('RuleList', function() {
           profileName: 'def'
         }
       ];
-      list = compose({
-        rules: rules,
-        defaultProfileName: 'ghi'
-      }, {
-        withResult: true
-      });
+      list = compose(
+        {
+          rules: rules,
+          defaultProfileName: 'ghi'
+        },
+        {
+          withResult: true
+        }
+      );
       result = parse(list, 'ignored', 'alsoIgnored');
       rules.push({
         source: '*',
@@ -503,7 +511,7 @@ describe('RuleList', function() {
       });
       return assert.deepStrictEqual(result, rules);
     });
-    it('should compose and parse exclusive conditions with results', function() {
+    it('should compose and parse exclusive conditions with results', function () {
       let list, result, rules;
       rules = [
         {
@@ -513,7 +521,8 @@ describe('RuleList', function() {
             pattern: 'b.example.com'
           },
           profileName: 'default profile'
-        }, {
+        },
+        {
           source: 'a.example.org',
           condition: {
             conditionType: 'HostWildcardCondition',
@@ -522,13 +531,16 @@ describe('RuleList', function() {
           profileName: 'some profile'
         }
       ];
-      list = compose({
-        rules: rules,
-        defaultProfileName: 'default profile'
-      }, {
-        withResult: true,
-        useExclusive: true
-      });
+      list = compose(
+        {
+          rules: rules,
+          defaultProfileName: 'default profile'
+        },
+        {
+          withResult: true,
+          useExclusive: true
+        }
+      );
       result = parse(list, 'ignored', 'alsoIgnored');
       rules.push({
         source: '*',

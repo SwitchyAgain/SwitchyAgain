@@ -71,20 +71,12 @@ interface ChromeRuntimeApi {
   lastError?: ChromeLastError;
   onConnect: ChromeEvent<(port: ChromeRuntimePort) => void>;
   onConnectExternal?: ChromeEvent<(port: ChromeRuntimePort) => void>;
-  onMessage: ChromeEvent<(
-    message: unknown,
-    sender: unknown,
-    respond: (...args: unknown[]) => void
-  ) => void>;
+  onMessage: ChromeEvent<(message: unknown, sender: unknown, respond: (...args: unknown[]) => void) => void>;
   getManifest(): ChromeManifest;
   getURL(path: string): string;
   reload(): void;
   sendMessage<T = unknown>(message: unknown, responseCallback?: (response: T) => void): void;
-  sendMessage<T = unknown>(
-    extensionId: string,
-    message: unknown,
-    responseCallback?: (response: T) => void
-  ): void;
+  sendMessage<T = unknown>(extensionId: string, message: unknown, responseCallback?: (response: T) => void): void;
   [key: string]: unknown;
 }
 
@@ -93,11 +85,7 @@ interface BrowserRuntimeApi {
   lastError?: ChromeLastError;
   onConnect: ChromeEvent<(port: ChromeRuntimePort) => void>;
   onConnectExternal?: ChromeEvent<(port: ChromeRuntimePort) => void>;
-  onMessage: ChromeEvent<(
-    message: unknown,
-    sender: unknown,
-    respond: (...args: unknown[]) => void
-  ) => void>;
+  onMessage: ChromeEvent<(message: unknown, sender: unknown, respond: (...args: unknown[]) => void) => void>;
   getManifest(): ChromeManifest;
   getURL(path: string): string;
   reload(): void;
@@ -129,11 +117,7 @@ interface ChromeTabsApi {
   get(tabId: number, callback: (tab: ChromeTab) => void): void;
   query(queryInfo: Record<string, unknown>, callback: (tabs: ChromeTab[]) => void): void;
   reload(tabId?: number, callback?: (...args: unknown[]) => void): void;
-  reload(
-    tabId?: number,
-    reloadProperties?: Record<string, unknown>,
-    callback?: (...args: unknown[]) => void
-  ): void;
+  reload(tabId?: number, reloadProperties?: Record<string, unknown>, callback?: (...args: unknown[]) => void): void;
   update(tabId: number | undefined, properties: Record<string, unknown>, callback?: (...args: unknown[]) => void): void;
   onActivated: ChromeEvent<(info: {tabId: number; windowId?: number}) => void>;
   onCreated: ChromeEvent<(tab: ChromeTab) => void>;
@@ -200,10 +184,7 @@ interface BrowserStorageArea {
 interface ChromeStorageApi {
   local: ChromeStorageArea;
   sync: ChromeStorageArea;
-  onChanged: ChromeEvent<(
-    changes: Record<string, {newValue?: unknown; oldValue?: unknown}>,
-    areaName: string
-  ) => void>;
+  onChanged: ChromeEvent<(changes: Record<string, {newValue?: unknown; oldValue?: unknown}>, areaName: string) => void>;
   [areaName: string]: unknown;
 }
 
@@ -214,10 +195,12 @@ interface BrowserStorageApi {
 }
 
 interface ChromeWebRequestApi {
-  onAuthRequired?: ChromeEvent<(
-    details: ChromeWebRequestAuthDetails,
-    callback?: (response: {authCredentials?: {password?: string; username?: string}}) => void
-  ) => unknown>;
+  onAuthRequired?: ChromeEvent<
+    (
+      details: ChromeWebRequestAuthDetails,
+      callback?: (response: {authCredentials?: {password?: string; username?: string}}) => void
+    ) => unknown
+  >;
   onBeforeRedirect: ChromeEvent<(details: ChromeWebRequestDetails) => unknown>;
   onBeforeRequest: ChromeEvent<(details: ChromeWebRequestDetails) => unknown>;
   onCompleted: ChromeEvent<(details: ChromeWebRequestDetails) => unknown>;
@@ -242,14 +225,9 @@ interface ChromeProxyApi {
 interface BrowserProxyApi {
   onError: ChromeEvent<(error: unknown) => void>;
   onProxyError: ChromeEvent<(error: {message?: string}) => void>;
-  onRequest: ChromeEvent<(details: {
-    cookieStoreId?: string;
-    groupId?: number;
-    incognito?: boolean;
-    tabId?: number;
-    url: string;
-    windowId?: number;
-  }) => unknown>;
+  onRequest: ChromeEvent<
+    (details: {cookieStoreId?: string; groupId?: number; incognito?: boolean; tabId?: number; url: string; windowId?: number}) => unknown
+  >;
   register?(scriptUrl: string): Promise<unknown> | void;
   registerProxyScript(scriptUrl: string): Promise<unknown> | void;
   unregister?(): Promise<unknown> | void;
@@ -368,21 +346,14 @@ interface RuntimePromise<T = unknown> extends Promise<T> {
 
 interface RuntimePromiseStatic {
   new <T = unknown>(
-    executor: (
-      resolve: (value?: T | PromiseLike<T>) => void,
-      reject: (reason?: unknown) => void
-    ) => void
+    executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: unknown) => void) => void
   ): RuntimePromise<T>;
   all<T>(values: Array<T | PromiseLike<T>>): RuntimePromise<T[]>;
   promisify(fn: unknown): DynamicGlobalValue;
   reject<T = never>(reason?: unknown): RuntimePromise<T>;
   resolve<T = unknown>(value?: T | PromiseLike<T>): RuntimePromise<T>;
   try<T = unknown>(fn: () => T | PromiseLike<T>): RuntimePromise<T>;
-  join<A, B, R>(
-    a: A | PromiseLike<A>,
-    b: B | PromiseLike<B>,
-    handler: (a: A, b: B) => R
-  ): RuntimePromise<R>;
+  join<A, B, R>(a: A | PromiseLike<A>, b: B | PromiseLike<B>, handler: (a: A, b: B) => R): RuntimePromise<R>;
   [key: string]: unknown;
 }
 
@@ -596,18 +567,17 @@ interface PopupBridgeApi {
   openManage(domain?: string, profileName?: string, cb?: PopupApiCallback): void;
   openOptions(hash?: string | null, cb?: PopupApiCallback): void;
   setDefaultProfile(profileName: string, defaultProfileName: string, cb?: PopupApiCallback): void;
-  setProfileScope(args: {
-    cookieStoreId?: string;
-    incognito?: boolean;
-    profileName?: string;
-    scope: 'container' | 'group' | 'normal' | 'private' | 'tab';
-    tabId?: number;
-  }, cb?: PopupApiCallback): void;
-  setState(
-    name: PopupApiWritableStateKey,
-    value: PopupApiState[PopupApiWritableStateKey],
+  setProfileScope(
+    args: {
+      cookieStoreId?: string;
+      incognito?: boolean;
+      profileName?: string;
+      scope: 'container' | 'group' | 'normal' | 'private' | 'tab';
+      tabId?: number;
+    },
     cb?: PopupApiCallback
   ): void;
+  setState(name: PopupApiWritableStateKey, value: PopupApiState[PopupApiWritableStateKey], cb?: PopupApiCallback): void;
 }
 
 type ProxyFindFunction = (url: string, host: string, details?: unknown) => unknown;
@@ -633,7 +603,10 @@ declare module '@switchyagain/extension-runtime' {
 
 declare module 'buffer' {
   export const Buffer: {
-    from(value: string, encoding?: string): {
+    from(
+      value: string,
+      encoding?: string
+    ): {
       toString(encoding?: string): string;
     };
   };

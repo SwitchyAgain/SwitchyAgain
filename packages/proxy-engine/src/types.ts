@@ -134,11 +134,6 @@ export type PacGeneratorOptions = {
   profileNotFound?: unknown;
 };
 
-export type PacResultTuple = [
-  result: string,
-  source?: unknown,
-  proxy?: ProxyServer,
-  auth?: ProfileAuth
-];
+export type PacResultTuple = [result: string, source?: unknown, proxy?: ProxyServer, auth?: ProfileAuth];
 
 export type ProfileMatchResult = SwitchRule | PacResultTuple | undefined;

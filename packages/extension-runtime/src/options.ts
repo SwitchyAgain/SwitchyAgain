@@ -27,7 +27,7 @@ class ProfileNotExistError extends Error {
   profileName: string;
 
   constructor(profileName: string) {
-    super("Profile " + profileName + " does not exist!");
+    super('Profile ' + profileName + ' does not exist!');
     this.name = 'ProfileNotExistError';
     this.profileName = profileName;
     Object.setPrototypeOf(this, ProfileNotExistError.prototype);
@@ -127,11 +127,13 @@ function profileScopeSettingsEqual(left: ProfileScopeSettings, right: unknown) {
     return false;
   }
   const validKeys = new Set(['tab', 'group', 'container', 'window']);
-  return left.tab === right.tab &&
+  return (
+    left.tab === right.tab &&
     left.group === right.group &&
     left.container === right.container &&
     left.window === right.window &&
-    Object.keys(right).every((key) => validKeys.has(key));
+    Object.keys(right).every((key) => validKeys.has(key))
+  );
 }
 
 function profileScopeAssignmentsEqual(left: ProfileScopeAssignments, right: unknown) {
@@ -155,7 +157,8 @@ function contextMenuOptionsEqual(left: ContextMenuOptions, right: unknown) {
     'linkProfileNewWindow',
     'linkProfileNewPrivateWindow'
   ]);
-  return left.switchProfile === right.switchProfile &&
+  return (
+    left.switchProfile === right.switchProfile &&
     left.tabProfile === right.tabProfile &&
     left.groupProfile === right.groupProfile &&
     left.containerProfile === right.containerProfile &&
@@ -163,7 +166,8 @@ function contextMenuOptionsEqual(left: ContextMenuOptions, right: unknown) {
     left.linkProfileNewTab === right.linkProfileNewTab &&
     left.linkProfileNewWindow === right.linkProfileNewWindow &&
     left.linkProfileNewPrivateWindow === right.linkProfileNewPrivateWindow &&
-    Object.keys(right).every((key) => validKeys.has(key));
+    Object.keys(right).every((key) => validKeys.has(key))
+  );
 }
 
 function replaceProfileScopeAssignmentRef(assignments: ProfileScopeAssignments, fromName: string, toName: string) {
@@ -244,12 +248,14 @@ function migrateLocalBypassList(profile: ProfileLike): boolean {
     return false;
   }
   const bypassList = profile.bypassList as BypassConditionLike[];
-  const bypassPatterns = new Set(bypassList.map((condition) => {
-    if (condition.conditionType === 'BypassCondition') {
-      return ProxyEngine.Conditions.str(condition).replace(/^Bypass:\s*/, '');
-    }
-    return condition.pattern;
-  }));
+  const bypassPatterns = new Set(
+    bypassList.map((condition) => {
+      if (condition.conditionType === 'BypassCondition') {
+        return ProxyEngine.Conditions.str(condition).replace(/^Bypass:\s*/, '');
+      }
+      return condition.pattern;
+    })
+  );
   if (!bypassPatterns.has('<local>')) {
     return false;
   }
@@ -423,7 +429,8 @@ class Options {
     if (options == null) {
       this.init();
     } else {
-      this.ready = this._storage.remove()
+      this.ready = this._storage
+        .remove()
         .then(() => this._storage.set(options))
         .then(() => this.init());
     }
@@ -441,20 +448,20 @@ class Options {
     if (retry == null) {
       retry = 3;
     }
-    if (typeof this._syncWatchStop === "function") {
+    if (typeof this._syncWatchStop === 'function') {
       this._syncWatchStop();
     }
     this._syncWatchStop = null;
-    if (typeof this._watchStop === "function") {
+    if (typeof this._watchStop === 'function') {
       this._watchStop();
     }
     this._watchStop = null;
-    if (typeof options !== "undefined" && options !== null) {
+    if (typeof options !== 'undefined' && options !== null) {
       loadRaw = Promise.resolve(options);
     } else if (!(this.sync != null && this.sync.enabled)) {
       if (this.sync == null) {
         this._state.set({
-          'syncOptions': 'unsupported'
+          syncOptions: 'unsupported'
         });
       }
       loadRaw = this._storage.get(null);
@@ -463,103 +470,120 @@ class Options {
       if (sync == null) {
         loadRaw = this._storage.get(null);
       } else {
-      this._state.set({
-        'syncOptions': 'sync'
-      });
-      this._syncWatchStop = sync.watchAndPull(this._storage);
-      loadRaw = sync.copyTo(this._storage)
-        .catch((error: unknown) => {
-          if (!(error instanceof Storage.StorageUnavailableError)) {
-            return Promise.reject(error);
-          }
-          console.error('Warning: Sync storage is not available in this ' + 'browser! Disabling options sync.');
-          if (typeof this._syncWatchStop === "function") {
-            this._syncWatchStop();
-          }
-          this._syncWatchStop = null;
-          this.sync = null;
-          return this._state.set({
-            'syncOptions': 'unsupported'
-          });
-        })
-        .then(() => this._storage.get(null));
+        this._state.set({
+          syncOptions: 'sync'
+        });
+        this._syncWatchStop = sync.watchAndPull(this._storage);
+        loadRaw = sync
+          .copyTo(this._storage)
+          .catch((error: unknown) => {
+            if (!(error instanceof Storage.StorageUnavailableError)) {
+              return Promise.reject(error);
+            }
+            console.error('Warning: Sync storage is not available in this ' + 'browser! Disabling options sync.');
+            if (typeof this._syncWatchStop === 'function') {
+              this._syncWatchStop();
+            }
+            this._syncWatchStop = null;
+            this.sync = null;
+            return this._state.set({
+              syncOptions: 'unsupported'
+            });
+          })
+          .then(() => this._storage.get(null));
       }
     }
-    return this.optionsLoaded = loadRaw.then((loadedOptions: OptionsData) => {
-      return this.upgrade(loadedOptions);
-    }).then((arg1) => {
+    return (this.optionsLoaded = loadRaw
+      .then((loadedOptions: OptionsData) => {
+        return this.upgrade(loadedOptions);
+      })
+      .then((arg1) => {
         const loadedOptions = arg1[0];
         const changes = arg1[1];
-        return this._storage.apply({
-          changes: changes
-        }).then(() => loadedOptions);
-    }).then((loadedOptions: OptionsData) => {
+        return this._storage
+          .apply({
+            changes: changes
+          })
+          .then(() => loadedOptions);
+      })
+      .then((loadedOptions: OptionsData) => {
         this._options = loadedOptions;
         this._watchStop = this._watch();
-        return this._state.get({
-          'syncOptions': ''
-        }).then((arg1) => {
-          const syncOptions = arg1.syncOptions;
-          if (syncOptions) {
-            return;
-          }
-          const sync = this.sync;
-          if (sync == null) {
-            return loadedOptions;
-          }
-          this._state.set({
-            'syncOptions': 'conflict'
-          });
-          return sync.storage.get('schemaVersion').then((arg2) => {
-            const schemaVersion = arg2.schemaVersion;
-            if (!schemaVersion) {
-              return this._state.set({
-                'syncOptions': 'pristine'
-              });
+        return this._state
+          .get({
+            syncOptions: ''
+          })
+          .then((arg1) => {
+            const syncOptions = arg1.syncOptions;
+            if (syncOptions) {
+              return;
             }
-          });
-        }).then(() => loadedOptions);
-    }).catch((e: unknown) => {
+            const sync = this.sync;
+            if (sync == null) {
+              return loadedOptions;
+            }
+            this._state.set({
+              syncOptions: 'conflict'
+            });
+            return sync.storage.get('schemaVersion').then((arg2) => {
+              const schemaVersion = arg2.schemaVersion;
+              if (!schemaVersion) {
+                return this._state.set({
+                  syncOptions: 'pristine'
+                });
+              }
+            });
+          })
+          .then(() => loadedOptions);
+      })
+      .catch((e: unknown) => {
         if (!(retry > 0)) {
           return Promise.reject(e);
         }
         const getFallbackOptions = Promise.resolve().then(() => {
           if (e instanceof NoOptionsError) {
-            this._state.get({
-              'firstRun': 'new',
-              'web.switchGuide': 'showOnFirstUse'
-            }).then((items) => {
-              return this._state.set(items);
-            });
+            this._state
+              .get({
+                firstRun: 'new',
+                'web.switchGuide': 'showOnFirstUse'
+              })
+              .then((items) => {
+                return this._state.set(items);
+              });
             const sync = this.sync;
             if (sync == null) {
               return null;
             }
-            return this._state.get({
-              'syncOptions': ''
-            }).then((arg1) => {
-              const syncOptions = arg1.syncOptions;
-              if (syncOptions === 'conflict') {
-                return;
-              }
-              return sync.storage.get(null).then((options) => {
-                if (!options['schemaVersion']) {
-                  this._state.set({
-                    'syncOptions': 'pristine'
-                  });
-                  return null;
-                } else {
-                  this._state.set({
-                    'syncOptions': 'sync'
-                  });
-                  sync.enabled = true;
-                  this.log.log('Options#loadOptions::fromSync', options);
-                  return options;
+            return this._state
+              .get({
+                syncOptions: ''
+              })
+              .then((arg1) => {
+                const syncOptions = arg1.syncOptions;
+                if (syncOptions === 'conflict') {
+                  return;
                 }
-              }).catch((): null => {
-                return null;
+                return sync.storage
+                  .get(null)
+                  .then((options) => {
+                    if (!options['schemaVersion']) {
+                      this._state.set({
+                        syncOptions: 'pristine'
+                      });
+                      return null;
+                    } else {
+                      this._state.set({
+                        syncOptions: 'sync'
+                      });
+                      sync.enabled = true;
+                      this.log.log('Options#loadOptions::fromSync', options);
+                      return options;
+                    }
+                  })
+                  .catch((): null => {
+                    return null;
+                  });
               });
-            });
           } else {
             this.log.error(e instanceof Error ? e.stack : e);
             this._state.remove(['syncOptions']);
@@ -575,20 +599,22 @@ class Options {
             prevEnabled = this.sync.enabled;
             this.sync.enabled = false;
           }
-          return this._storage.remove().then(() => {
-            return this._storage.set(fallbackOptions);
-          }).then(() => {
-            if (this.sync != null && prevEnabled != null) {
-              this.sync.enabled = prevEnabled;
-            }
-            return this.loadOptions({
-              retry: retry - 1
+          return this._storage
+            .remove()
+            .then(() => {
+              return this._storage.set(fallbackOptions);
+            })
+            .then(() => {
+              if (this.sync != null && prevEnabled != null) {
+                this.sync.enabled = prevEnabled;
+              }
+              return this.loadOptions({
+                retry: retry - 1
+              });
             });
-          });
         });
-    });
+      }));
   }
-
 
   /**
    * Attempt to initialize (or reinitialize) options.
@@ -596,57 +622,66 @@ class Options {
    */
 
   init(): RuntimePromise<unknown> {
-    this.ready = this.loadOptions().then(() => {
+    this.ready = this.loadOptions()
+      .then(() => {
         if (this._options['-startupProfileName']) {
           return this.applyProfile(this._options['-startupProfileName'] as string);
         } else {
-          return this._state.get({
-            'currentProfileName': this.fallbackProfileName,
-            'isSystemProfile': false
-          }).then((st) => {
-            if (st['isSystemProfile']) {
-              return this.applyProfile('system');
-            } else {
-              return this.applyProfile((st['currentProfileName'] || this.fallbackProfileName) as string);
-            }
-          });
+          return this._state
+            .get({
+              currentProfileName: this.fallbackProfileName,
+              isSystemProfile: false
+            })
+            .then((st) => {
+              if (st['isSystemProfile']) {
+                return this.applyProfile('system');
+              } else {
+                return this.applyProfile((st['currentProfileName'] || this.fallbackProfileName) as string);
+              }
+            });
         }
-    }).catch((err: unknown) => {
+      })
+      .catch((err: unknown) => {
         if (!(err instanceof ProfileNotExistError)) {
           this.log.error(err);
         }
         return this.applyProfile(this.fallbackProfileName);
-    }).catch((err: unknown) => {
+      })
+      .catch((err: unknown) => {
         return this.log.error(err);
-    }).then(() => {
+      })
+      .then(() => {
         return this.getAll();
-    });
-    this.ready.then(() => {
+      });
+    this.ready
+      .then(() => {
         if (this.sync != null && this.sync.enabled) {
           this.sync.requestPush(this._options);
         }
-        const firstRunTask = this._state.get({
-          'firstRun': ''
-        }).then((arg) => {
-          const firstRun = arg.firstRun;
-          if (firstRun) {
-            return this.onFirstRun(firstRun);
-          }
-        });
+        const firstRunTask = this._state
+          .get({
+            firstRun: ''
+          })
+          .then((arg) => {
+            const firstRun = arg.firstRun;
+            if (firstRun) {
+              return this.onFirstRun(firstRun);
+            }
+          });
         if (optionNumber(this._options['-downloadInterval']) > 0) {
           return Promise.all([firstRunTask, this.updateProfile()]);
         }
         return firstRunTask;
-    }).catch((err: unknown) => {
+      })
+      .catch((err: unknown) => {
         return this.log.error('Post-initialization task failed:', err);
-    });
+      });
     return this.ready;
   }
 
   toString(): string {
-    return "<Options>";
+    return '<Options>';
   }
-
 
   /**
    * Return a localized, human-readable description of the given profile.
@@ -658,7 +693,6 @@ class Options {
   printProfile(profile: ProfileLike | null | undefined): string | null {
     return null;
   }
-
 
   /**
    * Upgrade options from previous versions.
@@ -688,7 +722,7 @@ class Options {
         if (!autoDetectUsed) {
           const refs = ProxyEngine.Profiles.directReferenceSet(profile);
           if (refs['+auto_detect']) {
-            return autoDetectUsed = true;
+            return (autoDetectUsed = true);
           }
         }
       });
@@ -723,7 +757,9 @@ class Options {
         options['-uiTheme'] = uiTheme;
       }
       const profileScopes = normalizeProfileScopes(options['-profileScopes']);
-      if (!profileScopeSettingsEqual(normalizeProfileScopes(options['-profileScopes']), options['-profileScopes'] as ProfileScopeSettings)) {
+      if (
+        !profileScopeSettingsEqual(normalizeProfileScopes(options['-profileScopes']), options['-profileScopes'] as ProfileScopeSettings)
+      ) {
         changes['-profileScopes'] = profileScopes;
         options['-profileScopes'] = profileScopes;
       }
@@ -739,10 +775,9 @@ class Options {
       }
       return Promise.resolve([options, changes]);
     } else {
-      return Promise.reject(new Error("Invalid schemaVersion " + version + "!"));
+      return Promise.reject(new Error('Invalid schemaVersion ' + version + '!'));
     }
   }
-
 
   /**
    * Parse options in various formats (including JSON & base64).
@@ -771,7 +806,6 @@ class Options {
     return options as OptionsData;
   }
 
-
   /**
    * Reset the options to the given options or initial options.
    * @param {?OmegaOptions} options The options to set. Defaults to initial.
@@ -785,25 +819,27 @@ class Options {
       options = this.getDefaultOptions();
     }
     return this.upgrade(this.parseOptions(options)).then((arg) => {
-        const opt = arg[0];
-        if (this.sync != null) {
-          this.sync.enabled = false;
-        }
-        this._state.remove(['syncOptions']);
-        return this._storage.remove().then(() => {
+      const opt = arg[0];
+      if (this.sync != null) {
+        this.sync.enabled = false;
+      }
+      this._state.remove(['syncOptions']);
+      return this._storage
+        .remove()
+        .then(() => {
           return this._storage.set(opt);
-        }).then(() => {
+        })
+        .then(() => {
           if (preserveProfileName && !opt['-startupProfileName'] && ProxyEngine.Profiles.byName(preserveProfileName, opt)) {
             this._state.set({
-              'currentProfileName': preserveProfileName,
-              'isSystemProfile': preserveProfileName === 'system'
+              currentProfileName: preserveProfileName,
+              isSystemProfile: preserveProfileName === 'system'
             });
           }
           return this.init();
         });
     });
   }
-
 
   /**
    * Called on the first initialization of options.
@@ -813,7 +849,6 @@ class Options {
   onFirstRun(reason: unknown): unknown {
     return null;
   }
-
 
   /**
    * Return the default options used initially and on resets.
@@ -856,7 +891,6 @@ class Options {
     return typeof value === 'string' && supportedUiThemes.has(value) ? value : this.defaultUiTheme();
   }
 
-
   /**
    * Return all options.
    * @returns {?OmegaOptions} The options.
@@ -866,7 +900,6 @@ class Options {
     return this._options;
   }
 
-
   /**
    * Get profile by name.
    * @returns {?{}} The profile, or undefined if no such profile.
@@ -875,7 +908,6 @@ class Options {
   profile(name: string | ProfileLike): ProfileLike | undefined {
     return ProxyEngine.Profiles.byName(name, this._options);
   }
-
 
   /**
    * Apply the patch to the current options.
@@ -904,7 +936,7 @@ class Options {
 
   _setOptions = (changes: StorageChanges, args?: SetOptionsArgs): RuntimePromise<unknown> => {
     const removed: string[] = [];
-    const checkRev = (args != null && args.checkRevision != null) ? args.checkRevision : false;
+    const checkRev = args != null && args.checkRevision != null ? args.checkRevision : false;
     let profilesChanged = false;
     let currentProfileAffected: false | 'removed' | 'changed' = false;
     for (const key in changes) {
@@ -955,7 +987,7 @@ class Options {
           this._setAvailableProfiles();
         }
     }
-    if ((args != null && args.persist != null) ? args.persist : true) {
+    if (args != null && args.persist != null ? args.persist : true) {
       if (this.sync != null && this.sync.enabled) {
         this.sync.requestPush(changes);
       }
@@ -972,76 +1004,82 @@ class Options {
 
   _watch(): StopWatching {
     const handler = (changes?: StorageChanges): unknown => {
-        if (changes) {
-          this._setOptions(changes, {
-            checkRevision: true,
-            persist: false
-          });
-        } else {
-          changes = this._options;
-        }
-        const refresh = changes['-refreshOnProfileChange'];
-        if (refresh != null) {
-          this._state.set({
-            'refreshOnProfileChange': refresh
-          });
-        }
-        if ((changes['-uiLocale'] != null) || changes === this._options) {
-          this._state.set({
-            'uiLocale': this._options['-uiLocale']
-          });
-        }
-        if ((changes['-uiTheme'] != null) || changes === this._options) {
-          this._state.set({
-            'uiTheme': this._options['-uiTheme']
-          });
-        }
-        if (hasProp.call(changes, '-showPopupAddCondition') || changes === this._options) {
-          this._state.set({
-            'showPopupAddCondition': defaultEnabledOption(this._options['-showPopupAddCondition'])
-          });
-        }
-        if (hasProp.call(changes, '-showPopupAddTempRule') || changes === this._options) {
-          this._state.set({
-            'showPopupAddTempRule': defaultEnabledOption(this._options['-showPopupAddTempRule'])
-          });
-        }
-        if (Object.prototype.hasOwnProperty.call(changes, '-showExternalProfile')) {
-          let showExternal = changes['-showExternalProfile'];
-          if (showExternal == null) {
-            showExternal = true;
-            this._setOptions({
+      if (changes) {
+        this._setOptions(changes, {
+          checkRevision: true,
+          persist: false
+        });
+      } else {
+        changes = this._options;
+      }
+      const refresh = changes['-refreshOnProfileChange'];
+      if (refresh != null) {
+        this._state.set({
+          refreshOnProfileChange: refresh
+        });
+      }
+      if (changes['-uiLocale'] != null || changes === this._options) {
+        this._state.set({
+          uiLocale: this._options['-uiLocale']
+        });
+      }
+      if (changes['-uiTheme'] != null || changes === this._options) {
+        this._state.set({
+          uiTheme: this._options['-uiTheme']
+        });
+      }
+      if (hasProp.call(changes, '-showPopupAddCondition') || changes === this._options) {
+        this._state.set({
+          showPopupAddCondition: defaultEnabledOption(this._options['-showPopupAddCondition'])
+        });
+      }
+      if (hasProp.call(changes, '-showPopupAddTempRule') || changes === this._options) {
+        this._state.set({
+          showPopupAddTempRule: defaultEnabledOption(this._options['-showPopupAddTempRule'])
+        });
+      }
+      if (Object.prototype.hasOwnProperty.call(changes, '-showExternalProfile')) {
+        let showExternal = changes['-showExternalProfile'];
+        if (showExternal == null) {
+          showExternal = true;
+          this._setOptions(
+            {
               '-showExternalProfile': true
-            }, {
+            },
+            {
               persist: true
-            });
-          }
-          this._state.set({
-            'showExternalProfile': showExternal
-          });
+            }
+          );
         }
-        let quickSwitchProfiles = changes['-quickSwitchProfiles'] as string[] | undefined;
-        quickSwitchProfiles = this._cleanUpQuickSwitchProfiles(quickSwitchProfiles);
-        if ((changes['-enableQuickSwitch'] != null) || (quickSwitchProfiles != null)) {
-          this.reloadQuickSwitch();
-        }
-        if (changes['-downloadInterval'] != null) {
-          this.schedule('updateProfile', this._options['-downloadInterval'], () => {
-            return this.updateProfile();
-          });
-        }
-        if ((changes['-monitorWebRequests'] != null) || changes === this._options) {
-          let monitorWebRequests = this._options['-monitorWebRequests'];
-          if (monitorWebRequests == null) {
-            monitorWebRequests = true;
-            this._setOptions({
+        this._state.set({
+          showExternalProfile: showExternal
+        });
+      }
+      let quickSwitchProfiles = changes['-quickSwitchProfiles'] as string[] | undefined;
+      quickSwitchProfiles = this._cleanUpQuickSwitchProfiles(quickSwitchProfiles);
+      if (changes['-enableQuickSwitch'] != null || quickSwitchProfiles != null) {
+        this.reloadQuickSwitch();
+      }
+      if (changes['-downloadInterval'] != null) {
+        this.schedule('updateProfile', this._options['-downloadInterval'], () => {
+          return this.updateProfile();
+        });
+      }
+      if (changes['-monitorWebRequests'] != null || changes === this._options) {
+        let monitorWebRequests = this._options['-monitorWebRequests'];
+        if (monitorWebRequests == null) {
+          monitorWebRequests = true;
+          this._setOptions(
+            {
               '-monitorWebRequests': true
-            }, {
+            },
+            {
               persist: true
-            });
-          }
-          return this.setMonitorWebRequests(monitorWebRequests);
+            }
+          );
         }
+        return this.setMonitorWebRequests(monitorWebRequests);
+      }
     };
     handler();
     return this._storage.watch(null, handler);
@@ -1053,29 +1091,31 @@ class Options {
     }
     const seenQuickSwitchProfile: Record<string, boolean> = {};
     const validQuickSwitchProfiles = quickSwitchProfiles.filter((name: string) => {
-        if (!name) {
-          return false;
-        }
-        const key = ProxyEngine.Profiles.nameAsKey(name);
-        if (seenQuickSwitchProfile[key]) {
-          return false;
-        }
-        if (!ProxyEngine.Profiles.byName(name, this._options)) {
-          return false;
-        }
-        seenQuickSwitchProfile[key] = true;
-        return true;
+      if (!name) {
+        return false;
+      }
+      const key = ProxyEngine.Profiles.nameAsKey(name);
+      if (seenQuickSwitchProfile[key]) {
+        return false;
+      }
+      if (!ProxyEngine.Profiles.byName(name, this._options)) {
+        return false;
+      }
+      seenQuickSwitchProfile[key] = true;
+      return true;
     });
     if (validQuickSwitchProfiles.length !== quickSwitchProfiles.length) {
-      this._setOptions({
-        '-quickSwitchProfiles': validQuickSwitchProfiles
-      }, {
-        persist: true
-      });
+      this._setOptions(
+        {
+          '-quickSwitchProfiles': validQuickSwitchProfiles
+        },
+        {
+          persist: true
+        }
+      );
     }
     return validQuickSwitchProfiles;
   }
-
 
   /**
    * Reload the quick switch according to settings.
@@ -1083,9 +1123,7 @@ class Options {
    */
 
   reloadQuickSwitch() {
-    const profiles = Array.isArray(this._options['-quickSwitchProfiles'])
-      ? this._options['-quickSwitchProfiles'] as string[]
-      : [];
+    const profiles = Array.isArray(this._options['-quickSwitchProfiles']) ? (this._options['-quickSwitchProfiles'] as string[]) : [];
     const quickSwitchProfiles = profiles.length >= 2 ? profiles : null;
     if (this._options['-enableQuickSwitch']) {
       return this.setQuickSwitch(quickSwitchProfiles, !!quickSwitchProfiles);
@@ -1105,12 +1143,10 @@ class Options {
     return Promise.resolve();
   }
 
-
   /**
    * @callback watchCallback
    * @param {Object.<string, {}>} changes A map from keys to values.
    */
-
 
   /**
    * Watch for any changes to the options
@@ -1123,7 +1159,7 @@ class Options {
   }
 
   _profileNotFound(name: string): ProfileLike {
-    this.log.error("Profile " + name + " not found! Things may go very, very wrong.");
+    this.log.error('Profile ' + name + ' not found! Things may go very, very wrong.');
     return ProxyEngine.Profiles.create({
       name: name,
       profileType: 'VirtualProfile',
@@ -1131,13 +1167,12 @@ class Options {
     });
   }
 
-
   /**
    * Get PAC script for profile.
    * @param {?string|Object} profile The name of the profile, or the profile.
    * @param {bool=false} compress Compress the script if true.
    * @returns {string} The compiled
-  */
+   */
 
   pacForProfile(profile: string | ProfileLike, compress?: boolean): RuntimePromise<string> {
     if (compress == null) {
@@ -1177,46 +1212,45 @@ class Options {
       results = [];
     }
     ProxyEngine.Profiles.each(this._options, (key, p) => {
-        profiles[key] = {
-          name: p.name,
-          profileType: p.profileType,
-          color: p.color,
-          desc: this.printProfile(p),
-          hiddenInContextMenu: p.hiddenInContextMenu ? true : void 0,
-          hiddenInOptions: p.hiddenInOptions ? true : void 0,
-          hiddenInPopup: p.hiddenInPopup ? true : void 0,
-          builtin: p.builtin ? true : void 0
-        };
-        if (p.profileType === 'VirtualProfile') {
-          profiles[key].defaultProfileName = p.defaultProfileName;
-          if (allReferenceSet == null) {
-            allReferenceSet = profile ? ProxyEngine.Profiles.allReferenceSet(profile, this._options, {
-              profileNotFound: this._profileNotFound.bind(this)
-            }) : {};
-          }
-          if (allReferenceSet[key]) {
-            profiles[key].validResultProfiles = ProxyEngine.Profiles.validResultProfilesFor(p, this._options).map((result) => {
-              return result.name;
-            });
-          }
+      profiles[key] = {
+        name: p.name,
+        profileType: p.profileType,
+        color: p.color,
+        desc: this.printProfile(p),
+        hiddenInContextMenu: p.hiddenInContextMenu ? true : void 0,
+        hiddenInOptions: p.hiddenInOptions ? true : void 0,
+        hiddenInPopup: p.hiddenInPopup ? true : void 0,
+        builtin: p.builtin ? true : void 0
+      };
+      if (p.profileType === 'VirtualProfile') {
+        profiles[key].defaultProfileName = p.defaultProfileName;
+        if (allReferenceSet == null) {
+          allReferenceSet = profile
+            ? ProxyEngine.Profiles.allReferenceSet(profile, this._options, {
+                profileNotFound: this._profileNotFound.bind(this)
+              })
+            : {};
         }
-        if (currentIncludable && ProxyEngine.Profiles.isIncludable(p)) {
-          return results != null && p.name ? results.push(p.name) : void 0;
+        if (allReferenceSet[key]) {
+          profiles[key].validResultProfiles = ProxyEngine.Profiles.validResultProfilesFor(p, this._options).map((result) => {
+            return result.name;
+          });
         }
+      }
+      if (currentIncludable && ProxyEngine.Profiles.isIncludable(p)) {
+        return results != null && p.name ? results.push(p.name) : void 0;
+      }
     });
     if (profile && ProxyEngine.Profiles.isInclusive(profile)) {
       const resultProfiles = ProxyEngine.Profiles.validResultProfilesFor(profile, this._options);
-      results = resultProfiles
-        .map((profile) => profile.name)
-        .filter((name): name is string => typeof name === 'string');
+      results = resultProfiles.map((profile) => profile.name).filter((name): name is string => typeof name === 'string');
     }
     return this._state.set({
-      'availableProfiles': profiles,
-      'scopeAssignableProfiles': scopeAssignableProfiles,
-      'validResultProfiles': results
+      availableProfiles: profiles,
+      scopeAssignableProfiles: scopeAssignableProfiles,
+      validResultProfiles: results
     });
   }
-
 
   /**
    * Apply the profile by name.
@@ -1228,7 +1262,7 @@ class Options {
    * @param {bool=false} options.system Whether options is in system mode.
    * @param {{}=undefined} options.reason will be passed to currentProfileChanged
    * @returns {Promise} A promise which is fulfilled when the profile is applied.
-  */
+   */
 
   applyProfile(name: string | null | undefined, options?: ApplyProfileOptions): RuntimePromise<unknown> {
     this.log.method('Options#applyProfile', this, arguments);
@@ -1238,18 +1272,18 @@ class Options {
       return Promise.reject(new ProfileNotExistError(profileName));
     }
     this._currentProfileName = profile.name || profileName;
-    this._isSystem = (options != null ? options.system : void 0) || (profile.profileType === 'SystemProfile');
+    this._isSystem = (options != null ? options.system : void 0) || profile.profileType === 'SystemProfile';
     this._watchingProfiles = ProxyEngine.Profiles.allReferenceSet(profile, this._options, {
       profileNotFound: this._profileNotFound.bind(this)
     });
     this._state.set({
-      'currentProfileName': this._currentProfileName,
-      'isSystemProfile': this._isSystem,
-      'currentProfileCanAddRule': (profile.rules != null) && profile.profileType !== 'VirtualProfile'
+      currentProfileName: this._currentProfileName,
+      isSystemProfile: this._isSystem,
+      currentProfileCanAddRule: profile.rules != null && profile.profileType !== 'VirtualProfile'
     });
     this._setAvailableProfiles();
     this.currentProfileChanged(options != null ? options.reason : void 0);
-    if ((options != null) && options.proxy === false) {
+    if (options != null && options.proxy === false) {
       return Promise.resolve();
     }
     const proxyImpl = this.proxyImpl;
@@ -1258,7 +1292,7 @@ class Options {
     }
     this._tempProfileActive = false;
     let applyProxy: RuntimePromise<unknown>;
-    if ((this._tempProfile != null) && ProxyEngine.Profiles.isIncludable(profile)) {
+    if (this._tempProfile != null && ProxyEngine.Profiles.isIncludable(profile)) {
       const tempProfile = this._tempProfile;
       this._tempProfileActive = true;
       if (tempProfile.defaultProfileName !== profile.name) {
@@ -1293,10 +1327,11 @@ class Options {
     } else {
       applyProxy = proxyImpl.applyProfile(profile, profile, this._options);
     }
-    if ((options != null) && options.update === false) {
+    if (options != null && options.update === false) {
       return applyProxy;
     }
-    applyProxy.then(() => {
+    applyProxy
+      .then(() => {
         if (!(optionNumber(this._options['-downloadInterval']) > 0)) {
           return;
         }
@@ -1311,12 +1346,12 @@ class Options {
         if (updateProfiles.length > 0) {
           return this.updateProfile(updateProfiles);
         }
-    }).catch((error: unknown) => {
+      })
+      .catch((error: unknown) => {
         return this.log.error('Profile update after apply failed:', error);
-    });
+      });
     return applyProxy;
   }
-
 
   /**
    * Get the current applied profile.
@@ -1331,7 +1366,6 @@ class Options {
     }
   }
 
-
   /**
    * Return true if in system mode.
    * @returns {boolean} True if system mode is activated
@@ -1341,7 +1375,6 @@ class Options {
     return this._isSystem;
   }
 
-
   /**
    * Called when current profile has changed.
    * In base class, this method is not implemented and will not do anything.
@@ -1350,7 +1383,6 @@ class Options {
   currentProfileChanged(reason?: unknown): unknown {
     return null;
   }
-
 
   /**
    * Set or disable the quick switch profiles.
@@ -1363,7 +1395,6 @@ class Options {
   setQuickSwitch(quickSwitch: string[] | null, canEnable: boolean): RuntimePromise<void> {
     return Promise.resolve();
   }
-
 
   /**
    * Schedule a task that runs every periodInMinutes.
@@ -1379,11 +1410,10 @@ class Options {
     return Promise.resolve();
   }
 
-
   /**
    * Return true if the match result of current profile does not change with URLs
    * @returns {bool} Whether @match always return the same result for requests
-  */
+   */
 
   isCurrentProfileStatic(): boolean {
     if (!this._currentProfileName) {
@@ -1402,7 +1432,6 @@ class Options {
     return true;
   }
 
-
   /**
    * Update the profile by name.
    * @param {(string|string[]|null)} name The name of the profiles,
@@ -1412,28 +1441,29 @@ class Options {
    * profiles or errors.
    * A value is an error if `value instanceof Error`. Otherwise the value is an
    * updated profile.
-  */
+   */
 
   updateProfile(name?: string | string[] | null, opt_bypass_cache?: boolean): RuntimePromise<Record<string, unknown>> {
     this.log.method('Options#updateProfile', this, arguments);
     const results: Record<string, RuntimePromise<unknown>> = {};
     ProxyEngine.Profiles.each(this._options, (key, profile) => {
-        if (name != null) {
-          if (Array.isArray(name)) {
-            if (!profile.name || !(name.indexOf(profile.name) >= 0)) {
-              return;
-            }
-          } else {
-            if (profile.name !== name) {
-              return;
-            }
+      if (name != null) {
+        if (Array.isArray(name)) {
+          if (!profile.name || !(name.indexOf(profile.name) >= 0)) {
+            return;
+          }
+        } else {
+          if (profile.name !== name) {
+            return;
           }
         }
-        const url = ProxyEngine.Profiles.updateUrl(profile);
-        if (url) {
-          const type_hints = ProxyEngine.Profiles.updateContentTypeHints(profile);
-          const fetchResult = this.fetchUrl(url, opt_bypass_cache, type_hints);
-          return results[key] = fetchResult.then((data) => {
+      }
+      const url = ProxyEngine.Profiles.updateUrl(profile);
+      if (url) {
+        const type_hints = ProxyEngine.Profiles.updateContentTypeHints(profile);
+        const fetchResult = this.fetchUrl(url, opt_bypass_cache, type_hints);
+        return (results[key] = fetchResult
+          .then((data) => {
             if (!data) {
               return profile;
             }
@@ -1450,14 +1480,15 @@ class Options {
             } else {
               return updatedProfile;
             }
-          }).catch((reason: unknown) => {
+          })
+          .catch((reason: unknown) => {
             if (reason instanceof Error) {
               return reason;
             } else {
               return new Error(String(reason));
             }
-          });
-        }
+          }));
+      }
     });
     const keys = Object.keys(results);
     return Promise.all(keys.map((key) => results[key])).then((values) => {
@@ -1468,7 +1499,6 @@ class Options {
       return resolved;
     });
   }
-
 
   /**
    * Make an HTTP GET request to fetch the content of the url.
@@ -1507,9 +1537,7 @@ class Options {
     if (nextProfileScopeAssignments) {
       changes['-profileScopeAssignments'] = nextProfileScopeAssignments;
     }
-    const quickSwitch = Array.isArray(this._options['-quickSwitchProfiles'])
-      ? this._options['-quickSwitchProfiles'] as string[]
-      : [];
+    const quickSwitch = Array.isArray(this._options['-quickSwitchProfiles']) ? (this._options['-quickSwitchProfiles'] as string[]) : [];
     if (quickSwitch.length > 0 && quickSwitch.indexOf(toName) < 0) {
       for (let i = 0; i < quickSwitch.length; i++) {
         if (quickSwitch[i] === fromName) {
@@ -1521,13 +1549,12 @@ class Options {
     return changes;
   }
 
-
   /**
    * Replace all references of profile fromName to toName.
    * @param {String} fromName The original profile name
    * @param {String} toname The target profile name
    * @returns {Promise<OmegaOptions>} The updated options
-  */
+   */
 
   replaceRef(fromName: string, toName: string): RuntimePromise<unknown> {
     this.log.method('Options#replaceRef', this, arguments);
@@ -1551,18 +1578,17 @@ class Options {
     return this._setOptions(changes);
   }
 
-
   /**
    * Rename a profile and update references and options
    * @param {String} fromName The original profile name
    * @param {String} toname The target profile name
    * @returns {Promise<OmegaOptions>} The updated options
-  */
+   */
 
   renameProfile(fromName: string, toName: string): RuntimePromise<unknown> {
     this.log.method('Options#renameProfile', this, arguments);
     if (ProxyEngine.Profiles.byName(toName, this._options)) {
-      return Promise.reject(new Error("Target name " + name + " already taken!"));
+      return Promise.reject(new Error('Target name ' + name + ' already taken!'));
     }
     const profile = ProxyEngine.Profiles.byName(fromName, this._options);
     if (!profile) {
@@ -1589,13 +1615,12 @@ class Options {
     return this._setOptions(changes);
   }
 
-
   /**
    * Add a temp rule.
    * @param {String} domain The domain for the temp rule.
    * @param {String} profileName The profile to apply for the domain.
    * @returns {Promise} A promise which is fulfilled when the rule is applied.
-  */
+   */
 
   addTempRule(domain: string, profileName: string): RuntimePromise<unknown> {
     this.log.method('Options#addTempRule', this, arguments);
@@ -1627,8 +1652,8 @@ class Options {
         rule.profileName = profileName;
         changed = true;
       }
-      } else {
-        rule = {
+    } else {
+      rule = {
         condition: {
           conditionType: 'HostWildcardCondition',
           pattern: '*.' + domain
@@ -1654,13 +1679,12 @@ class Options {
     }
   }
 
-
   /**
    * Find a temp rule by domain.
    * @param {String} domain The domain of the temp rule.
    * @returns {Promise<?String>} The profile name for the domain, or null if such
    * rule does not exist.
-  */
+   */
 
   queryTempRule(domain: string): string | null {
     const rule = this._tempProfileRules[domain];
@@ -1674,22 +1698,33 @@ class Options {
     return null;
   }
 
-
   /**
    * Add a condition to the current active switch profile.
    * @param {Object.<String,{}>} cond The condition to add
    * @param {string>} profileName The name of the result profile of the rule.
    * @returns {Promise} A promise which is fulfilled when the condition is saved.
-  */
+   */
 
-  addCondition(condition: Record<string, unknown> | Array<Record<string, unknown>>, profileName: string, addToBottom?: boolean): RuntimePromise<unknown> {
+  addCondition(
+    condition: Record<string, unknown> | Array<Record<string, unknown>>,
+    profileName: string,
+    addToBottom?: boolean
+  ): RuntimePromise<unknown> {
     this.log.method('Options#addCondition', this, arguments);
     if (!this._currentProfileName) {
       return Promise.resolve();
     }
     const profile = ProxyEngine.Profiles.byName(this._currentProfileName, this._options);
     if (!profile || profile.rules == null) {
-      return Promise.reject(new Error("Cannot add condition to Profile " + (profile != null ? profile.name : this._currentProfileName) + " (" + (profile != null ? profile.profileType : 'UnknownProfile') + ")"));
+      return Promise.reject(
+        new Error(
+          'Cannot add condition to Profile ' +
+            (profile != null ? profile.name : this._currentProfileName) +
+            ' (' +
+            (profile != null ? profile.profileType : 'UnknownProfile') +
+            ')'
+        )
+      );
     }
     const rules = ensureProfileRules(profile);
     const target = ProxyEngine.Profiles.byName(profileName, this._options);
@@ -1726,13 +1761,12 @@ class Options {
     return this._setOptions(changes);
   }
 
-
   /**
    * Set the defaultProfileName of the profile.
    * @param {string>} profileName The name of the profile to modify.
    * @param {string>} defaultProfileName The defaultProfileName to set.
    * @returns {Promise} A promise which is fulfilled when the profile is saved.
-  */
+   */
 
   setDefaultProfile(profileName: string, defaultProfileName: string): RuntimePromise<unknown> {
     this.log.method('Options#setDefaultProfile', this, arguments);
@@ -1740,7 +1774,7 @@ class Options {
     if (profile == null) {
       return Promise.reject(new ProfileNotExistError(profileName));
     } else if (profile.defaultProfileName == null) {
-      return Promise.reject(new Error(("Profile " + this.profile.name + " ") + "(@{profile.type}) does not have defaultProfileName!"));
+      return Promise.reject(new Error('Profile ' + this.profile.name + ' ' + '(@{profile.type}) does not have defaultProfileName!'));
     }
     const target = ProxyEngine.Profiles.byName(defaultProfileName, this._options);
     if (target == null) {
@@ -1753,12 +1787,11 @@ class Options {
     return this._setOptions(changes);
   }
 
-
   /**
    * Add a profile to the options
    * @param {{}} profile The profile to create
    * @returns {Promise<{}>} The saved profile
-  */
+   */
 
   addProfile(profile: ProfileLike): RuntimePromise<unknown> {
     this.log.method('Options#addProfile', this, arguments);
@@ -1766,7 +1799,7 @@ class Options {
       return Promise.reject(new Error('Profile name is required!'));
     }
     if (ProxyEngine.Profiles.byName(profile.name, this._options)) {
-      return Promise.reject(new Error("Target name " + profile.name + " already taken!"));
+      return Promise.reject(new Error('Target name ' + profile.name + ' already taken!'));
     } else {
       const changes: StorageChanges = {};
       changes[ProxyEngine.Profiles.nameAsKey(profile)] = profile;
@@ -1797,9 +1830,7 @@ class Options {
     if (source == null) {
       return undefined;
     }
-    const condition = isRecordValue(source) && isRecordValue(source.condition)
-      ? source.condition
-      : source;
+    const condition = isRecordValue(source) && isRecordValue(source.condition) ? source.condition : source;
     if (isRecordValue(condition)) {
       try {
         return ProxyEngine.Conditions.str(condition);
@@ -1818,11 +1849,12 @@ class Options {
   _requestForExplanation(input?: string | ExplainRequestArgs): Record<string, unknown> {
     const requestInput = typeof input === 'string' ? {url: input} : input || {};
     const request = requestInput.request ? {...requestInput.request} : {};
-    const url = request.url != null
-      ? normalizeExplainUrl(String(request.url))
-      : requestInput.url != null
-        ? normalizeExplainUrl(String(requestInput.url))
-        : '';
+    const url =
+      request.url != null
+        ? normalizeExplainUrl(String(request.url))
+        : requestInput.url != null
+          ? normalizeExplainUrl(String(requestInput.url))
+          : '';
     if (!url) {
       throw new Error('URL is required.');
     }
@@ -1919,9 +1951,7 @@ class Options {
         const proxyScheme = isRecordValue(proxy) ? proxy.scheme : undefined;
         const sourceIsCondition = isRecordValue(source);
         const scheme = typeof source === 'string' ? source : undefined;
-        const kind = pacResult === 'DIRECT' || proxyScheme === 'direct'
-          ? sourceIsCondition ? 'bypass' : 'direct'
-          : 'proxy';
+        const kind = pacResult === 'DIRECT' || proxyScheme === 'direct' ? (sourceIsCondition ? 'bypass' : 'direct') : 'proxy';
         const step = {
           kind,
           profile: this._profileForExplanation(profile),
@@ -1982,7 +2012,10 @@ class Options {
       final,
       finalProfile: final.profile,
       request,
-      startProfile: this._profileForExplanation(startProfile, tempRulesActive && startProfile === this._tempProfile ? '__temporary' : undefined),
+      startProfile: this._profileForExplanation(
+        startProfile,
+        tempRulesActive && startProfile === this._tempProfile ? '__temporary' : undefined
+      ),
       steps,
       tempRulesActive,
       warnings
@@ -1993,7 +2026,7 @@ class Options {
    * Explain how a request is resolved from the current or selected profile.
    * This is a dry-run view over the same matching functions used by proxy
    * application; it does not mutate profile state.
-  */
+   */
 
   explainRequest(input?: string | ExplainRequestArgs): RuntimePromise<RequestExplanation> {
     const args = typeof input === 'string' ? {url: input} : input || {};
@@ -2025,13 +2058,12 @@ class Options {
     return Promise.resolve(this._explainFromProfile(startProfile, request, tempRulesActive, currentProfile));
   }
 
-
   /**
    * Get the matching results of a request
    * @param {{}} request The request to test
    * @returns {Promise<{profile: {}, results: {}[]}>} The last matched profile
    * and the matching details
-  */
+   */
 
   matchProfile(request: Record<string, unknown>): RuntimePromise<Record<string, unknown>> {
     if (!this._currentProfileName) {
@@ -2066,7 +2098,6 @@ class Options {
     });
   }
 
-
   /**
    * Notify Options that the proxy settings are set externally.
    * @param {{}} profile The external profile
@@ -2075,7 +2106,7 @@ class Options {
    * @param {boolean=false} args.internal If true, treat the profile change as
    * caused by the options itself instead of external reasons.
    * @returns {Promise} A promise which is fulfilled when the profile is set
-  */
+   */
 
   setExternalProfile(profile: ProfileLike, args?: ExternalProfileArgs): RuntimePromise<unknown> | void {
     if (this._options['-revertProxyChanges'] && !this._isSystem) {
@@ -2115,16 +2146,15 @@ class Options {
         profile.color = '#49afcd';
       }
       this._state.set({
-        'currentProfileName': '',
-        'externalProfile': profile,
-        'scopeAssignableProfiles': [],
-        'validResultProfiles': [],
-        'currentProfileCanAddRule': false
+        currentProfileName: '',
+        externalProfile: profile,
+        scopeAssignableProfiles: [],
+        validResultProfiles: [],
+        currentProfileCanAddRule: false
       });
       this.currentProfileChanged('external');
     }
   }
-
 
   /**
    * Switch options syncing on and off.
@@ -2140,18 +2170,20 @@ class Options {
       return Promise.reject(new Error('Options syncing is unsupported.'));
     }
     const sync = this.sync;
-    return this._state.get({
-      'syncOptions': ''
-    }).then((arg) => {
+    return this._state
+      .get({
+        syncOptions: ''
+      })
+      .then((arg) => {
         const syncOptions = arg.syncOptions;
         if (!enabled) {
           if (syncOptions === 'sync') {
             this._state.set({
-              'syncOptions': 'conflict'
+              syncOptions: 'conflict'
             });
           }
           sync.enabled = false;
-          if (typeof this._syncWatchStop === "function") {
+          if (typeof this._syncWatchStop === 'function') {
             this._syncWatchStop();
           }
           this._syncWatchStop = null;
@@ -2159,33 +2191,36 @@ class Options {
         }
         if (syncOptions === 'conflict') {
           if (!(args != null ? args.force : void 0)) {
-            return Promise.reject(new Error('Syncing not enabled due to conflict. Retry with force to overwrite local options and enable syncing.'));
+            return Promise.reject(
+              new Error('Syncing not enabled due to conflict. Retry with force to overwrite local options and enable syncing.')
+            );
           }
         }
         if (syncOptions === 'sync') {
           return;
         }
-        return this._state.set({
-          'syncOptions': 'sync'
-        }).then(() => {
-          if (syncOptions === 'conflict') {
-            sync.enabled = false;
-            return this._storage.remove().then(() => {
+        return this._state
+          .set({
+            syncOptions: 'sync'
+          })
+          .then(() => {
+            if (syncOptions === 'conflict') {
+              sync.enabled = false;
+              return this._storage.remove().then(() => {
+                sync.enabled = true;
+                return this.init();
+              });
+            } else {
               sync.enabled = true;
-              return this.init();
-            });
-          } else {
-            sync.enabled = true;
-            if (typeof this._syncWatchStop === "function") {
-              this._syncWatchStop();
+              if (typeof this._syncWatchStop === 'function') {
+                this._syncWatchStop();
+              }
+              sync.requestPush(this._options);
+              this._syncWatchStop = sync.watchAndPull(this._storage);
             }
-            sync.requestPush(this._options);
-            this._syncWatchStop = sync.watchAndPull(this._storage);
-          }
-        });
-    });
+          });
+      });
   }
-
 
   /**
    * Clear the sync storage, resetting syncing state to pristine.
@@ -2198,20 +2233,19 @@ class Options {
       return Promise.reject(new Error('Options syncing is unsupported.'));
     }
     this.sync.enabled = false;
-    if (typeof this._syncWatchStop === "function") {
+    if (typeof this._syncWatchStop === 'function') {
       this._syncWatchStop();
     }
     this._syncWatchStop = null;
     this._state.set({
-      'syncOptions': 'conflict'
+      syncOptions: 'conflict'
     });
     return this.sync.storage.remove().then(() => {
-        return this._state.set({
-          'syncOptions': 'pristine'
-        });
+      return this._state.set({
+        syncOptions: 'pristine'
+      });
     });
   }
-
 }
 
 export default Options;

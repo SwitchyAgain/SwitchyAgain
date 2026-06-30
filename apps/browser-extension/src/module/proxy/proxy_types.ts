@@ -117,5 +117,5 @@ export type ProxyImplInstance = {
 
 export type ProxyImplConstructor = {
   isSupported(): boolean;
-  new(log: ProxyLog): ProxyImplInstance;
+  new (log: ProxyLog): ProxyImplInstance;
 };

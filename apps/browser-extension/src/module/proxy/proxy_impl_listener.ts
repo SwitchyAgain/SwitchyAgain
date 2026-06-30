@@ -63,10 +63,7 @@ class ListenerProxyImpl extends ProxyImpl {
   }
 
   static isSupported() {
-    return typeof Promise !== 'undefined' &&
-      Promise !== null &&
-      typeof browser !== 'undefined' &&
-      browser?.proxy?.onRequest != null;
+    return typeof Promise !== 'undefined' && Promise !== null && typeof browser !== 'undefined' && browser?.proxy?.onRequest != null;
   }
 
   private _initRequestListeners() {
@@ -96,43 +93,45 @@ class ListenerProxyImpl extends ProxyImpl {
   }
 
   onRequest(requestDetails: ProxyRequestDetails) {
-    return (NativePromise as PromiseConstructor).resolve(this._optionsReady.then(() => {
-      const request = ProxyEngine.Conditions.requestFromUrl(requestDetails.url);
-      let profile = this._profileResolver?.(requestDetails) || this._profile;
-      let next;
-      while (profile) {
-        const result = ProxyEngine.Profiles.match(profile, request);
-        if (!result) {
-          switch (profile.profileType) {
-            case 'DirectProfile':
-              return {
-                type: 'direct'
-              };
-            case 'SystemProfile':
-              return undefined;
-            default:
-              throw new Error(`Unsupported profile: ${profile.profileType}`);
+    return (NativePromise as PromiseConstructor).resolve(
+      this._optionsReady.then(() => {
+        const request = ProxyEngine.Conditions.requestFromUrl(requestDetails.url);
+        let profile = this._profileResolver?.(requestDetails) || this._profile;
+        let next;
+        while (profile) {
+          const result = ProxyEngine.Profiles.match(profile, request);
+          if (!result) {
+            switch (profile.profileType) {
+              case 'DirectProfile':
+                return {
+                  type: 'direct'
+                };
+              case 'SystemProfile':
+                return undefined;
+              default:
+                throw new Error(`Unsupported profile: ${profile.profileType}`);
+            }
           }
-        }
-        if (Array.isArray(result)) {
-          const resultValue = result[0];
-          if (typeof resultValue === 'string' && resultValue.charAt(0) === '+') {
-            next = resultValue;
-            profile = ProxyEngine.Profiles.byKey(next, this._options);
-            continue;
+          if (Array.isArray(result)) {
+            const resultValue = result[0];
+            if (typeof resultValue === 'string' && resultValue.charAt(0) === '+') {
+              next = resultValue;
+              profile = ProxyEngine.Profiles.byKey(next, this._options);
+              continue;
+            }
+            const proxy = result[2] as ProxyServer | undefined;
+            const auth = result[3] as ProxyCredentials | undefined;
+            return this.proxyInfoFromMatch(resultValue, proxy, auth);
+          } else if (result.profileName) {
+            next = ProxyEngine.Profiles.nameAsKey(result.profileName);
+          } else {
+            break;
           }
-          const proxy = result[2] as ProxyServer | undefined;
-          const auth = result[3] as ProxyCredentials | undefined;
-          return this.proxyInfoFromMatch(resultValue, proxy, auth);
-        } else if (result.profileName) {
-          next = ProxyEngine.Profiles.nameAsKey(result.profileName);
-        } else {
-          break;
+          profile = ProxyEngine.Profiles.byKey(next, this._options);
         }
-        profile = ProxyEngine.Profiles.byKey(next, this._options);
-      }
-      throw new Error(`Profile not found: ${next}`);
-    }));
+        throw new Error(`Profile not found: ${next}`);
+      })
+    );
   }
 
   onError(error: unknown) {
@@ -164,11 +163,7 @@ class ListenerProxyImpl extends ProxyImpl {
     if (!proxy || typeof proxy.host !== 'string' || typeof proxy.scheme !== 'string') {
       return null;
     }
-    const port = typeof proxy.port === 'number'
-      ? proxy.port
-      : typeof proxy.port === 'string'
-        ? parseInt(proxy.port, 10)
-        : NaN;
+    const port = typeof proxy.port === 'number' ? proxy.port : typeof proxy.port === 'string' ? parseInt(proxy.port, 10) : NaN;
     if (!proxy.host || !proxy.scheme || !Number.isInteger(port) || port <= 0) {
       return null;
     }

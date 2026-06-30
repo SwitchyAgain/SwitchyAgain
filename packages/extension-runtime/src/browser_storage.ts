@@ -1,11 +1,6 @@
 import Promise from './promise';
 import Storage from './storage';
-import type {
-  RuntimePromise,
-  StorageGetKeys,
-  StorageItems,
-  StorageRemoveKeys
-} from './types';
+import type {RuntimePromise, StorageGetKeys, StorageItems, StorageRemoveKeys} from './types';
 
 type BrowserStorageBackend = {
   ready?: unknown;

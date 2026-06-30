@@ -1,10 +1,6 @@
 import ListenerProxyImpl from './proxy_impl_listener';
 import SettingsProxyImpl from './proxy_impl_settings';
-import type {
-  ProxyImplConstructor,
-  ProxyImplInstance,
-  ProxyLog
-} from './proxy_types';
+import type {ProxyImplConstructor, ProxyImplInstance, ProxyLog} from './proxy_types';
 
 export const proxyImpls: ProxyImplConstructor[] = [ListenerProxyImpl, SettingsProxyImpl];
 

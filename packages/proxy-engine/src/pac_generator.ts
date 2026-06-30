@@ -38,12 +38,12 @@ export function script(options: OptionsMap, profile: string | Profile, args?: Pa
   if (targetProfile == null) {
     const missing = ProfilesApi.profileNotFound(profile, args != null ? args.profileNotFound : void 0);
     if (missing == null) {
-      throw new Error("Profile " + profile + " does not exist!");
+      throw new Error('Profile ' + profile + ' does not exist!');
     }
     targetProfile = missing;
   }
   if (!targetProfile.name) {
-    throw new Error("Cannot generate PAC script for unnamed profile.");
+    throw new Error('Cannot generate PAC script for unnamed profile.');
   }
   const refs = ProfilesApi.allReferenceSet(targetProfile, options, {
     profileNotFound: args != null ? args.profileNotFound : void 0
@@ -67,67 +67,68 @@ export function script(options: OptionsMap, profile: string | Profile, args?: Pa
     properties.push(Ast.objectKeyVal(key, ProfilesApi.compile(p)));
   }
   const profiles = Ast.object(properties);
-  const portParser = Ast.call(Ast.fn(['url'], [
-    Ast.varStmt([
-      Ast.varDef('match', Ast.call(Ast.dot(Ast.symbol('url'), 'match'), [
-        Ast.regexp(/^[-+.a-z0-9]+:\/\/(?:[^/?#@]*@)?(?:\[[^\]]+\]|[^/?#:]+):(\d+)(?:[/?#]|$)/i)
-      ]))
-    ]),
-    Ast.returnStmt(Ast.conditional(
-      Ast.symbol('match'),
-      Ast.sub(Ast.symbol('match'), Ast.num(1)),
-      Ast.str('')
-    ))
-  ]), [Ast.symbol('url')]);
-  const factory = Ast.fn(['init', 'profiles'], [
-    Ast.returnStmt(Ast.fn(['url', 'host'], [
-      Ast.directive('use strict'),
-      Ast.varStmt([
-        Ast.varDef('result', Ast.symbol('init')),
-        Ast.varDef('scheme', Ast.call(Ast.dot(Ast.symbol('url'), 'substr'), [
-          Ast.num(0),
-          Ast.call(Ast.dot(Ast.symbol('url'), 'indexOf'), [Ast.str(':')])
-        ])),
-        Ast.varDef('port', portParser)
-      ]),
-      Ast.doWhile(
-        Ast.block([
-          Ast.simple(Ast.assign(
-            Ast.symbol('result'),
-            Ast.sub(Ast.symbol('profiles'), Ast.symbol('result'))
-          )),
-          Ast.ifStmt(
-            Ast.binary(Ast.unaryPrefix('typeof', Ast.symbol('result')), '===', Ast.str('function')),
-            Ast.simple(Ast.assign(
-              Ast.symbol('result'),
-              Ast.call(Ast.symbol('result'), [
-                Ast.symbol('url'),
-                Ast.symbol('host'),
-                Ast.symbol('port'),
-                Ast.symbol('scheme')
-              ])
-            ))
+  const portParser = Ast.call(
+    Ast.fn(
+      ['url'],
+      [
+        Ast.varStmt([
+          Ast.varDef(
+            'match',
+            Ast.call(Ast.dot(Ast.symbol('url'), 'match'), [
+              Ast.regexp(/^[-+.a-z0-9]+:\/\/(?:[^/?#@]*@)?(?:\[[^\]]+\]|[^/?#:]+):(\d+)(?:[/?#]|$)/i)
+            ])
           )
         ]),
-        Ast.binary(
-          Ast.binary(Ast.unaryPrefix('typeof', Ast.symbol('result')), '!==', Ast.str('string')),
-          '||',
-          Ast.binary(
-            Ast.call(Ast.dot(Ast.symbol('result'), 'charCodeAt'), [Ast.num(0)]),
-            '===',
-            Ast.num('+'.charCodeAt(0))
-          )
+        Ast.returnStmt(Ast.conditional(Ast.symbol('match'), Ast.sub(Ast.symbol('match'), Ast.num(1)), Ast.str('')))
+      ]
+    ),
+    [Ast.symbol('url')]
+  );
+  const factory = Ast.fn(
+    ['init', 'profiles'],
+    [
+      Ast.returnStmt(
+        Ast.fn(
+          ['url', 'host'],
+          [
+            Ast.directive('use strict'),
+            Ast.varStmt([
+              Ast.varDef('result', Ast.symbol('init')),
+              Ast.varDef(
+                'scheme',
+                Ast.call(Ast.dot(Ast.symbol('url'), 'substr'), [
+                  Ast.num(0),
+                  Ast.call(Ast.dot(Ast.symbol('url'), 'indexOf'), [Ast.str(':')])
+                ])
+              ),
+              Ast.varDef('port', portParser)
+            ]),
+            Ast.doWhile(
+              Ast.block([
+                Ast.simple(Ast.assign(Ast.symbol('result'), Ast.sub(Ast.symbol('profiles'), Ast.symbol('result')))),
+                Ast.ifStmt(
+                  Ast.binary(Ast.unaryPrefix('typeof', Ast.symbol('result')), '===', Ast.str('function')),
+                  Ast.simple(
+                    Ast.assign(
+                      Ast.symbol('result'),
+                      Ast.call(Ast.symbol('result'), [Ast.symbol('url'), Ast.symbol('host'), Ast.symbol('port'), Ast.symbol('scheme')])
+                    )
+                  )
+                )
+              ]),
+              Ast.binary(
+                Ast.binary(Ast.unaryPrefix('typeof', Ast.symbol('result')), '!==', Ast.str('string')),
+                '||',
+                Ast.binary(Ast.call(Ast.dot(Ast.symbol('result'), 'charCodeAt'), [Ast.num(0)]), '===', Ast.num('+'.charCodeAt(0)))
+              )
+            ),
+            Ast.returnStmt(Ast.symbol('result'))
+          ]
         )
-      ),
-      Ast.returnStmt(Ast.symbol('result'))
-    ]))
-  ]);
+      )
+    ]
+  );
   return Ast.toplevel([
-    Ast.varStmt([
-      Ast.varDef('FindProxyForURL', Ast.call(factory, [
-        ProfilesApi.profileResult(targetProfile.name),
-        profiles
-      ]))
-    ])
+    Ast.varStmt([Ast.varDef('FindProxyForURL', Ast.call(factory, [ProfilesApi.profileResult(targetProfile.name), profiles]))])
   ]);
 }

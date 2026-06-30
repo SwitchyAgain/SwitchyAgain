@@ -16,11 +16,11 @@ type LocalStorageShimInstance = {
 };
 
 type LocalStorageShimConstructor = {
-  new(): LocalStorageShimInstance;
+  new (): LocalStorageShimInstance;
   prototype: LocalStorageShimInstance;
 };
 
-(function(global: RuntimePreloadGlobal) {
+(function (global: RuntimePreloadGlobal) {
   'use strict';
 
   if (typeof global.window === 'undefined') {
@@ -75,7 +75,7 @@ type LocalStorageShimConstructor = {
       });
     }
 
-    const LocalStorageShim = function() {} as unknown as LocalStorageShimConstructor;
+    const LocalStorageShim = function () {} as unknown as LocalStorageShimConstructor;
     Object.defineProperty(LocalStorageShim.prototype, 'length', {
       get() {
         return Object.keys(data).length;

@@ -71,13 +71,19 @@ class ChromeTabs {
       });
     });
     if (actionApi().setPopup != null) {
-      actionApi().setTitle({
-        title: action.title
-      }, this.ignoreError);
+      actionApi().setTitle(
+        {
+          title: action.title
+        },
+        this.ignoreError
+      );
     } else {
-      actionApi().setTitle({
-        title: action.shortTitle
-      }, this.ignoreError);
+      actionApi().setTitle(
+        {
+          title: action.shortTitle
+        },
+        this.ignoreError
+      );
     }
     return this.setIcon(action.icon);
   }
@@ -97,23 +103,28 @@ class ChromeTabs {
         try {
           const api = actionApi();
           if (typeof api.setBadgeText === 'function') {
-            api.setBadgeText({
-              text: '',
-              tabId: Number(id)
-            }, this.ignoreError);
+            api.setBadgeText(
+              {
+                text: '',
+                tabId: Number(id)
+              },
+              this.ignoreError
+            );
           }
-        } catch (error) {
-        }
+        } catch (error) {}
         this._badgeTab = null;
       }
     }
     const url = tabUrl(tab);
     if (url == null || url.indexOf('chrome') === 0) {
       if (this._defaultAction) {
-        actionApi().setTitle({
-          title: this._defaultAction.title,
-          tabId: tab.id
-        }, this.ignoreError);
+        actionApi().setTitle(
+          {
+            title: this._defaultAction.title,
+            tabId: tab.id
+          },
+          this.ignoreError
+        );
         this.clearIcon(tab.id);
       }
       return;
@@ -125,15 +136,21 @@ class ChromeTabs {
       }
       this.setIcon(action.icon, tab.id);
       if (actionApi().setPopup != null) {
-        return actionApi().setTitle({
-          title: action.title,
-          tabId: tab.id
-        }, this.ignoreError);
+        return actionApi().setTitle(
+          {
+            title: action.title,
+            tabId: tab.id
+          },
+          this.ignoreError
+        );
       }
-      return actionApi().setTitle({
-        title: action.shortTitle,
-        tabId: tab.id
-      }, this.ignoreError);
+      return actionApi().setTitle(
+        {
+          title: action.shortTitle,
+          tabId: tab.id
+        },
+        this.ignoreError
+      );
     });
   }
 
@@ -147,17 +164,23 @@ class ChromeTabs {
     this._badgeTab[tab.id] = true;
     const api = actionApi();
     if (typeof api.setBadgeText === 'function') {
-      api.setBadgeText({
-        text: badge.text,
-        tabId: tab.id
-      }, this.ignoreError);
+      api.setBadgeText(
+        {
+          text: badge.text,
+          tabId: tab.id
+        },
+        this.ignoreError
+      );
     }
     const apiForColor = actionApi();
     if (typeof apiForColor.setBadgeBackgroundColor === 'function') {
-      return apiForColor.setBadgeBackgroundColor({
-        color: badge.color,
-        tabId: tab.id
-      }, this.ignoreError);
+      return apiForColor.setBadgeBackgroundColor(
+        {
+          color: badge.color,
+          tabId: tab.id
+        },
+        this.ignoreError
+      );
     }
   }
 
@@ -165,12 +188,15 @@ class ChromeTabs {
     if (icon == null) {
       return;
     }
-    const params = tabId != null ? {
-      imageData: icon,
-      tabId
-    } : {
-      imageData: icon
-    };
+    const params =
+      tabId != null
+        ? {
+            imageData: icon,
+            tabId
+          }
+        : {
+            imageData: icon
+          };
     return this._chromeSetIcon(params);
   }
 

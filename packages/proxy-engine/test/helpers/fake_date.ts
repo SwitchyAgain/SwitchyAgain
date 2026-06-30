@@ -6,7 +6,7 @@ export type FakeDateClock = {
 export function useFakeDate(initialTime: number): FakeDateClock {
   const NativeDate = Date;
   let currentTime = initialTime;
-  const FakeDate = function(this: any, ...args: any[]): Date | string {
+  const FakeDate = function (this: any, ...args: any[]): Date | string {
     if (!(this instanceof FakeDate)) {
       return new NativeDate(currentTime).toString();
     }
@@ -17,7 +17,7 @@ export function useFakeDate(initialTime: number): FakeDateClock {
   } as any;
   FakeDate.UTC = NativeDate.UTC;
   FakeDate.parse = NativeDate.parse;
-  FakeDate.now = function(): number {
+  FakeDate.now = function (): number {
     return currentTime;
   };
   FakeDate.prototype = NativeDate.prototype;

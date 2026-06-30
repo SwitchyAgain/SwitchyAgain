@@ -100,19 +100,18 @@ function sendBackgroundMessage<M extends PopupBackgroundMethod>(
   });
 }
 
-function callBackgroundNoReply<M extends PopupNoReplyMethod>(
-  method: M,
-  args: PopupBackgroundMethodArgs[M],
-  cb?: PopupCallback
-) {
-  chrome.runtime.sendMessage({
-    method: method,
-    args: args,
-    noReply: true,
-    refreshActivePage: true,
-  }, () => {
-    chrome.runtime.lastError;
-  });
+function callBackgroundNoReply<M extends PopupNoReplyMethod>(method: M, args: PopupBackgroundMethodArgs[M], cb?: PopupCallback) {
+  chrome.runtime.sendMessage(
+    {
+      method: method,
+      args: args,
+      noReply: true,
+      refreshActivePage: true
+    },
+    () => {
+      chrome.runtime.lastError;
+    }
+  );
   if (cb) return cb();
 }
 
@@ -121,10 +120,13 @@ function callBackground<M extends PopupBackgroundMethod>(
   args: PopupBackgroundMethodArgs[M],
   cb?: PopupCallback<PopupBackgroundMethodResult[M]>
 ) {
-  sendBackgroundMessage({
-    method: method,
-    args: args,
-  }, cb);
+  sendBackgroundMessage(
+    {
+      method: method,
+      args: args
+    },
+    cb
+  );
 }
 
 function callBackgroundWithRefresh<M extends PopupBackgroundMethod>(
@@ -132,23 +134,24 @@ function callBackgroundWithRefresh<M extends PopupBackgroundMethod>(
   args: PopupBackgroundMethodArgs[M],
   cb?: PopupCallback<PopupBackgroundMethodResult[M]>
 ) {
-  sendBackgroundMessage({
-    method: method,
-    args: args,
-    refreshActivePage: true,
-  }, cb);
+  sendBackgroundMessage(
+    {
+      method: method,
+      args: args,
+      refreshActivePage: true
+    },
+    cb
+  );
 }
 
-const isManifestV3 = chrome.runtime.getManifest &&
-  (chrome.runtime.getManifest().manifest_version ?? 2) >= 3;
+const isManifestV3 = chrome.runtime.getManifest && (chrome.runtime.getManifest().manifest_version ?? 2) >= 3;
 const localStatePrefix = 'omega.local.';
 
 function cacheActivePageInfo(info?: PopupApiPageInfo | null) {
   if (!info || !info.url || typeof localStorage === 'undefined') return;
   try {
     localStorage[localStatePrefix + 'web.last_page_info'] = JSON.stringify(info);
-  } catch (_) {
-  }
+  } catch (_) {}
 }
 
 function optionsTabSameWindowType(tab: OptionsTab | undefined, currentTab: OptionsTab | undefined) {
@@ -205,8 +208,7 @@ function removeOptionsTab(tabId: number | undefined, callback: () => void) {
 
 (globalThis as typeof globalThis & {PopupBridge: PopupBridgeApi}).PopupBridge = {
   getState(keys: PopupApiStateKey[], cb?: PopupCallback<PopupApiState>) {
-    if (isManifestV3 || typeof localStorage === 'undefined' ||
-        !localStorage.length) {
+    if (isManifestV3 || typeof localStorage === 'undefined' || !localStorage.length) {
       callBackground('getState', [keys], cb);
       return;
     }
@@ -230,21 +232,46 @@ function removeOptionsTab(tabId: number | undefined, callback: () => void) {
 
     chrome.tabs.query({active: true, lastFocusedWindow: true}, (currentTabs) => {
       const currentTab = currentTabs?.[0] as OptionsTab | undefined;
-      chrome.tabs.query({
-        url: optionsUrl
-      }, (tabs) => {
-        const optionTabs = (tabs || []) as OptionsTab[];
-        const sameWindowTypeTab = optionTabs.find((tab) => optionsTabSameWindowType(tab, currentTab));
-        const targetTab = sameWindowTypeTab || optionTabs[0];
-        const targetUrl = optionsUrlForOpen(optionsUrl, targetTab?.url, hash);
-        if (chrome.runtime.lastError || !targetTab) {
-          chrome.tabs.create({
-            url: targetUrl
-          });
-          if (cb) return cb();
-          return;
-        }
-        if (optionsTabSameWindowType(targetTab, currentTab)) {
+      chrome.tabs.query(
+        {
+          url: optionsUrl
+        },
+        (tabs) => {
+          const optionTabs = (tabs || []) as OptionsTab[];
+          const sameWindowTypeTab = optionTabs.find((tab) => optionsTabSameWindowType(tab, currentTab));
+          const targetTab = sameWindowTypeTab || optionTabs[0];
+          const targetUrl = optionsUrlForOpen(optionsUrl, targetTab?.url, hash);
+          if (chrome.runtime.lastError || !targetTab) {
+            chrome.tabs.create({
+              url: targetUrl
+            });
+            if (cb) return cb();
+            return;
+          }
+          if (optionsTabSameWindowType(targetTab, currentTab)) {
+            if (typeof targetTab.id !== 'number') {
+              chrome.tabs.create({
+                url: targetUrl
+              });
+              if (cb) return cb();
+              return;
+            }
+            const props: {active: boolean; url?: string} = {
+              active: true
+            };
+            if (hash) {
+              props.url = targetUrl;
+            }
+            chrome.tabs.update(targetTab.id, props, () => {
+              if (chrome.runtime.lastError) {
+                chrome.tabs.create({
+                  url: targetUrl
+                });
+              }
+              if (cb) return cb();
+            });
+            return;
+          }
           if (typeof targetTab.id !== 'number') {
             chrome.tabs.create({
               url: targetUrl
@@ -252,60 +279,38 @@ function removeOptionsTab(tabId: number | undefined, callback: () => void) {
             if (cb) return cb();
             return;
           }
-          const props: {active: boolean; url?: string} = {
-            active: true
-          };
-          if (hash) {
-            props.url = targetUrl;
-          }
-          chrome.tabs.update(targetTab.id, props, () => {
-            if (chrome.runtime.lastError) {
-              chrome.tabs.create({
-                url: targetUrl
-              });
+          const targetTabId = targetTab.id;
+          callBackground('getOptionsPageState', [targetTabId], (stateError, state) => {
+            if (stateError) {
+              if (cb) return cb(stateError);
+              return;
             }
-            if (cb) return cb();
-          });
-          return;
-        }
-        if (typeof targetTab.id !== 'number') {
-          chrome.tabs.create({
-            url: targetUrl
-          });
-          if (cb) return cb();
-          return;
-        }
-        const targetTabId = targetTab.id;
-        callBackground('getOptionsPageState', [targetTabId], (stateError, state) => {
-          if (stateError) {
-            if (cb) return cb(stateError);
-            return;
-          }
-          if (!state?.registered) {
-            if (cb) return cb(new Error('The existing settings page is not ready.'));
-            return;
-          }
-          if (!state?.dirty) {
-            removeOptionsTab(targetTabId, () => {
+            if (!state?.registered) {
+              if (cb) return cb(new Error('The existing settings page is not ready.'));
+              return;
+            }
+            if (!state?.dirty) {
+              removeOptionsTab(targetTabId, () => {
+                chrome.tabs.create({
+                  url: targetUrl
+                });
+                if (cb) return cb();
+              });
+              return;
+            }
+            callBackground('beginOptionsHandoff', [targetTabId], (handoffError, handoffId) => {
+              if (handoffError || !handoffId) {
+                if (cb) return cb(handoffError);
+                return;
+              }
               chrome.tabs.create({
-                url: targetUrl
+                url: optionsUrlWithHandoff(targetUrl, handoffId)
               });
               if (cb) return cb();
             });
-            return;
-          }
-          callBackground('beginOptionsHandoff', [targetTabId], (handoffError, handoffId) => {
-            if (handoffError || !handoffId) {
-              if (cb) return cb(handoffError);
-              return;
-            }
-            chrome.tabs.create({
-              url: optionsUrlWithHandoff(targetUrl, handoffId)
-            });
-            if (cb) return cb();
           });
-        });
-      });
+        }
+      );
     });
   },
   getActivePageInfo(optionsOrCallback?: PageInfoOptions | PopupCallback<PopupApiPageInfo>, cb?: PopupCallback<PopupApiPageInfo>) {
@@ -331,8 +336,7 @@ function removeOptionsTab(tabId: number | undefined, callback: () => void) {
     });
   },
   setDefaultProfile(profileName: string, defaultProfileName: string, cb?: PopupCallback) {
-    callBackgroundNoReply('setDefaultProfile',
-      [profileName, defaultProfileName], cb);
+    callBackgroundNoReply('setDefaultProfile', [profileName, defaultProfileName], cb);
   },
   setProfileScope(args: ProfileScopeSetRequest, cb?: PopupCallback) {
     callBackgroundNoReply('setProfileScope', [args], cb);
@@ -341,8 +345,7 @@ function removeOptionsTab(tabId: number | undefined, callback: () => void) {
     callBackgroundNoReply('addTempRule', [domain, profileName], cb);
   },
   addCondition(condition: PopupApiConditionInput, profileName: string, addToBottom: boolean, cb?: PopupCallback) {
-    callBackgroundWithRefresh('addCondition',
-      [condition, profileName, addToBottom], cb);
+    callBackgroundWithRefresh('addCondition', [condition, profileName, addToBottom], cb);
   },
   addProfile(profile: PopupApiProfile, cb?: PopupCallback) {
     callBackgroundWithRefresh('addProfile', [profile], cb);
@@ -352,9 +355,12 @@ function removeOptionsTab(tabId: number | undefined, callback: () => void) {
   },
   openManage(domainOrCallback?: string | PopupCallback, _profileName?: string, cb?: PopupCallback) {
     const callback = typeof domainOrCallback === 'function' ? domainOrCallback : cb;
-    chrome.tabs.create({
-      url: 'chrome://extensions/?id=' + chrome.runtime.id,
-    }, callback);
+    chrome.tabs.create(
+      {
+        url: 'chrome://extensions/?id=' + chrome.runtime.id
+      },
+      callback
+    );
   },
-  getMessage: chrome.i18n.getMessage.bind(chrome.i18n),
+  getMessage: chrome.i18n.getMessage.bind(chrome.i18n)
 };

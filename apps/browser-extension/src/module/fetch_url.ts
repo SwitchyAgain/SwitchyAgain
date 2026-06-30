@@ -35,21 +35,26 @@ function responseHeaders(headers: Headers): Record<string, string | undefined> {
 }
 
 function fetchWrapper(url: string): Promise<FetchResult> {
-  return fetch(url).then((response) => {
-    if (!response.ok) {
-      throw errorForStatus(response.status);
-    }
-    return response.text().then((body): FetchResult => {
-      return [{
-        headers: responseHeaders(response.headers)
-      }, body];
+  return fetch(url)
+    .then((response) => {
+      if (!response.ok) {
+        throw errorForStatus(response.status);
+      }
+      return response.text().then((body): FetchResult => {
+        return [
+          {
+            headers: responseHeaders(response.headers)
+          },
+          body
+        ];
+      });
+    })
+    .catch((err: Error) => {
+      if (err instanceof ExtensionRuntime.HttpError) {
+        throw err;
+      }
+      throw new ExtensionRuntime.NetworkError(err);
     });
-  }).catch((err: Error) => {
-    if (err instanceof ExtensionRuntime.HttpError) {
-      throw err;
-    }
-    throw new ExtensionRuntime.NetworkError(err);
-  });
 }
 
 function defaultHintHandler(_response: FetchResponse, body: string, {contentType, hint}: HintContext) {
@@ -114,9 +119,11 @@ function fetchUrl(destUrl: string, optBypassCache?: boolean, optTypeHints?: stri
     const parsed = new URL(destUrl);
     parsed.searchParams.set('_', Date.now().toString());
     const destUrlNoCache = parsed.href;
-    return fetchWrapper(destUrlNoCache).then(getResBody).catch(() => {
-      return fetchWrapper(destUrl).then(getResBody);
-    });
+    return fetchWrapper(destUrlNoCache)
+      .then(getResBody)
+      .catch(() => {
+        return fetchWrapper(destUrl).then(getResBody);
+      });
   }
   return fetchWrapper(destUrl).then(getResBody);
 }

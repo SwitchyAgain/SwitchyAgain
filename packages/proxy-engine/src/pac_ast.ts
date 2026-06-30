@@ -126,9 +126,7 @@ function printObject(node: Node, ctx: PrintContext): string {
     return '{' + properties.map((property) => printObjectProperty(property, ctx)).join(',') + '}';
   }
   const inner = child(ctx);
-  return '{\n' +
-    properties.map((property) => indent(inner) + printObjectProperty(property, inner)).join(',\n') +
-    '\n' + indent(ctx) + '}';
+  return '{\n' + properties.map((property) => indent(inner) + printObjectProperty(property, inner)).join(',\n') + '\n' + indent(ctx) + '}';
 }
 
 function printObjectProperty(node: Node, ctx: PrintContext): string {
@@ -169,9 +167,8 @@ function printExpression(node: Node, ctx: PrintContext, parentPrecedence: number
     case 'Call': {
       precedence = PREC_CALL;
       const expression = node.expression as Node;
-      const callee = expression.kind === 'Function'
-        ? '(' + printExpression(expression, ctx, 0) + ')'
-        : printExpression(expression, ctx, PREC_CALL);
+      const callee =
+        expression.kind === 'Function' ? '(' + printExpression(expression, ctx, 0) + ')' : printExpression(expression, ctx, PREC_CALL);
       const args = (node.args as Node[]).map((arg) => printExpression(arg, ctx, 0)).join(',');
       text = callee + '(' + args + ')';
       break;
@@ -185,20 +182,19 @@ function printExpression(node: Node, ctx: PrintContext, parentPrecedence: number
     case 'Dot': {
       precedence = PREC_MEMBER;
       const expression = node.expression as Node;
-      const base = expression.kind === 'Function'
-        ? '(' + printExpression(expression, ctx, 0) + ')'
-        : printExpression(expression, ctx, PREC_MEMBER);
+      const base =
+        expression.kind === 'Function' ? '(' + printExpression(expression, ctx, 0) + ')' : printExpression(expression, ctx, PREC_MEMBER);
       text = base + '.' + node.property;
       break;
     }
     case 'Sub':
       precedence = PREC_MEMBER;
-      text = printExpression(node.expression as Node, ctx, PREC_MEMBER) +
-        '[' + printExpression(node.property as Node, ctx, 0) + ']';
+      text = printExpression(node.expression as Node, ctx, PREC_MEMBER) + '[' + printExpression(node.property as Node, ctx, 0) + ']';
       break;
     case 'Assign':
       precedence = PREC_ASSIGN;
-      text = printExpression(node.left as Node, ctx, PREC_ASSIGN) +
+      text =
+        printExpression(node.left as Node, ctx, PREC_ASSIGN) +
         (node.operator as string) +
         printExpression(node.right as Node, ctx, PREC_ASSIGN);
       break;
@@ -206,22 +202,22 @@ function printExpression(node: Node, ctx: PrintContext, parentPrecedence: number
       const operator = node.operator as string;
       precedence = binaryPrecedence(operator);
       const separator = ctx.beautify ? ' ' + operator + ' ' : operator;
-      text = printExpression(node.left as Node, ctx, precedence) +
-        separator +
-        printExpression(node.right as Node, ctx, precedence + 1);
+      text = printExpression(node.left as Node, ctx, precedence) + separator + printExpression(node.right as Node, ctx, precedence + 1);
       break;
     }
     case 'UnaryPrefix': {
       precedence = PREC_UNARY;
       const operator = node.operator as string;
-      text = operator + (/[a-z]$/i.test(operator) ? ' ' : '') +
-        printExpression(node.expression as Node, ctx, PREC_UNARY);
+      text = operator + (/[a-z]$/i.test(operator) ? ' ' : '') + printExpression(node.expression as Node, ctx, PREC_UNARY);
       break;
     }
     case 'Conditional':
       precedence = PREC_CONDITIONAL;
-      text = printExpression(node.condition as Node, ctx, PREC_CONDITIONAL) + '?' +
-        printExpression(node.consequent as Node, ctx, 0) + ':' +
+      text =
+        printExpression(node.condition as Node, ctx, PREC_CONDITIONAL) +
+        '?' +
+        printExpression(node.consequent as Node, ctx, 0) +
+        ':' +
         printExpression(node.alternative as Node, ctx, 0);
       break;
     default:
@@ -238,9 +234,7 @@ function printBlock(body: Node[], ctx: PrintContext): string {
     return '{' + body.map((stmt) => printStatement(stmt, child(ctx))).join('') + '}';
   }
   const inner = child(ctx);
-  return '{\n' +
-    body.map((stmt) => indent(inner) + printStatement(stmt, inner)).join('\n') +
-    '\n' + indent(ctx) + '}';
+  return '{\n' + body.map((stmt) => indent(inner) + printStatement(stmt, inner)).join('\n') + '\n' + indent(ctx) + '}';
 }
 
 function statementAsBlock(node: Node, ctx: PrintContext): string {
@@ -273,12 +267,15 @@ function printStatement(node: Node, ctx: PrintContext): string {
       text = printBlock(node.body as Node[], ctx);
       break;
     case 'If':
-      text = 'if(' + printExpression(node.condition as Node, ctx, 0) + ')' +
-        (ctx.beautify ? ' ' : '') + statementAsBlock(node.body as Node, ctx);
+      text =
+        'if(' +
+        printExpression(node.condition as Node, ctx, 0) +
+        ')' +
+        (ctx.beautify ? ' ' : '') +
+        statementAsBlock(node.body as Node, ctx);
       break;
     case 'Do':
-      text = 'do' + statementAsBlock(node.body as Node, ctx) +
-        'while(' + printExpression(node.condition as Node, ctx, 0) + ');';
+      text = 'do' + statementAsBlock(node.body as Node, ctx) + 'while(' + printExpression(node.condition as Node, ctx, 0) + ');';
       break;
     case 'Switch':
       text = printSwitch(node, ctx);
@@ -301,20 +298,28 @@ function printVarDef(node: Node, ctx: PrintContext): string {
 function printSwitch(node: Node, ctx: PrintContext): string {
   const body = node.body as Node[];
   if (!ctx.beautify) {
-    return 'switch(' + printExpression(node.expression as Node, ctx, 0) + '){' +
+    return (
+      'switch(' +
+      printExpression(node.expression as Node, ctx, 0) +
+      '){' +
       body.map((item) => printSwitchBranch(item, child(ctx))).join('') +
-      '}';
+      '}'
+    );
   }
   const inner = child(ctx);
-  return 'switch(' + printExpression(node.expression as Node, ctx, 0) + ') {\n' +
+  return (
+    'switch(' +
+    printExpression(node.expression as Node, ctx, 0) +
+    ') {\n' +
     body.map((item) => indent(inner) + printSwitchBranch(item, inner)).join('\n') +
-    '\n' + indent(ctx) + '}';
+    '\n' +
+    indent(ctx) +
+    '}'
+  );
 }
 
 function printSwitchBranch(node: Node, ctx: PrintContext): string {
-  const label = node.kind === 'Case'
-    ? 'case ' + printExpression(node.expression as Node, ctx, 0) + ':'
-    : 'default:';
+  const label = node.kind === 'Case' ? 'case ' + printExpression(node.expression as Node, ctx, 0) + ':' : 'default:';
   const body = node.body as Node[];
   if (!ctx.beautify) {
     return label + body.map((stmt) => printStatement(stmt, child(ctx))).join('');

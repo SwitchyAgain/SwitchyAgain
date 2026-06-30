@@ -1,12 +1,10 @@
 type Listener = (...args: unknown[]) => void;
 
-type TrackableChromeEvent<T extends Listener = Listener> = Pick<
-  ChromeEvent<T>,
-  'addListener' | 'removeListener' | 'hasListeners'
-> & Partial<Pick<ChromeEvent<T>, 'addRules' | 'getRules' | 'hasListener' | 'removeRules'>>;
+type TrackableChromeEvent<T extends Listener = Listener> = Pick<ChromeEvent<T>, 'addListener' | 'removeListener' | 'hasListeners'> &
+  Partial<Pick<ChromeEvent<T>, 'addRules' | 'getRules' | 'hasListener' | 'removeRules'>>;
 
 const TRACKED_EVENT_PROXY_METHODS = ['hasListener', 'hasListeners', 'addRules', 'getRules', 'removeRules'] as const;
-type TrackedEventProxyMethod = typeof TRACKED_EVENT_PROXY_METHODS[number];
+type TrackedEventProxyMethod = (typeof TRACKED_EVENT_PROXY_METHODS)[number];
 
 class TrackedEvent<T extends Listener = Listener> {
   callbacks: T[] | null;
@@ -92,8 +90,7 @@ class ChromePort {
     this.postMessage = (...args: unknown[]) => {
       try {
         this.port.postMessage(...args);
-      } catch (error) {
-      }
+      } catch (error) {}
     };
     this.onMessage = new TrackedEvent(this.port.onMessage);
     this.onDisconnect = new TrackedEvent(this.port.onDisconnect);

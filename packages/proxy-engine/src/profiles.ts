@@ -23,12 +23,7 @@ type ProfileRecord = Profile & Record<string, any>;
 type RuleListFormat = {
   detect?: (text: string) => boolean | undefined;
   directReferenceSet?: (profile: ProfileRecord) => ReferenceSet | undefined;
-  parse: (
-    text: string,
-    matchProfileName: string,
-    defaultProfileName: string,
-    args?: unknown
-  ) => SwitchRule[];
+  parse: (text: string, matchProfileName: string, defaultProfileName: string, args?: unknown) => SwitchRule[];
   preprocess?: (text: string) => string;
 };
 
@@ -128,30 +123,34 @@ const ProfilesApi: ProfilesApiType = {
     {
       scheme: 'http',
       prop: 'proxyForHttp'
-    }, {
+    },
+    {
       scheme: 'https',
       prop: 'proxyForHttps'
-    }, {
+    },
+    {
       scheme: 'ws',
       prop: 'proxyForWs'
-    }, {
+    },
+    {
       scheme: 'wss',
       prop: 'proxyForWss'
-    }, {
+    },
+    {
       scheme: '',
       prop: 'fallbackProxy'
     }
   ],
   pacProtocols: {
-    'http': 'PROXY',
-    'https': 'HTTPS',
-    'socks4': 'SOCKS',
-    'socks5': 'SOCKS5',
+    http: 'PROXY',
+    https: 'HTTPS',
+    socks4: 'SOCKS',
+    socks5: 'SOCKS5',
     'socks5-local': 'SOCKS5'
   },
   formatByType: {
-    'SwitchyRuleListProfile': 'Switchy',
-    'AutoProxyRuleListProfile': 'AutoProxy'
+    SwitchyRuleListProfile: 'Switchy',
+    AutoProxyRuleListProfile: 'AutoProxy'
   },
   ruleListFormats: ['Switchy', 'AutoProxy'],
   parseHostPort(str: string, scheme: string): ProxyServer | undefined {
@@ -176,9 +175,9 @@ const ProfilesApi: ProfilesApiType = {
         return 'DIRECT';
       }
       if (proxy.scheme === 'socks5' || proxy.scheme === 'socks5-local') {
-        return "SOCKS5 " + proxy.host + ":" + proxy.port + "; SOCKS " + proxy.host + ":" + proxy.port;
+        return 'SOCKS5 ' + proxy.host + ':' + proxy.port + '; SOCKS ' + proxy.host + ':' + proxy.port;
       } else {
-        return ProfilesApi.pacProtocols[proxy.scheme as string] + " " + proxy.host + ":" + proxy.port;
+        return ProfilesApi.pacProtocols[proxy.scheme as string] + ' ' + proxy.host + ':' + proxy.port;
       }
     } else {
       return 'DIRECT';
@@ -196,13 +195,17 @@ const ProfilesApi: ProfilesApiType = {
   byName(profileName: string | Profile, options?: OptionsMap): Profile | undefined {
     if (typeof profileName === 'string') {
       const key = ProfilesApi.nameAsKey(profileName);
-      return (ProfilesApi.builtinProfiles[key] != null ? ProfilesApi.builtinProfiles[key] : options != null ? options[key] : void 0) as Profile | undefined;
+      return (ProfilesApi.builtinProfiles[key] != null ? ProfilesApi.builtinProfiles[key] : options != null ? options[key] : void 0) as
+        | Profile
+        | undefined;
     }
     return profileName as Profile | undefined;
   },
   byKey(key: string | Profile, options?: OptionsMap): Profile | undefined {
     if (typeof key === 'string') {
-      return (ProfilesApi.builtinProfiles[key] != null ? ProfilesApi.builtinProfiles[key] : options != null ? options[key] : void 0) as Profile | undefined;
+      return (ProfilesApi.builtinProfiles[key] != null ? ProfilesApi.builtinProfiles[key] : options != null ? options[key] : void 0) as
+        | Profile
+        | undefined;
     }
     return key as Profile | undefined;
   },
@@ -277,7 +280,7 @@ const ProfilesApi: ProfilesApiType = {
     if (revision == null) {
       revision = Revision.fromTime();
     }
-    return profile.revision = revision;
+    return (profile.revision = revision);
   },
   replaceRef(profile: Profile, fromName: string, toName: string): boolean {
     if (!ProfilesApi.isInclusive(profile)) {
@@ -309,11 +312,11 @@ const ProfilesApi: ProfilesApiType = {
     }
     const handler = ProfilesApi._handler(profile);
     const directReferenceSet = handler.directReferenceSet;
-    return cache.directReferenceSet = directReferenceSet != null ? directReferenceSet.call(ProfilesApi, profile) : {};
+    return (cache.directReferenceSet = directReferenceSet != null ? directReferenceSet.call(ProfilesApi, profile) : {});
   },
   profileNotFound(name, action) {
     if (action == null) {
-      throw new Error("Profile " + name + " does not exist!");
+      throw new Error('Profile ' + name + ' does not exist!');
     }
     if (typeof action === 'function') {
       action = action(name);
@@ -343,7 +346,7 @@ const ProfilesApi: ProfilesApiType = {
       resolvedProfile = ProfilesApi.profileNotFound(o_profile, opt_args.profileNotFound) || undefined;
     }
     const has_out = opt_args.out != null;
-    const result = opt_args.out != null ? opt_args.out : opt_args.out = {};
+    const result = opt_args.out != null ? opt_args.out : (opt_args.out = {});
     if (resolvedProfile) {
       const resolvedName = resolvedProfile.name;
       if (!resolvedName) {
@@ -369,7 +372,7 @@ const ProfilesApi: ProfilesApiType = {
       opt_args = {};
     }
     const has_out = opt_args.out != null;
-    const result = opt_args.out != null ? opt_args.out : opt_args.out = {};
+    const result = opt_args.out != null ? opt_args.out : (opt_args.out = {});
     ProfilesApi.each(options, (key, prof) => {
       if (ProfilesApi.directReferenceSet(prof)[profileKey]) {
         if (typeof prof.name === 'string') {
@@ -421,9 +424,9 @@ const ProfilesApi: ProfilesApiType = {
     }
     const handler = ProfilesApi._handler(opt_profileType);
     if (handler.compile == null) {
-      throw new Error("Profile type " + opt_profileType + " cannot be compiled.");
+      throw new Error('Profile type ' + opt_profileType + ' cannot be compiled.');
     }
-    return cache.compiled = handler.compile.call(ProfilesApi, profile, cache);
+    return (cache.compiled = handler.compile.call(ProfilesApi, profile, cache));
   },
   _profileCache: new AttachedCache((profile) => {
     return profile.revision;
@@ -435,37 +438,41 @@ const ProfilesApi: ProfilesApiType = {
       handler = ProfilesApi._profileTypes[handler];
     }
     if (handler == null) {
-      throw new Error("Unknown profile type: " + profileTypeName);
+      throw new Error('Unknown profile type: ' + profileTypeName);
     }
     return handler;
   },
   _profileTypes: {
-    'SystemProfile': {
+    SystemProfile: {
       compile(profile) {
-        throw new Error("SystemProfile cannot be used in PAC scripts");
+        throw new Error('SystemProfile cannot be used in PAC scripts');
       }
     },
-    'DirectProfile': {
+    DirectProfile: {
       includable: true,
       compile(profile) {
         return Ast.str(this.pacResult());
       }
     },
-    'FixedProfile': {
+    FixedProfile: {
       includable: true,
       create(profile) {
-        return profile.bypassList != null ? profile.bypassList : profile.bypassList = [
-          {
-            conditionType: 'BypassCondition',
-            pattern: '127.0.0.1'
-          }, {
-            conditionType: 'BypassCondition',
-            pattern: '[::1]'
-          }, {
-            conditionType: 'BypassCondition',
-            pattern: 'localhost'
-          }
-        ];
+        return profile.bypassList != null
+          ? profile.bypassList
+          : (profile.bypassList = [
+              {
+                conditionType: 'BypassCondition',
+                pattern: '127.0.0.1'
+              },
+              {
+                conditionType: 'BypassCondition',
+                pattern: '[::1]'
+              },
+              {
+                conditionType: 'BypassCondition',
+                pattern: 'localhost'
+              }
+            ]);
       },
       match(profile, request) {
         const bypassList = effectiveBypassList(profile);
@@ -473,9 +480,12 @@ const ProfilesApi: ProfilesApiType = {
           for (const cond of bypassList) {
             if (Conditions.match(cond, request)) {
               return [
-                this.pacResult(), cond, {
+                this.pacResult(),
+                cond,
+                {
                   scheme: 'direct'
-                }, void 0
+                },
+                void 0
               ];
             }
           }
@@ -484,16 +494,26 @@ const ProfilesApi: ProfilesApiType = {
           if (s.scheme === request.scheme && profile[s.prop]) {
             const proxy = profile[s.prop];
             const authMap = profile.auth;
-            const auth = proxy?.scheme === 'direct'
-              ? void 0
-              : authMap != null && authMap[s.prop] != null ? authMap[s.prop] : authMap != null ? authMap['all'] : void 0;
+            const auth =
+              proxy?.scheme === 'direct'
+                ? void 0
+                : authMap != null && authMap[s.prop] != null
+                  ? authMap[s.prop]
+                  : authMap != null
+                    ? authMap['all']
+                    : void 0;
             return [this.pacResult(proxy), s.scheme, proxy, auth];
           }
         }
         const authMap = profile.auth;
-        const auth = profile.fallbackProxy?.scheme === 'direct'
-          ? void 0
-          : authMap != null && authMap.fallbackProxy != null ? authMap.fallbackProxy : authMap != null ? authMap['all'] : void 0;
+        const auth =
+          profile.fallbackProxy?.scheme === 'direct'
+            ? void 0
+            : authMap != null && authMap.fallbackProxy != null
+              ? authMap.fallbackProxy
+              : authMap != null
+                ? authMap['all']
+                : void 0;
         return [this.pacResult(profile.fallbackProxy), '', profile.fallbackProxy, auth];
       },
       compile(profile) {
@@ -502,9 +522,7 @@ const ProfilesApi: ProfilesApiType = {
         if ((!bypassList.length || !profile.fallbackProxy) && !hasProtocolProxy) {
           return Ast.str(this.pacResult(profile.fallbackProxy));
         }
-        const body = [
-          Ast.directive('use strict')
-        ];
+        const body = [Ast.directive('use strict')];
         if (bypassList.length) {
           let conditions = null;
           for (const cond of bypassList) {
@@ -525,42 +543,50 @@ const ProfilesApi: ProfilesApiType = {
         if (!hasProtocolProxy) {
           body.push(Ast.returnStmt(Ast.str(this.pacResult(profile.fallbackProxy))));
         } else {
-          body.push(Ast.switchStmt(
-            Ast.symbol('scheme'),
-            (() => {
-              const results = [];
-              for (const s of this.schemes) {
-                if (!(!s.scheme || profile[s.prop])) {
-                  continue;
+          body.push(
+            Ast.switchStmt(
+              Ast.symbol('scheme'),
+              (() => {
+                const results = [];
+                for (const s of this.schemes) {
+                  if (!(!s.scheme || profile[s.prop])) {
+                    continue;
+                  }
+                  const ret = [Ast.returnStmt(Ast.str(this.pacResult(profile[s.prop])))];
+                  if (s.scheme) {
+                    results.push(Ast.caseStmt(Ast.str(s.scheme), ret));
+                  } else {
+                    results.push(Ast.defaultStmt(ret));
+                  }
                 }
-                const ret = [
-                  Ast.returnStmt(Ast.str(this.pacResult(profile[s.prop])))
-                ];
-                if (s.scheme) {
-                  results.push(Ast.caseStmt(Ast.str(s.scheme), ret));
-                } else {
-                  results.push(Ast.defaultStmt(ret));
-                }
-              }
-              return results;
-            })()
-          ));
+                return results;
+              })()
+            )
+          );
         }
         return Ast.fn(['url', 'host', 'port', 'scheme'], body);
       }
     },
-    'PacProfile': {
+    PacProfile: {
       includable(profile) {
         return !this.isFileUrl(profile.pacUrl);
       },
       create(profile) {
-        return profile.pacScript != null ? profile.pacScript : profile.pacScript = 'function FindProxyForURL(url, host) {\n  return "DIRECT";\n}';
+        return profile.pacScript != null
+          ? profile.pacScript
+          : (profile.pacScript = 'function FindProxyForURL(url, host) {\n  return "DIRECT";\n}');
       },
       compile(profile) {
-        return Ast.call(Ast.dot(Ast.fn([], [
-          Ast.rawStatement(';\n' + profile.pacScript + '\n\n/* End of PAC */;'),
-          Ast.returnStmt(Ast.symbol('FindProxyForURL'))
-        ]), 'call'), [Ast.thisNode()]);
+        return Ast.call(
+          Ast.dot(
+            Ast.fn(
+              [],
+              [Ast.rawStatement(';\n' + profile.pacScript + '\n\n/* End of PAC */;'), Ast.returnStmt(Ast.symbol('FindProxyForURL'))]
+            ),
+            'call'
+          ),
+          [Ast.thisNode()]
+        );
       },
       updateUrl(profile) {
         if (this.isFileUrl(profile.pacUrl)) {
@@ -580,15 +606,15 @@ const ProfilesApi: ProfilesApiType = {
         return true;
       }
     },
-    'AutoDetectProfile': 'PacProfile',
-    'SwitchProfile': {
+    AutoDetectProfile: 'PacProfile',
+    SwitchProfile: {
       includable: true,
       inclusive: true,
       create(profile) {
         if (profile.defaultProfileName == null) {
           profile.defaultProfileName = 'direct';
         }
-        return profile.rules != null ? profile.rules : profile.rules = [];
+        return profile.rules != null ? profile.rules : (profile.rules = []);
       },
       directReferenceSet(profile) {
         const refs: ReferenceSet = {};
@@ -631,25 +657,20 @@ const ProfilesApi: ProfilesApiType = {
         if (rules.length === 0) {
           return this.profileResult(profile.defaultProfileName || 'direct');
         }
-        const body = [
-          Ast.directive('use strict')
-        ];
+        const body = [Ast.directive('use strict')];
         for (const rule of rules) {
           const condition = Conditions.compile(rule.condition);
           if (condition == null || typeof rule.profileName !== 'string') {
             continue;
           }
-          body.push(Ast.ifStmt(
-            condition,
-            Ast.returnStmt(this.profileResult(rule.profileName))
-          ));
+          body.push(Ast.ifStmt(condition, Ast.returnStmt(this.profileResult(rule.profileName))));
         }
         body.push(Ast.returnStmt(this.profileResult(profile.defaultProfileName || 'direct')));
         return Ast.fn(['url', 'host', 'port', 'scheme'], body);
       }
     },
-    'VirtualProfile': 'SwitchProfile',
-    'RuleListProfile': {
+    VirtualProfile: 'SwitchProfile',
+    RuleListProfile: {
       includable: true,
       inclusive: true,
       create(profile) {
@@ -657,7 +678,8 @@ const ProfilesApi: ProfilesApiType = {
           profile.profileType = 'RuleListProfile';
         }
         if (profile.format == null) {
-          profile.format = ProfilesApi.formatByType[profile.profileType] != null ? ProfilesApi.formatByType[profile.profileType] : 'Switchy';
+          profile.format =
+            ProfilesApi.formatByType[profile.profileType] != null ? ProfilesApi.formatByType[profile.profileType] : 'Switchy';
         }
         if (profile.defaultProfileName == null) {
           profile.defaultProfileName = 'direct';
@@ -665,13 +687,16 @@ const ProfilesApi: ProfilesApiType = {
         if (profile.matchProfileName == null) {
           profile.matchProfileName = 'direct';
         }
-        return profile.ruleList != null ? profile.ruleList : profile.ruleList = '';
+        return profile.ruleList != null ? profile.ruleList : (profile.ruleList = '');
       },
       directReferenceSet(profile) {
         let refs;
         if (profile.ruleList != null) {
           const formatHandler = RuleListFormats[profile.format || ''];
-          refs = formatHandler != null && typeof formatHandler.directReferenceSet === "function" ? formatHandler.directReferenceSet(profile) : void 0;
+          refs =
+            formatHandler != null && typeof formatHandler.directReferenceSet === 'function'
+              ? formatHandler.directReferenceSet(profile)
+              : void 0;
           if (refs) {
             return refs;
           }
@@ -700,7 +725,7 @@ const ProfilesApi: ProfilesApiType = {
         const format = profile.format != null ? profile.format : ProfilesApi.formatByType[profile.profileType || ''];
         const formatHandler = RuleListFormats[format];
         if (!formatHandler) {
-          throw new Error("Unsupported rule list format " + format + "!");
+          throw new Error('Unsupported rule list format ' + format + '!');
         }
         let ruleList = (profile.ruleList != null ? profile.ruleList.trim() : void 0) || '';
         if (formatHandler.preprocess != null) {
@@ -726,15 +751,15 @@ const ProfilesApi: ProfilesApiType = {
         profile.profileType = 'RuleListProfile';
         let format: string | null | undefined = original;
         let formatHandler = RuleListFormats[format];
-        if (formatHandler != null && (typeof formatHandler.detect === "function" ? formatHandler.detect(data) : void 0) === false) {
+        if (formatHandler != null && (typeof formatHandler.detect === 'function' ? formatHandler.detect(data) : void 0) === false) {
           format = null;
         }
         for (const formatName in RuleListFormats) {
           if (!hasProp.call(RuleListFormats, formatName)) continue;
           const candidate = RuleListFormats[formatName];
           if (!candidate) continue;
-          const result = typeof candidate.detect === "function" ? candidate.detect(data) : void 0;
-          if (result === true || (result !== false && (format == null))) {
+          const result = typeof candidate.detect === 'function' ? candidate.detect(data) : void 0;
+          if (result === true || (result !== false && format == null)) {
             profile.format = format = formatName;
           }
         }
@@ -752,8 +777,8 @@ const ProfilesApi: ProfilesApiType = {
         return true;
       }
     },
-    'SwitchyRuleListProfile': 'RuleListProfile',
-    'AutoProxyRuleListProfile': 'RuleListProfile'
+    SwitchyRuleListProfile: 'RuleListProfile',
+    AutoProxyRuleListProfile: 'RuleListProfile'
   }
 };
 

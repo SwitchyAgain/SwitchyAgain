@@ -26,14 +26,7 @@ for (const name of Object.keys(errorExports)) {
   omegaTarget[name] = errorExports[name];
 }
 
-export {
-  BrowserStorage,
-  Log,
-  Options,
-  OptionsSync,
-  Storage,
-  ProxyEngine
-};
+export {BrowserStorage, Log, Options, OptionsSync, Storage, ProxyEngine};
 
 export * from './errors';
 export * from './utils';

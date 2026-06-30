@@ -1,9 +1,7 @@
 export type StorageValue = unknown;
 
 export type RuntimePromise<T> = {
-  catch<TResult = never>(
-    onRejected?: ((reason: unknown) => TResult | PromiseLike<TResult>) | null
-  ): RuntimePromise<T | TResult>;
+  catch<TResult = never>(onRejected?: ((reason: unknown) => TResult | PromiseLike<TResult>) | null): RuntimePromise<T | TResult>;
   finally(onFinally?: (() => void) | null): RuntimePromise<T>;
   then<TResult1 = T, TResult2 = never>(
     onFulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | null,
@@ -14,10 +12,7 @@ export type RuntimePromise<T> = {
 
 export type RuntimePromiseStatic = {
   new <T = unknown>(
-    executor: (
-      resolve: (value?: T | PromiseLike<T>) => void,
-      reject: (reason?: unknown) => void
-    ) => void
+    executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: unknown) => void) => void
   ): RuntimePromise<T>;
   all<T>(values: Array<T | PromiseLike<T>>): RuntimePromise<T[]>;
   delay(milliseconds?: number): RuntimePromise<void>;
@@ -30,9 +25,7 @@ export type RuntimePromiseStatic = {
   onPossiblyUnhandledRejection(callback: (reason: unknown, promise: unknown) => unknown): void;
   onUnhandledRejectionHandled(callback: (promise: unknown) => unknown): void;
   promisify(fn: unknown): (...args: unknown[]) => RuntimePromise<unknown>;
-  props<T extends Record<string, unknown>>(
-    values: T
-  ): RuntimePromise<Record<keyof T, unknown>>;
+  props<T extends Record<string, unknown>>(values: T): RuntimePromise<Record<keyof T, unknown>>;
   reject<T = never>(reason?: unknown): RuntimePromise<T>;
   resolve<T = void>(value?: T | PromiseLike<T>): RuntimePromise<T>;
   try<T = unknown>(fn: () => T | PromiseLike<T>): RuntimePromise<T>;
@@ -53,11 +46,7 @@ export type StorageGetKeys = string | string[] | StorageItems | null | undefined
 
 export type StorageRemoveKeys = string | string[] | null | undefined;
 
-export type StorageMerge = (
-  key: string,
-  newValue: StorageValue,
-  oldValue: StorageValue
-) => StorageValue;
+export type StorageMerge = (key: string, newValue: StorageValue, oldValue: StorageValue) => StorageValue;
 
 export type StorageOperations = {
   remove: string[];
@@ -83,7 +72,7 @@ export type StorageLike = {
 };
 
 export type StorageConstructor = {
-  new(): StorageLike;
+  new (): StorageLike;
   (): StorageLike;
   operationsForChanges: (
     changes: StorageChanges,
@@ -117,16 +106,14 @@ export type PacAstLike = {
   [key: string]: unknown;
 };
 
-export type ProfileMatchTuple = [
-  profileKey: string,
-  source?: unknown,
-  proxy?: unknown,
-  auth?: unknown
-];
+export type ProfileMatchTuple = [profileKey: string, source?: unknown, proxy?: unknown, auth?: unknown];
 
-export type ProfileMatchResult = ProfileMatchTuple | (Record<string, unknown> & {
-  profileName?: string | null;
-}) | undefined;
+export type ProfileMatchResult =
+  | ProfileMatchTuple
+  | (Record<string, unknown> & {
+      profileName?: string | null;
+    })
+  | undefined;
 
 export type ProxyEngineModule = {
   Conditions: {

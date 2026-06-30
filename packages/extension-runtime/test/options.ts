@@ -3,188 +3,198 @@ import Promise from '../src/promise';
 import OptionsClass from '../src/options';
 import {assertCalledOnce, assertCalledWith, stubReturns} from './helpers/test_helpers';
 
-describe('Options', function() {
+describe('Options', function () {
   let Options: any;
   Options = OptionsClass;
 
-  describe('#upgrade', function() {
-    it('should preserve loopback bypass behavior when upgrading <local> from schemaVersion 2', function() {
+  describe('#upgrade', function () {
+    it('should preserve loopback bypass behavior when upgrading <local> from schemaVersion 2', function () {
       const options = Object.create(Options.prototype);
-      return options.upgrade({
-        schemaVersion: 2,
-        '+proxy': {
-          name: 'proxy',
-          profileType: 'FixedProfile',
-          bypassList: [
-            {
-              conditionType: 'BypassCondition',
-              pattern: '<local>'
-            }
-          ]
-        }
-      }).then(([upgraded, changes]: any[]) => {
-        assert.strictEqual(upgraded.schemaVersion, 3);
-        assert.strictEqual(changes.schemaVersion, 3);
-        assert.deepStrictEqual(upgraded['+proxy'].bypassList.map((condition: any) => condition.pattern), [
-          '<local>',
-          '127.0.0.1',
-          '[::1]',
-          'localhost'
-        ]);
-        assert.strictEqual(changes['+proxy'], upgraded['+proxy']);
-      });
+      return options
+        .upgrade({
+          schemaVersion: 2,
+          '+proxy': {
+            name: 'proxy',
+            profileType: 'FixedProfile',
+            bypassList: [
+              {
+                conditionType: 'BypassCondition',
+                pattern: '<local>'
+              }
+            ]
+          }
+        })
+        .then(([upgraded, changes]: any[]) => {
+          assert.strictEqual(upgraded.schemaVersion, 3);
+          assert.strictEqual(changes.schemaVersion, 3);
+          assert.deepStrictEqual(
+            upgraded['+proxy'].bypassList.map((condition: any) => condition.pattern),
+            ['<local>', '127.0.0.1', '[::1]', 'localhost']
+          );
+          assert.strictEqual(changes['+proxy'], upgraded['+proxy']);
+        });
     });
 
-    it('should not duplicate explicit local bypass entries when upgrading schemaVersion 2', function() {
+    it('should not duplicate explicit local bypass entries when upgrading schemaVersion 2', function () {
       const options = Object.create(Options.prototype);
-      return options.upgrade({
-        schemaVersion: 2,
-        '+proxy': {
-          name: 'proxy',
-          profileType: 'FixedProfile',
-          bypassList: [
-            {
-              conditionType: 'BypassCondition',
-              pattern: '<local>'
-            },
-            {
-              conditionType: 'BypassCondition',
-              pattern: '127.0.0.1'
-            },
-            {
-              conditionType: 'BypassCondition',
-              pattern: '[::1]'
-            },
-            {
-              conditionType: 'BypassCondition',
-              pattern: 'localhost'
-            }
-          ]
-        }
-      }).then(([upgraded]: any[]) => {
-        assert.deepStrictEqual(upgraded['+proxy'].bypassList.map((condition: any) => condition.pattern), [
-          '<local>',
-          '127.0.0.1',
-          '[::1]',
-          'localhost'
-        ]);
-      });
+      return options
+        .upgrade({
+          schemaVersion: 2,
+          '+proxy': {
+            name: 'proxy',
+            profileType: 'FixedProfile',
+            bypassList: [
+              {
+                conditionType: 'BypassCondition',
+                pattern: '<local>'
+              },
+              {
+                conditionType: 'BypassCondition',
+                pattern: '127.0.0.1'
+              },
+              {
+                conditionType: 'BypassCondition',
+                pattern: '[::1]'
+              },
+              {
+                conditionType: 'BypassCondition',
+                pattern: 'localhost'
+              }
+            ]
+          }
+        })
+        .then(([upgraded]: any[]) => {
+          assert.deepStrictEqual(
+            upgraded['+proxy'].bypassList.map((condition: any) => condition.pattern),
+            ['<local>', '127.0.0.1', '[::1]', 'localhost']
+          );
+        });
     });
 
-    it('should recognize unbracketed IPv6 loopback when upgrading schemaVersion 2', function() {
+    it('should recognize unbracketed IPv6 loopback when upgrading schemaVersion 2', function () {
       const options = Object.create(Options.prototype);
-      return options.upgrade({
-        schemaVersion: 2,
-        '+proxy': {
-          name: 'proxy',
-          profileType: 'FixedProfile',
-          bypassList: [
-            {
-              conditionType: 'BypassCondition',
-              pattern: '<local>'
-            },
-            {
-              conditionType: 'BypassCondition',
-              pattern: '::1'
-            }
-          ]
-        }
-      }).then(([upgraded]: any[]) => {
-        assert.deepStrictEqual(upgraded['+proxy'].bypassList.map((condition: any) => condition.pattern), [
-          '<local>',
-          '::1',
-          '127.0.0.1',
-          'localhost'
-        ]);
-      });
+      return options
+        .upgrade({
+          schemaVersion: 2,
+          '+proxy': {
+            name: 'proxy',
+            profileType: 'FixedProfile',
+            bypassList: [
+              {
+                conditionType: 'BypassCondition',
+                pattern: '<local>'
+              },
+              {
+                conditionType: 'BypassCondition',
+                pattern: '::1'
+              }
+            ]
+          }
+        })
+        .then(([upgraded]: any[]) => {
+          assert.deepStrictEqual(
+            upgraded['+proxy'].bypassList.map((condition: any) => condition.pattern),
+            ['<local>', '::1', '127.0.0.1', 'localhost']
+          );
+        });
     });
 
-    it('should add a default UI locale when upgrading existing options', function() {
+    it('should add a default UI locale when upgrading existing options', function () {
       const options = Object.create(Options.prototype);
-      return options.upgrade({
-        schemaVersion: 3
-      }).then(([upgraded, changes]: any[]) => {
-        assert.strictEqual(upgraded['-uiLocale'], 'en');
-        assert.strictEqual(changes['-uiLocale'], 'en');
-        assert.strictEqual(upgraded['-uiTheme'], 'light');
-        assert.strictEqual(changes['-uiTheme'], 'light');
-      });
+      return options
+        .upgrade({
+          schemaVersion: 3
+        })
+        .then(([upgraded, changes]: any[]) => {
+          assert.strictEqual(upgraded['-uiLocale'], 'en');
+          assert.strictEqual(changes['-uiLocale'], 'en');
+          assert.strictEqual(upgraded['-uiTheme'], 'light');
+          assert.strictEqual(changes['-uiTheme'], 'light');
+        });
     });
 
-    it('should normalize unsupported UI locales and themes during upgrade', function() {
+    it('should normalize unsupported UI locales and themes during upgrade', function () {
       const options = Object.create(Options.prototype);
       options.defaultUiLocale = () => 'es';
-      return options.upgrade({
-        schemaVersion: 3,
-        '-uiLocale': 'de',
-        '-uiTheme': 'unknown'
-      }).then(([upgraded, changes]: any[]) => {
-        assert.strictEqual(upgraded['-uiLocale'], 'es');
-        assert.strictEqual(changes['-uiLocale'], 'es');
-        assert.strictEqual(upgraded['-uiTheme'], 'light');
-        assert.strictEqual(changes['-uiTheme'], 'light');
-      });
-    });
-
-    it('should preserve supported UI themes during upgrade', function() {
-      const options = Object.create(Options.prototype);
-      return options.upgrade({
-        schemaVersion: 3,
-        '-uiLocale': 'en',
-        '-uiTheme': 'system'
-      }).then(([upgraded, changes]: any[]) => {
-        assert.strictEqual(upgraded['-uiTheme'], 'system');
-        assert.strictEqual(changes['-uiTheme'], undefined);
-      });
-    });
-
-    it('should preserve tab group profile scope settings during upgrade', function() {
-      const options = Object.create(Options.prototype);
-      return options.upgrade({
-        schemaVersion: 3,
-        '-uiLocale': 'en',
-        '-uiTheme': 'light',
-        '-profileScopes': {
-          tab: true,
-          group: true,
-          container: false,
-          window: true
-        }
-      }).then(([upgraded, changes]: any[]) => {
-        assert.deepStrictEqual(upgraded['-profileScopes'], {
-          tab: true,
-          group: true,
-          container: false,
-          window: true
+      return options
+        .upgrade({
+          schemaVersion: 3,
+          '-uiLocale': 'de',
+          '-uiTheme': 'unknown'
+        })
+        .then(([upgraded, changes]: any[]) => {
+          assert.strictEqual(upgraded['-uiLocale'], 'es');
+          assert.strictEqual(changes['-uiLocale'], 'es');
+          assert.strictEqual(upgraded['-uiTheme'], 'light');
+          assert.strictEqual(changes['-uiTheme'], 'light');
         });
-        assert.strictEqual(changes['-profileScopes'], undefined);
-      });
     });
 
-    it('should add default context menu options during upgrade', function() {
+    it('should preserve supported UI themes during upgrade', function () {
       const options = Object.create(Options.prototype);
-      return options.upgrade({
-        schemaVersion: 3,
-        '-uiLocale': 'en',
-        '-uiTheme': 'light'
-      }).then(([upgraded, changes]: any[]) => {
-        assert.deepStrictEqual(upgraded['-contextMenuOptions'], {
-          switchProfile: true,
-          tabProfile: false,
-          groupProfile: false,
-          containerProfile: false,
-          windowProfile: false,
-          linkProfileNewTab: false,
-          linkProfileNewWindow: false,
-          linkProfileNewPrivateWindow: false
+      return options
+        .upgrade({
+          schemaVersion: 3,
+          '-uiLocale': 'en',
+          '-uiTheme': 'system'
+        })
+        .then(([upgraded, changes]: any[]) => {
+          assert.strictEqual(upgraded['-uiTheme'], 'system');
+          assert.strictEqual(changes['-uiTheme'], undefined);
         });
-        assert.strictEqual(changes['-contextMenuOptions'], upgraded['-contextMenuOptions']);
-      });
+    });
+
+    it('should preserve tab group profile scope settings during upgrade', function () {
+      const options = Object.create(Options.prototype);
+      return options
+        .upgrade({
+          schemaVersion: 3,
+          '-uiLocale': 'en',
+          '-uiTheme': 'light',
+          '-profileScopes': {
+            tab: true,
+            group: true,
+            container: false,
+            window: true
+          }
+        })
+        .then(([upgraded, changes]: any[]) => {
+          assert.deepStrictEqual(upgraded['-profileScopes'], {
+            tab: true,
+            group: true,
+            container: false,
+            window: true
+          });
+          assert.strictEqual(changes['-profileScopes'], undefined);
+        });
+    });
+
+    it('should add default context menu options during upgrade', function () {
+      const options = Object.create(Options.prototype);
+      return options
+        .upgrade({
+          schemaVersion: 3,
+          '-uiLocale': 'en',
+          '-uiTheme': 'light'
+        })
+        .then(([upgraded, changes]: any[]) => {
+          assert.deepStrictEqual(upgraded['-contextMenuOptions'], {
+            switchProfile: true,
+            tabProfile: false,
+            groupProfile: false,
+            containerProfile: false,
+            windowProfile: false,
+            linkProfileNewTab: false,
+            linkProfileNewWindow: false,
+            linkProfileNewPrivateWindow: false
+          });
+          assert.strictEqual(changes['-contextMenuOptions'], upgraded['-contextMenuOptions']);
+        });
     });
   });
 
-  describe('#setExternalProfile', function() {
-    it('should revert to the current profile when no explicit revert target exists', function() {
+  describe('#setExternalProfile', function () {
+    it('should revert to the current profile when no explicit revert target exists', function () {
       const options = Object.create(Options.prototype);
       options._options = {
         '-revertProxyChanges': true,
@@ -210,7 +220,7 @@ describe('Options', function() {
     });
   });
 
-  describe('#_setAvailableProfiles', function() {
+  describe('#_setAvailableProfiles', function () {
     function stateRecorder() {
       const calls: any[] = [];
       return {
@@ -224,7 +234,7 @@ describe('Options', function() {
       };
     }
 
-    it('should expose scope assignable profiles separately from rule result profiles', function() {
+    it('should expose scope assignable profiles separately from rule result profiles', function () {
       const options = Object.create(Options.prototype);
       const state = stateRecorder();
       options._options = {
@@ -260,7 +270,7 @@ describe('Options', function() {
       });
     });
 
-    it('should clear scope assignable profiles while the current profile is system proxy', function() {
+    it('should clear scope assignable profiles while the current profile is system proxy', function () {
       const options = Object.create(Options.prototype);
       const state = stateRecorder();
       options._options = {
@@ -281,8 +291,8 @@ describe('Options', function() {
     });
   });
 
-  describe('#explainRequest', function() {
-    it('should explain switch profile rules down to the final fixed proxy result', function() {
+  describe('#explainRequest', function () {
+    it('should explain switch profile rules down to the final fixed proxy result', function () {
       const options = Object.create(Options.prototype);
       options._options = {
         '+auto': {
@@ -319,12 +329,15 @@ describe('Options', function() {
         assert.strictEqual(explanation.final.profile.name, 'proxy');
         assert.strictEqual(explanation.final.kind, 'proxy');
         assert.strictEqual(explanation.final.pacResult, 'PROXY proxy.example:8080');
-        assert.deepStrictEqual(explanation.steps.map((step: any) => step.kind), ['rule', 'proxy']);
+        assert.deepStrictEqual(
+          explanation.steps.map((step: any) => step.kind),
+          ['rule', 'proxy']
+        );
         assert.strictEqual(explanation.steps[0].targetProfile.name, 'proxy');
       });
     });
 
-    it('should mark attached rule list profiles without exposing them as normal profiles', function() {
+    it('should mark attached rule list profiles without exposing them as normal profiles', function () {
       const options = Object.create(Options.prototype);
       options._options = {
         '+auto switch': {
@@ -357,7 +370,7 @@ describe('Options', function() {
       });
     });
 
-    it('should explain temporary rules before the current direct profile', function() {
+    it('should explain temporary rules before the current direct profile', function () {
       const options = Object.create(Options.prototype);
       options._options = {
         '+proxy': {

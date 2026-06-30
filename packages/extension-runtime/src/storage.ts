@@ -172,9 +172,11 @@ class Storage {
     if ('changes' in operations) {
       writeOperations = Storage.operationsForChanges(operations.changes || {}, operations);
     }
-    return this.set(writeOperations.set).then(() => {
-      return this.remove(writeOperations.remove);
-    }).then(() => writeOperations);
+    return this.set(writeOperations.set)
+      .then(() => {
+        return this.remove(writeOperations.remove);
+      })
+      .then(() => writeOperations);
   }
 }
 

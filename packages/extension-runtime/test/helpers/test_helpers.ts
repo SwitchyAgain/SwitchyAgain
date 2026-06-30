@@ -12,7 +12,7 @@ export type TestDouble = ((...args: any[]) => any) & {
 };
 
 export function createSpy(impl?: (this: any, ...args: any[]) => any): TestDouble {
-  const spy = function(this: any, ...args: any[]): any {
+  const spy = function (this: any, ...args: any[]): any {
     spy.calls.push({
       args,
       thisArg: this
@@ -29,10 +29,10 @@ export function createSpy(impl?: (this: any, ...args: any[]) => any): TestDouble
 
 export function spyOn(obj: any, method: string): TestDouble {
   const original = obj[method];
-  const spy = createSpy(function(this: any, ...args: any[]): any {
+  const spy = createSpy(function (this: any, ...args: any[]): any {
     return original.apply(this, args);
   });
-  spy.restore = function(): void {
+  spy.restore = function (): void {
     obj[method] = original;
   };
   obj[method] = spy;
@@ -42,7 +42,7 @@ export function spyOn(obj: any, method: string): TestDouble {
 export function stubOn(obj: any, method: string, impl?: (this: any, ...args: any[]) => any): TestDouble {
   const original = obj[method];
   const stub = createSpy(impl);
-  stub.restore = function(): void {
+  stub.restore = function (): void {
     obj[method] = original;
   };
   obj[method] = stub;
@@ -50,7 +50,7 @@ export function stubOn(obj: any, method: string, impl?: (this: any, ...args: any
 }
 
 export function stubReturns(value: any): TestDouble {
-  return createSpy(function(): any {
+  return createSpy(function (): any {
     return value;
   });
 }
@@ -68,7 +68,7 @@ export function assertCalledTwice(spy: TestDouble): void {
 }
 
 export function assertCalledWith(spy: TestDouble, ...expectedArgs: any[]): void {
-  const found = spy.calls.some(function(call) {
+  const found = spy.calls.some(function (call) {
     if (call.args.length < expectedArgs.length) {
       return false;
     }
@@ -82,6 +82,6 @@ export function assertCalledWith(spy: TestDouble, ...expectedArgs: any[]): void 
     return true;
   });
   if (!found) {
-    assert.fail("Expected function to be called with " + JSON.stringify(expectedArgs));
+    assert.fail('Expected function to be called with ' + JSON.stringify(expectedArgs));
   }
 }

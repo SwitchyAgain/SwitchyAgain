@@ -15,19 +15,12 @@ import type {
 
 const ProxyEngine = ExtensionRuntime.ProxyEngine;
 
-const FIXED_PROXY_RULE_KEYS = [
-  'proxyForHttp',
-  'proxyForHttps',
-  'proxyForWs',
-  'proxyForWss',
-  'fallbackProxy',
-  'singleProxy'
-] as const;
+const FIXED_PROXY_RULE_KEYS = ['proxyForHttp', 'proxyForHttps', 'proxyForWs', 'proxyForWss', 'fallbackProxy', 'singleProxy'] as const;
 
 const PROTOCOL_PROXY_RULE_KEYS = ['proxyForHttp', 'proxyForHttps'] as const;
 const WEBSOCKET_PROXY_RULE_KEYS = ['proxyForWs', 'proxyForWss'] as const;
 
-type FixedProxyRuleKey = typeof FIXED_PROXY_RULE_KEYS[number];
+type FixedProxyRuleKey = (typeof FIXED_PROXY_RULE_KEYS)[number];
 type ProxySettingsScope = 'regular' | 'incognito_persistent';
 
 type ProfileScopeAssignments = {
@@ -104,13 +97,16 @@ class SettingsProxyImpl extends ProxyImpl {
       config.mode = 'direct';
     } else if (profile.profileType === 'PacProfile') {
       config.mode = 'pac_script';
-      config.pacScript = !profile.pacScript || ProxyEngine.Profiles.isFileUrl(profile.pacUrl) ? {
-        url: profile.pacUrl,
-        mandatory: true
-      } : {
-        data: ProxyEngine.PacGenerator.ascii(profile.pacScript),
-        mandatory: true
-      };
+      config.pacScript =
+        !profile.pacScript || ProxyEngine.Profiles.isFileUrl(profile.pacUrl)
+          ? {
+              url: profile.pacUrl,
+              mandatory: true
+            }
+          : {
+              data: ProxyEngine.PacGenerator.ascii(profile.pacScript),
+              mandatory: true
+            };
     } else if (profile.profileType === 'FixedProfile') {
       config = this._fixedProfileConfig(profile, meta, options);
     } else {
@@ -121,7 +117,10 @@ class SettingsProxyImpl extends ProxyImpl {
       };
     }
 
-    return chromeApiPromisify<void>(chrome.proxy.settings, 'set')({
+    return chromeApiPromisify<void>(
+      chrome.proxy.settings,
+      'set'
+    )({
       ...details,
       value: config
     });
@@ -147,9 +146,7 @@ class SettingsProxyImpl extends ProxyImpl {
   }
 
   private _profileByName(profileName: unknown, options?: unknown) {
-    return typeof profileName === 'string' && profileName
-      ? ProxyEngine.Profiles.byName(profileName, options)
-      : null;
+    return typeof profileName === 'string' && profileName ? ProxyEngine.Profiles.byName(profileName, options) : null;
   }
 
   private _applyWindowScopeProfiles(
@@ -160,15 +157,19 @@ class SettingsProxyImpl extends ProxyImpl {
     options?: unknown
   ) {
     const applyRegular = this._applyProfileConfig(profiles.regular.profile, profiles.regular.meta, options, 'regular');
-    const applyPrivate = this._applyProfileConfig(profiles.private.profile, profiles.private.meta, options, 'incognito_persistent')
-      .catch((error: unknown) => {
+    const applyPrivate = this._applyProfileConfig(profiles.private.profile, profiles.private.meta, options, 'incognito_persistent').catch(
+      (error: unknown) => {
         this.log.error('Failed to apply private window proxy profile:', error);
-      });
+      }
+    );
     return Promise.all([applyRegular, applyPrivate]);
   }
 
   private _clearPrivateScopeProfile() {
-    return chromeApiPromisify<void>(chrome.proxy.settings, 'clear')({
+    return chromeApiPromisify<void>(
+      chrome.proxy.settings,
+      'clear'
+    )({
       scope: 'incognito_persistent'
     }).catch(() => {});
   }
@@ -280,7 +281,7 @@ class SettingsProxyImpl extends ProxyImpl {
   }
 
   private _handleProxyChange(details: unknown) {
-    const proxyDetails = isRecordValue(details) ? details as ProxyChangeDetails : {};
+    const proxyDetails = isRecordValue(details) ? (details as ProxyChangeDetails) : {};
     const watchers = this._proxyChangeWatchers || [];
     return watchers.map((watcher) => watcher(proxyDetails));
   }
@@ -330,11 +331,13 @@ class SettingsProxyImpl extends ProxyImpl {
           profile = candidate;
         }
       });
-      return profile != null ? profile : ProxyEngine.Profiles.create({
-        profileType: 'PacProfile',
-        name: '',
-        pacUrl: url
-      });
+      return profile != null
+        ? profile
+        : ProxyEngine.Profiles.create({
+            profileType: 'PacProfile',
+            name: '',
+            pacUrl: url
+          });
     }
 
     let profile: ProxyProfile | null = null;

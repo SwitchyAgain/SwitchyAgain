@@ -46,10 +46,7 @@ class ProxyImpl {
     return null;
   }
 
-  parseExternalProfile(
-    _details: ExternalProxyDetails | ProxyProfile | ProxyChangeDetails,
-    _options?: unknown
-  ): unknown {
+  parseExternalProfile(_details: ExternalProxyDetails | ProxyProfile | ProxyChangeDetails, _options?: unknown): unknown {
     return null;
   }
 

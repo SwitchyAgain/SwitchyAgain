@@ -37,13 +37,14 @@ export function parseUrlCompat(url: string): ParsedUrlCompat {
   const rawHost = rawBracketedHost(url);
   return {
     hostname: rawHost != null ? rawHost.hostname : parsed.hostname,
-    href: rawHost != null
-      ? parsed.href.replace(/\/\/(?:[^/?#@]*@)?\[[^\]]+\](?::\d+)?/, (authority) => {
-        const authEnd = authority.lastIndexOf('@');
-        const auth = authEnd >= 0 ? authority.slice(0, authEnd + 1) : '//';
-        return auth + rawHost.host;
-      })
-      : parsed.href,
+    href:
+      rawHost != null
+        ? parsed.href.replace(/\/\/(?:[^/?#@]*@)?\[[^\]]+\](?::\d+)?/, (authority) => {
+            const authEnd = authority.lastIndexOf('@');
+            const auth = authEnd >= 0 ? authority.slice(0, authEnd + 1) : '//';
+            return auth + rawHost.host;
+          })
+        : parsed.href,
     port: parsed.port,
     protocol: parsed.protocol
   };

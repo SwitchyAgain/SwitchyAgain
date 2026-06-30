@@ -40,10 +40,13 @@ const PROFILE_MENU_ORDER: Record<string, number> = {
 const PROFILE_ICON_PATHS: Record<string, string> = {
   AutoDetectProfile: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h4"/>',
   DirectProfile: '<path d="M4 8h13"/><path d="M13 4l4 4-4 4"/><path d="M20 16H7"/><path d="M11 12l-4 4 4 4"/>',
-  FixedProfile: '<circle cx="12" cy="12" r="8"/><path d="M4 12h16"/><path d="M12 4c2 2.4 3 5.1 3 8s-1 5.6-3 8"/><path d="M12 4c-2 2.4-3 5.1-3 8s1 5.6 3 8"/>',
+  FixedProfile:
+    '<circle cx="12" cy="12" r="8"/><path d="M4 12h16"/><path d="M12 4c2 2.4 3 5.1 3 8s-1 5.6-3 8"/><path d="M12 4c-2 2.4-3 5.1-3 8s1 5.6 3 8"/>',
   PacProfile: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h4"/>',
-  RuleListProfile: '<path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/><circle cx="4.5" cy="7" r=".7"/><circle cx="4.5" cy="12" r=".7"/><circle cx="4.5" cy="17" r=".7"/>',
-  SwitchProfile: '<path d="M6 8h8c2.8 0 5 2.2 5 5"/><path d="M16 10l3 3 3-3"/><path d="M18 16h-8c-2.8 0-5-2.2-5-5"/><path d="M8 14l-3-3-3 3"/>',
+  RuleListProfile:
+    '<path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/><circle cx="4.5" cy="7" r=".7"/><circle cx="4.5" cy="12" r=".7"/><circle cx="4.5" cy="17" r=".7"/>',
+  SwitchProfile:
+    '<path d="M6 8h8c2.8 0 5 2.2 5 5"/><path d="M16 10l3 3 3-3"/><path d="M18 16h-8c-2.8 0-5-2.2-5-5"/><path d="M8 14l-3-3-3 3"/>',
   SystemProfile: '<path d="M12 4v8"/><path d="M7 6.7a8 8 0 1 0 10 0"/>',
   VirtualProfile: '<path d="M9 9a3 3 0 1 1 4.6 2.5c-1.1.7-1.6 1.3-1.6 2.5"/><path d="M12 18h.01"/>'
 };
@@ -255,12 +258,7 @@ type ContextualIdentitiesApi = {
 
 type RequestMonitorLike = {
   tabInfo: Record<string, TabRequestInfo | undefined>;
-  watchTabs(callback: (
-    tabId: number,
-    info: TabRequestInfo,
-    req?: unknown,
-    status?: unknown
-  ) => unknown): unknown;
+  watchTabs(callback: (tabId: number, info: TabRequestInfo, req?: unknown, status?: unknown) => unknown): unknown;
 };
 
 type ChromePortLike = InstanceType<typeof ChromePort>;
@@ -447,15 +445,18 @@ interface ChromeOptions extends OmegaOptionsBase {}
 function defaultUiLocaleFromBrowser(language?: string) {
   if (language == null) {
     const getUILanguage = chrome.i18n && chrome.i18n.getUILanguage;
-    language = typeof getUILanguage === 'function'
-      ? getUILanguage.call(chrome.i18n)
-      : '';
+    language = typeof getUILanguage === 'function' ? getUILanguage.call(chrome.i18n) : '';
   }
   const normalized = language.replace(/_/g, '-').toLowerCase();
   if (normalized === 'zh' || normalized.startsWith('zh-hans') || normalized.startsWith('zh-cn') || normalized.startsWith('zh-sg')) {
     return 'zh-Hans';
   }
-  if (normalized.startsWith('zh-hant') || normalized.startsWith('zh-tw') || normalized.startsWith('zh-hk') || normalized.startsWith('zh-mo')) {
+  if (
+    normalized.startsWith('zh-hant') ||
+    normalized.startsWith('zh-tw') ||
+    normalized.startsWith('zh-hk') ||
+    normalized.startsWith('zh-mo')
+  ) {
     return 'zh-Hant';
   }
   if (normalized.startsWith('cs')) {
@@ -609,11 +610,13 @@ class ChromeOptions extends ExtensionRuntime.Options {
       }
       this.updateContextMenuWindowIncognitoFromCurrentTab(true, windowId);
     });
-    const tabGroups = chrome.tabGroups as {
-      onRemoved?: {
-        addListener(callback: (group: {id?: number; windowId?: number}) => void): void;
-      };
-    } | undefined;
+    const tabGroups = chrome.tabGroups as
+      | {
+          onRemoved?: {
+            addListener(callback: (group: {id?: number; windowId?: number}) => void): void;
+          };
+        }
+      | undefined;
     tabGroups?.onRemoved?.addListener((group) => {
       const key = this.groupProfileKey(group.windowId, group.id);
       if (key) {
@@ -698,7 +701,8 @@ class ChromeOptions extends ExtensionRuntime.Options {
     if (!api?.query) {
       return Promise.resolve(this.saveProfileScopeContainers());
     }
-    return api.query({})
+    return api
+      .query({})
       .then((identities) => {
         const containers: Record<string, ProfileScopeContainerInfo> = {};
         const order: string[] = [];
@@ -729,36 +733,43 @@ class ChromeOptions extends ExtensionRuntime.Options {
   }
 
   private restoreTabProfileNames() {
-    const sessionStorage = chrome?.storage?.session as {
-      get?: (keys: string | string[] | Record<string, unknown> | null) => Promise<Record<string, unknown>>;
-    } | undefined;
+    const sessionStorage = chrome?.storage?.session as
+      | {
+          get?: (keys: string | string[] | Record<string, unknown> | null) => Promise<Record<string, unknown>>;
+        }
+      | undefined;
     if (!sessionStorage?.get) {
       return;
     }
-    sessionStorage.get(null).then((data: Record<string, unknown>) => {
-      for (const [key, value] of Object.entries(data)) {
-        if (key.startsWith('tabProfile_')) {
-          const tabId = parseInt(key.substring(11), 10);
-          if (!isNaN(tabId) && typeof value === 'string') {
-            this._tabProfileNames[tabId] = value;
-          }
-        } else if (key.startsWith('tabGroupProfile_') && typeof value === 'string') {
-          const groupKey = key.substring(16);
-          if (this.validGroupProfileKey(groupKey)) {
-            this._groupProfileNames[groupKey] = value;
+    sessionStorage
+      .get(null)
+      .then((data: Record<string, unknown>) => {
+        for (const [key, value] of Object.entries(data)) {
+          if (key.startsWith('tabProfile_')) {
+            const tabId = parseInt(key.substring(11), 10);
+            if (!isNaN(tabId) && typeof value === 'string') {
+              this._tabProfileNames[tabId] = value;
+            }
+          } else if (key.startsWith('tabGroupProfile_') && typeof value === 'string') {
+            const groupKey = key.substring(16);
+            if (this.validGroupProfileKey(groupKey)) {
+              this._groupProfileNames[groupKey] = value;
+            }
           }
         }
-      }
-    }).catch(() => {
-      // Session storage may not be available in some contexts
-    });
+      })
+      .catch(() => {
+        // Session storage may not be available in some contexts
+      });
   }
 
   private saveTabProfileToStorage(tabId: number, profileName?: string) {
-    const sessionStorage = chrome?.storage?.session as {
-      set?: (items: Record<string, unknown>) => Promise<void>;
-      remove?: (keys: string | string[]) => Promise<void>;
-    } | undefined;
+    const sessionStorage = chrome?.storage?.session as
+      | {
+          set?: (items: Record<string, unknown>) => Promise<void>;
+          remove?: (keys: string | string[]) => Promise<void>;
+        }
+      | undefined;
     if (!sessionStorage) {
       return;
     }
@@ -775,9 +786,11 @@ class ChromeOptions extends ExtensionRuntime.Options {
   }
 
   private removeTabProfileFromStorage(tabId: number) {
-    const sessionStorage = chrome?.storage?.session as {
-      remove?: (keys: string | string[]) => Promise<void>;
-    } | undefined;
+    const sessionStorage = chrome?.storage?.session as
+      | {
+          remove?: (keys: string | string[]) => Promise<void>;
+        }
+      | undefined;
     if (!sessionStorage?.remove) {
       return;
     }
@@ -787,12 +800,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
   }
 
   private groupProfileKey(windowId?: number, groupId?: number) {
-    if (
-      typeof windowId !== 'number' ||
-      typeof groupId !== 'number' ||
-      groupId === TAB_GROUP_ID_NONE ||
-      groupId < 0
-    ) {
+    if (typeof windowId !== 'number' || typeof groupId !== 'number' || groupId === TAB_GROUP_ID_NONE || groupId < 0) {
       return undefined;
     }
     return `${windowId}:${groupId}`;
@@ -803,10 +811,12 @@ class ChromeOptions extends ExtensionRuntime.Options {
   }
 
   private saveGroupProfileToStorage(groupKey: string, profileName?: string) {
-    const sessionStorage = chrome?.storage?.session as {
-      set?: (items: Record<string, unknown>) => Promise<void>;
-      remove?: (keys: string | string[]) => Promise<void>;
-    } | undefined;
+    const sessionStorage = chrome?.storage?.session as
+      | {
+          set?: (items: Record<string, unknown>) => Promise<void>;
+          remove?: (keys: string | string[]) => Promise<void>;
+        }
+      | undefined;
     if (!sessionStorage) {
       return;
     }
@@ -914,9 +924,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
       '<g fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
       glyph,
       '</g>',
-      checked
-        ? '<circle cx="17.7" cy="17.7" r="5.1" fill="#198754" stroke="#fff" stroke-width="1.7"/>'
-        : '',
+      checked ? '<circle cx="17.7" cy="17.7" r="5.1" fill="#198754" stroke="#fff" stroke-width="1.7"/>' : '',
       checked
         ? '<path d="M15.4 17.7l1.5 1.5 3.2-3.6" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>'
         : '',
@@ -1054,9 +1062,11 @@ class ChromeOptions extends ExtensionRuntime.Options {
   }
 
   private contextMenuItemIconsSupported() {
-    const browserRuntime = (typeof browser !== 'undefined' ? browser.runtime : undefined) as {
-      getBrowserInfo?: () => Promise<unknown>;
-    } | undefined;
+    const browserRuntime = (typeof browser !== 'undefined' ? browser.runtime : undefined) as
+      | {
+          getBrowserInfo?: () => Promise<unknown>;
+        }
+      | undefined;
     return typeof browserRuntime?.getBrowserInfo === 'function';
   }
 
@@ -1444,23 +1454,15 @@ class ChromeOptions extends ExtensionRuntime.Options {
 
   private useStaticWindowProfileContextMenu() {
     const capabilities = this.profileScopeCapabilities();
-    return capabilities.window &&
-      !capabilities.tab &&
-      !capabilities.group &&
-      !capabilities.container &&
-      !this.contextMenuItemIconsSupported();
+    return (
+      capabilities.window && !capabilities.tab && !capabilities.group && !capabilities.container && !this.contextMenuItemIconsSupported()
+    );
   }
 
   private staticWindowProfileContextMenuSignature(profiles: ContextMenuProfile[], targets: ProfileScopeContextMenuTarget[]) {
     return JSON.stringify({
-      profiles: profiles.map((profile) => [
-        profile.name,
-        profile.hiddenInContextMenu === true
-      ]),
-      targets: targets.map((target) => [
-        target.rootId,
-        target.activeProfileName || ''
-      ])
+      profiles: profiles.map((profile) => [profile.name, profile.hiddenInContextMenu === true]),
+      targets: targets.map((target) => [target.rootId, target.activeProfileName || ''])
     });
   }
 
@@ -1487,11 +1489,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
 
   private rememberContextMenuWindowIncognito(privateWindow: boolean, refreshStaticMenu = false) {
     this._contextMenuWindowIncognito = privateWindow;
-    if (
-      refreshStaticMenu &&
-      this.useStaticWindowProfileContextMenu() &&
-      this._profileScopeContextMenuIds.length > 0
-    ) {
+    if (refreshStaticMenu && this.useStaticWindowProfileContextMenu() && this._profileScopeContextMenuIds.length > 0) {
       this.updateStaticWindowProfileContextMenuVisibility(privateWindow);
     }
   }
@@ -1541,11 +1539,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
     }
   }
 
-  private resolveContextMenuWindowIncognitoForWindowId(
-    windowId: number,
-    fallback: boolean,
-    callback: (privateWindow: boolean) => void
-  ) {
+  private resolveContextMenuWindowIncognitoForWindowId(windowId: number, fallback: boolean, callback: (privateWindow: boolean) => void) {
     this.getContextMenuWindow(windowId, (window) => {
       if (typeof window?.incognito === 'boolean') {
         this.rememberContextMenuWindowIncognito(window.incognito);
@@ -1599,10 +1593,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
     callback(fallback);
   }
 
-  private resolveCurrentContextMenuWindowIncognito(
-    hintTab: ChromeTab | undefined,
-    callback: (privateWindow: boolean) => void
-  ) {
+  private resolveCurrentContextMenuWindowIncognito(hintTab: ChromeTab | undefined, callback: (privateWindow: boolean) => void) {
     this.getCurrentContextMenuTab((currentTab) => {
       const tab = currentTab || hintTab;
       if (tab) {
@@ -1638,12 +1629,20 @@ class ChromeOptions extends ExtensionRuntime.Options {
         this.refreshContextMenuItems();
       }
     };
-    this.updateContextMenuItem(NORMAL_WINDOW_PROFILE_CONTEXT_MENU_ROOT_ID, {
-      visible: !privateWindow
-    }, done);
-    this.updateContextMenuItem(PRIVATE_WINDOW_PROFILE_CONTEXT_MENU_ROOT_ID, {
-      visible: privateWindow
-    }, done);
+    this.updateContextMenuItem(
+      NORMAL_WINDOW_PROFILE_CONTEXT_MENU_ROOT_ID,
+      {
+        visible: !privateWindow
+      },
+      done
+    );
+    this.updateContextMenuItem(
+      PRIVATE_WINDOW_PROFILE_CONTEXT_MENU_ROOT_ID,
+      {
+        visible: privateWindow
+      },
+      done
+    );
   }
 
   private updateStaticWindowProfileContextMenuForTab(tab?: ChromeTab, options: ProfileScopeContextMenuUpdateOptions = {}) {
@@ -1690,9 +1689,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
           return;
         }
         for (const target of targets) {
-          const visible = privateWindow
-            ? target.setArgs.scope === 'private'
-            : target.setArgs.scope === 'normal';
+          const visible = privateWindow ? target.setArgs.scope === 'private' : target.setArgs.scope === 'normal';
           this.createProfileScopeContextMenuTarget(target, profiles, nextIds, nextSelections, visible);
         }
         this._profileScopeContextMenuIds = nextIds;
@@ -1784,15 +1781,19 @@ class ChromeOptions extends ExtensionRuntime.Options {
   }
 
   private createWindow(properties: Record<string, unknown>) {
-    const browserWindows = (typeof browser !== 'undefined' ? browser.windows : undefined) as {
-      create?: (properties: Record<string, unknown>) => Promise<ChromeWindow>;
-    } | undefined;
+    const browserWindows = (typeof browser !== 'undefined' ? browser.windows : undefined) as
+      | {
+          create?: (properties: Record<string, unknown>) => Promise<ChromeWindow>;
+        }
+      | undefined;
     if (browserWindows?.create) {
       return browserWindows.create(properties);
     }
-    const chromeWindows = chrome?.windows as {
-      create?: (properties: Record<string, unknown>, callback?: (...args: unknown[]) => void) => void;
-    } | undefined;
+    const chromeWindows = chrome?.windows as
+      | {
+          create?: (properties: Record<string, unknown>, callback?: (...args: unknown[]) => void) => void;
+        }
+      | undefined;
     const createWindow = chromeWindows?.create;
     if (!createWindow) {
       return Promise.reject(new Error('windows.create is unavailable.'));
@@ -1857,21 +1858,29 @@ class ChromeOptions extends ExtensionRuntime.Options {
     if (url.substring(0, 4) === 'moz-') {
       return;
     }
-    chrome.tabs.reload(tab.id, {
-      bypassCache: true
-    }, () => {
-      chrome.runtime.lastError;
-    });
+    chrome.tabs.reload(
+      tab.id,
+      {
+        bypassCache: true
+      },
+      () => {
+        chrome.runtime.lastError;
+      }
+    );
   }
 
   private async refreshWebRequestHandlerBehavior() {
     try {
-      const browserWebRequest = (typeof browser !== 'undefined' ? browser.webRequest : undefined) as {
-        handlerBehaviorChanged?: () => Promise<void>;
-      } | undefined;
-      const chromeWebRequest = chrome?.webRequest as {
-        handlerBehaviorChanged?: (callback?: () => void) => Promise<void> | void;
-      } | undefined;
+      const browserWebRequest = (typeof browser !== 'undefined' ? browser.webRequest : undefined) as
+        | {
+            handlerBehaviorChanged?: () => Promise<void>;
+          }
+        | undefined;
+      const chromeWebRequest = chrome?.webRequest as
+        | {
+            handlerBehaviorChanged?: (callback?: () => void) => Promise<void> | void;
+          }
+        | undefined;
       const handlerBehaviorChanged = browserWebRequest?.handlerBehaviorChanged || chromeWebRequest?.handlerBehaviorChanged;
       if (typeof handlerBehaviorChanged !== 'function') {
         return;
@@ -1955,11 +1964,13 @@ class ChromeOptions extends ExtensionRuntime.Options {
       throw new Error('Target creation did not return a tab id.');
     }
     const tabId = createdTab.id;
-    await Promise.resolve(this.setProfileScope({
+    await Promise.resolve(
+      this.setProfileScope({
         profileName,
         scope: 'tab',
         tabId
-    }));
+      })
+    );
     await this.refreshWebRequestHandlerBehavior();
     await this.updateTab(tabId, {
       url: linkUrl
@@ -1969,11 +1980,13 @@ class ChromeOptions extends ExtensionRuntime.Options {
   private _onLinkProfileContextMenuClicked(info: ChromeContextMenuClickInfo, tab: ChromeTab | undefined) {
     const switchProfileName = this._switchProfileContextMenuProfiles[info.menuItemId];
     if (switchProfileName) {
-      this.applyProfile(switchProfileName).then(() => {
-        this.reloadContextMenuTabIfEnabled(tab);
-      }).catch((error: unknown) => {
-        this.log.error('Failed to switch profile from context menu.', error);
-      });
+      this.applyProfile(switchProfileName)
+        .then(() => {
+          this.reloadContextMenuTabIfEnabled(tab);
+        })
+        .catch((error: unknown) => {
+          this.log.error('Failed to switch profile from context menu.', error);
+        });
       return;
     }
     if (Object.prototype.hasOwnProperty.call(this._profileScopeContextMenuSelections, info.menuItemId)) {
@@ -1987,17 +2000,16 @@ class ChromeOptions extends ExtensionRuntime.Options {
         }
         this.updateTabProfileContext(currentTab.id, currentTab);
         const setScope = (scopeSelection: ProfileScopeContextMenuSelection) => {
-          this.setProfileScope(scopeSelection).then(() => {
-            this.reloadContextMenuTabIfEnabled(currentTab);
-            this.updateProfileScopeContextMenuForTab(currentTab);
-          }).catch((error: unknown) => {
-            this.log.error('Failed to set profile scope from context menu.', error);
-          });
+          this.setProfileScope(scopeSelection)
+            .then(() => {
+              this.reloadContextMenuTabIfEnabled(currentTab);
+              this.updateProfileScopeContextMenuForTab(currentTab);
+            })
+            .catch((error: unknown) => {
+              this.log.error('Failed to set profile scope from context menu.', error);
+            });
         };
-        if (
-          this.useStaticWindowProfileContextMenu() &&
-          (selection.scope === 'normal' || selection.scope === 'private')
-        ) {
+        if (this.useStaticWindowProfileContextMenu() && (selection.scope === 'normal' || selection.scope === 'private')) {
           this.resolveCurrentContextMenuWindowIncognito(currentTab, (privateWindow) => {
             setScope({
               ...selection,
@@ -2034,7 +2046,9 @@ class ChromeOptions extends ExtensionRuntime.Options {
     });
   }
 
-  private scopeContext(args: ProfileScopeInfoArgs | ProxyRequestDetails): Required<Pick<ProfileScopeInfoArgs, 'tabId'>> & TabProfileContext {
+  private scopeContext(
+    args: ProfileScopeInfoArgs | ProxyRequestDetails
+  ): Required<Pick<ProfileScopeInfoArgs, 'tabId'>> & TabProfileContext {
     const tabId = typeof args.tabId === 'number' ? args.tabId : -1;
     const cached = tabId >= 0 ? this._tabProfileContexts[tabId] : undefined;
     const context = {
@@ -2109,9 +2123,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
   }
 
   matchProfileFromProfileName(profileName: string, request: Record<string, unknown>) {
-    let profile = this.validProfileName(profileName)
-      ? ProxyEngine.Profiles.byName(profileName, this._options)
-      : null;
+    let profile = this.validProfileName(profileName) ? ProxyEngine.Profiles.byName(profileName, this._options) : null;
     if (!profile) {
       return RuntimePromise.reject(new Error(`Profile ${profileName} does not exist!`));
     }
@@ -2219,9 +2231,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
         delete this._tabProfileNames[args.tabId];
       }
       this.saveTabProfileToStorage(args.tabId, profileName);
-      return this._currentProfileName
-        ? this.applyProfile(this._currentProfileName, {update: false})
-        : RuntimePromise.resolve();
+      return this._currentProfileName ? this.applyProfile(this._currentProfileName, {update: false}) : RuntimePromise.resolve();
     }
     if (args.scope === 'group') {
       if (!capabilities.group || !scopes.group) {
@@ -2237,9 +2247,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
         delete this._groupProfileNames[groupKey];
       }
       this.saveGroupProfileToStorage(groupKey, profileName);
-      return this._currentProfileName
-        ? this.applyProfile(this._currentProfileName, {update: false})
-        : RuntimePromise.resolve();
+      return this._currentProfileName ? this.applyProfile(this._currentProfileName, {update: false}) : RuntimePromise.resolve();
     }
     if (args.scope === 'container') {
       if (!capabilities.container || !scopes.container || !isFirefoxContainerId(args.cookieStoreId)) {
@@ -2330,25 +2338,36 @@ class ChromeOptions extends ExtensionRuntime.Options {
 
   setBadge(options?: BadgeOptions) {
     if (!options) {
-      options = this._proxyNotControllable ? {
-        text: '=',
-        color: '#da4f49'
-      } : {
-        text: '?',
-        color: '#49afcd'
-      };
+      options = this._proxyNotControllable
+        ? {
+            text: '=',
+            color: '#da4f49'
+          }
+        : {
+            text: '?',
+            color: '#49afcd'
+          };
     }
-    actionApi().setBadgeText({
-      text: options.text
-    }, ignoreChromeLastError);
-    actionApi().setBadgeBackgroundColor({
-      color: options.color
-    }, ignoreChromeLastError);
+    actionApi().setBadgeText(
+      {
+        text: options.text
+      },
+      ignoreChromeLastError
+    );
+    actionApi().setBadgeBackgroundColor(
+      {
+        color: options.color
+      },
+      ignoreChromeLastError
+    );
     if (options.title) {
       this._badgeTitle = options.title;
-      return actionApi().setTitle({
-        title: options.title
-      }, ignoreChromeLastError);
+      return actionApi().setTitle(
+        {
+          title: options.title
+        },
+        ignoreChromeLastError
+      );
     }
     this._badgeTitle = null;
   }
@@ -2365,9 +2384,12 @@ class ChromeOptions extends ExtensionRuntime.Options {
     } else {
       const api = actionApi();
       if (typeof api.setBadgeText === 'function') {
-        api.setBadgeText({
-          text: ''
-        }, ignoreChromeLastError);
+        api.setBadgeText(
+          {
+            text: ''
+          },
+          ignoreChromeLastError
+        );
       }
     }
   }
@@ -2468,20 +2490,29 @@ class ChromeOptions extends ExtensionRuntime.Options {
             text: info.errorCount.toString(),
             color: '#f0ad4e'
           };
-          actionApi().setBadgeText({
-            text: badge.text,
-            tabId
-          }, ignoreChromeLastError);
-          actionApi().setBadgeBackgroundColor({
-            color: badge.color,
-            tabId
-          }, ignoreChromeLastError);
+          actionApi().setBadgeText(
+            {
+              text: badge.text,
+              tabId
+            },
+            ignoreChromeLastError
+          );
+          actionApi().setBadgeBackgroundColor(
+            {
+              color: badge.color,
+              tabId
+            },
+            ignoreChromeLastError
+          );
         } else if (info.badgeSet) {
           info.badgeSet = false;
-          actionApi().setBadgeText({
-            text: '',
-            tabId
-          }, ignoreChromeLastError);
+          actionApi().setBadgeText(
+            {
+              text: '',
+              tabId
+            },
+            ignoreChromeLastError
+          );
         }
         return this._tabRequestInfoPorts?.[tabId]?.postMessage({
           errorCount: info.errorCount,
@@ -2621,10 +2652,12 @@ class ChromeOptions extends ExtensionRuntime.Options {
     });
     const errorCount = tabInfo?.errorCount;
     const summary = tabInfo?.summary;
-    const result = errorCount ? {
-      errorCount,
-      summary
-    } : null;
+    const result = errorCount
+      ? {
+          errorCount,
+          summary
+        }
+      : null;
     this.clearBadge();
     url = tabInfoPageUrl(tabInfo, url);
     if (!url) {
@@ -2663,9 +2696,10 @@ class ChromeOptions extends ExtensionRuntime.Options {
       return basePageInfo;
     }
     const explanations = pageRequests.requests.map((request) => {
-      const explainArgs = profileScope.effectiveScope && profileScope.effectiveScope !== 'current'
-        ? {profileName: profileScope.effectiveProfileName, url: request.url}
-        : {url: request.url};
+      const explainArgs =
+        profileScope.effectiveScope && profileScope.effectiveScope !== 'current'
+          ? {profileName: profileScope.effectiveProfileName, url: request.url}
+          : {url: request.url};
       return this.explainRequest(explainArgs).catch((error: unknown) => ({
         currentProfile: undefined as Partial<PopupApiProfile> | undefined,
         errors: [error instanceof Error ? error.message : String(error)],

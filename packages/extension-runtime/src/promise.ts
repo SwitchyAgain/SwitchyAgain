@@ -1,17 +1,10 @@
 import type {RuntimePromise, RuntimePromiseStatic} from './types';
 
-type PromiseExecutor<T> = (
-  resolve: (value?: T | PromiseLike<T>) => void,
-  reject: (reason?: unknown) => void
-) => void;
+type PromiseExecutor<T> = (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: unknown) => void) => void;
 
 type NativePromise<T> = {
-  catch<TResult = never>(
-    onRejected?: ((reason: unknown) => TResult | PromiseLike<TResult>) | null
-  ): NativePromise<T | TResult>;
-  finally?(
-    onFinally?: (() => void) | null
-  ): NativePromise<T>;
+  catch<TResult = never>(onRejected?: ((reason: unknown) => TResult | PromiseLike<TResult>) | null): NativePromise<T | TResult>;
+  finally?(onFinally?: (() => void) | null): NativePromise<T>;
   then<TResult1 = T, TResult2 = never>(
     onFulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | null,
     onRejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null
@@ -63,9 +56,7 @@ function augment<T>(promise: NativePromise<T>): RuntimePromise<T> {
     }
   });
 
-  const catchImpl = promise.catch
-    ? promise.catch.bind(promise)
-    : (onRejected?: unknown) => then(null, onRejected as never);
+  const catchImpl = promise.catch ? promise.catch.bind(promise) : (onRejected?: unknown) => then(null, onRejected as never);
   Object.defineProperty(runtimePromise, 'catch', {
     configurable: true,
     value(onRejected?: unknown) {
@@ -78,9 +69,10 @@ function augment<T>(promise: NativePromise<T>): RuntimePromise<T> {
     : (onFinally?: (() => void) | null) => {
         return then(
           (value: T) => Promise.resolve(onFinally ? onFinally() : undefined).then(() => value),
-          (reason: unknown) => Promise.resolve(onFinally ? onFinally() : undefined).then(() => {
-            throw reason;
-          })
+          (reason: unknown) =>
+            Promise.resolve(onFinally ? onFinally() : undefined).then(() => {
+              throw reason;
+            })
         );
       };
   Object.defineProperty(runtimePromise, 'finally', {
@@ -124,11 +116,7 @@ function augment<T>(promise: NativePromise<T>): RuntimePromise<T> {
   return runtimePromise;
 }
 
-function addUnhandledRejectionListener(
-  browserEvent: string,
-  nodeEvent: string,
-  callback: (...args: unknown[]) => unknown
-): void {
+function addUnhandledRejectionListener(browserEvent: string, nodeEvent: string, callback: (...args: unknown[]) => unknown): void {
   const root = globalThis as RuntimeGlobal & {
     addEventListener?: (name: string, callback: (event: Event) => unknown) => void;
   };
@@ -151,21 +139,21 @@ function addUnhandledRejectionListener(
   }
 }
 
-const Promise = function<T = unknown>(this: unknown, executor: PromiseExecutor<T>): RuntimePromise<T> {
+const Promise = function <T = unknown>(this: unknown, executor: PromiseExecutor<T>): RuntimePromise<T> {
   return augment(new NativePromiseImpl<T>(executor));
 } as unknown as RuntimePromiseStatic;
 
-Promise.all = function<T>(values: Array<T | PromiseLike<T>>): RuntimePromise<T[]> {
+Promise.all = function <T>(values: Array<T | PromiseLike<T>>): RuntimePromise<T[]> {
   return augment(NativePromiseImpl.all(values));
 };
 
-Promise.delay = function(milliseconds?: number): RuntimePromise<void> {
+Promise.delay = function (milliseconds?: number): RuntimePromise<void> {
   return new Promise<void>((resolve) => {
     setTimeout(() => resolve(), milliseconds || 0);
   });
 };
 
-Promise.join = function<T1, T2, TResult>(
+Promise.join = function <T1, T2, TResult>(
   first: T1 | PromiseLike<T1>,
   second: T2 | PromiseLike<T2>,
   handler: (first: T1, second: T2) => TResult | PromiseLike<TResult>
@@ -175,40 +163,38 @@ Promise.join = function<T1, T2, TResult>(
   });
 };
 
-Promise.longStackTraces = function(): void {
-};
+Promise.longStackTraces = function (): void {};
 
-Promise.onPossiblyUnhandledRejection = function(
-  callback: (reason: unknown, promise: unknown) => unknown
-): void {
+Promise.onPossiblyUnhandledRejection = function (callback: (reason: unknown, promise: unknown) => unknown): void {
   addUnhandledRejectionListener('unhandledrejection', 'unhandledRejection', callback);
 };
 
-Promise.onUnhandledRejectionHandled = function(callback: (promise: unknown) => unknown): void {
+Promise.onUnhandledRejectionHandled = function (callback: (promise: unknown) => unknown): void {
   addUnhandledRejectionListener('rejectionhandled', 'rejectionHandled', callback);
 };
 
-Promise.promisify = function(fn: unknown): (...args: unknown[]) => RuntimePromise<unknown> {
-  return function(this: unknown, ...args: unknown[]) {
+Promise.promisify = function (fn: unknown): (...args: unknown[]) => RuntimePromise<unknown> {
+  return function (this: unknown, ...args: unknown[]) {
     return new Promise<unknown>((resolve, reject) => {
       if (typeof fn !== 'function') {
         reject(new TypeError('Expected a function to promisify.'));
         return;
       }
-      (fn as (...args: unknown[]) => unknown).apply(this, args.concat((error: unknown, value: unknown) => {
-        if (error != null) {
-          reject(error);
-          return;
-        }
-        resolve(value);
-      }));
+      (fn as (...args: unknown[]) => unknown).apply(
+        this,
+        args.concat((error: unknown, value: unknown) => {
+          if (error != null) {
+            reject(error);
+            return;
+          }
+          resolve(value);
+        })
+      );
     });
   };
 };
 
-Promise.props = function<T extends Record<string, unknown>>(
-  values: T
-): RuntimePromise<Record<keyof T, unknown>> {
+Promise.props = function <T extends Record<string, unknown>>(values: T): RuntimePromise<Record<keyof T, unknown>> {
   const keys = Object.keys(values) as Array<keyof T>;
   return Promise.all(keys.map((key) => values[key])).then((resolvedValues) => {
     const result = {} as Record<keyof T, unknown>;
@@ -219,15 +205,15 @@ Promise.props = function<T extends Record<string, unknown>>(
   });
 };
 
-Promise.reject = function<T = never>(reason?: unknown): RuntimePromise<T> {
+Promise.reject = function <T = never>(reason?: unknown): RuntimePromise<T> {
   return augment(NativePromiseImpl.reject(reason));
 };
 
-Promise.resolve = function<T = void>(value?: T | PromiseLike<T>): RuntimePromise<T> {
+Promise.resolve = function <T = void>(value?: T | PromiseLike<T>): RuntimePromise<T> {
   return augment(NativePromiseImpl.resolve<T>(value as T | PromiseLike<T>));
 };
 
-Promise.try = function<T = unknown>(fn: () => T | PromiseLike<T>): RuntimePromise<T> {
+Promise.try = function <T = unknown>(fn: () => T | PromiseLike<T>): RuntimePromise<T> {
   return Promise.resolve().then(fn);
 };
 

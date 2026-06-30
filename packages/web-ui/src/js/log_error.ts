@@ -1,4 +1,4 @@
-(function() {
+(function () {
   window.onerror = (message, url, line, col, err) => {
     let log = localStorage['log'] || '';
     const stack = err instanceof Error ? err.stack : undefined;
@@ -9,5 +9,4 @@
     }
     localStorage['log'] = log;
   };
-
 }).call(this);

@@ -3,10 +3,7 @@ type ChromeApiMethod<T = unknown> = (...args: Array<unknown | ChromeApiCallback<
 type ChromeApiTarget = Record<string, ChromeApiMethod | unknown>;
 
 type RuntimePromiseConstructor = new <T>(
-  executor: (
-    resolve: (value: T | PromiseLike<T>) => void,
-    reject: (reason?: unknown) => void
-  ) => void
+  executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: unknown) => void) => void
 ) => Promise<T>;
 
 import ExtensionRuntime from '@switchyagain/extension-runtime';
