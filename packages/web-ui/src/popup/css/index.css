@@ -212,6 +212,15 @@ body {
   display: block;
 }
 
+.om-floating-dropdown {
+  box-sizing: border-box;
+  margin: 0 !important;
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: fixed;
+  z-index: 1000;
+}
+
 .om-dropdown .om-nav-item {
   margin: 0;
 }

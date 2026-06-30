@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {setUiLocale} from './i18n_client';
 import type {RequestExplanation} from './options_client_types';
 import {createRoot} from 'react-dom/client';
@@ -91,6 +91,60 @@ function finalLabel(explanation: RequestExplanation, state: PopupState, {showPac
 
 function requestCountText(count: number) {
   return count === 1 ? popupMessage('popup_routeInfoRequest', 'request') : popupMessage('popup_routeInfoRequests', 'requests');
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(value, max));
+}
+
+function useFloatingDropdown<TAnchor extends HTMLElement>(open: boolean) {
+  const anchorRef = useRef<TAnchor | null>(null);
+  const dropdownRef = useRef<HTMLUListElement | null>(null);
+  const [style, setStyle] = useState<React.CSSProperties>({visibility: 'hidden'});
+
+  function updatePosition() {
+    const anchor = anchorRef.current;
+    const dropdown = dropdownRef.current;
+    if (!anchor || !dropdown) {
+      setStyle({visibility: 'hidden'});
+      return;
+    }
+
+    const viewportGap = 6;
+    const dropdownOffset = 2;
+    const horizontalInset = 5;
+    const anchorRect = anchor.getBoundingClientRect();
+    const maxAvailableWidth = Math.max(120, window.innerWidth - viewportGap * 2);
+    const width = Math.min(maxAvailableWidth, Math.max(160, anchorRect.width - horizontalInset * 2));
+    const left = clamp(anchorRect.left + horizontalInset, viewportGap, window.innerWidth - viewportGap - width);
+    const belowTop = anchorRect.bottom + dropdownOffset;
+    const belowSpace = window.innerHeight - viewportGap - belowTop;
+    const aboveBottom = anchorRect.top - dropdownOffset;
+    const aboveSpace = aboveBottom - viewportGap;
+    const openAbove = belowSpace < dropdown.scrollHeight && aboveSpace > belowSpace;
+    const availableHeight = Math.max(64, openAbove ? aboveSpace : belowSpace);
+    const height = Math.min(dropdown.scrollHeight, availableHeight);
+
+    setStyle({
+      left,
+      maxHeight: availableHeight,
+      top: openAbove ? Math.max(viewportGap, aboveBottom - height) : belowTop,
+      visibility: 'visible',
+      width
+    });
+  }
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setStyle({visibility: 'hidden'});
+      return;
+    }
+    updatePosition();
+  }, [open]);
+  useWindowEvent('resize', updatePosition, undefined, open);
+  useWindowEvent('scroll', updatePosition, true, open);
+
+  return {anchorRef, dropdownRef, dropdownStyle: style};
 }
 
 function RouteInfoGroupResult({group, loading, state}: {group: RouteInfoGroup; loading: boolean; state: PopupState}) {
@@ -186,6 +240,8 @@ function PopupApp() {
   const [profileScopeMenuOpen, setProfileScopeMenuOpen] = useState('');
   const [tempMenuOpen, setTempMenuOpen] = useState(false);
   const [keyboardHelp, setKeyboardHelp] = useState(false);
+  const hiddenDropdown = useFloatingDropdown<HTMLLIElement>(hiddenMenuOpen);
+  const tempDropdown = useFloatingDropdown<HTMLLIElement>(tempMenuOpen);
 
   useEffect(() => {
     waitForPopupTarget()
@@ -529,7 +585,10 @@ function PopupApp() {
         />
       ))}
       {hiddenProfiles.length > 0 && (
-        <li className={`om-nav-item om-nav-hidden-profiles om-has-dropdown ${hiddenMenuOpen ? 'om-open' : ''}`}>
+        <li
+          ref={hiddenDropdown.anchorRef}
+          className={`om-nav-item om-nav-hidden-profiles om-has-dropdown ${hiddenMenuOpen ? 'om-open' : ''}`}
+        >
           <a
             aria-expanded={hiddenMenuOpen}
             href="#"
@@ -547,7 +606,7 @@ function PopupApp() {
             </span>
           </a>
           {hiddenMenuOpen && (
-            <ul className="om-dropdown">
+            <ul ref={hiddenDropdown.dropdownRef} className="om-dropdown om-floating-dropdown" style={hiddenDropdown.dropdownStyle}>
               {hiddenProfiles.map((profile, index) => (
                 <MenuProfileItem
                   id={`js-hidden-profile-${index + 1}`}
@@ -646,7 +705,7 @@ function PopupApp() {
         </li>
       )}
       {showTempRule && (
-        <li className={`om-nav-item om-nav-temprule om-has-dropdown ${tempMenuOpen ? 'om-open' : ''}`}>
+        <li ref={tempDropdown.anchorRef} className={`om-nav-item om-nav-temprule om-has-dropdown ${tempMenuOpen ? 'om-open' : ''}`}>
           <a
             href="#"
             id="js-temprule"
@@ -663,7 +722,7 @@ function PopupApp() {
             </span>
           </a>
           {tempMenuOpen && (
-            <ul className="om-dropdown">
+            <ul ref={tempDropdown.dropdownRef} className="om-dropdown om-floating-dropdown" style={tempDropdown.dropdownStyle}>
               {tempRuleProfiles.map((profile) => (
                 <li className={`om-nav-item ${profile.name === pageInfo?.tempRuleProfileName ? 'om-active' : ''}`} key={profile.name}>
                   <a
@@ -747,6 +806,7 @@ function MenuProfileItem({
   profile?: Profile;
   state: PopupState;
 }) {
+  const dropdown = useFloatingDropdown<HTMLLIElement>(defaultMenuOpen);
   const hasDefaultMenu = !!(profile?.validResultProfiles?.length && onDefaultMenuToggle && onDefaultProfileChange);
   const resultProfiles = (profile?.validResultProfiles || [])
     .filter(isVisibleResultProfileName)
@@ -764,7 +824,7 @@ function MenuProfileItem({
     .join(' ');
   const text = displayProfileName(profile, label) + (profile?.defaultProfileName ? ` [${profile.defaultProfileName}]` : '');
   return (
-    <li className={classes} data-default-profile-name={hasDefaultMenu ? profile?.name : undefined}>
+    <li ref={dropdown.anchorRef} className={classes} data-default-profile-name={hasDefaultMenu ? profile?.name : undefined}>
       <a
         className={hasDefaultMenu ? 'om-has-edit' : ''}
         href="#"
@@ -792,7 +852,7 @@ function MenuProfileItem({
         )}
       </a>
       {hasDefaultMenu && defaultMenuOpen && (
-        <ul className="om-dropdown">
+        <ul ref={dropdown.dropdownRef} className="om-dropdown om-floating-dropdown" style={dropdown.dropdownStyle}>
           {resultProfiles.map((resultProfile) => (
             <li className={`om-nav-item ${resultProfile.name === profile?.defaultProfileName ? 'om-active' : ''}`} key={resultProfile.name}>
               <a
@@ -835,10 +895,12 @@ function ProfileScopeMenuItem({
   scope: string;
   state: PopupState;
 }) {
+  const dropdown = useFloatingDropdown<HTMLLIElement>(open);
   const activeProfile = profileFromMap(state.availableProfiles, activeProfileName);
   const text = activeProfile ? `${label}: ${displayProfileName(activeProfile)}` : label;
   return (
     <li
+      ref={dropdown.anchorRef}
       className={`om-nav-item om-nav-profile-scope om-has-dropdown ${activeProfile ? 'om-active' : ''} ${open ? 'om-open' : ''}`}
       data-profile-scope={scope}
     >
@@ -858,7 +920,7 @@ function ProfileScopeMenuItem({
         </span>
       </a>
       {open && (
-        <ul className="om-dropdown">
+        <ul ref={dropdown.dropdownRef} className="om-dropdown om-floating-dropdown" style={dropdown.dropdownStyle}>
           <li className={`om-nav-item ${activeProfileName ? '' : 'om-active'}`}>
             <a
               href="#"
