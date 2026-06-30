@@ -336,9 +336,9 @@ function ModalFrame({children, onDismiss}: {children: React.ReactNode; onDismiss
     <>
       <div className="modal-backdrop fade in" />
       <div
-        className="modal fade in"
+        className="modal fade in options-modal"
         role="dialog"
-        style={{display: 'block'}}
+        style={{display: 'flex'}}
         tabIndex={-1}
         onMouseDown={(event) => {
           if (event.target === event.currentTarget) {

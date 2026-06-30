@@ -605,6 +605,37 @@ body {
   bottom: 0;
 }
 
+.options-modal {
+  --options-modal-padding-top: clamp(32px, 5vh, 56px);
+  --options-modal-padding-bottom: clamp(112px, 16vh, 180px);
+
+  align-items: center;
+  justify-content: center;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: var(--options-modal-padding-top) 12px var(--options-modal-padding-bottom);
+}
+
+.options-modal .modal-dialog {
+  margin: auto;
+  max-width: 600px;
+  width: 100%;
+}
+
+@media (max-width: 767px) {
+  .options-modal {
+    --options-modal-padding-top: 12px;
+    --options-modal-padding-bottom: 12px;
+
+    align-items: flex-start;
+    padding: var(--options-modal-padding-top) 8px var(--options-modal-padding-bottom);
+  }
+
+  .options-modal .modal-dialog {
+    margin: 0 auto;
+  }
+}
+
 h1 {
   color: #5c6166;
   font-size: 1.7em;

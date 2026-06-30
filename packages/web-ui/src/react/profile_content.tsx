@@ -2491,9 +2491,9 @@ function SwitchProfileModalFrame({children, onDismiss}: {children: React.ReactNo
     <>
       <div className="modal-backdrop fade in" />
       <div
-        className="modal fade in"
+        className="modal fade in options-modal"
         role="dialog"
-        style={{display: 'block'}}
+        style={{display: 'flex'}}
         tabIndex={-1}
         onMouseDown={(event) => {
           if (event.target === event.currentTarget) {
