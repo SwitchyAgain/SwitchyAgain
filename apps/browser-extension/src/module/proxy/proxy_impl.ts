@@ -1,4 +1,4 @@
-import OmegaTarget from '@switchyagain/extension-runtime';
+import ExtensionRuntime from '@switchyagain/extension-runtime';
 import ProxyAuth from './proxy_auth';
 import type {
   ExternalProxyDetails,
@@ -10,8 +10,8 @@ import type {
   ProxyProfile
 } from './proxy_types';
 
-const OmegaPac = OmegaTarget.OmegaPac;
-const OmegaPromise = OmegaTarget.Promise;
+const ProxyEngine = ExtensionRuntime.ProxyEngine;
+const RuntimePromise = ExtensionRuntime.Promise;
 
 class ProxyImpl {
   features: string[];
@@ -39,7 +39,7 @@ class ProxyImpl {
   }
 
   applyProfile(_profile: ProxyProfile, _meta?: ProxyProfile, _options?: unknown): Promise<unknown> {
-    return OmegaPromise.reject();
+    return RuntimePromise.reject();
   }
 
   watchProxyChange(_callback: ProxyChangeWatcher): void | null {
@@ -55,7 +55,7 @@ class ProxyImpl {
 
   private _profileNotFound(name: string) {
     this.log.error(`Profile ${name} not found! Things may go very, very wrong.`);
-    return OmegaPac.Profiles.create({
+    return ProxyEngine.Profiles.create({
       name,
       profileType: 'VirtualProfile',
       defaultProfileName: 'direct'
@@ -63,7 +63,7 @@ class ProxyImpl {
   }
 
   setProxyAuth(profile: ProxyProfile, options: unknown, extraProfileNames: string[] = []) {
-    return OmegaPromise.try(() => {
+    return RuntimePromise.try(() => {
       if (this._proxyAuth == null) {
         this._proxyAuth = new ProxyAuth(this.log);
       }
@@ -73,12 +73,12 @@ class ProxyImpl {
         if (!rootProfile) {
           return;
         }
-        const refSet = OmegaPac.Profiles.allReferenceSet(rootProfile, options, {
+        const refSet = ProxyEngine.Profiles.allReferenceSet(rootProfile, options, {
           profileNotFound: this._profileNotFound.bind(this)
         });
         for (const key of Object.keys(refSet)) {
           const name = refSet[key];
-          const referencedProfile = OmegaPac.Profiles.byName(name, options);
+          const referencedProfile = ProxyEngine.Profiles.byName(name, options);
           if (referencedProfile && referencedProfiles.indexOf(referencedProfile) < 0) {
             referencedProfiles.push(referencedProfile);
           }
@@ -86,19 +86,19 @@ class ProxyImpl {
       };
       addReferencedProfiles(profile);
       for (const profileName of extraProfileNames) {
-        addReferencedProfiles(OmegaPac.Profiles.byName(profileName, options));
+        addReferencedProfiles(ProxyEngine.Profiles.byName(profileName, options));
       }
       return this._proxyAuth.setProxies(referencedProfiles);
     });
   }
 
   getProfilePacScript(profile: ProxyProfile, meta: ProxyProfile = profile, options: unknown) {
-    let ast = OmegaPac.PacGenerator.script(options, profile, {
+    let ast = ProxyEngine.PacGenerator.script(options, profile, {
       profileNotFound: this._profileNotFound.bind(this)
     });
-    ast = OmegaPac.PacGenerator.compress(ast);
-    const script = OmegaPac.PacGenerator.ascii(ast.print_to_string());
-    let profileName = OmegaPac.PacGenerator.ascii(JSON.stringify(meta.name));
+    ast = ProxyEngine.PacGenerator.compress(ast);
+    const script = ProxyEngine.PacGenerator.ascii(ast.print_to_string());
+    let profileName = ProxyEngine.PacGenerator.ascii(JSON.stringify(meta.name));
     profileName = profileName.replace(/\*/g, '\\u002a');
     profileName = profileName.replace(/\\/g, '\\u002f');
     const prefix = `/*OmegaProfile*${profileName}*${meta.revision}*/`;

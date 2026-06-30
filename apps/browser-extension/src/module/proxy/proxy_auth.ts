@@ -1,4 +1,4 @@
-import OmegaTarget from '@switchyagain/extension-runtime';
+import ExtensionRuntime from '@switchyagain/extension-runtime';
 import {NETWORK_REQUEST_URLS} from '../network_request_urls';
 import type {
   ProxyAuthEndpoint,
@@ -7,7 +7,7 @@ import type {
   ProxyProfile
 } from './proxy_types';
 
-const OmegaPac = OmegaTarget.OmegaPac;
+const ProxyEngine = ExtensionRuntime.ProxyEngine;
 
 type ProxyAuthEntry = {
   auth: ProxyCredentials;
@@ -80,7 +80,7 @@ class ProxyAuth {
       if (!profile.auth) {
         continue;
       }
-      for (const scheme of OmegaPac.Profiles.schemes) {
+      for (const scheme of ProxyEngine.Profiles.schemes) {
         const prop = scheme.prop as string;
         if (!profile[prop]) {
           continue;

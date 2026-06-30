@@ -692,7 +692,7 @@ function SwitchRuleRow({
 
   function formatIpCondition(condition: SwitchRuleCondition) {
     if (condition?.ip) {
-      return OmegaPac.Conditions.str(condition).split(' ', 2)[1];
+      return ProxyEngine.Conditions.str(condition).split(' ', 2)[1];
     }
     return '';
   }
@@ -950,7 +950,7 @@ function SwitchRuleRows({
             selectConditionDetailsIndex={selectConditionDetailsIndex}
             selectConditionDetailsKey={selectConditionDetailsKey}
             showNotes={showNotes}
-            weekdayList={OmegaPac.Conditions.getWeekdayList(rule.condition) || []}
+            weekdayList={ProxyEngine.Conditions.getWeekdayList(rule.condition) || []}
           />
         );
       })}
@@ -1001,7 +1001,7 @@ function SwitchRuleDragPreview({
           resultProfiles={resultProfiles}
           rule={rule}
           showNotes={showNotes}
-          weekdayList={OmegaPac.Conditions.getWeekdayList(rule.condition) || []}
+          weekdayList={ProxyEngine.Conditions.getWeekdayList(rule.condition) || []}
         />
       </tbody>
     </table>

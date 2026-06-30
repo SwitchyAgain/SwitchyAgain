@@ -16,8 +16,8 @@ import {
 import type {AttachedOptions, SwitchProfileModel, SwitchRule} from '../src/react/switch_profile_runtime';
 import type {RuleListProfileModel} from '../src/react/profile_types';
 
-function installOmegaPacMock() {
-  (globalThis as any).OmegaPac = {
+function installProxyEngineMock() {
+  (globalThis as any).ProxyEngine = {
     Profiles: {
       byKey(key: string, options: Record<string, unknown>) {
         const builtinProfiles: Record<string, unknown> = {
@@ -73,7 +73,7 @@ function installOmegaPacMock() {
 }
 
 beforeEach(() => {
-  installOmegaPacMock();
+  installProxyEngineMock();
 });
 
 describe('switch profile runtime', () => {

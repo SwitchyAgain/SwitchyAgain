@@ -1,12 +1,12 @@
-import OmegaTarget from '@switchyagain/extension-runtime';
+import ExtensionRuntime from '@switchyagain/extension-runtime';
 import ChromePort from './chrome_port';
 import fetchUrl from './fetch_url';
 import {tabUrl} from './tabs';
 import WebRequestMonitor from './web_request_monitor';
 import type {ProxyImplInstance, ProxyProfile, ProxyRequestDetails} from './proxy/proxy_types';
 
-const OmegaPac = OmegaTarget.OmegaPac;
-const OmegaPromise = OmegaTarget.Promise;
+const ProxyEngine = ExtensionRuntime.ProxyEngine;
+const RuntimePromise = ExtensionRuntime.Promise;
 
 const LINK_PROFILE_CONTEXT_MENU_ROOT_ID = 'openLinkInNewTabWithProfile';
 const SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID = 'switchProfile';
@@ -474,7 +474,7 @@ function defaultUiLocaleFromBrowser(language?: string) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
-class ChromeOptions extends OmegaTarget.Options {
+class ChromeOptions extends ExtensionRuntime.Options {
   externalApi!: ExternalApiLike;
   fetchUrl: typeof fetchUrl;
   declare proxyImpl: ProxyImplInstance;
@@ -866,7 +866,7 @@ class ChromeOptions extends OmegaTarget.Options {
   }
 
   private validProfileName(profileName?: string) {
-    return profileName && OmegaPac.Profiles.byName(profileName, this._options) ? profileName : undefined;
+    return profileName && ProxyEngine.Profiles.byName(profileName, this._options) ? profileName : undefined;
   }
 
   private compareProfile(a: Profile, b: Profile) {
@@ -931,7 +931,7 @@ class ChromeOptions extends OmegaTarget.Options {
 
   private contextMenuProfilesMatching(acceptName: (name: string) => boolean): ContextMenuProfile[] {
     const profiles: Profile[] = [];
-    OmegaPac.Profiles.each(this._options, (_key: string, profile: Profile) => {
+    ProxyEngine.Profiles.each(this._options, (_key: string, profile: Profile) => {
       profiles.push(profile);
     });
     const seen = new Set<string>();
@@ -2105,22 +2105,22 @@ class ChromeOptions extends OmegaTarget.Options {
     if (scope === 'current') {
       return null;
     }
-    return OmegaPac.Profiles.byName(profileName, this._options);
+    return ProxyEngine.Profiles.byName(profileName, this._options);
   }
 
   matchProfileFromProfileName(profileName: string, request: Record<string, unknown>) {
     let profile = this.validProfileName(profileName)
-      ? OmegaPac.Profiles.byName(profileName, this._options)
+      ? ProxyEngine.Profiles.byName(profileName, this._options)
       : null;
     if (!profile) {
-      return OmegaPromise.reject(new Error(`Profile ${profileName} does not exist!`));
+      return RuntimePromise.reject(new Error(`Profile ${profileName} does not exist!`));
     }
     const results: unknown[] = [];
     let currentProfile = profile;
     let lastProfile = profile;
     while (currentProfile) {
       lastProfile = currentProfile;
-      const result = OmegaPac.Profiles.match(currentProfile, request);
+      const result = ProxyEngine.Profiles.match(currentProfile, request);
       if (result == null) {
         break;
       }
@@ -2129,13 +2129,13 @@ class ChromeOptions extends OmegaTarget.Options {
       if (Array.isArray(result)) {
         next = result[0];
       } else if (result.profileName) {
-        next = OmegaPac.Profiles.nameAsKey(result.profileName);
+        next = ProxyEngine.Profiles.nameAsKey(result.profileName);
       } else {
         break;
       }
-      currentProfile = OmegaPac.Profiles.byKey(next, this._options);
+      currentProfile = ProxyEngine.Profiles.byKey(next, this._options);
     }
-    return OmegaPromise.resolve({
+    return RuntimePromise.resolve({
       profile: lastProfile,
       results
     });
@@ -2207,11 +2207,11 @@ class ChromeOptions extends OmegaTarget.Options {
     const scopes = normalizeProfileScopes(this._options['-profileScopes']);
     const profileName = this.validProfileName(args.profileName);
     if (args.profileName && !profileName) {
-      return OmegaPromise.reject(new Error(`Profile ${args.profileName} does not exist!`));
+      return RuntimePromise.reject(new Error(`Profile ${args.profileName} does not exist!`));
     }
     if (args.scope === 'tab') {
       if (!capabilities.tab || !scopes.tab || args.tabId == null) {
-        return OmegaPromise.resolve();
+        return RuntimePromise.resolve();
       }
       if (profileName) {
         this._tabProfileNames[args.tabId] = profileName;
@@ -2221,15 +2221,15 @@ class ChromeOptions extends OmegaTarget.Options {
       this.saveTabProfileToStorage(args.tabId, profileName);
       return this._currentProfileName
         ? this.applyProfile(this._currentProfileName, {update: false})
-        : OmegaPromise.resolve();
+        : RuntimePromise.resolve();
     }
     if (args.scope === 'group') {
       if (!capabilities.group || !scopes.group) {
-        return OmegaPromise.resolve();
+        return RuntimePromise.resolve();
       }
       const groupKey = this.groupProfileKey(args.windowId, args.groupId);
       if (!groupKey) {
-        return OmegaPromise.resolve();
+        return RuntimePromise.resolve();
       }
       if (profileName) {
         this._groupProfileNames[groupKey] = profileName;
@@ -2239,11 +2239,11 @@ class ChromeOptions extends OmegaTarget.Options {
       this.saveGroupProfileToStorage(groupKey, profileName);
       return this._currentProfileName
         ? this.applyProfile(this._currentProfileName, {update: false})
-        : OmegaPromise.resolve();
+        : RuntimePromise.resolve();
     }
     if (args.scope === 'container') {
       if (!capabilities.container || !scopes.container || !isFirefoxContainerId(args.cookieStoreId)) {
-        return OmegaPromise.resolve();
+        return RuntimePromise.resolve();
       }
       const assignments = this.profileScopeAssignments();
       if (profileName) {
@@ -2257,7 +2257,7 @@ class ChromeOptions extends OmegaTarget.Options {
     }
     if (args.scope === 'normal' || args.scope === 'private') {
       if (!capabilities.window || !scopes.window) {
-        return OmegaPromise.resolve();
+        return RuntimePromise.resolve();
       }
       const assignments = this.profileScopeAssignments();
       if (args.scope === 'private') {
@@ -2282,7 +2282,7 @@ class ChromeOptions extends OmegaTarget.Options {
       }
       return setOptions;
     }
-    return OmegaPromise.resolve();
+    return RuntimePromise.resolve();
   }
 
   updateProfile(...args: unknown[]) {
@@ -2376,7 +2376,7 @@ class ChromeOptions extends OmegaTarget.Options {
     this._quickSwitchCanEnable = canEnable;
     if (!this._quickSwitchHandlerReady) {
       this._quickSwitchHandlerReady = true;
-      window.OmegaContextMenuQuickSwitchHandler = (info: {checked: boolean}) => {
+      window.ContextMenuQuickSwitchHandler = (info: {checked: boolean}) => {
         const changes: Record<string, unknown> = {};
         changes['-enableQuickSwitch'] = info.checked;
         const setOptions = this._setOptions(changes);
@@ -2446,7 +2446,7 @@ class ChromeOptions extends OmegaTarget.Options {
     chrome.contextMenus?.update('enableQuickSwitch', {
       checked: !!quickSwitch
     });
-    return OmegaPromise.resolve();
+    return RuntimePromise.resolve();
   }
 
   setMonitorWebRequests(enabled: boolean) {
@@ -2454,7 +2454,7 @@ class ChromeOptions extends OmegaTarget.Options {
     if (enabled && this._requestMonitor == null) {
       this._tabRequestInfoPorts = {};
       const wildcardForReq = (req: {url: string}) => {
-        return OmegaPac.wildcardForUrl(req.url);
+        return ProxyEngine.wildcardForUrl(req.url);
       };
       const requestMonitor = new WebRequestMonitor(wildcardForReq);
       this._requestMonitor = requestMonitor;
@@ -2543,7 +2543,7 @@ class ChromeOptions extends OmegaTarget.Options {
         periodInMinutes
       });
     }
-    return OmegaPromise.resolve();
+    return RuntimePromise.resolve();
   }
 
   printFixedProfile(profile: Profile) {
@@ -2551,11 +2551,11 @@ class ChromeOptions extends OmegaTarget.Options {
       return undefined;
     }
     let result = '';
-    for (const scheme of OmegaPac.Profiles.schemes) {
+    for (const scheme of ProxyEngine.Profiles.schemes) {
       if (!profile[scheme.prop]) {
         continue;
       }
-      const pacResult = OmegaPac.Profiles.pacResult(profile[scheme.prop]);
+      const pacResult = ProxyEngine.Profiles.pacResult(profile[scheme.prop]);
       if (scheme.scheme) {
         result += `${scheme.scheme}: ${pacResult}\n`;
       } else {
@@ -2582,18 +2582,18 @@ class ChromeOptions extends OmegaTarget.Options {
 
   upgrade(options: UpgradeOptions | null | undefined, changes?: Record<string, unknown>) {
     if (options == null || Object.keys(options).length === 0 || options.schemaVersion == null) {
-      return OmegaPromise.reject(new OmegaTarget.Options.NoOptionsError());
+      return RuntimePromise.reject(new ExtensionRuntime.Options.NoOptionsError());
     }
     return super.upgrade(options, changes).then((upgradeResult: unknown) => {
       const [upgradedOptions, upgradedChanges] = upgradeResult as [Record<string, unknown>, Record<string, unknown>];
       if (this.proxyImpl.proxyDnsCapabilities.socks5) {
         return [upgradedOptions, upgradedChanges];
       }
-      OmegaPac.Profiles.each(upgradedOptions, (key: string, profile: Profile) => {
+      ProxyEngine.Profiles.each(upgradedOptions, (key: string, profile: Profile) => {
         if (!normalizeSocks5LocalDnsProfile(profile)) {
           return;
         }
-        OmegaPac.Profiles.updateRevision(profile);
+        ProxyEngine.Profiles.updateRevision(profile);
         upgradedChanges[key] = profile;
       });
       return [upgradedOptions, upgradedChanges];
@@ -2647,7 +2647,7 @@ class ChromeOptions extends OmegaTarget.Options {
     if (url.slice(0, 4) === 'moz-') {
       return result;
     }
-    const domain = OmegaPac.getBaseDomain(new URL(url).hostname.replace(/^\[(.*)\]$/, '$1'));
+    const domain = ProxyEngine.getBaseDomain(new URL(url).hostname.replace(/^\[(.*)\]$/, '$1'));
     const pageRequests = pageRequestsFromTabInfo(tabInfo, url);
     const basePageInfo = {
       url,
@@ -2682,7 +2682,7 @@ class ChromeOptions extends OmegaTarget.Options {
         warnings: [] as string[]
       }));
     });
-    return OmegaPromise.all(explanations).then((requestExplanations: PopupApiRequestExplanation[]) => ({
+    return RuntimePromise.all(explanations).then((requestExplanations: PopupApiRequestExplanation[]) => ({
       ...basePageInfo,
       requestExplanations
     }));

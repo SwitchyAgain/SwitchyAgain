@@ -1,4 +1,4 @@
-declare var OmegaPac: unknown;
+declare var ProxyEngine: unknown;
 
 declare module 'limiter' {
   type Interval = number | 'second' | 'sec' | 'minute' | 'min' | 'hour' | 'hr' | 'day';

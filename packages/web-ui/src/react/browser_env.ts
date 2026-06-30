@@ -47,7 +47,7 @@ export type ExtensionBrowserApi = {
 type BrowserGlobal = typeof globalThis & {
   browser?: ExtensionBrowserApi;
   chrome?: ExtensionChromeApi;
-  OmegaTargetPopup?: unknown;
+  PopupBridge?: unknown;
 };
 
 function browserGlobal() {

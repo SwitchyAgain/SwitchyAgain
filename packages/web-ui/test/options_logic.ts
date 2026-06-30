@@ -37,7 +37,7 @@ import type {Profile} from '../src/react/profile_types';
 import type {SwitchRule} from '../src/react/switch_profile_runtime';
 
 beforeEach(() => {
-  delete (globalThis as any).OmegaPac;
+  delete (globalThis as any).ProxyEngine;
   delete (globalThis as any).browser;
   (globalThis as any).chrome = {
     i18n: {
@@ -179,7 +179,7 @@ describe('options logic', () => {
 
   it('creates PAC export blobs and sanitized filenames', async () => {
     const printSettings: unknown[] = [];
-    (globalThis as any).OmegaPac = {
+    (globalThis as any).ProxyEngine = {
       PacGenerator: {
         ascii(value: string) {
           return `ascii:${value}`;
@@ -221,7 +221,7 @@ describe('options logic', () => {
         profileName: 'proxy'
       }
     ] as SwitchRule[];
-    (globalThis as any).OmegaPac = {
+    (globalThis as any).ProxyEngine = {
       RuleList: {
         Switchy: {
           compose(args: {defaultProfileName: string; rules: SwitchRule[]}) {
@@ -390,7 +390,7 @@ describe('options logic', () => {
 
   it('duplicates profile options without carrying hidden menu state or stale revisions', () => {
     const revisions: string[] = [];
-    (globalThis as any).OmegaPac = {
+    (globalThis as any).ProxyEngine = {
       Profiles: {
         updateRevision(profile: Profile) {
           profile.revision = `revision:${profile.name}`;
@@ -435,7 +435,7 @@ describe('options logic', () => {
   });
 
   it('duplicates switch profile attached rule-list options with a new attached identity', () => {
-    (globalThis as any).OmegaPac = {
+    (globalThis as any).ProxyEngine = {
       Profiles: {
         updateRevision(profile: Profile) {
           profile.revision = `revision:${profile.name}`;
@@ -497,8 +497,8 @@ describe('options logic', () => {
     expect(options['+auto']).toHaveProperty('defaultProfileName', '__ruleListOf_auto');
   });
 
-  it('finds the first fixed profile name from OmegaPac profile iteration', () => {
-    (globalThis as any).OmegaPac = {
+  it('finds the first fixed profile name from ProxyEngine profile iteration', () => {
+    (globalThis as any).ProxyEngine = {
       Profiles: {
         each(options: Options, callback: (key: string, profile: unknown) => void) {
           for (const key of Object.keys(options)) {
@@ -557,7 +557,7 @@ describe('options logic', () => {
         profileType: 'RuleListProfile'
       }
     };
-    (globalThis as any).OmegaPac = {
+    (globalThis as any).ProxyEngine = {
       Profiles: {
         byKey(key: string) {
           return key === '+auto' ? byKeyProfile : undefined;
@@ -707,12 +707,12 @@ describe('options logic', () => {
     expect(options['+__ruleListOf_proxy']).toBeUndefined();
   });
 
-  it('uses OmegaPac revision updates when available', () => {
+  it('uses ProxyEngine revision updates when available', () => {
     const profile: Profile = {
       name: 'proxy',
       profileType: 'FixedProfile'
     };
-    (globalThis as any).OmegaPac = {
+    (globalThis as any).ProxyEngine = {
       Profiles: {
         updateRevision(nextProfile: Profile) {
           nextProfile.revision = 'next';

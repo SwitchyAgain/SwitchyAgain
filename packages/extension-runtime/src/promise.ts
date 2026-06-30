@@ -44,12 +44,12 @@ class TimeoutError extends Error {
 
 function augment<T>(promise: NativePromise<T>): RuntimePromise<T> {
   const runtimePromise = promise as RuntimePromise<T> & {
-    __omegaRuntimePromise?: boolean;
+    __extensionRuntimePromise?: boolean;
   };
-  if (runtimePromise.__omegaRuntimePromise) {
+  if (runtimePromise.__extensionRuntimePromise) {
     return runtimePromise;
   }
-  Object.defineProperty(runtimePromise, '__omegaRuntimePromise', {
+  Object.defineProperty(runtimePromise, '__extensionRuntimePromise', {
     configurable: false,
     enumerable: false,
     value: true

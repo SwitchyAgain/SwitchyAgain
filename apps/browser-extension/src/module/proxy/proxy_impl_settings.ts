@@ -1,4 +1,4 @@
-import OmegaTarget from '@switchyagain/extension-runtime';
+import ExtensionRuntime from '@switchyagain/extension-runtime';
 import {chromeApiPromisify} from '../chrome_api';
 import ProxyImpl from './proxy_impl';
 import type {
@@ -13,7 +13,7 @@ import type {
   ProxySettingsConfig
 } from './proxy_types';
 
-const OmegaPac = OmegaTarget.OmegaPac;
+const ProxyEngine = ExtensionRuntime.ProxyEngine;
 
 const FIXED_PROXY_RULE_KEYS = [
   'proxyForHttp',
@@ -104,11 +104,11 @@ class SettingsProxyImpl extends ProxyImpl {
       config.mode = 'direct';
     } else if (profile.profileType === 'PacProfile') {
       config.mode = 'pac_script';
-      config.pacScript = !profile.pacScript || OmegaPac.Profiles.isFileUrl(profile.pacUrl) ? {
+      config.pacScript = !profile.pacScript || ProxyEngine.Profiles.isFileUrl(profile.pacUrl) ? {
         url: profile.pacUrl,
         mandatory: true
       } : {
-        data: OmegaPac.PacGenerator.ascii(profile.pacScript),
+        data: ProxyEngine.PacGenerator.ascii(profile.pacScript),
         mandatory: true
       };
     } else if (profile.profileType === 'FixedProfile') {
@@ -148,7 +148,7 @@ class SettingsProxyImpl extends ProxyImpl {
 
   private _profileByName(profileName: unknown, options?: unknown) {
     return typeof profileName === 'string' && profileName
-      ? OmegaPac.Profiles.byName(profileName, options)
+      ? ProxyEngine.Profiles.byName(profileName, options)
       : null;
   }
 
@@ -274,7 +274,7 @@ class SettingsProxyImpl extends ProxyImpl {
   }
 
   private _formatBypassItem(condition: ProxyCondition) {
-    const str = OmegaPac.Conditions.str(condition);
+    const str = ProxyEngine.Conditions.str(condition);
     const index = str.indexOf(' ');
     return str.slice(index + 1);
   }
@@ -301,11 +301,11 @@ class SettingsProxyImpl extends ProxyImpl {
     }
     switch (details.value.mode) {
       case 'system':
-        return OmegaPac.Profiles.byName('system');
+        return ProxyEngine.Profiles.byName('system');
       case 'direct':
-        return OmegaPac.Profiles.byName('direct');
+        return ProxyEngine.Profiles.byName('direct');
       case 'auto_detect':
-        return OmegaPac.Profiles.create({
+        return ProxyEngine.Profiles.create({
           profileType: 'PacProfile',
           name: '',
           pacUrl: 'http://wpad/wpad.dat'
@@ -325,12 +325,12 @@ class SettingsProxyImpl extends ProxyImpl {
     const url = details.value.pacScript?.url;
     if (url) {
       let profile: ProxyProfile | null = null;
-      OmegaPac.Profiles.each(options, (_key: string, candidate: ProxyProfile) => {
+      ProxyEngine.Profiles.each(options, (_key: string, candidate: ProxyProfile) => {
         if (candidate.profileType === 'PacProfile' && candidate.pacUrl === url) {
           profile = candidate;
         }
       });
-      return profile != null ? profile : OmegaPac.Profiles.create({
+      return profile != null ? profile : ProxyEngine.Profiles.create({
         profileType: 'PacProfile',
         name: '',
         pacUrl: url
@@ -339,7 +339,7 @@ class SettingsProxyImpl extends ProxyImpl {
 
     let profile: ProxyProfile | null = null;
     let script = details.value.pacScript?.data || '';
-    OmegaPac.Profiles.each(options, (_key: string, candidate: ProxyProfile) => {
+    ProxyEngine.Profiles.each(options, (_key: string, candidate: ProxyProfile) => {
       if (candidate.profileType === 'PacProfile' && candidate.pacScript === script) {
         profile = candidate;
       }
@@ -362,15 +362,15 @@ class SettingsProxyImpl extends ProxyImpl {
           profileName = null;
         }
         if (typeof profileName === 'string' && profileName && revision) {
-          profile = OmegaPac.Profiles.byName(profileName, options);
-          if (OmegaPac.Revision.compare(profile.revision, revision) === 0) {
+          profile = ProxyEngine.Profiles.byName(profileName, options);
+          if (ProxyEngine.Revision.compare(profile.revision, revision) === 0) {
             return profile;
           }
         }
       }
     }
 
-    return OmegaPac.Profiles.create({
+    return ProxyEngine.Profiles.create({
       profileType: 'PacProfile',
       name: '',
       pacScript: script
@@ -381,7 +381,7 @@ class SettingsProxyImpl extends ProxyImpl {
     const rules = details.value.rules || {};
     const proxies: Partial<Record<FixedProxyRuleKey, string>> = {};
     for (const prop of FIXED_PROXY_RULE_KEYS) {
-      const result = OmegaPac.Profiles.pacResult(rules[prop]);
+      const result = ProxyEngine.Profiles.pacResult(rules[prop]);
       if (prop === 'singleProxy' && rules[prop] != null) {
         proxies.fallbackProxy = result;
       } else {
@@ -398,7 +398,7 @@ class SettingsProxyImpl extends ProxyImpl {
       }
     }
     if (bypassSet['<local>']) {
-      for (const host of OmegaPac.Conditions.localHosts) {
+      for (const host of ProxyEngine.Conditions.localHosts) {
         if (!bypassSet[host]) {
           continue;
         }
@@ -408,7 +408,7 @@ class SettingsProxyImpl extends ProxyImpl {
     }
 
     let profile: ProxyProfile | null = null;
-    OmegaPac.Profiles.each(options, (_key: string, candidate: ProxyProfile) => {
+    ProxyEngine.Profiles.each(options, (_key: string, candidate: ProxyProfile) => {
       if (candidate.profileType !== 'FixedProfile') {
         return;
       }
@@ -434,7 +434,7 @@ class SettingsProxyImpl extends ProxyImpl {
       }
       for (const prop of FIXED_PROXY_RULE_KEYS) {
         if (candidateRules[prop] || proxies[prop]) {
-          if (OmegaPac.Profiles.pacResult(candidateRules[prop]) !== proxies[prop]) {
+          if (ProxyEngine.Profiles.pacResult(candidateRules[prop]) !== proxies[prop]) {
             return;
           }
         }
@@ -445,7 +445,7 @@ class SettingsProxyImpl extends ProxyImpl {
       return profile;
     }
 
-    profile = OmegaPac.Profiles.create({
+    profile = ProxyEngine.Profiles.create({
       profileType: 'FixedProfile',
       name: ''
     });

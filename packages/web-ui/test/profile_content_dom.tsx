@@ -12,8 +12,8 @@ import {
 } from '../src/react/profile_content';
 import type {NamedFixedProfileModel, NamedPacProfileModel, NamedRuleListProfileModel} from '../src/react/profile_types';
 
-function installOmegaPacMock() {
-  (globalThis as any).OmegaPac = {
+function installProxyEngineMock() {
+  (globalThis as any).ProxyEngine = {
     Conditions: {
       getWeekdayList() {
         return [];
@@ -33,7 +33,7 @@ afterEach(() => {
 });
 
 beforeEach(() => {
-  installOmegaPacMock();
+  installProxyEngineMock();
 });
 
 const CHROMIUM_HTTPS_URL_LIMITATION_INTRO =

@@ -17,11 +17,13 @@
     "@switchyagain/proxy-engine": "0.0.1"
   },
   "browser": {
-    "@switchyagain/proxy-engine": "./build-ts/omega_pac_shim.js"
+    "@switchyagain/proxy-engine": "./build-ts/proxy_engine_shim.js"
   },
   "scripts": {
-    "build": "npm run build:ts && node ../../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=index.js --format=cjs --platform=node --target=es2022 --external=buffer,jsondiffpatch,limiter,@switchyagain/proxy-engine && node ../../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=omega_target.min.js --global-name=OmegaTarget --target=es2022 --minify",
-    "build:ts": "tsc -p tsconfig.build.json",
+    "build": "npm run clean:dist && npm run build:ts && node ../../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=index.js --format=cjs --platform=node --target=es2022 --external=buffer,jsondiffpatch,limiter,@switchyagain/proxy-engine && node ../../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=extension_runtime.min.js --global-name=ExtensionRuntime --target=es2022 --minify",
+    "build:ts": "npm run clean:ts && tsc -p tsconfig.build.json",
+    "clean:ts": "node --input-type=module -e \"import {rmSync} from 'node:fs'; rmSync('build-ts', {recursive: true, force: true})\"",
+    "clean:dist": "node --input-type=module -e \"import {readdirSync, rmSync} from 'node:fs'; for (const file of readdirSync('.')) if (file === 'index.js' || file.endsWith('.min.js')) rmSync(file, {force: true})\"",
     "typecheck:test": "tsc -p tsconfig.test.json --noEmit",
     "dev": "npm link @switchyagain/proxy-engine && npm link",
     "test": "npm run typecheck:test && TZ=UTC vitest run",

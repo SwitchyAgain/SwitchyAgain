@@ -16,8 +16,10 @@
     "tldjs": "^2.3.2"
   },
   "scripts": {
-    "build": "npm run build:ts && node ../../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=index.js --format=cjs --platform=node --target=es2022 --external=ip-address,tldjs && node ../../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=omega_pac.min.js --global-name=OmegaPac --target=es2022 --alias=tldjs=npm:tldjs,util=./src/browser_shims/util.ts,url=./src/browser_shims/url.ts --minify",
-    "build:ts": "tsc -p tsconfig.build.json",
+    "build": "npm run clean:dist && npm run build:ts && node ../../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=index.js --format=cjs --platform=node --target=es2022 --external=ip-address,tldjs && node ../../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=proxy_engine.min.js --global-name=ProxyEngine --target=es2022 --alias=tldjs=npm:tldjs,util=./src/browser_shims/util.ts,url=./src/browser_shims/url.ts --minify",
+    "build:ts": "npm run clean:ts && tsc -p tsconfig.build.json",
+    "clean:ts": "node --input-type=module -e \"import {rmSync} from 'node:fs'; rmSync('build-ts', {recursive: true, force: true})\"",
+    "clean:dist": "node --input-type=module -e \"import {readdirSync, rmSync} from 'node:fs'; for (const file of readdirSync('.')) if (file === 'index.js' || file.endsWith('.min.js')) rmSync(file, {force: true})\"",
     "typecheck:test": "tsc -p tsconfig.test.json --noEmit",
     "dev": "npm link",
     "test": "npm run typecheck:test && TZ=UTC vitest run",

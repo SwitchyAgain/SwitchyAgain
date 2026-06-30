@@ -320,12 +320,12 @@ interface BrowserGlobal {
   [key: string]: unknown;
 }
 
-type OmegaProfileScheme = {
+type ProxyProfileScheme = {
   prop: string;
   scheme?: string;
 };
 
-interface OmegaPacApi extends DynamicGlobalValue {
+interface ProxyEngineApi extends DynamicGlobalValue {
   Conditions: DynamicGlobalValue & {
     localHosts: string[];
     requestFromUrl(url: string): unknown;
@@ -341,7 +341,7 @@ interface OmegaPacApi extends DynamicGlobalValue {
     each(options: unknown, callback: (key: string, profile: DynamicGlobalValue) => unknown): unknown;
     match(profile: unknown, request: unknown): DynamicGlobalValue;
     nameAsKey(profileName: unknown): string;
-    schemes: OmegaProfileScheme[];
+    schemes: ProxyProfileScheme[];
     pacResult(value: unknown): string;
   };
   Revision: DynamicGlobalValue & {
@@ -362,34 +362,34 @@ interface UrlModule {
   };
 }
 
-interface OmegaPromise<T = unknown> extends Promise<T> {
-  timeout(milliseconds: number): OmegaPromise<T>;
+interface RuntimePromise<T = unknown> extends Promise<T> {
+  timeout(milliseconds: number): RuntimePromise<T>;
 }
 
-interface OmegaPromiseStatic {
+interface RuntimePromiseStatic {
   new <T = unknown>(
     executor: (
       resolve: (value?: T | PromiseLike<T>) => void,
       reject: (reason?: unknown) => void
     ) => void
-  ): OmegaPromise<T>;
-  all<T>(values: Array<T | PromiseLike<T>>): OmegaPromise<T[]>;
+  ): RuntimePromise<T>;
+  all<T>(values: Array<T | PromiseLike<T>>): RuntimePromise<T[]>;
   promisify(fn: unknown): DynamicGlobalValue;
-  reject<T = never>(reason?: unknown): OmegaPromise<T>;
-  resolve<T = unknown>(value?: T | PromiseLike<T>): OmegaPromise<T>;
-  try<T = unknown>(fn: () => T | PromiseLike<T>): OmegaPromise<T>;
+  reject<T = never>(reason?: unknown): RuntimePromise<T>;
+  resolve<T = unknown>(value?: T | PromiseLike<T>): RuntimePromise<T>;
+  try<T = unknown>(fn: () => T | PromiseLike<T>): RuntimePromise<T>;
   join<A, B, R>(
     a: A | PromiseLike<A>,
     b: B | PromiseLike<B>,
     handler: (a: A, b: B) => R
-  ): OmegaPromise<R>;
+  ): RuntimePromise<R>;
   [key: string]: unknown;
 }
 
 interface OmegaOptionsState {
-  get<T extends Record<string, unknown>>(defaults: T): OmegaPromise<T>;
-  remove(keys: string[]): OmegaPromise<unknown>;
-  set(items: Record<string, unknown>): OmegaPromise<unknown>;
+  get<T extends Record<string, unknown>>(defaults: T): RuntimePromise<T>;
+  remove(keys: string[]): RuntimePromise<unknown>;
+  set(items: Record<string, unknown>): RuntimePromise<unknown>;
 }
 
 interface OmegaOptionsData extends Record<string, unknown> {
@@ -416,17 +416,17 @@ interface OmegaOptionsBase {
   _isSystem: boolean;
   _options: OmegaOptionsData;
   _setAvailableProfiles(): Promise<unknown>;
-  _setOptions(changes: Record<string, unknown>): OmegaPromise<unknown>;
+  _setOptions(changes: Record<string, unknown>): RuntimePromise<unknown>;
   _state: OmegaOptionsState;
   fallbackProfileName: string;
   log: {
     error(...args: unknown[]): void;
     log(...args: unknown[]): void;
   };
-  applyProfile(profileName: string, options?: Record<string, unknown>): OmegaPromise<unknown>;
+  applyProfile(profileName: string, options?: Record<string, unknown>): RuntimePromise<unknown>;
   currentProfile(): unknown;
   currentProfileChanged(reason: string): unknown;
-  explainRequest(args: unknown): OmegaPromise<PopupApiRequestExplanation>;
+  explainRequest(args: unknown): RuntimePromise<PopupApiRequestExplanation>;
   queryTempRule(domain: string): unknown;
   updateProfile(...args: unknown[]): Promise<Record<string, unknown>>;
   upgrade(options?: unknown, ...args: unknown[]): Promise<unknown>;
@@ -452,15 +452,15 @@ interface OmegaStorageConstructor {
   StorageUnavailableError: new () => OmegaStorageError;
 }
 
-interface OmegaTargetModule extends Record<string, unknown> {
+interface ExtensionRuntimeModule extends Record<string, unknown> {
   ContentTypeRejectedError: new (message?: string) => Error;
   HttpError: new (error?: unknown) => Error;
   HttpNotFoundError: new (error?: unknown) => Error;
   HttpServerError: new (error?: unknown) => Error;
   NetworkError: new (error?: unknown) => Error;
-  OmegaPac: OmegaPacApi;
+  ProxyEngine: ProxyEngineApi;
   Options: OmegaOptionsConstructor;
-  Promise: OmegaPromiseStatic;
+  Promise: RuntimePromiseStatic;
   Storage: OmegaStorageConstructor;
 }
 
@@ -583,7 +583,7 @@ type PopupApiCondition = {
 
 type PopupApiConditionInput = PopupApiCondition | PopupApiCondition[];
 
-interface OmegaTargetPopupApi {
+interface PopupBridgeApi {
   addCondition(condition: PopupApiConditionInput, profileName: string, addToBottom: boolean, cb?: PopupApiCallback): void;
   addProfile(profile: PopupApiProfile, cb?: PopupApiCallback): void;
   addTempRule(domain: string, profileName: string, cb?: PopupApiCallback): void;
@@ -615,19 +615,19 @@ type ProxyFindFunction = (url: string, host: string, details?: unknown) => unkno
 declare var chrome: ChromeGlobal;
 declare var browser: BrowserGlobal;
 declare var FindProxyForURL: ProxyFindFunction;
-declare var OmegaPac: OmegaPacApi;
-declare var OmegaTarget: OmegaTargetModule;
-declare var OmegaTargetChromium: DynamicGlobalValue;
-declare var OmegaTargetPopup: OmegaTargetPopupApi;
+declare var ProxyEngine: ProxyEngineApi;
+declare var ExtensionRuntime: ExtensionRuntimeModule;
+declare var BrowserExtensionRuntime: DynamicGlobalValue;
+declare var PopupBridge: PopupBridgeApi;
 declare function importScripts(...urls: string[]): void;
-declare function drawOmega(
+declare function drawActionIcon(
   context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   resultColor: string,
   profileColor?: string
 ): void;
 
 declare module '@switchyagain/extension-runtime' {
-  const value: OmegaTargetModule;
+  const value: ExtensionRuntimeModule;
   export default value;
 }
 
@@ -641,7 +641,7 @@ declare module 'buffer' {
 
 interface Window {
   FindProxyForURL: ProxyFindFunction;
-  OmegaContextMenuClickHandlers: Record<string, (info: ChromeContextMenuClickInfo, tab: ChromeTab) => unknown>;
-  OmegaContextMenuQuickSwitchHandler: (info: {checked: boolean}) => unknown;
-  OmegaTargetPopup: OmegaTargetPopupApi;
+  ContextMenuClickHandlers: Record<string, (info: ChromeContextMenuClickInfo, tab: ChromeTab) => unknown>;
+  ContextMenuQuickSwitchHandler: (info: {checked: boolean}) => unknown;
+  PopupBridge: PopupBridgeApi;
 }

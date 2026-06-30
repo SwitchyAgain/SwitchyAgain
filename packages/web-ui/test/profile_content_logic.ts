@@ -28,7 +28,7 @@ import type {FixedProfileModel, FixedProfileProxyEditors} from '../src/react/pro
 
 beforeEach(() => {
   delete (globalThis as any).browser;
-  delete (globalThis as any).OmegaPac;
+  delete (globalThis as any).ProxyEngine;
 });
 
 describe('profile content logic', () => {
@@ -148,15 +148,15 @@ describe('profile content logic', () => {
     );
   });
 
-  it('reads available rule-list formats from OmegaPac', () => {
-    (globalThis as any).OmegaPac = {
+  it('reads available rule-list formats from ProxyEngine', () => {
+    (globalThis as any).ProxyEngine = {
       Profiles: {
         ruleListFormats: ['AutoProxy', 'Switchy']
       }
     };
     expect(getRuleListFormats()).toEqual(['AutoProxy', 'Switchy']);
 
-    (globalThis as any).OmegaPac = {
+    (globalThis as any).ProxyEngine = {
       Profiles: {}
     };
     expect(getRuleListFormats()).toEqual([]);

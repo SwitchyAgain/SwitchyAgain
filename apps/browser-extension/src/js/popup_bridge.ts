@@ -203,7 +203,7 @@ function removeOptionsTab(tabId: number | undefined, callback: () => void) {
   });
 }
 
-(globalThis as typeof globalThis & {OmegaTargetPopup: OmegaTargetPopupApi}).OmegaTargetPopup = {
+(globalThis as typeof globalThis & {PopupBridge: PopupBridgeApi}).PopupBridge = {
   getState(keys: PopupApiStateKey[], cb?: PopupCallback<PopupApiState>) {
     if (isManifestV3 || typeof localStorage === 'undefined' ||
         !localStorage.length) {

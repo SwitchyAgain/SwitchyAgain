@@ -166,7 +166,7 @@ async function installPopupTarget(page) {
       }
       return text;
     }
-    window.OmegaTargetPopup = {
+    window.PopupBridge = {
       addCondition(_condition, _profileName, _addToBottom, callback) {
         callback?.(null);
       },
@@ -242,7 +242,7 @@ async function runPage(page, target) {
   await installExtensionApi(page, target.state);
   if (target.popup) {
     await installPopupTarget(page);
-    await page.route('**/js/omega_target_popup.js', (route) => {
+    await page.route('**/js/popup_bridge.js', (route) => {
       route.fulfill({
         body: '',
         contentType: 'application/javascript',

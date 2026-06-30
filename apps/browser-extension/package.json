@@ -9,13 +9,15 @@
     "@switchyagain/proxy-engine": "0.0.1"
   },
   "browser": {
-    "@switchyagain/extension-runtime": "./build-ts/module/omega_target_shim.js"
+    "@switchyagain/extension-runtime": "./build-ts/module/extension_runtime_shim.js"
   },
   "scripts": {
-    "build": "npm run build --workspace @switchyagain/proxy-engine && npm run build --workspace @switchyagain/extension-runtime && npm run build --workspace @switchyagain/web-ui && npm run build:ts && node build-ts/build.mjs",
-    "build:ts": "tsc -p tsconfig.build.json && tsc -p tsconfig.scripts.json && tsc -p tsconfig.build-script.json",
+    "build": "npm run build --workspace @switchyagain/proxy-engine && npm run build --workspace @switchyagain/extension-runtime && npm run build --workspace @switchyagain/web-ui && npm run clean:dist && npm run build:ts && node build-ts/build.mjs",
+    "build:ts": "npm run clean:ts && tsc -p tsconfig.build.json && tsc -p tsconfig.scripts.json && tsc -p tsconfig.build-script.json",
+    "clean:ts": "node --input-type=module -e \"import {rmSync} from 'node:fs'; rmSync('build-ts', {recursive: true, force: true})\"",
+    "clean:dist": "node --input-type=module -e \"import {readdirSync, rmSync} from 'node:fs'; for (const file of readdirSync('.')) if (file === 'index.js' || file.endsWith('.min.js')) rmSync(file, {force: true})\"",
     "dev": "npm link @switchyagain/extension-runtime && npm link @switchyagain/web-ui && npm link @switchyagain/proxy-engine",
-    "release": "node ../../scripts/generate-browser-entrypoints.mjs --check && npm run build --workspace @switchyagain/proxy-engine && npm run build --workspace @switchyagain/extension-runtime && npm run build --workspace @switchyagain/web-ui && npm run build:ts && node build-ts/build.mjs release",
+    "release": "node ../../scripts/generate-browser-entrypoints.mjs --check && npm run build --workspace @switchyagain/proxy-engine && npm run build --workspace @switchyagain/extension-runtime && npm run build --workspace @switchyagain/web-ui && npm run clean:dist && npm run build:ts && node build-ts/build.mjs release",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.scripts.json --noEmit && tsc -p tsconfig.build-script.json --noEmit"
   }
 }

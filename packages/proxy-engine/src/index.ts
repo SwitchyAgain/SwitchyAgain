@@ -5,7 +5,7 @@ import * as RuleList from './rule_list';
 import * as ShexpUtils from './shexp_utils';
 import * as utils from './utils';
 
-const omegaPac: Record<string, unknown> = {
+const proxyEngine: Record<string, unknown> = {
   Conditions,
   PacGenerator,
   Profiles,
@@ -15,7 +15,7 @@ const omegaPac: Record<string, unknown> = {
 
 const utilExports = utils as Record<string, unknown>;
 for (const name of Object.keys(utilExports)) {
-  omegaPac[name] = utilExports[name];
+  proxyEngine[name] = utilExports[name];
 }
 
 export {
@@ -28,4 +28,4 @@ export {
 
 export * from './utils';
 
-export default omegaPac;
+export default proxyEngine;

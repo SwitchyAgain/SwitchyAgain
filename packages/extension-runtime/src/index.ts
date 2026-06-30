@@ -1,4 +1,4 @@
-import OmegaPac from '@switchyagain/proxy-engine';
+import ProxyEngine from '@switchyagain/proxy-engine';
 import BrowserStorage from './browser_storage';
 import * as errors from './errors';
 import Log from './log';
@@ -13,7 +13,7 @@ const omegaTarget: Record<string, unknown> = {
   BrowserStorage,
   Options,
   OptionsSync,
-  OmegaPac
+  ProxyEngine
 };
 
 const utilExports = utils as Record<string, unknown>;
@@ -32,7 +32,7 @@ export {
   Options,
   OptionsSync,
   Storage,
-  OmegaPac
+  ProxyEngine
 };
 
 export * from './errors';

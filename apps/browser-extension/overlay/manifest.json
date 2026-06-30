@@ -15,10 +15,10 @@
   "default_locale": "en",
   "action": {
     "default_icon": {
-      "16": "img/icons/omega-action-16.png",
-      "19": "img/icons/omega-action-19.png",
-      "24": "img/icons/omega-action-24.png",
-      "32": "img/icons/omega-action-32.png"
+      "16": "img/icons/action-icon-16.png",
+      "19": "img/icons/action-icon-19.png",
+      "24": "img/icons/action-icon-24.png",
+      "32": "img/icons/action-icon-32.png"
     },
     "default_title": "__MSG_manifest_icon_default_title__",
     "default_popup": "popup/index.html"
@@ -29,10 +29,10 @@
       "js/runtime_preload.js",
       "js/log_error.js",
       "js/background_preload.js",
-      "js/omega_pac.min.js",
-      "js/omega_target.min.js",
-      "js/omega_target_chromium_extension.min.js",
-      "img/icons/draw_omega.js",
+      "js/proxy_engine.min.js",
+      "js/extension_runtime.min.js",
+      "js/browser_extension_runtime.min.js",
+      "img/icons/draw_action_icon.js",
       "js/background.js"
     ],
     "preferred_environment": ["document", "service_worker"]

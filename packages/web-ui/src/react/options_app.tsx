@@ -1198,7 +1198,7 @@ export function OptionsApp() {
     }
 
     updateOptionsDraft((nextOptions) => {
-      const profile = OmegaPac.Profiles.create(profileSpec);
+      const profile = ProxyEngine.Profiles.create(profileSpec);
       const choice = Math.floor(Math.random() * PROFILE_COLORS.length);
       if (profile.color == null) {
         profile.color = PROFILE_COLORS[choice];
@@ -1663,10 +1663,10 @@ export function OptionsApp() {
         );
       }
       const referenced = () => {
-        if (typeof OmegaPac === 'undefined' || !OmegaPac?.Profiles?.referencedBySet) {
+        if (typeof ProxyEngine === 'undefined' || !ProxyEngine?.Profiles?.referencedBySet) {
           return false;
         }
-        return Object.keys(OmegaPac.Profiles.referencedBySet(profile.name, options)).length > 0;
+        return Object.keys(ProxyEngine.Profiles.referencedBySet(profile.name, options)).length > 0;
       };
       const content = (() => {
         if (isFixedProfile(profile)) {

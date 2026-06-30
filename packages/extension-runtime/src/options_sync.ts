@@ -2,7 +2,7 @@
 
 import {create as createJsonDiffPatch} from 'jsondiffpatch';
 import {TokenBucket} from 'limiter';
-import OmegaPac from '@switchyagain/proxy-engine';
+import ProxyEngine from '@switchyagain/proxy-engine';
 import Log from './log';
 import Promise from './promise';
 import StorageClass from './storage';
@@ -40,7 +40,7 @@ type JsonDiffPatch = {
   diff: (oldValue: StorageValue, newValue: StorageValue) => unknown;
 };
 
-type OmegaPacModule = {
+type ProxyEngineModule = {
   Revision: {
     compare: (left: unknown, right: unknown) => number;
   };
@@ -49,7 +49,7 @@ type OmegaPacModule = {
 type TimerHandle = ReturnType<typeof setTimeout>;
 
 const Storage = StorageClass as unknown as StorageModule;
-const Revision = (OmegaPac as OmegaPacModule).Revision;
+const Revision = (ProxyEngine as ProxyEngineModule).Revision;
 
 class OptionsSync {
   static TokenBucket = TokenBucket;

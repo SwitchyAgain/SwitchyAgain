@@ -102,7 +102,7 @@ type BackgroundLog = OmegaOptionsBase['log'] & {
   str(obj: unknown): string;
 };
 
-type BackgroundPromiseStatic = OmegaPromiseStatic & {
+type BackgroundPromiseStatic = RuntimePromiseStatic & {
   longStackTraces(): void;
   onPossiblyUnhandledRejection(callback: (reason: unknown, promise: unknown) => unknown): void;
   onUnhandledRejectionHandled(callback: (promise: unknown) => unknown): void;
@@ -114,8 +114,8 @@ type BackgroundExternalApi = {
 };
 
 type BackgroundState = {
-  get(keys: unknown): OmegaPromise<Record<string, unknown>>;
-  set(items: Record<string, unknown>): OmegaPromise<unknown>;
+  get(keys: unknown): RuntimePromise<Record<string, unknown>>;
+  set(items: Record<string, unknown>): RuntimePromise<unknown>;
 };
 
 type BackgroundTabBadge = {
@@ -145,18 +145,18 @@ type BackgroundOptions = BackgroundOptionMethods & {
   clearBadge(): unknown;
   currentProfile(): BackgroundProfile | null | undefined;
   externalApi: BackgroundExternalApi;
-  explainRequest(args: unknown): OmegaPromise<unknown>;
+  explainRequest(args: unknown): RuntimePromise<unknown>;
   getProfileScopeInfo(args: ProfileScopeInfoArgs): ProfileScopeInfo;
   isCurrentProfileStatic(): boolean;
-  matchProfileFromProfileName(profileName: string, request: unknown): OmegaPromise<BackgroundMatchResult>;
-  matchProfile(request: unknown): OmegaPromise<BackgroundMatchResult>;
+  matchProfileFromProfileName(profileName: string, request: unknown): RuntimePromise<BackgroundMatchResult>;
+  matchProfile(request: unknown): RuntimePromise<BackgroundMatchResult>;
   getMonitoredTabUrl(tabId: number, url?: string): string | undefined;
-  optionsLoaded: OmegaPromise<unknown> | null;
+  optionsLoaded: RuntimePromise<unknown> | null;
   printProfile(profile?: BackgroundProfile | null): unknown;
   profile(name?: unknown): BackgroundProfile;
   proxyNotControllable(): string | null;
   queryTempRule(domain: string): unknown;
-  ready: OmegaPromise<unknown>;
+  ready: RuntimePromise<unknown>;
   setBadge(): unknown;
   setExternalProfile(profile: BackgroundProfile, args?: {internal?: boolean; noRevert?: boolean}): Promise<unknown> | void;
   setProxyNotControllable(reason: string | null): unknown;
@@ -236,7 +236,7 @@ type ProxyChangeDetails = Record<string, unknown> & {
   levelOfControl?: string;
 };
 
-type BackgroundOmegaTarget = {
+type BackgroundExtensionRuntime = {
   BrowserStorage: new (storage: Storage, prefix: string) => BackgroundState;
   ChromeTabs: new (actionForUrl: (tab: ChromeTab, url: string) => Promise<BackgroundActionInfo | null>) => BackgroundTabs;
   ExternalApi: new (options: BackgroundOptions) => BackgroundExternalApi;
@@ -263,13 +263,13 @@ type BackgroundOmegaTarget = {
 (function() {
   const hasProp = {}.hasOwnProperty;
 
-  const OmegaTargetChromiumModule = OmegaTargetChromium as unknown as BackgroundOmegaTarget & {
-    default?: BackgroundOmegaTarget;
+  const BrowserExtensionRuntimeModule = BrowserExtensionRuntime as unknown as BackgroundExtensionRuntime & {
+    default?: BackgroundExtensionRuntime;
   };
-  const OmegaTargetBase = OmegaTargetChromiumModule.default || OmegaTargetChromiumModule;
-  const OmegaTargetCurrent = Object.create(OmegaTargetBase) as BackgroundOmegaTarget;
+  const ExtensionRuntimeBase = BrowserExtensionRuntimeModule.default || BrowserExtensionRuntimeModule;
+  const ExtensionRuntimeCurrent = Object.create(ExtensionRuntimeBase) as BackgroundExtensionRuntime;
 
-  const Promise = OmegaTargetCurrent.Promise;
+  const Promise = ExtensionRuntimeCurrent.Promise;
 
   Promise.longStackTraces();
 
@@ -279,9 +279,9 @@ type BackgroundOmegaTarget = {
     return (chrome.action || chrome[legacyKey]) as ChromeActionApi;
   }
 
-  OmegaTargetCurrent.Log = Object.create(OmegaTargetCurrent.Log);
+  ExtensionRuntimeCurrent.Log = Object.create(ExtensionRuntimeCurrent.Log);
 
-  const Log = OmegaTargetCurrent.Log;
+  const Log = ExtensionRuntimeCurrent.Log;
 
   function writeLogToLocalStorage(content: string) {
     try {
@@ -395,9 +395,9 @@ type BackgroundOmegaTarget = {
         ctx.scale(size, size);
         ctx.clearRect(0, 0, 1, 1);
         if (resultColor != null) {
-          drawOmega(ctx, resultColor, profileColor);
+          drawActionIcon(ctx, resultColor, profileColor);
         } else {
-          drawOmega(ctx, profileColor || '#777');
+          drawActionIcon(ctx, profileColor || '#777');
         }
         if (scopeMarker) {
           drawProfileScopeMarker(ctx, scopeMarker);
@@ -469,7 +469,7 @@ type BackgroundOmegaTarget = {
   }
 
   function staticProfile(profile: BackgroundProfile | null | undefined) {
-    return !profile?.name || !OmegaPac.Profiles.isInclusive(profile);
+    return !profile?.name || !ProxyEngine.Profiles.isInclusive(profile);
   }
 
   function stringOrUndefined(value: unknown): string | undefined {
@@ -487,7 +487,7 @@ type BackgroundOmegaTarget = {
 
   function actionForUrl(tab: ChromeTab, url: string) {
     return options.ready.then(() => {
-      const request = OmegaPac.Conditions.requestFromUrl(url);
+      const request = ProxyEngine.Conditions.requestFromUrl(url);
       const profileScope = options.getProfileScopeInfo({
         cookieStoreId: tab.cookieStoreId,
         groupId: tab.groupId,
@@ -525,7 +525,7 @@ type BackgroundOmegaTarget = {
       const condition2Str = (condition: unknown): string => {
         return isRecord(condition) && condition.pattern != null
           ? String(condition.pattern)
-          : OmegaPac.Conditions.str(condition);
+          : ProxyEngine.Conditions.str(condition);
       };
       for (let i = 0, len = results.length; i < len; i++) {
         const result = results[i];
@@ -614,36 +614,36 @@ type BackgroundOmegaTarget = {
     });
   }
 
-  const storage = new OmegaTargetCurrent.Storage('local');
+  const storage = new ExtensionRuntimeCurrent.Storage('local');
 
-  state = new OmegaTargetCurrent.BrowserStorage(localStorage, 'omega.local.');
+  state = new ExtensionRuntimeCurrent.BrowserStorage(localStorage, 'omega.local.');
 
   let sync: BackgroundSync | undefined;
   if (
     (typeof chrome !== "undefined" && chrome !== null && chrome.storage?.sync) ||
     (typeof browser !== "undefined" && browser !== null && browser.storage?.sync)
   ) {
-    const syncStorage = new OmegaTargetCurrent.Storage('sync');
-    sync = new OmegaTargetCurrent.OptionsSync(syncStorage) as BackgroundSync;
+    const syncStorage = new ExtensionRuntimeCurrent.Storage('sync');
+    sync = new ExtensionRuntimeCurrent.OptionsSync(syncStorage) as BackgroundSync;
     if (localStorage['omega.local.syncOptions'] !== '"sync"') {
       sync.enabled = false;
     }
-    sync.transformValue = OmegaTargetCurrent.Options.transformValueForSync;
+    sync.transformValue = ExtensionRuntimeCurrent.Options.transformValueForSync;
   }
 
-  proxyImpl = OmegaTargetCurrent.proxy.getProxyImpl(Log);
+  proxyImpl = ExtensionRuntimeCurrent.proxy.getProxyImpl(Log);
 
   state.set({
     proxyImplFeatures: proxyImpl.features
   });
 
-  options = new OmegaTargetCurrent.Options(null, storage, state, Log, sync, proxyImpl);
+  options = new ExtensionRuntimeCurrent.Options(null, storage, state, Log, sync, proxyImpl);
 
-  options.externalApi = new OmegaTargetCurrent.ExternalApi(options);
+  options.externalApi = new ExtensionRuntimeCurrent.ExternalApi(options);
 
   options.externalApi.listen();
 
-  tabs = new OmegaTargetCurrent.ChromeTabs(actionForUrl);
+  tabs = new ExtensionRuntimeCurrent.ChromeTabs(actionForUrl);
 
   tabs.watch();
 
@@ -732,7 +732,7 @@ type BackgroundOmegaTarget = {
       options.setBadge();
     }
     let icon;
-    if (!current.name || !OmegaPac.Profiles.isInclusive(current)) {
+    if (!current.name || !ProxyEngine.Profiles.isInclusive(current)) {
       icon = drawIcon(current.color);
     } else {
       icon = drawIcon(stringOrUndefined(options.profile('direct').color), current.color);
@@ -993,7 +993,7 @@ type BackgroundOmegaTarget = {
     };
   }
 
-  function readinessForRequest(request: BackgroundRequest): OmegaPromise<unknown> {
+  function readinessForRequest(request: BackgroundRequest): RuntimePromise<unknown> {
     switch (request.method) {
       case 'getAll':
       case 'getPageInfo':

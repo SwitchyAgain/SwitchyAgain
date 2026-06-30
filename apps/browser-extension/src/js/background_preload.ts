@@ -13,12 +13,12 @@ type ContextMenuClickHandler = (info: ChromeContextMenuClickInfo, tab: ChromeTab
 
   localStorage['logLastError'] = '';
 
-  window.OmegaContextMenuQuickSwitchHandler = () => {
+  window.ContextMenuQuickSwitchHandler = () => {
     return null;
   };
 
-  if (window.OmegaContextMenuClickHandlers == null) {
-    window.OmegaContextMenuClickHandlers = {};
+  if (window.ContextMenuClickHandlers == null) {
+    window.ContextMenuClickHandlers = {};
   }
 
   const actionContext = chrome.action != null ? "action" : "browser_action";
@@ -30,10 +30,10 @@ type ContextMenuClickHandler = (info: ChromeContextMenuClickInfo, tab: ChromeTab
     }
     if (onclick) {
       if (options.id) {
-        window.OmegaContextMenuClickHandlers[options.id] = onclick;
+        window.ContextMenuClickHandlers[options.id] = onclick;
       } else {
-        options.id = 'omega-context-' + Object.keys(window.OmegaContextMenuClickHandlers).length;
-        window.OmegaContextMenuClickHandlers[options.id!] = onclick;
+        options.id = 'context-menu-' + Object.keys(window.ContextMenuClickHandlers).length;
+        window.ContextMenuClickHandlers[options.id!] = onclick;
       }
     }
     return contextMenus.create(options);
@@ -41,7 +41,7 @@ type ContextMenuClickHandler = (info: ChromeContextMenuClickInfo, tab: ChromeTab
 
   if (chrome.contextMenus?.onClicked != null) {
     chrome.contextMenus.onClicked.addListener((info: ChromeContextMenuClickInfo, tab: ChromeTab) => {
-      const handler = window.OmegaContextMenuClickHandlers[info.menuItemId];
+      const handler = window.ContextMenuClickHandlers[info.menuItemId];
       return typeof handler === "function" ? handler(info, tab) : void 0;
     });
   }
@@ -56,7 +56,7 @@ type ContextMenuClickHandler = (info: ChromeContextMenuClickInfo, tab: ChromeTab
           checked: false,
           contexts: [actionContext]
         }, (info: ChromeContextMenuClickInfo) => {
-          return window.OmegaContextMenuQuickSwitchHandler({checked: info.checked === true});
+          return window.ContextMenuQuickSwitchHandler({checked: info.checked === true});
         });
       }
     };

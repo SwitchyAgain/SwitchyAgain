@@ -1,6 +1,6 @@
-type OmegaPacOptions = Record<string, unknown>;
+type ProxyEngineOptions = Record<string, unknown>;
 
-type OmegaPacProfile = {
+type ProxyEngineProfile = {
   builtin?: boolean;
   color?: string;
   name?: string;
@@ -13,9 +13,9 @@ type OmegaPacProfile = {
   [key: string]: unknown;
 };
 
-type OmegaPacConditionFieldValue = boolean | number | string | null | undefined;
+type ProxyEngineConditionFieldValue = boolean | number | string | null | undefined;
 
-type OmegaPacSwitchRuleCondition = {
+type ProxyEngineSwitchRuleCondition = {
   conditionType?: string;
   days?: string;
   endHour?: number | string | null;
@@ -23,54 +23,54 @@ type OmegaPacSwitchRuleCondition = {
   minValue?: number | string | null;
   pattern?: string;
   startHour?: number | string | null;
-  [key: string]: OmegaPacConditionFieldValue;
+  [key: string]: ProxyEngineConditionFieldValue;
 };
 
-type OmegaPacSwitchRule = {
-  condition: OmegaPacSwitchRuleCondition;
+type ProxyEngineSwitchRule = {
+  condition: ProxyEngineSwitchRuleCondition;
   note?: string;
   profileName?: string;
 };
 
-type OmegaPacPrintedScript = {
+type ProxyEnginePrintedScript = {
   print_to_string: (options?: {
     beautify?: boolean;
     comments?: boolean;
   }) => string;
 };
 
-type OmegaPacGlobal = {
+type ProxyEngineGlobal = {
   Conditions: {
-    fromStr: (value: string) => OmegaPacSwitchRuleCondition;
-    getWeekdayList: (condition: OmegaPacSwitchRuleCondition) => boolean[];
-    str: (condition: OmegaPacSwitchRuleCondition) => string;
+    fromStr: (value: string) => ProxyEngineSwitchRuleCondition;
+    getWeekdayList: (condition: ProxyEngineSwitchRuleCondition) => boolean[];
+    str: (condition: ProxyEngineSwitchRuleCondition) => string;
   };
   PacGenerator: {
     ascii: (script: string) => string;
     script: (
-      options: OmegaPacOptions,
+      options: ProxyEngineOptions,
       profileName: string,
       hooks?: {
         profileNotFound?: (name: string) => string;
       }
-    ) => OmegaPacPrintedScript;
+    ) => ProxyEnginePrintedScript;
   };
   Profiles: {
-    byKey?: (key: string, options: OmegaPacOptions) => OmegaPacProfile | null | undefined;
-    create: <TProfile extends Partial<OmegaPacProfile>>(profile: TProfile) => OmegaPacProfile & TProfile;
-    each: (options: OmegaPacOptions, callback: (key: string, profile: OmegaPacProfile) => void) => void;
-    nameAsKey?: (profileOrName: Pick<OmegaPacProfile, 'name'> | string) => string;
-    referencedBySet?: (profileName: string, options: OmegaPacOptions) => Record<string, string>;
+    byKey?: (key: string, options: ProxyEngineOptions) => ProxyEngineProfile | null | undefined;
+    create: <TProfile extends Partial<ProxyEngineProfile>>(profile: TProfile) => ProxyEngineProfile & TProfile;
+    each: (options: ProxyEngineOptions, callback: (key: string, profile: ProxyEngineProfile) => void) => void;
+    nameAsKey?: (profileOrName: Pick<ProxyEngineProfile, 'name'> | string) => string;
+    referencedBySet?: (profileName: string, options: ProxyEngineOptions) => Record<string, string>;
     ruleListFormats?: string[];
-    updateRevision: (profile: OmegaPacProfile) => void;
-    validResultProfilesFor: (profile: OmegaPacProfile | string, options: OmegaPacOptions) => OmegaPacProfile[];
+    updateRevision: (profile: ProxyEngineProfile) => void;
+    validResultProfilesFor: (profile: ProxyEngineProfile | string, options: ProxyEngineOptions) => ProxyEngineProfile[];
   };
   RuleList: {
     Switchy: {
       compose: (
         profile: {
           defaultProfileName?: string;
-          rules: OmegaPacSwitchRule[];
+          rules: ProxyEngineSwitchRule[];
         },
         options?: {
           withResult?: boolean;
@@ -85,9 +85,9 @@ type OmegaPacGlobal = {
           source?: boolean;
           strict?: boolean;
         }
-      ) => OmegaPacSwitchRule[];
+      ) => ProxyEngineSwitchRule[];
     };
   };
 };
 
-declare var OmegaPac: OmegaPacGlobal;
+declare var ProxyEngine: ProxyEngineGlobal;

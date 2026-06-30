@@ -123,7 +123,7 @@ export function formatMediumDate(value?: string | number | null) {
 }
 
 export function getRuleListFormats(): string[] {
-  return OmegaPac.Profiles.ruleListFormats || [];
+  return ProxyEngine.Profiles.ruleListFormats || [];
 }
 
 export function isFixedProfileProxyProtocol(value?: string): value is FixedProfileServerProtocol {

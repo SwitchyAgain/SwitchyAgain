@@ -145,18 +145,18 @@ export function closePopup() {
 }
 
 export function popupTarget() {
-  return getGlobalValue<PopupTarget>('OmegaTargetPopup') || {};
+  return getGlobalValue<PopupTarget>('PopupBridge') || {};
 }
 
 export function waitForPopupTarget() {
-  if (getGlobalValue<PopupTarget>('OmegaTargetPopup')) {
+  if (getGlobalValue<PopupTarget>('PopupBridge')) {
     return Promise.resolve();
   }
   return new Promise<void>((resolve, reject) => {
     let tries = 0;
     const timer = setInterval(() => {
       tries++;
-      if (getGlobalValue<PopupTarget>('OmegaTargetPopup')) {
+      if (getGlobalValue<PopupTarget>('PopupBridge')) {
         clearInterval(timer);
         resolve();
       } else if (tries > 100) {

@@ -297,11 +297,11 @@ async function main() {
   const indexSource = path.join(root, 'src/module/index.ts');
   await writeBundle(path.join(root, 'index.js'), {
     entry: indexSource,
-    globalName: 'OmegaTargetChromium'
+    globalName: 'BrowserExtensionRuntime'
   });
-  await writeBundle(path.join(root, 'omega_target_chromium_extension.min.js'), {
+  await writeBundle(path.join(root, 'browser_extension_runtime.min.js'), {
     entry: indexSource,
-    globalName: 'OmegaTargetChromium',
+    globalName: 'BrowserExtensionRuntime',
     minify: true
   });
   const fontFilter = (base: string): PathFilter => (filePath: string) => {
@@ -310,9 +310,9 @@ async function main() {
   };
   const webBuildRoot = path.join(workspaceRoot, 'packages/web-ui/build');
   await copyTree(webBuildRoot, path.join(root, 'build'), fontFilter(webBuildRoot));
-  await copyFile(path.join(workspaceRoot, 'packages/extension-runtime/omega_target.min.js'), path.join(root, 'build/js/omega_target.min.js'));
-  await copyFile(path.join(root, 'omega_target_chromium_extension.min.js'), path.join(root, 'build/js/omega_target_chromium_extension.min.js'));
-  await copyFile(path.join(root, 'build-ts/js/omega_target_popup.js'), path.join(root, 'build/js/omega_target_popup.js'));
+  await copyFile(path.join(workspaceRoot, 'packages/extension-runtime/extension_runtime.min.js'), path.join(root, 'build/js/extension_runtime.min.js'));
+  await copyFile(path.join(root, 'browser_extension_runtime.min.js'), path.join(root, 'build/js/browser_extension_runtime.min.js'));
+  await copyFile(path.join(root, 'build-ts/js/popup_bridge.js'), path.join(root, 'build/js/popup_bridge.js'));
   await copyFile(path.join(root, 'build-ts/js/runtime_preload.js'), path.join(root, 'build/js/runtime_preload.js'));
   for (const script of ['background.js', 'background_preload.js']) {
     await copyFile(path.join(root, 'build-ts/js', script), path.join(root, 'build/js', script));

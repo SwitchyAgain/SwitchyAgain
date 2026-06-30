@@ -3,7 +3,7 @@ declare const options: Record<string, unknown> | null | undefined;
 
 import {Buffer} from 'buffer';
 import {patch as patchJson} from 'jsondiffpatch';
-import OmegaPacImpl from '@switchyagain/proxy-engine';
+import ProxyEngineImpl from '@switchyagain/proxy-engine';
 import defaultOptions from './default_options';
 import Log from './log';
 import Promise from './promise';
@@ -11,7 +11,7 @@ import Storage from './storage';
 import type {
   RuntimePromise,
   LogLike,
-  OmegaPacModule,
+  ProxyEngineModule,
   OptionsData,
   OptionsSyncLike,
   ProfileLike,
@@ -42,7 +42,7 @@ class NoOptionsError extends Error {
   }
 }
 
-const OmegaPac = OmegaPacImpl as OmegaPacModule;
+const ProxyEngine = ProxyEngineImpl as ProxyEngineModule;
 
 const attachedRuleListPrefix = '__ruleListOf_';
 const hasProp = Object.prototype.hasOwnProperty;
@@ -246,7 +246,7 @@ function migrateLocalBypassList(profile: ProfileLike): boolean {
   const bypassList = profile.bypassList as BypassConditionLike[];
   const bypassPatterns = new Set(bypassList.map((condition) => {
     if (condition.conditionType === 'BypassCondition') {
-      return OmegaPac.Conditions.str(condition).replace(/^Bypass:\s*/, '');
+      return ProxyEngine.Conditions.str(condition).replace(/^Bypass:\s*/, '');
     }
     return condition.pattern;
   }));
@@ -254,7 +254,7 @@ function migrateLocalBypassList(profile: ProfileLike): boolean {
     return false;
   }
   let changed = false;
-  for (const pattern of OmegaPac.Conditions.localHosts) {
+  for (const pattern of ProxyEngine.Conditions.localHosts) {
     if (bypassPatterns.has(pattern)) {
       continue;
     }
@@ -384,7 +384,7 @@ class Options {
   static transformValueForSync(value: StorageValue, key: string): StorageValue {
     if (key[0] === '+') {
       const source = value as ProfileLike;
-      if (OmegaPac.Profiles.updateUrl(source)) {
+      if (ProxyEngine.Profiles.updateUrl(source)) {
         const profile: ProfileLike = {};
         for (const k in source) {
           const v = source[k];
@@ -684,16 +684,16 @@ class Options {
     let version = options != null ? options['schemaVersion'] : void 0;
     if (version === 1) {
       let autoDetectUsed = false;
-      OmegaPac.Profiles.each(options, (_key, profile) => {
+      ProxyEngine.Profiles.each(options, (_key, profile) => {
         if (!autoDetectUsed) {
-          const refs = OmegaPac.Profiles.directReferenceSet(profile);
+          const refs = ProxyEngine.Profiles.directReferenceSet(profile);
           if (refs['+auto_detect']) {
             return autoDetectUsed = true;
           }
         }
       });
       if (autoDetectUsed) {
-        options['+auto_detect'] = OmegaPac.Profiles.create({
+        options['+auto_detect'] = ProxyEngine.Profiles.create({
           name: 'auto_detect',
           profileType: 'PacProfile',
           pacUrl: 'http://wpad/wpad.dat',
@@ -703,9 +703,9 @@ class Options {
       version = changes['schemaVersion'] = options['schemaVersion'] = 2;
     }
     if (version === 2) {
-      OmegaPac.Profiles.each(options, (key, profile) => {
+      ProxyEngine.Profiles.each(options, (key, profile) => {
         if (migrateLocalBypassList(profile)) {
-          OmegaPac.Profiles.updateRevision(profile);
+          ProxyEngine.Profiles.updateRevision(profile);
           changes[key] = profile;
         }
       });
@@ -793,7 +793,7 @@ class Options {
         return this._storage.remove().then(() => {
           return this._storage.set(opt);
         }).then(() => {
-          if (preserveProfileName && !opt['-startupProfileName'] && OmegaPac.Profiles.byName(preserveProfileName, opt)) {
+          if (preserveProfileName && !opt['-startupProfileName'] && ProxyEngine.Profiles.byName(preserveProfileName, opt)) {
             this._state.set({
               'currentProfileName': preserveProfileName,
               'isSystemProfile': preserveProfileName === 'system'
@@ -873,7 +873,7 @@ class Options {
    */
 
   profile(name: string | ProfileLike): ProfileLike | undefined {
-    return OmegaPac.Profiles.byName(name, this._options);
+    return ProxyEngine.Profiles.byName(name, this._options);
   }
 
 
@@ -922,7 +922,7 @@ class Options {
       } else {
         if (key[0] === '+') {
           if (checkRev && this._options[key]) {
-            const result = OmegaPac.Revision.compare((this._options[key] as ProfileLike).revision, (value as ProfileLike).revision);
+            const result = ProxyEngine.Revision.compare((this._options[key] as ProfileLike).revision, (value as ProfileLike).revision);
             if (result >= 0) {
               continue;
             }
@@ -1056,11 +1056,11 @@ class Options {
         if (!name) {
           return false;
         }
-        const key = OmegaPac.Profiles.nameAsKey(name);
+        const key = ProxyEngine.Profiles.nameAsKey(name);
         if (seenQuickSwitchProfile[key]) {
           return false;
         }
-        if (!OmegaPac.Profiles.byName(name, this._options)) {
+        if (!ProxyEngine.Profiles.byName(name, this._options)) {
           return false;
         }
         seenQuickSwitchProfile[key] = true;
@@ -1124,7 +1124,7 @@ class Options {
 
   _profileNotFound(name: string): ProfileLike {
     this.log.error("Profile " + name + " not found! Things may go very, very wrong.");
-    return OmegaPac.Profiles.create({
+    return ProxyEngine.Profiles.create({
       name: name,
       profileType: 'VirtualProfile',
       defaultProfileName: 'direct'
@@ -1143,19 +1143,19 @@ class Options {
     if (compress == null) {
       compress = false;
     }
-    let ast = OmegaPac.PacGenerator.script(this._options, profile, {
+    let ast = ProxyEngine.PacGenerator.script(this._options, profile, {
       profileNotFound: this._profileNotFound.bind(this)
     });
     if (compress) {
-      ast = OmegaPac.PacGenerator.compress(ast);
+      ast = ProxyEngine.PacGenerator.compress(ast);
     }
-    return Promise.resolve(OmegaPac.PacGenerator.ascii(ast.print_to_string()));
+    return Promise.resolve(ProxyEngine.PacGenerator.ascii(ast.print_to_string()));
   }
 
   scopeAssignableProfileNames() {
     const names: string[] = [];
     const seen: Record<string, boolean> = {};
-    OmegaPac.Profiles.each(this._options, (_key, profile) => {
+    ProxyEngine.Profiles.each(this._options, (_key, profile) => {
       const name = profile.name;
       if (typeof name !== 'string' || name.charAt(0) === '_' || seen[name]) {
         return;
@@ -1169,14 +1169,14 @@ class Options {
   _setAvailableProfiles(): RuntimePromise<unknown> {
     const profile = this._currentProfileName ? this.currentProfile() : null;
     const profiles: Record<string, AvailableProfile> = {};
-    const currentIncludable = profile && OmegaPac.Profiles.isIncludable(profile);
+    const currentIncludable = profile && ProxyEngine.Profiles.isIncludable(profile);
     const scopeAssignableProfiles = profile && !this._isSystem ? this.scopeAssignableProfileNames() : [];
     let allReferenceSet: Record<string, string> | null = null;
     let results: string[] | null = null;
-    if (!profile || !OmegaPac.Profiles.isInclusive(profile)) {
+    if (!profile || !ProxyEngine.Profiles.isInclusive(profile)) {
       results = [];
     }
-    OmegaPac.Profiles.each(this._options, (key, p) => {
+    ProxyEngine.Profiles.each(this._options, (key, p) => {
         profiles[key] = {
           name: p.name,
           profileType: p.profileType,
@@ -1190,22 +1190,22 @@ class Options {
         if (p.profileType === 'VirtualProfile') {
           profiles[key].defaultProfileName = p.defaultProfileName;
           if (allReferenceSet == null) {
-            allReferenceSet = profile ? OmegaPac.Profiles.allReferenceSet(profile, this._options, {
+            allReferenceSet = profile ? ProxyEngine.Profiles.allReferenceSet(profile, this._options, {
               profileNotFound: this._profileNotFound.bind(this)
             }) : {};
           }
           if (allReferenceSet[key]) {
-            profiles[key].validResultProfiles = OmegaPac.Profiles.validResultProfilesFor(p, this._options).map((result) => {
+            profiles[key].validResultProfiles = ProxyEngine.Profiles.validResultProfilesFor(p, this._options).map((result) => {
               return result.name;
             });
           }
         }
-        if (currentIncludable && OmegaPac.Profiles.isIncludable(p)) {
+        if (currentIncludable && ProxyEngine.Profiles.isIncludable(p)) {
           return results != null && p.name ? results.push(p.name) : void 0;
         }
     });
-    if (profile && OmegaPac.Profiles.isInclusive(profile)) {
-      const resultProfiles = OmegaPac.Profiles.validResultProfilesFor(profile, this._options);
+    if (profile && ProxyEngine.Profiles.isInclusive(profile)) {
+      const resultProfiles = ProxyEngine.Profiles.validResultProfilesFor(profile, this._options);
       results = resultProfiles
         .map((profile) => profile.name)
         .filter((name): name is string => typeof name === 'string');
@@ -1233,13 +1233,13 @@ class Options {
   applyProfile(name: string | null | undefined, options?: ApplyProfileOptions): RuntimePromise<unknown> {
     this.log.method('Options#applyProfile', this, arguments);
     const profileName = name || this.fallbackProfileName;
-    const profile = OmegaPac.Profiles.byName(profileName, this._options);
+    const profile = ProxyEngine.Profiles.byName(profileName, this._options);
     if (!profile) {
       return Promise.reject(new ProfileNotExistError(profileName));
     }
     this._currentProfileName = profile.name || profileName;
     this._isSystem = (options != null ? options.system : void 0) || (profile.profileType === 'SystemProfile');
-    this._watchingProfiles = OmegaPac.Profiles.allReferenceSet(profile, this._options, {
+    this._watchingProfiles = ProxyEngine.Profiles.allReferenceSet(profile, this._options, {
       profileNotFound: this._profileNotFound.bind(this)
     });
     this._state.set({
@@ -1258,13 +1258,13 @@ class Options {
     }
     this._tempProfileActive = false;
     let applyProxy: RuntimePromise<unknown>;
-    if ((this._tempProfile != null) && OmegaPac.Profiles.isIncludable(profile)) {
+    if ((this._tempProfile != null) && ProxyEngine.Profiles.isIncludable(profile)) {
       const tempProfile = this._tempProfile;
       this._tempProfileActive = true;
       if (tempProfile.defaultProfileName !== profile.name) {
         tempProfile.defaultProfileName = profile.name;
         tempProfile.color = profile.color;
-        OmegaPac.Profiles.updateRevision(tempProfile);
+        ProxyEngine.Profiles.updateRevision(tempProfile);
       }
       const tempProfileRules = ensureProfileRules(tempProfile);
       const removedKeys: string[] = [];
@@ -1272,7 +1272,7 @@ class Options {
       for (const key in ref) {
         if (!hasProp.call(ref, key)) continue;
         const list = ref[key];
-        if (!OmegaPac.Profiles.byKey(key, this._options)) {
+        if (!ProxyEngine.Profiles.byKey(key, this._options)) {
           removedKeys.push(key);
           for (const rule of list) {
             rule.profileName = null;
@@ -1284,9 +1284,9 @@ class Options {
         for (const key of removedKeys) {
           delete this._tempProfileRulesByProfile[key];
         }
-        OmegaPac.Profiles.updateRevision(tempProfile);
+        ProxyEngine.Profiles.updateRevision(tempProfile);
       }
-      this._watchingProfiles = OmegaPac.Profiles.allReferenceSet(tempProfile, this._options, {
+      this._watchingProfiles = ProxyEngine.Profiles.allReferenceSet(tempProfile, this._options, {
         profileNotFound: this._profileNotFound.bind(this)
       });
       applyProxy = proxyImpl.applyProfile(tempProfile, profile, this._options);
@@ -1325,7 +1325,7 @@ class Options {
 
   currentProfile(): ProfileLike | null | undefined {
     if (this._currentProfileName) {
-      return OmegaPac.Profiles.byName(this._currentProfileName, this._options);
+      return ProxyEngine.Profiles.byName(this._currentProfileName, this._options);
     } else {
       return this._externalProfile;
     }
@@ -1396,7 +1396,7 @@ class Options {
     if (!currentProfile) {
       return true;
     }
-    if (OmegaPac.Profiles.isInclusive(currentProfile)) {
+    if (ProxyEngine.Profiles.isInclusive(currentProfile)) {
       return false;
     }
     return true;
@@ -1417,7 +1417,7 @@ class Options {
   updateProfile(name?: string | string[] | null, opt_bypass_cache?: boolean): RuntimePromise<Record<string, unknown>> {
     this.log.method('Options#updateProfile', this, arguments);
     const results: Record<string, RuntimePromise<unknown>> = {};
-    OmegaPac.Profiles.each(this._options, (key, profile) => {
+    ProxyEngine.Profiles.each(this._options, (key, profile) => {
         if (name != null) {
           if (Array.isArray(name)) {
             if (!profile.name || !(name.indexOf(profile.name) >= 0)) {
@@ -1429,21 +1429,21 @@ class Options {
             }
           }
         }
-        const url = OmegaPac.Profiles.updateUrl(profile);
+        const url = ProxyEngine.Profiles.updateUrl(profile);
         if (url) {
-          const type_hints = OmegaPac.Profiles.updateContentTypeHints(profile);
+          const type_hints = ProxyEngine.Profiles.updateContentTypeHints(profile);
           const fetchResult = this.fetchUrl(url, opt_bypass_cache, type_hints);
           return results[key] = fetchResult.then((data) => {
             if (!data) {
               return profile;
             }
-            const updatedProfile = OmegaPac.Profiles.byKey(key, this._options);
+            const updatedProfile = ProxyEngine.Profiles.byKey(key, this._options);
             if (!updatedProfile) {
               return profile;
             }
             updatedProfile.lastUpdate = new Date().toISOString();
-            if (OmegaPac.Profiles.update(updatedProfile, data)) {
-              OmegaPac.Profiles.dropCache(updatedProfile);
+            if (ProxyEngine.Profiles.update(updatedProfile, data)) {
+              ProxyEngine.Profiles.dropCache(updatedProfile);
               const changes: StorageChanges = {};
               changes[key] = updatedProfile;
               return this._setOptions(changes).then(() => updatedProfile);
@@ -1487,13 +1487,13 @@ class Options {
     if (changes == null) {
       changes = {};
     }
-    OmegaPac.Profiles.each(this._options, (_key, p) => {
+    ProxyEngine.Profiles.each(this._options, (_key, p) => {
       if (p.name === fromName || p.name === toName) {
         return;
       }
-      if (OmegaPac.Profiles.replaceRef(p, fromName, toName)) {
-        OmegaPac.Profiles.updateRevision(p);
-        changes[OmegaPac.Profiles.nameAsKey(p)] = p;
+      if (ProxyEngine.Profiles.replaceRef(p, fromName, toName)) {
+        ProxyEngine.Profiles.updateRevision(p);
+        changes[ProxyEngine.Profiles.nameAsKey(p)] = p;
       }
     });
     if (this._options['-startupProfileName'] === fromName) {
@@ -1531,7 +1531,7 @@ class Options {
 
   replaceRef(fromName: string, toName: string): RuntimePromise<unknown> {
     this.log.method('Options#replaceRef', this, arguments);
-    const profile = OmegaPac.Profiles.byName(fromName, this._options);
+    const profile = ProxyEngine.Profiles.byName(fromName, this._options);
     if (!profile) {
       return Promise.reject(new ProfileNotExistError(fromName));
     }
@@ -1541,7 +1541,7 @@ class Options {
       const value = changes[key];
       this._options[key] = value;
     }
-    const fromKey = OmegaPac.Profiles.nameAsKey(fromName);
+    const fromKey = ProxyEngine.Profiles.nameAsKey(fromName);
     if (this._watchingProfiles[fromKey]) {
       if (this._currentProfileName === fromName) {
         this._currentProfileName = toName;
@@ -1561,23 +1561,23 @@ class Options {
 
   renameProfile(fromName: string, toName: string): RuntimePromise<unknown> {
     this.log.method('Options#renameProfile', this, arguments);
-    if (OmegaPac.Profiles.byName(toName, this._options)) {
+    if (ProxyEngine.Profiles.byName(toName, this._options)) {
       return Promise.reject(new Error("Target name " + name + " already taken!"));
     }
-    const profile = OmegaPac.Profiles.byName(fromName, this._options);
+    const profile = ProxyEngine.Profiles.byName(fromName, this._options);
     if (!profile) {
       return Promise.reject(new ProfileNotExistError(fromName));
     }
     profile.name = toName;
     const changes: StorageChanges = {};
-    changes[OmegaPac.Profiles.nameAsKey(profile)] = profile;
+    changes[ProxyEngine.Profiles.nameAsKey(profile)] = profile;
     this._replaceRefChanges(fromName, toName, changes);
     for (const key in changes) {
       if (!hasProp.call(changes, key)) continue;
       const value = changes[key];
       this._options[key] = value;
     }
-    const fromKey = OmegaPac.Profiles.nameAsKey(fromName);
+    const fromKey = ProxyEngine.Profiles.nameAsKey(fromName);
     changes[fromKey] = void 0;
     delete this._options[fromKey];
     if (this._watchingProfiles[fromKey]) {
@@ -1602,12 +1602,12 @@ class Options {
     if (!this._currentProfileName) {
       return Promise.resolve();
     }
-    const profile = OmegaPac.Profiles.byName(profileName, this._options);
+    const profile = ProxyEngine.Profiles.byName(profileName, this._options);
     if (!profile) {
       return Promise.reject(new ProfileNotExistError(profileName));
     }
     if (this._tempProfile == null) {
-      this._tempProfile = OmegaPac.Profiles.create('', 'SwitchProfile');
+      this._tempProfile = ProxyEngine.Profiles.create('', 'SwitchProfile');
       const currentProfile = this.currentProfile();
       if (!currentProfile) {
         return Promise.reject(new ProfileNotExistError(this._currentProfileName));
@@ -1621,7 +1621,7 @@ class Options {
     let rule = this._tempProfileRules[domain];
     if (rule && rule.profileName) {
       if (rule.profileName !== profileName) {
-        const key = OmegaPac.Profiles.nameAsKey(rule.profileName);
+        const key = ProxyEngine.Profiles.nameAsKey(rule.profileName);
         const list = this._tempProfileRulesByProfile[key];
         list.splice(list.indexOf(rule), 1);
         rule.profileName = profileName;
@@ -1640,14 +1640,14 @@ class Options {
       this._tempProfileRules[domain] = rule;
       changed = true;
     }
-    const key = OmegaPac.Profiles.nameAsKey(profileName);
+    const key = ProxyEngine.Profiles.nameAsKey(profileName);
     let rulesByProfile = this._tempProfileRulesByProfile[key];
     if (rulesByProfile == null) {
       rulesByProfile = this._tempProfileRulesByProfile[key] = [];
     }
     rulesByProfile.push(rule);
     if (changed) {
-      OmegaPac.Profiles.updateRevision(tempProfile);
+      ProxyEngine.Profiles.updateRevision(tempProfile);
       return this.applyProfile(this._currentProfileName);
     } else {
       return Promise.resolve();
@@ -1687,12 +1687,12 @@ class Options {
     if (!this._currentProfileName) {
       return Promise.resolve();
     }
-    const profile = OmegaPac.Profiles.byName(this._currentProfileName, this._options);
+    const profile = ProxyEngine.Profiles.byName(this._currentProfileName, this._options);
     if (!profile || profile.rules == null) {
       return Promise.reject(new Error("Cannot add condition to Profile " + (profile != null ? profile.name : this._currentProfileName) + " (" + (profile != null ? profile.profileType : 'UnknownProfile') + ")"));
     }
     const rules = ensureProfileRules(profile);
-    const target = OmegaPac.Profiles.byName(profileName, this._options);
+    const target = ProxyEngine.Profiles.byName(profileName, this._options);
     if (target == null) {
       return Promise.reject(new ProfileNotExistError(profileName));
     }
@@ -1700,10 +1700,10 @@ class Options {
       condition = [condition];
     }
     for (const cond of condition) {
-      const tag = OmegaPac.Conditions.tag(cond);
+      const tag = ProxyEngine.Conditions.tag(cond);
       for (let i = 0; i < rules.length; i++) {
         const existingCondition = rules[i].condition as Record<string, unknown>;
-        if (OmegaPac.Conditions.tag(existingCondition) === tag) {
+        if (ProxyEngine.Conditions.tag(existingCondition) === tag) {
           rules.splice(i, 1);
           break;
         }
@@ -1720,9 +1720,9 @@ class Options {
         });
       }
     }
-    OmegaPac.Profiles.updateRevision(profile);
+    ProxyEngine.Profiles.updateRevision(profile);
     const changes: StorageChanges = {};
-    changes[OmegaPac.Profiles.nameAsKey(profile)] = profile;
+    changes[ProxyEngine.Profiles.nameAsKey(profile)] = profile;
     return this._setOptions(changes);
   }
 
@@ -1736,20 +1736,20 @@ class Options {
 
   setDefaultProfile(profileName: string, defaultProfileName: string): RuntimePromise<unknown> {
     this.log.method('Options#setDefaultProfile', this, arguments);
-    const profile = OmegaPac.Profiles.byName(profileName, this._options);
+    const profile = ProxyEngine.Profiles.byName(profileName, this._options);
     if (profile == null) {
       return Promise.reject(new ProfileNotExistError(profileName));
     } else if (profile.defaultProfileName == null) {
       return Promise.reject(new Error(("Profile " + this.profile.name + " ") + "(@{profile.type}) does not have defaultProfileName!"));
     }
-    const target = OmegaPac.Profiles.byName(defaultProfileName, this._options);
+    const target = ProxyEngine.Profiles.byName(defaultProfileName, this._options);
     if (target == null) {
       return Promise.reject(new ProfileNotExistError(defaultProfileName));
     }
     profile.defaultProfileName = defaultProfileName;
-    OmegaPac.Profiles.updateRevision(profile);
+    ProxyEngine.Profiles.updateRevision(profile);
     const changes: StorageChanges = {};
-    changes[OmegaPac.Profiles.nameAsKey(profile)] = profile;
+    changes[ProxyEngine.Profiles.nameAsKey(profile)] = profile;
     return this._setOptions(changes);
   }
 
@@ -1765,11 +1765,11 @@ class Options {
     if (!profile.name) {
       return Promise.reject(new Error('Profile name is required!'));
     }
-    if (OmegaPac.Profiles.byName(profile.name, this._options)) {
+    if (ProxyEngine.Profiles.byName(profile.name, this._options)) {
       return Promise.reject(new Error("Target name " + profile.name + " already taken!"));
     } else {
       const changes: StorageChanges = {};
-      changes[OmegaPac.Profiles.nameAsKey(profile)] = profile;
+      changes[ProxyEngine.Profiles.nameAsKey(profile)] = profile;
       return this._setOptions(changes);
     }
   }
@@ -1802,7 +1802,7 @@ class Options {
       : source;
     if (isRecordValue(condition)) {
       try {
-        return OmegaPac.Conditions.str(condition);
+        return ProxyEngine.Conditions.str(condition);
       } catch (_error) {
         if (condition.pattern != null) {
           return String(condition.pattern);
@@ -1826,7 +1826,7 @@ class Options {
     if (!url) {
       throw new Error('URL is required.');
     }
-    const normalizedRequest = OmegaPac.Conditions.requestFromUrl(url);
+    const normalizedRequest = ProxyEngine.Conditions.requestFromUrl(url);
     return {
       ...normalizedRequest,
       ...request,
@@ -1847,7 +1847,7 @@ class Options {
         return {
           kind: 'direct',
           profile: profileInfo,
-          pacResult: OmegaPac.Profiles.pacResult()
+          pacResult: ProxyEngine.Profiles.pacResult()
         };
       case 'PacProfile':
       case 'AutoDetectProfile':
@@ -1884,7 +1884,7 @@ class Options {
         break;
       }
       lastProfile = profile;
-      const result = OmegaPac.Profiles.match(profile, request);
+      const result = ProxyEngine.Profiles.match(profile, request);
       if (result == null) {
         break;
       }
@@ -1892,7 +1892,7 @@ class Options {
       if (Array.isArray(result)) {
         const resultValue = result[0];
         if (typeof resultValue === 'string' && resultValue.charAt(0) === '+') {
-          const targetProfile = OmegaPac.Profiles.byKey(resultValue, this._options);
+          const targetProfile = ProxyEngine.Profiles.byKey(resultValue, this._options);
           steps.push({
             kind: result[1] == null ? 'default' : 'profile',
             profile: this._profileForExplanation(profile, tempRulesActive && profile === this._tempProfile ? '__temporary' : undefined),
@@ -1947,7 +1947,7 @@ class Options {
       if (!profileName) {
         break;
       }
-      const targetProfile = OmegaPac.Profiles.byName(profileName, this._options);
+      const targetProfile = ProxyEngine.Profiles.byName(profileName, this._options);
       steps.push({
         kind: rule.isTempRule ? 'temporaryRule' : 'rule',
         profile: this._profileForExplanation(profile, tempRulesActive && profile === this._tempProfile ? '__temporary' : undefined),
@@ -2005,7 +2005,7 @@ class Options {
     let tempRulesActive = false;
 
     if (explicitProfileName) {
-      startProfile = OmegaPac.Profiles.byName(explicitProfileName, this._options);
+      startProfile = ProxyEngine.Profiles.byName(explicitProfileName, this._options);
       if (!startProfile) {
         return Promise.reject(new ProfileNotExistError(explicitProfileName));
       }
@@ -2013,13 +2013,13 @@ class Options {
       startProfile = this._tempProfile;
       tempRulesActive = true;
     } else if (this._currentProfileName) {
-      startProfile = OmegaPac.Profiles.byName(this._currentProfileName, this._options);
+      startProfile = ProxyEngine.Profiles.byName(this._currentProfileName, this._options);
     } else {
       startProfile = this._externalProfile;
     }
 
     if (!currentProfile && this._currentProfileName) {
-      currentProfile = OmegaPac.Profiles.byName(this._currentProfileName, this._options);
+      currentProfile = ProxyEngine.Profiles.byName(this._currentProfileName, this._options);
     }
 
     return Promise.resolve(this._explainFromProfile(startProfile, request, tempRulesActive, currentProfile));
@@ -2041,11 +2041,11 @@ class Options {
       });
     }
     const results: unknown[] = [];
-    let profile = this._tempProfileActive ? this._tempProfile : OmegaPac.Profiles.byName(this._currentProfileName, this._options);
+    let profile = this._tempProfileActive ? this._tempProfile : ProxyEngine.Profiles.byName(this._currentProfileName, this._options);
     let lastProfile;
     while (profile) {
       lastProfile = profile;
-      const result = OmegaPac.Profiles.match(profile, request);
+      const result = ProxyEngine.Profiles.match(profile, request);
       if (result == null) {
         break;
       }
@@ -2054,11 +2054,11 @@ class Options {
       if (Array.isArray(result)) {
         next = result[0];
       } else if (result.profileName) {
-        next = OmegaPac.Profiles.nameAsKey(result.profileName);
+        next = ProxyEngine.Profiles.nameAsKey(result.profileName);
       } else {
         break;
       }
-      profile = OmegaPac.Profiles.byKey(next, this._options);
+      profile = ProxyEngine.Profiles.byKey(next, this._options);
     }
     return Promise.resolve({
       profile: lastProfile,
@@ -2083,7 +2083,7 @@ class Options {
         if (!(args != null ? args.noRevert : void 0)) {
           const revertToProfileName = this._revertToProfileName || this._currentProfileName;
           this._revertToProfileName = null;
-          if (revertToProfileName && OmegaPac.Profiles.byName(revertToProfileName, this._options)) {
+          if (revertToProfileName && ProxyEngine.Profiles.byName(revertToProfileName, this._options)) {
             return this.applyProfile(revertToProfileName);
           }
         } else {
@@ -2094,7 +2094,7 @@ class Options {
       }
     }
     const profileName = typeof profile.name === 'string' ? profile.name : '';
-    const p = profileName ? OmegaPac.Profiles.byName(profileName, this._options) : null;
+    const p = profileName ? ProxyEngine.Profiles.byName(profileName, this._options) : null;
     if (p) {
       const existingProfileName = p.name || profileName;
       if (args != null ? args.internal : void 0) {

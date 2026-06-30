@@ -128,7 +128,7 @@ export type ProfileMatchResult = ProfileMatchTuple | (Record<string, unknown> & 
   profileName?: string | null;
 }) | undefined;
 
-export type OmegaPacModule = {
+export type ProxyEngineModule = {
   Conditions: {
     localHosts: string[];
     requestFromUrl(url: string): Record<string, unknown>;

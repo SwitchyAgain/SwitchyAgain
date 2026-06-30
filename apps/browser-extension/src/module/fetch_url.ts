@@ -1,6 +1,6 @@
-import OmegaTarget from '@switchyagain/extension-runtime';
+import ExtensionRuntime from '@switchyagain/extension-runtime';
 
-const ContentTypeRejectedError = OmegaTarget.ContentTypeRejectedError;
+const ContentTypeRejectedError = ExtensionRuntime.ContentTypeRejectedError;
 
 type FetchResponse = {
   headers: Record<string, string | undefined>;
@@ -18,12 +18,12 @@ type FetchResult = [response: FetchResponse, body: string];
 function errorForStatus(statusCode: number) {
   const err = {statusCode};
   if (statusCode === 404) {
-    return new OmegaTarget.HttpNotFoundError(err);
+    return new ExtensionRuntime.HttpNotFoundError(err);
   }
   if (statusCode >= 500 && statusCode < 600) {
-    return new OmegaTarget.HttpServerError(err);
+    return new ExtensionRuntime.HttpServerError(err);
   }
-  return new OmegaTarget.HttpError(err);
+  return new ExtensionRuntime.HttpError(err);
 }
 
 function responseHeaders(headers: Headers): Record<string, string | undefined> {
@@ -45,10 +45,10 @@ function fetchWrapper(url: string): Promise<FetchResult> {
       }, body];
     });
   }).catch((err: Error) => {
-    if (err instanceof OmegaTarget.HttpError) {
+    if (err instanceof ExtensionRuntime.HttpError) {
       throw err;
     }
-    throw new OmegaTarget.NetworkError(err);
+    throw new ExtensionRuntime.NetworkError(err);
   });
 }
 

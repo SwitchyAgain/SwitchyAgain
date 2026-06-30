@@ -232,8 +232,8 @@ export function createAttachedName(profileName: string) {
 }
 
 export function profileKey(profileOrName: Pick<Profile, 'name'> | string): ProfileKey {
-  if (typeof OmegaPac !== 'undefined' && OmegaPac?.Profiles?.nameAsKey) {
-    return OmegaPac.Profiles.nameAsKey(profileOrName) as ProfileKey;
+  if (typeof ProxyEngine !== 'undefined' && ProxyEngine?.Profiles?.nameAsKey) {
+    return ProxyEngine.Profiles.nameAsKey(profileOrName) as ProfileKey;
   }
   const name = typeof profileOrName === 'string' ? profileOrName : profileOrName.name || '';
   return `+${name}`;
@@ -325,13 +325,13 @@ export function setDefaultProfile(
 }
 
 export function createAttachedProfile(profile: SwitchProfileModel, attachedName: string) {
-  const attached = OmegaPac.Profiles.create({
+  const attached = ProxyEngine.Profiles.create({
     color: profile.color,
     defaultProfileName: profile.defaultProfileName,
     name: attachedName,
     profileType: 'RuleListProfile'
   });
-  OmegaPac.Profiles.updateRevision(attached);
+  ProxyEngine.Profiles.updateRevision(attached);
   return attached;
 }
 
@@ -436,7 +436,7 @@ export function updateIpCondition(rule: SwitchRule | undefined, value: string) {
     return false;
   }
   rule.condition = value
-    ? OmegaPac.Conditions.fromStr(`Ip: ${value}`)
+    ? ProxyEngine.Conditions.fromStr(`Ip: ${value}`)
     : {
         conditionType: 'IpCondition',
         ip: '0.0.0.0',
@@ -489,7 +489,7 @@ export function hasNotes(rules?: SwitchRule[]) {
 }
 
 export function composeSource(profile: SwitchProfileModel, defaultProfileName?: string) {
-  return OmegaPac.RuleList.Switchy.compose(
+  return ProxyEngine.RuleList.Switchy.compose(
     {
       defaultProfileName,
       rules: profile.rules || []
@@ -515,7 +515,7 @@ function optionProfileName(value: unknown) {
 }
 
 function sourceResultProfileExists(key: string, options: Options | null | undefined, profilesByKey: Record<string, string>) {
-  const profile = OmegaPac.Profiles.byKey?.(key, options || {});
+  const profile = ProxyEngine.Profiles.byKey?.(key, options || {});
   if (profile) {
     return profile.profileType !== 'SystemProfile';
   }
@@ -531,7 +531,7 @@ export function parseSource(code: string, options: Options | null | undefined) {
     }
   }
   try {
-    const refs = OmegaPac.RuleList.Switchy.directReferenceSet({ruleList: code});
+    const refs = ProxyEngine.RuleList.Switchy.directReferenceSet({ruleList: code});
     if (!refs) {
       return {
         error: Object.assign(new Error("Missing '@with result' directive!"), {
@@ -550,7 +550,7 @@ export function parseSource(code: string, options: Options | null | undefined) {
       }
     }
     return {
-      rules: OmegaPac.RuleList.Switchy.parseOmega(code, null, null, {
+      rules: ProxyEngine.RuleList.Switchy.parseOmega(code, null, null, {
         source: false,
         strict: true
       })
@@ -613,7 +613,7 @@ export function applyParsedSource(
   if (attached && profile.defaultProfileName === attachedName) {
     if (effectiveProfileName(attached.defaultProfileName) !== defaultProfileName) {
       attached.defaultProfileName = defaultProfileName;
-      OmegaPac.Profiles.updateRevision(attached);
+      ProxyEngine.Profiles.updateRevision(attached);
       attachedChanged = true;
     }
   } else if (effectiveProfileName(profile.defaultProfileName) !== defaultProfileName) {
@@ -625,7 +625,7 @@ export function applyParsedSource(
     return false;
   }
   if (profileChanged || attachedChanged) {
-    OmegaPac.Profiles.updateRevision(profile);
+    ProxyEngine.Profiles.updateRevision(profile);
   }
   return true;
 }

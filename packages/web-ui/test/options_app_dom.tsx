@@ -72,8 +72,8 @@ function parseSwitchSource(ruleList: string) {
   return rules;
 }
 
-function installOmegaPacMock() {
-  (globalThis as any).OmegaPac = {
+function installProxyEngineMock() {
+  (globalThis as any).ProxyEngine = {
     Conditions: {
       getWeekdayList() {
         return [];
@@ -543,11 +543,11 @@ afterEach(() => {
   localStorage.clear();
   window.location.hash = '';
   window.onbeforeunload = null;
-  delete (globalThis as any).OmegaPac;
+  delete (globalThis as any).ProxyEngine;
 });
 
 beforeEach(() => {
-  installOmegaPacMock();
+  installProxyEngineMock();
 });
 
 describe('options app', () => {
@@ -2028,7 +2028,7 @@ describe('options app', () => {
   });
 
   it('shows referring profiles instead of deleting referenced profiles', async () => {
-    (globalThis as any).OmegaPac.Profiles.referencedBySet = () => ({
+    (globalThis as any).ProxyEngine.Profiles.referencedBySet = () => ({
       '+auto': 'auto'
     });
     const {requests} = installBackground();
@@ -2047,7 +2047,7 @@ describe('options app', () => {
   });
 
   it('checks profile delete references against applied options after dirty edits', async () => {
-    (globalThis as any).OmegaPac.Profiles.referencedBySet = (profileName: string, sourceOptions: Options) => {
+    (globalThis as any).ProxyEngine.Profiles.referencedBySet = (profileName: string, sourceOptions: Options) => {
       const auto = sourceOptions['+auto'] as Record<string, unknown> | undefined;
       return profileName === 'proxy' && auto?.defaultProfileName === 'proxy'
         ? {
@@ -2106,7 +2106,7 @@ describe('options app', () => {
   });
 
   it('checks profile delete references after applying open switch source drafts', async () => {
-    (globalThis as any).OmegaPac.Profiles.referencedBySet = (profileName: string, sourceOptions: Options) => {
+    (globalThis as any).ProxyEngine.Profiles.referencedBySet = (profileName: string, sourceOptions: Options) => {
       const auto = sourceOptions['+auto'] as Record<string, unknown> | undefined;
       return profileName === 'proxy' && auto?.defaultProfileName === 'proxy'
         ? {

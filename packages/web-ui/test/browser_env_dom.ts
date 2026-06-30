@@ -21,7 +21,7 @@ import {
 
 type TestGlobal = typeof globalThis & {
   chrome?: any;
-  OmegaTargetPopup?: unknown;
+  PopupBridge?: unknown;
 };
 
 function testGlobal() {
@@ -30,7 +30,7 @@ function testGlobal() {
 
 afterEach(() => {
   localStorage.clear();
-  delete testGlobal().OmegaTargetPopup;
+  delete testGlobal().PopupBridge;
 });
 
 describe('browser environment adapter', () => {
@@ -118,9 +118,9 @@ describe('browser environment adapter', () => {
   });
 
   it('wraps simple global and document helpers', () => {
-    testGlobal().OmegaTargetPopup = {ready: true};
+    testGlobal().PopupBridge = {ready: true};
 
-    expect(getGlobalValue<{ready: boolean}>('OmegaTargetPopup')).toEqual({ready: true});
+    expect(getGlobalValue<{ready: boolean}>('PopupBridge')).toEqual({ready: true});
 
     setBodyOpacity('0.5');
     expect(document.body.style.opacity).toBe('0.5');

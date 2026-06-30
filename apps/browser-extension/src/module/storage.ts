@@ -1,5 +1,5 @@
 import {chromeApiPromisify} from './chrome_api';
-import OmegaTarget from '@switchyagain/extension-runtime';
+import ExtensionRuntime from '@switchyagain/extension-runtime';
 
 type StorageItems = Record<string, unknown>;
 type StorageKeys = string | string[] | StorageItems | null;
@@ -40,7 +40,7 @@ type StorageError = Error & {
   sustained?: number;
 };
 
-const OmegaPromise = OmegaTarget.Promise;
+const RuntimePromise = ExtensionRuntime.Promise;
 
 function normalizeWatchKeys(keys: WatchKeys): WatchKeyMap {
   if (keys == null) {
@@ -57,7 +57,7 @@ function normalizeWatchKeys(keys: WatchKeys): WatchKeyMap {
   return keyMap;
 }
 
-class ChromeStorage extends OmegaTarget.Storage {
+class ChromeStorage extends ExtensionRuntime.Storage {
   static onChangedListenerInstalled = false;
   static watchers: Record<string, Record<string, Watcher>> = {};
 
@@ -68,31 +68,31 @@ class ChromeStorage extends OmegaTarget.Storage {
     if (err?.message) {
       const sustainedPerMinute = 'MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE';
       if (err.message.indexOf('QUOTA_BYTES_PER_ITEM') >= 0) {
-        err = new OmegaTarget.Storage.QuotaExceededError();
+        err = new ExtensionRuntime.Storage.QuotaExceededError();
         err.perItem = true;
       } else if (err.message.indexOf('QUOTA_BYTES') >= 0) {
-        err = new OmegaTarget.Storage.QuotaExceededError();
+        err = new ExtensionRuntime.Storage.QuotaExceededError();
       } else if (err.message.indexOf('MAX_ITEMS') >= 0) {
-        err = new OmegaTarget.Storage.QuotaExceededError();
+        err = new ExtensionRuntime.Storage.QuotaExceededError();
         err.maxItems = true;
       } else if (err.message.indexOf('MAX_WRITE_OPERATIONS_') >= 0) {
-        err = new OmegaTarget.Storage.RateLimitExceededError();
+        err = new ExtensionRuntime.Storage.RateLimitExceededError();
         if (err.message.indexOf('MAX_WRITE_OPERATIONS_PER_HOUR') >= 0) {
           err.perHour = true;
         } else if (err.message.indexOf('MAX_WRITE_OPERATIONS_PER_MINUTE') >= 0) {
           err.perMinute = true;
         }
       } else if (err.message.indexOf(sustainedPerMinute) >= 0) {
-        err = new OmegaTarget.Storage.RateLimitExceededError();
+        err = new ExtensionRuntime.Storage.RateLimitExceededError();
         err.perMinute = true;
         err.sustained = 10;
       } else if (err.message.indexOf('is not available') >= 0) {
-        err = new OmegaTarget.Storage.StorageUnavailableError();
+        err = new ExtensionRuntime.Storage.StorageUnavailableError();
       } else if (err.message.indexOf('Please set webextensions.storage.sync.enabled to true') >= 0) {
-        err = new OmegaTarget.Storage.StorageUnavailableError();
+        err = new ExtensionRuntime.Storage.StorageUnavailableError();
       }
     }
-    return OmegaPromise.reject(err);
+    return RuntimePromise.reject(err);
   }
 
   constructor(areaName: StorageAreaName) {
@@ -112,24 +112,24 @@ class ChromeStorage extends OmegaTarget.Storage {
   }
 
   get(keys: StorageKeys = null) {
-    return OmegaPromise.resolve(this.storage.get(keys)).catch(ChromeStorage.parseStorageErrors);
+    return RuntimePromise.resolve(this.storage.get(keys)).catch(ChromeStorage.parseStorageErrors);
   }
 
   set(items: StorageItems) {
     if (Object.keys(items).length === 0) {
-      return OmegaPromise.resolve({});
+      return RuntimePromise.resolve({});
     }
-    return OmegaPromise.resolve(this.storage.set(items)).catch(ChromeStorage.parseStorageErrors);
+    return RuntimePromise.resolve(this.storage.set(items)).catch(ChromeStorage.parseStorageErrors);
   }
 
   remove(keys: WatchKeys) {
     if (keys == null) {
-      return OmegaPromise.resolve(this.storage.clear());
+      return RuntimePromise.resolve(this.storage.clear());
     }
     if (Array.isArray(keys) && keys.length === 0) {
-      return OmegaPromise.resolve({});
+      return RuntimePromise.resolve({});
     }
-    return OmegaPromise.resolve(this.storage.remove(keys)).catch(ChromeStorage.parseStorageErrors);
+    return RuntimePromise.resolve(this.storage.remove(keys)).catch(ChromeStorage.parseStorageErrors);
   }
 
   watch(keys: WatchKeys, callback: WatchCallback): WatchUnsubscribe {

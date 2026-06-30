@@ -80,7 +80,7 @@ export function profilesForFilter(options: Options | null | undefined, filter?: 
     return [];
   }
   if (filter && (typeof filter === 'object' || (typeof filter === 'string' && filter.charAt(0) === '+'))) {
-    return OmegaPac.Profiles.validResultProfilesFor(typeof filter === 'string' ? filter.slice(1) : filter, options).filter(
+    return ProxyEngine.Profiles.validResultProfilesFor(typeof filter === 'string' ? filter.slice(1) : filter, options).filter(
       isVisibleProfile
     );
   }

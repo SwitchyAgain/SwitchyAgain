@@ -7,11 +7,11 @@ const generatedAndThirdParty = [
   '**/node_modules/**',
   'dist/**',
   'packages/proxy-engine/index.js',
-  'packages/proxy-engine/omega_pac.min.js',
+  'packages/proxy-engine/proxy_engine.min.js',
   'packages/extension-runtime/index.js',
-  'packages/extension-runtime/omega_target.min.js',
+  'packages/extension-runtime/extension_runtime.min.js',
   'apps/browser-extension/index.js',
-  'apps/browser-extension/omega_target_*.min.js',
+  'apps/browser-extension/browser_extension_runtime.min.js',
   'packages/**/build/**',
   'packages/**/build-ts/**',
   'packages/**/tmp/**',
@@ -24,8 +24,8 @@ const generatedAndThirdParty = [
 ];
 
 const extensionGlobals = {
-  OmegaPac: 'readonly',
-  OmegaTarget: 'readonly'
+  ProxyEngine: 'readonly',
+  ExtensionRuntime: 'readonly'
 };
 
 const tsRecommended = tseslint.configs.recommended.map((config) => ({
@@ -103,7 +103,7 @@ export default tseslint.config(
     }
   },
   {
-    files: ['packages/web-ui/src/js/draw_omega.ts'],
+    files: ['packages/web-ui/src/js/draw_action_icon.ts'],
     rules: {
       '@typescript-eslint/no-unused-vars': 'off'
     }

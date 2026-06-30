@@ -1,4 +1,4 @@
-import OmegaTarget from '@switchyagain/extension-runtime';
+import ExtensionRuntime from '@switchyagain/extension-runtime';
 import {NETWORK_REQUEST_URLS} from '../network_request_urls';
 import ProxyImpl from './proxy_impl';
 import type {
@@ -11,7 +11,7 @@ import type {
   ProxyServer
 } from './proxy_types';
 
-const OmegaPac = OmegaTarget.OmegaPac;
+const ProxyEngine = ExtensionRuntime.ProxyEngine;
 const NativePromise = typeof Promise !== 'undefined' && Promise !== null ? Promise : null;
 
 type MatchedProxyServer = ProxyServer & {
@@ -97,11 +97,11 @@ class ListenerProxyImpl extends ProxyImpl {
 
   onRequest(requestDetails: ProxyRequestDetails) {
     return (NativePromise as PromiseConstructor).resolve(this._optionsReady.then(() => {
-      const request = OmegaPac.Conditions.requestFromUrl(requestDetails.url);
+      const request = ProxyEngine.Conditions.requestFromUrl(requestDetails.url);
       let profile = this._profileResolver?.(requestDetails) || this._profile;
       let next;
       while (profile) {
-        const result = OmegaPac.Profiles.match(profile, request);
+        const result = ProxyEngine.Profiles.match(profile, request);
         if (!result) {
           switch (profile.profileType) {
             case 'DirectProfile':
@@ -118,18 +118,18 @@ class ListenerProxyImpl extends ProxyImpl {
           const resultValue = result[0];
           if (typeof resultValue === 'string' && resultValue.charAt(0) === '+') {
             next = resultValue;
-            profile = OmegaPac.Profiles.byKey(next, this._options);
+            profile = ProxyEngine.Profiles.byKey(next, this._options);
             continue;
           }
           const proxy = result[2] as ProxyServer | undefined;
           const auth = result[3] as ProxyCredentials | undefined;
           return this.proxyInfoFromMatch(resultValue, proxy, auth);
         } else if (result.profileName) {
-          next = OmegaPac.Profiles.nameAsKey(result.profileName);
+          next = ProxyEngine.Profiles.nameAsKey(result.profileName);
         } else {
           break;
         }
-        profile = OmegaPac.Profiles.byKey(next, this._options);
+        profile = ProxyEngine.Profiles.byKey(next, this._options);
       }
       throw new Error(`Profile not found: ${next}`);
     }));

@@ -14,7 +14,7 @@
     "target": "es2022"
   },
   "include": [
-    "src/js/draw_omega.ts",
+    "src/js/draw_action_icon.ts",
     "src/js/log_error.ts",
     "types/**/*.d.ts"
   ]

@@ -1,4 +1,4 @@
-type OmegaIconCanvasContext = {
+type ActionIconCanvasContext = {
   globalCompositeOperation: string;
   fillStyle: string;
   beginPath(): void;
@@ -14,8 +14,8 @@ type OmegaIconCanvasContext = {
   fill(): void;
 };
 
-function drawOmega(
-  ctx: OmegaIconCanvasContext,
+function drawActionIcon(
+  ctx: ActionIconCanvasContext,
   outerCircleColor: string,
   innerCircleColor?: string | null
 ) {

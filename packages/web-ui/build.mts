@@ -155,7 +155,7 @@ async function main() {
   await clean();
 
   const staticCopies: StaticCopy[] = [
-    ['../proxy-engine/omega_pac.min.js', 'build/js/omega_pac.min.js'],
+    ['../proxy-engine/proxy_engine.min.js', 'build/js/proxy_engine.min.js'],
     ['build-ts/js/log_error.js', 'build/js/log_error.js'],
     ['vendor/bootstrap/3.3.7/css/bootstrap.min.css', 'build/lib/bootstrap/css/bootstrap.min.css'],
     ['vendor/bootstrap/3.3.7/fonts/glyphicons-halflings-regular.woff2', 'build/lib/bootstrap/fonts/glyphicons-halflings-regular.woff2'],
@@ -174,11 +174,11 @@ async function main() {
       await copyFile(src, dest);
     }
   }
-  await copyFile('build-ts/js/draw_omega.js', 'build/img/icons/draw_omega.js');
+  await copyFile('build-ts/js/draw_action_icon.js', 'build/img/icons/draw_action_icon.js');
 
   await writeRootReactHtml('build/options.html', 'SwitchyAgain Options', 'react/options_app.js', [
     'js/log_error.js',
-    'js/omega_pac.min.js'
+    'js/proxy_engine.min.js'
   ], 'module');
   await writeReactHtml('build/react/general.html', 'SwitchyAgain General', 'general.js', [], 'module');
   await writeReactHtml('build/react/ui.html', 'SwitchyAgain Interface', 'ui.js', [], 'module');

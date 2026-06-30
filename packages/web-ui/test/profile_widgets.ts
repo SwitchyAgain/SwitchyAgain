@@ -25,8 +25,8 @@ function installBrowserMessageMock() {
   };
 }
 
-function installOmegaPacMock(validProfiles: Profile[]) {
-  (globalThis as any).OmegaPac = {
+function installProxyEngineMock(validProfiles: Profile[]) {
+  (globalThis as any).ProxyEngine = {
     Profiles: {
       validResultProfilesFor(_filter: unknown, _options: Options) {
         return validProfiles;
@@ -71,7 +71,7 @@ function optionsFixture(): Options {
 
 beforeEach(() => {
   installBrowserMessageMock();
-  installOmegaPacMock([]);
+  installProxyEngineMock([]);
 });
 
 describe('profile widgets model helpers', () => {
@@ -123,7 +123,7 @@ describe('profile widgets model helpers', () => {
     expect(isBuiltinProfile(profileByName(options, 'system'))).toBe(true);
   });
 
-  it('delegates valid result profile filtering to OmegaPac when requested', () => {
+  it('delegates valid result profile filtering to ProxyEngine when requested', () => {
     const validProfiles: Profile[] = [
       {
         name: 'fixed',
@@ -134,7 +134,7 @@ describe('profile widgets model helpers', () => {
         profileType: 'RuleListProfile'
       }
     ];
-    installOmegaPacMock(validProfiles);
+    installProxyEngineMock(validProfiles);
 
     expect(resultProfilesFor(optionsFixture(), '+auto').map((profile) => profile.name)).toEqual(['fixed']);
   });

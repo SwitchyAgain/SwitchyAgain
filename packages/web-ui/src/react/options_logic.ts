@@ -101,7 +101,7 @@ export function updateProfileError(results: ProfileUpdateResults | undefined, na
 
 export function createPacExport(options: Options, profileName: string) {
   let missingProfile = '';
-  const ast = OmegaPac.PacGenerator.script(options, profileName, {
+  const ast = ProxyEngine.PacGenerator.script(options, profileName, {
     profileNotFound(name: string) {
       missingProfile = name;
       return 'dumb';
@@ -111,7 +111,7 @@ export function createPacExport(options: Options, profileName: string) {
     beautify: true,
     comments: true
   });
-  pac = OmegaPac.PacGenerator.ascii(pac);
+  pac = ProxyEngine.PacGenerator.ascii(pac);
   const fileName = safeProfileFileName(profileName);
   return {
     blob: new Blob([pac], {
@@ -123,7 +123,7 @@ export function createPacExport(options: Options, profileName: string) {
 }
 
 export function composeOmegaRuleList(rules: SwitchRule[], defaultProfileName: string) {
-  const text = OmegaPac.RuleList.Switchy.compose({
+  const text = ProxyEngine.RuleList.Switchy.compose({
     defaultProfileName,
     rules
   });
@@ -180,7 +180,7 @@ export function isSwitchProfile(value: unknown): value is NamedSwitchProfileMode
 
 export function firstFixedProfileName(options: Options) {
   let profileName = '';
-  OmegaPac.Profiles.each(options, (_key, profile) => {
+  ProxyEngine.Profiles.each(options, (_key, profile) => {
     if (!profileName && isFixedProfile(profile)) {
       profileName = profile.name;
     }
@@ -189,10 +189,10 @@ export function firstFixedProfileName(options: Options) {
 }
 
 export function referencedProfiles(profileName: string, options: Options): NamedProfile[] {
-  if (typeof OmegaPac === 'undefined' || !OmegaPac?.Profiles?.referencedBySet) {
+  if (typeof ProxyEngine === 'undefined' || !ProxyEngine?.Profiles?.referencedBySet) {
     return [];
   }
-  const refs = OmegaPac.Profiles.referencedBySet(profileName, options);
+  const refs = ProxyEngine.Profiles.referencedBySet(profileName, options);
   const refSet: Record<string, string> = {};
   for (const key of Object.keys(refs || {})) {
     let refName = refs[key];
@@ -205,7 +205,7 @@ export function referencedProfiles(profileName: string, options: Options): Named
     refSet[refKey] = refName;
   }
   return Object.keys(refSet)
-    .map((key) => OmegaPac.Profiles.byKey?.(key, options) || profileByName(options, refSet[key]))
+    .map((key) => ProxyEngine.Profiles.byKey?.(key, options) || profileByName(options, refSet[key]))
     .filter(isNamedProfile);
 }
 
@@ -403,8 +403,8 @@ export function deleteProfileScopeAssignments(options: Options, profileName: str
 }
 
 export function updateProfileRevision(profile: ProfileModel) {
-  if (typeof OmegaPac !== 'undefined' && OmegaPac?.Profiles?.updateRevision) {
-    OmegaPac.Profiles.updateRevision(profile);
+  if (typeof ProxyEngine !== 'undefined' && ProxyEngine?.Profiles?.updateRevision) {
+    ProxyEngine.Profiles.updateRevision(profile);
   }
 }
 
