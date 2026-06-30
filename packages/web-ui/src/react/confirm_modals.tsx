@@ -223,7 +223,9 @@ function bodyFor(
                 __FROM_PROFILE__: (
                   <ProfileSelect inline name={replaceState.fromName} onChange={replaceState.setFromName} options={props.options} />
                 ),
-                __TO_PROFILE__: <ProfileSelect inline name={replaceState.toName} onChange={replaceState.setToName} options={props.options} />
+                __TO_PROFILE__: (
+                  <ProfileSelect inline name={replaceState.toName} onChange={replaceState.setToName} options={props.options} />
+                )
               }
             )}
           </div>

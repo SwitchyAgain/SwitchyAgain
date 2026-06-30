@@ -168,4 +168,3 @@ export function message(key: string, fallback = key, substitutions?: string | st
   const catalogMessage = formatMessage(currentCatalog?.[key] || englishCatalog?.[key], substitutions);
   return catalogMessage || extensionMessage(key, fallback, substitutions);
 }
-

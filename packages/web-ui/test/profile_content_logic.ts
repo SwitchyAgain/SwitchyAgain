@@ -328,18 +328,22 @@ describe('profile content logic', () => {
     expect(fixedProfileAuthSupported('direct')).toBe(false);
     expect(fixedProfileAuthSupported()).toBe(false);
 
-    expect(fixedProfileAuthSupported('socks5', {
-      http: true,
-      https: true,
-      socks4: false,
-      socks5: true
-    })).toBe(true);
-    expect(fixedProfileAuthSupported('socks5-local', {
-      http: true,
-      https: true,
-      socks4: false,
-      socks5: true
-    })).toBe(true);
+    expect(
+      fixedProfileAuthSupported('socks5', {
+        http: true,
+        https: true,
+        socks4: false,
+        socks5: true
+      })
+    ).toBe(true);
+    expect(
+      fixedProfileAuthSupported('socks5-local', {
+        http: true,
+        https: true,
+        socks4: false,
+        socks5: true
+      })
+    ).toBe(true);
   });
 
   it('clones switch source state and nested errors', () => {

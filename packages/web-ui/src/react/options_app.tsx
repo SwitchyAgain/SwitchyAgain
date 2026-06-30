@@ -305,18 +305,26 @@ function activeProfileNameFromState(name: unknown, isSystem: unknown) {
 }
 
 function loadOptionsAppInitialState(): Promise<OptionsAppInitialState> {
-  return getState<ProfileScopeCapabilities | ProxyAuthCapabilities | ProxyDnsCapabilities | ProxyFeature[] | ProfileScopeContainerInfo[] | string | boolean>(
-    OPTIONS_APP_STATE_KEYS
-  )
-    .then(([currentProfileName, isSystemProfile, capabilities, authCapabilities, dnsCapabilities, proxyFeatures, containers, firstRun]) => ({
-      activeProfileName: activeProfileNameFromState(currentProfileName, isSystemProfile),
-      firstRun: typeof firstRun === 'string' ? firstRun : '',
-      profileScopeCapabilities: (capabilities as ProfileScopeCapabilities | undefined) || DEFAULT_PROFILE_SCOPE_CAPABILITIES,
-      profileScopeContainers: Array.isArray(containers) ? (containers as ProfileScopeContainerInfo[]) : [],
-      proxyAuthCapabilities: (authCapabilities as ProxyAuthCapabilities | undefined) || DEFAULT_PROXY_AUTH_CAPABILITIES,
-      proxyDnsCapabilities: (dnsCapabilities as ProxyDnsCapabilities | undefined) || DEFAULT_PROXY_DNS_CAPABILITIES,
-      proxyFeatures: Array.isArray(proxyFeatures) ? (proxyFeatures as ProxyFeature[]) : []
-    }))
+  return getState<
+    | ProfileScopeCapabilities
+    | ProxyAuthCapabilities
+    | ProxyDnsCapabilities
+    | ProxyFeature[]
+    | ProfileScopeContainerInfo[]
+    | string
+    | boolean
+  >(OPTIONS_APP_STATE_KEYS)
+    .then(
+      ([currentProfileName, isSystemProfile, capabilities, authCapabilities, dnsCapabilities, proxyFeatures, containers, firstRun]) => ({
+        activeProfileName: activeProfileNameFromState(currentProfileName, isSystemProfile),
+        firstRun: typeof firstRun === 'string' ? firstRun : '',
+        profileScopeCapabilities: (capabilities as ProfileScopeCapabilities | undefined) || DEFAULT_PROFILE_SCOPE_CAPABILITIES,
+        profileScopeContainers: Array.isArray(containers) ? (containers as ProfileScopeContainerInfo[]) : [],
+        proxyAuthCapabilities: (authCapabilities as ProxyAuthCapabilities | undefined) || DEFAULT_PROXY_AUTH_CAPABILITIES,
+        proxyDnsCapabilities: (dnsCapabilities as ProxyDnsCapabilities | undefined) || DEFAULT_PROXY_DNS_CAPABILITIES,
+        proxyFeatures: Array.isArray(proxyFeatures) ? (proxyFeatures as ProxyFeature[]) : []
+      })
+    )
     .catch(() => defaultOptionsAppInitialState());
 }
 
@@ -1005,7 +1013,9 @@ export function OptionsApp() {
   applyOptionsRef.current = applyOptions;
   discardOptionsRef.current = discardOptions;
 
-  function updateOptionsHandoffModal(updater: (current: NonNullable<typeof optionsHandoffModal>) => NonNullable<typeof optionsHandoffModal>) {
+  function updateOptionsHandoffModal(
+    updater: (current: NonNullable<typeof optionsHandoffModal>) => NonNullable<typeof optionsHandoffModal>
+  ) {
     setOptionsHandoffModal((current) => (current ? updater(current) : current));
   }
 

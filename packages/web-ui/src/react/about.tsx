@@ -93,7 +93,9 @@ export function About({embedded = false, isExperimental = false, version, onDown
           })}
           <br />
           {messageWithNodes('about_switchyagainChangesCopyright', 'SwitchyAgain changes Copyright 2026 __SWITCHYAGAIN_AUTHORS__.', {
-            __SWITCHYAGAIN_AUTHORS__: <a href="https://github.com/SwitchyAgain/SwitchyAgain/graphs/contributors">The SwitchyAgain Authors</a>
+            __SWITCHYAGAIN_AUTHORS__: (
+              <a href="https://github.com/SwitchyAgain/SwitchyAgain/graphs/contributors">The SwitchyAgain Authors</a>
+            )
           })}
           <br />
           {messageWithNodes('about_licenseLine', 'Licensed under the __GPL_LICENSE__ Version 3 or later.', {

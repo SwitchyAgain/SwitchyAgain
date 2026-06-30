@@ -2,12 +2,7 @@ import React, {useMemo, useRef, useState} from 'react';
 import {useOutsidePointer} from './dom_event_hooks';
 import {message} from './i18n_client';
 import type {Options} from './options_client_types';
-import {
-  allProfilesFromOptions,
-  isVisibleProfile,
-  profileOrder,
-  profilesFromOptions
-} from './profile_model_utils';
+import {allProfilesFromOptions, isVisibleProfile, profileOrder, profilesFromOptions} from './profile_model_utils';
 import type {Profile} from './profile_model_utils';
 import type {Profile as ProfileModel} from './profile_types';
 

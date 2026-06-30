@@ -36,26 +36,28 @@ export function openManage() {
 
 export function openOptions(hash?: string) {
   const optionsUrl = extensionUrl('options.html');
-  if (!queryTabsByUrl(optionsUrl, (tabs) => {
-    let targetUrl = optionsUrl;
-    if (hash) {
-      try {
-        const parsed = new URL(tabs?.[0]?.url || optionsUrl);
-        parsed.hash = hash;
-        targetUrl = parsed.href;
-      } catch (_err) {
-        targetUrl = `${optionsUrl}${hash}`;
+  if (
+    !queryTabsByUrl(optionsUrl, (tabs) => {
+      let targetUrl = optionsUrl;
+      if (hash) {
+        try {
+          const parsed = new URL(tabs?.[0]?.url || optionsUrl);
+          parsed.hash = hash;
+          targetUrl = parsed.href;
+        } catch (_err) {
+          targetUrl = `${optionsUrl}${hash}`;
+        }
       }
-    }
-    if (tabs?.length > 0) {
-      updateTab(tabs[0].id, {
-        active: true,
-        ...(hash ? {url: targetUrl} : {})
-      });
-      return;
-    }
-    createTab(targetUrl);
-  })) {
+      if (tabs?.length > 0) {
+        updateTab(tabs[0].id, {
+          active: true,
+          ...(hash ? {url: targetUrl} : {})
+        });
+        return;
+      }
+      createTab(targetUrl);
+    })
+  ) {
     setLocationHref(hash ? `${optionsUrl}${hash}` : optionsUrl);
     return;
   }
@@ -64,4 +66,3 @@ export function openOptions(hash?: string) {
 export function downloadBlob(blob: Blob, filename: string) {
   downloadBlobFile(blob, filename);
 }
-

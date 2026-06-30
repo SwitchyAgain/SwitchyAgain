@@ -115,16 +115,14 @@ function ruleListSourceErrorMessage(error?: SwitchRuleSourceState['error']) {
     case 'invalidRule': {
       const lineNo = String(fields.sourceLineNo ?? fields.args?.[0] ?? '');
       const source = String(fields.source ?? fields.args?.[1] ?? '');
-      return message('ruleList_error_invalidRule', lineNo || source ? `Invalid rule at Line ${lineNo}: ${source}` : fields.message || 'Invalid rule.', [
-        lineNo,
-        source
-      ]);
+      return message(
+        'ruleList_error_invalidRule',
+        lineNo || source ? `Invalid rule at Line ${lineNo}: ${source}` : fields.message || 'Invalid rule.',
+        [lineNo, source]
+      );
     }
     case 'noDefaultRule':
-      return message(
-        'ruleList_error_noDefaultRule',
-        fields.message || "Missing default rule with catch-all '*' condition!"
-      );
+      return message('ruleList_error_noDefaultRule', fields.message || "Missing default rule with catch-all '*' condition!");
     default:
       return fields.message || String(error);
   }
@@ -1234,10 +1232,14 @@ function fixedProfileOptionsForScheme(scheme: FixedProfileScheme, showSocks5Loca
       label: defaultLabel,
       value: ''
     },
-    ...(scheme ? [{
-      label: message('options_protocol_direct', 'Direct'),
-      value: FIXED_PROFILE_DIRECT_PROTOCOL
-    }] : []),
+    ...(scheme
+      ? [
+          {
+            label: message('options_protocol_direct', 'Direct'),
+            value: FIXED_PROFILE_DIRECT_PROTOCOL
+          }
+        ]
+      : []),
     ...protocols.map((protocol) => ({
       label: fixedProfileProtocolLabel(protocol),
       value: protocol
@@ -1640,9 +1642,7 @@ export function FixedProfileContent({
             {draftBypassGroups.map((group, index) => (
               <div className="fixed-bypass-group" key={index}>
                 <div className="fixed-bypass-group-header width-limit">
-                  <label htmlFor={`fixed-bypass-group-name-${index}`}>
-                    {message('options_bypassGroupName', 'Group name')}
-                  </label>
+                  <label htmlFor={`fixed-bypass-group-name-${index}`}>{message('options_bypassGroupName', 'Group name')}</label>
                   <input
                     id={`fixed-bypass-group-name-${index}`}
                     className="form-control"
@@ -1892,13 +1892,7 @@ export function SwitchConditionHelp({onClose, proxyFeatures, show = false, showC
   );
 }
 
-export function SwitchRulesHeader({
-  editSource = false,
-  onDiscardSource,
-  onSourceChange,
-  onToggleSource,
-  source
-}: SwitchRulesHeaderProps) {
+export function SwitchRulesHeader({editSource = false, onDiscardSource, onSourceChange, onToggleSource, source}: SwitchRulesHeaderProps) {
   const [sourceCode, setSourceCode] = useState(source?.code || '');
 
   useEffect(() => {

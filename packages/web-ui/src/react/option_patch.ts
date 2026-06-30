@@ -9,4 +9,3 @@ export function optionPatch(before: Options, after: Options, keys: string[]) {
   }
   return patch;
 }
-

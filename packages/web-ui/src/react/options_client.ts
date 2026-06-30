@@ -15,14 +15,7 @@ export type {
   RequestExplanation
 } from './options_client_types';
 
-export {
-  UI_LOCALES,
-  browserUiLocale,
-  message,
-  normalizeUiLocale,
-  setUiLocale,
-  uiLocaleForOptions
-} from './i18n_client';
+export {UI_LOCALES, browserUiLocale, message, normalizeUiLocale, setUiLocale, uiLocaleForOptions} from './i18n_client';
 
 export {
   callBackground,
@@ -46,22 +39,8 @@ export {
   updateProfile
 } from './options_api_client';
 
-export {
-  getLocalState,
-  getState,
-  lastUrl,
-  setLocalState,
-  setState
-} from './state_client';
+export {getLocalState, getState, lastUrl, setLocalState, setState} from './state_client';
 
-export {
-  downloadBlob,
-  manifestVersion,
-  openManage,
-  openOptions,
-  openShortcutConfig,
-  shouldAutoMount
-} from './navigation_client';
+export {downloadBlob, manifestVersion, openManage, openOptions, openShortcutConfig, shouldAutoMount} from './navigation_client';
 
 export {optionPatch} from './option_patch';
-

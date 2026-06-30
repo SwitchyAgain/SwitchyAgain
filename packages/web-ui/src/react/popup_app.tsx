@@ -281,15 +281,18 @@ function PopupApp() {
 
   function setProfileScope(scope: 'container' | 'group' | 'normal' | 'private' | 'tab', profileName?: string) {
     const info = pageInfo?.profileScope;
-    popupTarget().setProfileScope?.({
-      cookieStoreId: info?.cookieStoreId,
-      groupId: info?.groupId,
-      incognito: info?.incognito,
-      profileName,
-      scope,
-      tabId: info?.tabId,
-      windowId: info?.windowId
-    }, closePopup);
+    popupTarget().setProfileScope?.(
+      {
+        cookieStoreId: info?.cookieStoreId,
+        groupId: info?.groupId,
+        incognito: info?.incognito,
+        profileName,
+        scope,
+        tabId: info?.tabId,
+        windowId: info?.windowId
+      },
+      closePopup
+    );
   }
 
   function showOptions() {
@@ -835,7 +838,10 @@ function ProfileScopeMenuItem({
   const activeProfile = profileFromMap(state.availableProfiles, activeProfileName);
   const text = activeProfile ? `${label}: ${displayProfileName(activeProfile)}` : label;
   return (
-    <li className={`om-nav-item om-nav-profile-scope om-has-dropdown ${activeProfile ? 'om-active' : ''} ${open ? 'om-open' : ''}`} data-profile-scope={scope}>
+    <li
+      className={`om-nav-item om-nav-profile-scope om-has-dropdown ${activeProfile ? 'om-active' : ''} ${open ? 'om-open' : ''}`}
+      data-profile-scope={scope}
+    >
       <a
         aria-expanded={open}
         href="#"

@@ -72,8 +72,7 @@ export function clearOptionsHandoffFromLocation() {
     }
     url.searchParams.delete('handoff');
     globalThis.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
-  } catch (_err) {
-  }
+  } catch (_err) {}
 }
 
 export function connectOptionsHandoff(onMessage: (message: OptionsHandoffPortMessage) => void) {
@@ -112,8 +111,7 @@ export function connectOptionsHandoff(onMessage: (message: OptionsHandoffPortMes
       port.onDisconnect?.removeListener?.(handleDisconnect);
       try {
         port.disconnect?.();
-      } catch (_err) {
-      }
+      } catch (_err) {}
     },
     claim(handoffId: string) {
       postMessage({

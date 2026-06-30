@@ -106,9 +106,7 @@ function containerLabel(container: ProfileScopeContainerInfo) {
     return container.name;
   }
   const match = container.cookieStoreId.match(/^firefox-container-(\d+)$/);
-  return match
-    ? message('options_profileScopeContainerName', `Container ${match[1]}`, match[1])
-    : container.cookieStoreId;
+  return match ? message('options_profileScopeContainerName', `Container ${match[1]}`, match[1]) : container.cookieStoreId;
 }
 
 function containerRows(
@@ -134,10 +132,7 @@ function containerRows(
       }
     }
   }
-  const deletedIds = new Set([
-    ...Object.keys(appliedAssignments.containers),
-    ...Object.keys(assignments.containers)
-  ]);
+  const deletedIds = new Set([...Object.keys(appliedAssignments.containers), ...Object.keys(assignments.containers)]);
   for (const cookieStoreId of deletedIds) {
     if (isFirefoxContainerId(cookieStoreId) && !knownIds.has(cookieStoreId) && showDeletedContainers) {
       rows.push({
@@ -152,9 +147,7 @@ function containerRows(
 
 function deletedContainerIds(containers: ProfileScopeContainerInfo[] = [], assignments: ProfileScopeAssignments) {
   const knownIds = new Set(containers.map((container) => container.cookieStoreId).filter(isFirefoxContainerId));
-  return Object.keys(assignments.containers).filter((cookieStoreId) =>
-    isFirefoxContainerId(cookieStoreId) && !knownIds.has(cookieStoreId)
-  );
+  return Object.keys(assignments.containers).filter((cookieStoreId) => isFirefoxContainerId(cookieStoreId) && !knownIds.has(cookieStoreId));
 }
 
 function cssUrl(value: string) {
@@ -224,9 +217,11 @@ export function ProfileScopeSettingsPage({
   );
   const removedContainerIds = useMemo(() => deletedContainerIds(containers, appliedAssignments), [appliedAssignments, containers]);
   const showRefreshButton = Boolean(onRefreshContainers && visible.container);
-  const showDefaultContainerControl = visible.container && containers.some((container) =>
-    isFirefoxContainerId(container.cookieStoreId) && appliedAssignments.containers[container.cookieStoreId] == null
-  );
+  const showDefaultContainerControl =
+    visible.container &&
+    containers.some(
+      (container) => isFirefoxContainerId(container.cookieStoreId) && appliedAssignments.containers[container.cookieStoreId] == null
+    );
 
   function updateAssignments(updater: (nextAssignments: ProfileScopeAssignments) => void) {
     const nextOptions = cloneOptions(options);

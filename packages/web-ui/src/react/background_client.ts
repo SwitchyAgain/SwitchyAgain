@@ -1,8 +1,4 @@
-import {
-  runtimeAvailable as extensionRuntimeAvailable,
-  runtimeLastErrorMessage,
-  sendRuntimeMessage
-} from './browser_env';
+import {runtimeAvailable as extensionRuntimeAvailable, runtimeLastErrorMessage, sendRuntimeMessage} from './browser_env';
 import type {
   BackgroundError,
   BackgroundMethod,
@@ -102,4 +98,3 @@ export function decodeBackgroundError(error: unknown): BackgroundError | unknown
   }
   return decoded;
 }
-

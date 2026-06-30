@@ -71,4 +71,3 @@ describe('DOM event hooks', () => {
     expect(onOutside).toHaveBeenCalledTimes(2);
   });
 });
-

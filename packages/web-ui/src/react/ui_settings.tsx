@@ -556,7 +556,15 @@ export function UiSettings({
     );
   }
 
-  function ContextMenuCheckbox({fallback, messageKey, optionKey}: {fallback: string; messageKey: string; optionKey: keyof ContextMenuOptions}) {
+  function ContextMenuCheckbox({
+    fallback,
+    messageKey,
+    optionKey
+  }: {
+    fallback: string;
+    messageKey: string;
+    optionKey: keyof ContextMenuOptions;
+  }) {
     if (!contextMenuOptionVisible(optionKey, profileScopeCapabilities)) {
       return null;
     }
@@ -750,10 +758,7 @@ export function UiSettings({
               checked={draftOptions['-showHttpProxyOverrideRows'] !== false}
               onChange={(event) => updateOption('-showHttpProxyOverrideRows', event.currentTarget.checked)}
             />
-            <span>
-              {' '}
-              {message('options_showHttpProxyOverrideRows', 'Show HTTP/HTTPS proxy overrides in proxy profiles.')}
-            </span>
+            <span> {message('options_showHttpProxyOverrideRows', 'Show HTTP/HTTPS proxy overrides in proxy profiles.')}</span>
           </label>
         </div>
         <div className="checkbox">
@@ -763,10 +768,7 @@ export function UiSettings({
               checked={Boolean(draftOptions['-showWebSocketProxyOverrideRows'])}
               onChange={(event) => updateOption('-showWebSocketProxyOverrideRows', event.currentTarget.checked)}
             />
-            <span>
-              {' '}
-              {message('options_showWebSocketProxyOverrideRows', 'Show WebSocket (ws/wss) proxy overrides in proxy profiles.')}
-            </span>
+            <span> {message('options_showWebSocketProxyOverrideRows', 'Show WebSocket (ws/wss) proxy overrides in proxy profiles.')}</span>
           </label>
         </div>
         <div className="checkbox">
@@ -783,16 +785,8 @@ export function UiSettings({
 
       <section className="settings-group">
         <h3>{message('options_group_contextMenuOptions', 'Context Menu')}</h3>
-        <ContextMenuCheckbox
-          optionKey="switchProfile"
-          messageKey="options_contextMenuSwitchProfile"
-          fallback="Show Switch Profile"
-        />
-        <ContextMenuCheckbox
-          optionKey="tabProfile"
-          messageKey="options_contextMenuTabProfile"
-          fallback="Show tab profile switching"
-        />
+        <ContextMenuCheckbox optionKey="switchProfile" messageKey="options_contextMenuSwitchProfile" fallback="Show Switch Profile" />
+        <ContextMenuCheckbox optionKey="tabProfile" messageKey="options_contextMenuTabProfile" fallback="Show tab profile switching" />
         <ContextMenuCheckbox
           optionKey="groupProfile"
           messageKey="options_contextMenuGroupProfile"

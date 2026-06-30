@@ -348,16 +348,13 @@ export function NewProfileModal({
               onChange={selectDuplicateProfile}
             />
             <span className="profile-type">
-              <span className="glyphicon glyphicon-duplicate" />{' '}
-              <span>{message('options_profileTypeDuplicate', 'Duplicate')}</span>
+              <span className="glyphicon glyphicon-duplicate" /> <span>{message('options_profileTypeDuplicate', 'Duplicate')}</span>
             </span>
             <div className="help-block profile-duplicate-description">
               {message('options_profileDescDuplicate', 'Create a new profile by copying an existing profile.')}
             </div>
             {!duplicateProfilesAvailable && (
-              <div className="help-block">
-                {message('options_profileDuplicateEmpty', 'No profiles available to duplicate.')}
-              </div>
+              <div className="help-block">{message('options_profileDuplicateEmpty', 'No profiles available to duplicate.')}</div>
             )}
           </label>
           {duplicateSelected && duplicateProfilesAvailable && (

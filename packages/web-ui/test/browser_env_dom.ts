@@ -126,4 +126,3 @@ describe('browser environment adapter', () => {
     expect(document.body.style.opacity).toBe('0.5');
   });
 });
-

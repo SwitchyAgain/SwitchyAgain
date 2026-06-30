@@ -1,8 +1,4 @@
-import {
-  extensionManifestVersionNumber,
-  getJsonLocalStorage,
-  setJsonLocalStorage
-} from './browser_env';
+import {extensionManifestVersionNumber, getJsonLocalStorage, setJsonLocalStorage} from './browser_env';
 import {callBackground} from './background_client';
 
 function isManifestV3() {

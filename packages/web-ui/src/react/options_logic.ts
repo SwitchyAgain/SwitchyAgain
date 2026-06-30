@@ -10,20 +10,8 @@ import type {
   Profile as ProfileModel,
   RuleListProfileModel
 } from './profile_types';
-import {
-  isFixedProfile,
-  isNamedProfile,
-  isRuleListProfile,
-  profileByName,
-  profilesFromOptions
-} from './profile_model_utils';
-import {
-  attachedIdentity,
-  createAttachedName,
-  profileKey,
-  type NamedSwitchProfileModel,
-  type SwitchRule
-} from './switch_profile_runtime';
+import {isFixedProfile, isNamedProfile, isRuleListProfile, profileByName, profilesFromOptions} from './profile_model_utils';
+import {attachedIdentity, createAttachedName, profileKey, type NamedSwitchProfileModel, type SwitchRule} from './switch_profile_runtime';
 
 const CHAR_CODE_UNDERSCORE = '_'.charCodeAt(0);
 const RULE_LIST_USAGE_URL = 'https://github.com/FelisCatus/SwitchyOmega/wiki/RuleListUsage';

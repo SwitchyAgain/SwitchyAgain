@@ -603,9 +603,7 @@ describe('profile content components', () => {
       profileType: 'FixedProfile'
     };
 
-    const {container} = render(
-      <FixedProfileContent onBypassGroupsChange={onBypassGroupsChange} profile={profile} showBypassListGroups />
-    );
+    const {container} = render(<FixedProfileContent onBypassGroupsChange={onBypassGroupsChange} profile={profile} showBypassListGroups />);
 
     fireEvent.click(screen.getByRole('button', {name: 'Add a new list group'}));
     expect(onBypassGroupsChange).toHaveBeenLastCalledWith([
@@ -722,9 +720,7 @@ describe('profile content components', () => {
       profileType: 'FixedProfile'
     };
 
-    const {rerender} = render(
-      <FixedProfileContent onBypassGroupsChange={onBypassGroupsChange} profile={profile} showBypassListGroups />
-    );
+    const {rerender} = render(<FixedProfileContent onBypassGroupsChange={onBypassGroupsChange} profile={profile} showBypassListGroups />);
 
     fireEvent.click(screen.getByTitle('Delete group'));
     const dialog = screen.getByRole('dialog');
