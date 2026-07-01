@@ -9,8 +9,8 @@
   ],
   "scripts": {
     "build": "npm run build --workspace @switchyagain/browser-extension && npm run check:package-entrypoints",
-    "build:pac": "npm run build --workspace @switchyagain/proxy-engine",
-    "build:target": "npm run build --workspace @switchyagain/extension-runtime",
+    "build:proxy-engine": "npm run build --workspace @switchyagain/proxy-engine",
+    "build:extension-runtime": "npm run build --workspace @switchyagain/extension-runtime",
     "build:web": "npm run build --workspace @switchyagain/web-ui",
     "check:build-assumptions": "node scripts/generate-browser-entrypoints.mjs --check && node scripts/check-build-assumptions.mjs",
     "check:package-entrypoints": "node scripts/check-package-entrypoints.mjs",

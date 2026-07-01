@@ -37,7 +37,7 @@ export function About({embedded = false, isExperimental = false, version, onDown
   const content = (
     <>
       {isExperimental && (
-        <section className="omega-experimental">
+        <section className="about-experimental">
           <p className="alert alert-warning">
             <span className="glyphicon glyphicon-warning-sign" />{' '}
             <span>

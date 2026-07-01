@@ -15,9 +15,9 @@ import {
   getPopupPageInfo,
   getPopupState,
   popupMessage,
-  popupTarget,
-  waitForPopupTarget
-} from './popup_target';
+  popupBridge,
+  waitForPopupBridge
+} from './popup_bridge_client';
 import {
   aggregateRouteInfo,
   compareProfile,
@@ -244,7 +244,7 @@ function PopupApp() {
   const tempDropdown = useFloatingDropdown<HTMLLIElement>(tempMenuOpen);
 
   useEffect(() => {
-    waitForPopupTarget()
+    waitForPopupBridge()
       .then(() =>
         Promise.all([
           getPopupState([
@@ -321,23 +321,23 @@ function PopupApp() {
   }
 
   function applyProfile(profileName: string) {
-    popupTarget().applyProfile?.(profileName, closePopup);
+    popupBridge().applyProfile?.(profileName, closePopup);
   }
 
   function setDefaultProfile(profileName: string, defaultProfileName: string) {
-    popupTarget().setDefaultProfile?.(profileName, defaultProfileName, closePopup);
+    popupBridge().setDefaultProfile?.(profileName, defaultProfileName, closePopup);
   }
 
   function addTempRule(domain: string, profileName: string) {
-    popupTarget().addTempRule?.(domain, profileName, () => {
-      popupTarget().setState?.('lastProfileNameForCondition', profileName);
+    popupBridge().addTempRule?.(domain, profileName, () => {
+      popupBridge().setState?.('lastProfileNameForCondition', profileName);
       closePopup();
     });
   }
 
   function setProfileScope(scope: 'container' | 'group' | 'normal' | 'private' | 'tab', profileName?: string) {
     const info = pageInfo?.profileScope;
-    popupTarget().setProfileScope?.(
+    popupBridge().setProfileScope?.(
       {
         cookieStoreId: info?.cookieStoreId,
         groupId: info?.groupId,
@@ -352,7 +352,7 @@ function PopupApp() {
   }
 
   function showOptions() {
-    popupTarget().openOptions?.(null, closePopup);
+    popupBridge().openOptions?.(null, closePopup);
   }
 
   function clickById(id: string) {
@@ -969,7 +969,7 @@ function ConditionForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
 
   function openConditionHelp() {
     const currentProfileName = encodeURIComponent(state.currentProfileName || '');
-    popupTarget().openOptions?.(`#!/profile/${currentProfileName}?help=condition`, closePopup);
+    popupBridge().openOptions?.(`#!/profile/${currentProfileName}?help=condition`, closePopup);
   }
 
   async function submitCondition(event: React.FormEvent) {
@@ -981,8 +981,8 @@ function ConditionForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
         conditionType,
         pattern
       };
-      await callbackPromise<void>((callback) => popupTarget().addCondition?.(condition, profile, true, callback));
-      popupTarget().setState?.('lastProfileNameForCondition', profile);
+      await callbackPromise<void>((callback) => popupBridge().addCondition?.(condition, profile, true, callback));
+      popupBridge().setState?.('lastProfileNameForCondition', profile);
       closePopup();
     } catch (err: unknown) {
       setError(popupErrorMessage(err));
@@ -1119,8 +1119,8 @@ function RouteInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
     setSaving(true);
     setError('');
     try {
-      await callbackPromise<void>((callback) => popupTarget().addCondition?.(conditions, profile, true, callback));
-      popupTarget().setState?.('lastProfileNameForCondition', profile);
+      await callbackPromise<void>((callback) => popupBridge().addCondition?.(conditions, profile, true, callback));
+      popupBridge().setState?.('lastProfileNameForCondition', profile);
       closePopup();
     } catch (err: unknown) {
       setError(popupErrorMessage(err));
@@ -1193,7 +1193,7 @@ function RouteInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
               <button
                 className="btn btn-default pull-right"
                 type="button"
-                onClick={() => popupTarget().openOptions?.('#!/general', closePopup)}
+                onClick={() => popupBridge().openOptions?.('#!/general', closePopup)}
               >
                 {popupMessage('popup_configureMonitorWebRequests', 'Configure monitor web requests')}
               </button>
@@ -1224,7 +1224,7 @@ function ExternalProfileForm({state, onClose}: {state: PopupState; onClose: () =
     setError('');
     try {
       await callbackPromise<void>((callback) =>
-        popupTarget().addProfile?.(
+        popupBridge().addProfile?.(
           {
             ...state.externalProfile,
             name: externalName
@@ -1232,7 +1232,7 @@ function ExternalProfileForm({state, onClose}: {state: PopupState; onClose: () =
           callback
         )
       );
-      popupTarget().applyProfile?.(externalName, closePopup);
+      popupBridge().applyProfile?.(externalName, closePopup);
     } catch (err: unknown) {
       setError(popupErrorMessage(err));
       setSaving(false);
@@ -1291,8 +1291,8 @@ function ProfileSelect({
     setOpen(false);
   };
   return (
-    <div className="omega-profile-select-host">
-      <div className={`btn-group omega-profile-select ${open ? 'open' : ''}`}>
+    <div className="profile-select-host">
+      <div className={`btn-group profile-select ${open ? 'open' : ''}`}>
         <button
           aria-expanded={open}
           aria-haspopup="true"

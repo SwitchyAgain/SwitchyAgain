@@ -25,7 +25,7 @@ import {
   visibleScopeAssignableProfiles
 } from '../src/react/popup_logic';
 import type {RequestExplanation} from '../src/react/options_client_types';
-import type {PageInfo, PopupState, Profile, ProfileMap} from '../src/react/popup_target';
+import type {PageInfo, PopupState, Profile, ProfileMap} from '../src/react/popup_bridge_client';
 
 function profile(name: string, profileType = 'FixedProfile', extra: Partial<Profile> = {}): Profile {
   return {

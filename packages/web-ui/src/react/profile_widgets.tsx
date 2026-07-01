@@ -126,7 +126,7 @@ export function ProfileSelect({
   useOutsidePointer(rootRef, () => setOpen(false), open);
 
   return (
-    <div ref={rootRef} className={`btn-group omega-profile-select ${open ? 'open' : ''}`} style={selectStyle}>
+    <div ref={rootRef} className={`btn-group profile-select ${open ? 'open' : ''}`} style={selectStyle}>
       <button
         type="button"
         className="btn btn-default dropdown-toggle"

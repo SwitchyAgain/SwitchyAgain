@@ -51,7 +51,7 @@
   padding: 1px 4px;
 }
 
-.current-profile-control .omega-profile-select {
+.current-profile-control .profile-select {
   margin-left: 20px;
   margin-right: 8px;
   min-width: 160px;
@@ -71,7 +71,7 @@
   color: #a94442;
 }
 
-.route-trace-input .omega-profile-select {
+.route-trace-input .profile-select {
   margin-right: 8px;
   min-width: 200px;
 }

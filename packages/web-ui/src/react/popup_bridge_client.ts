@@ -117,7 +117,7 @@ export type PopupConditionInput = PopupCondition | PopupCondition[];
 export type PopupCallback<T = unknown> = (error?: unknown, result?: T) => void;
 export type PopupVoidCallback = PopupCallback<void>;
 
-export type PopupTarget = {
+export type PopupBridgeClient = {
   addCondition?: (condition: PopupConditionInput, profileName: string, addToBottom: boolean, callback?: PopupVoidCallback) => void;
   addProfile?: (profile: Profile, callback?: PopupVoidCallback) => void;
   addTempRule?: (domain: string, profileName: string, callback?: PopupVoidCallback) => void;
@@ -144,24 +144,24 @@ export function closePopup() {
   setTimeout(() => reloadHistory(), 300);
 }
 
-export function popupTarget() {
-  return getGlobalValue<PopupTarget>('PopupBridge') || {};
+export function popupBridge() {
+  return getGlobalValue<PopupBridgeClient>('PopupBridge') || {};
 }
 
-export function waitForPopupTarget() {
-  if (getGlobalValue<PopupTarget>('PopupBridge')) {
+export function waitForPopupBridge() {
+  if (getGlobalValue<PopupBridgeClient>('PopupBridge')) {
     return Promise.resolve();
   }
   return new Promise<void>((resolve, reject) => {
     let tries = 0;
     const timer = setInterval(() => {
       tries++;
-      if (getGlobalValue<PopupTarget>('PopupBridge')) {
+      if (getGlobalValue<PopupBridgeClient>('PopupBridge')) {
         clearInterval(timer);
         resolve();
       } else if (tries > 100) {
         clearInterval(timer);
-        reject(new Error('Popup target API is unavailable.'));
+        reject(new Error('Popup bridge API is unavailable.'));
       }
     }, 20);
   });
@@ -182,22 +182,22 @@ export function callbackPromise<T>(invoke: (callback: PopupCallback<T>) => void)
     if (!settled) {
       setTimeout(() => {
         if (!settled) {
-          reject(new Error('Popup target method did not respond.'));
+          reject(new Error('Popup bridge method did not respond.'));
         }
       }, 15000);
     }
   });
 }
 
-function popupMethodUnavailable(methodName: keyof PopupTarget) {
-  return new Error(`Popup target method unavailable: ${methodName}.`);
+function popupBridgeMethodUnavailable(methodName: keyof PopupBridgeClient) {
+  return new Error(`Popup bridge method unavailable: ${methodName}.`);
 }
 
 export function getPopupState(keys: PopupStateKey[]) {
   return callbackPromise<PopupState>((callback) => {
-    const getState = popupTarget().getState;
+    const getState = popupBridge().getState;
     if (!getState) {
-      callback(popupMethodUnavailable('getState'));
+      callback(popupBridgeMethodUnavailable('getState'));
       return;
     }
     getState(keys, callback);
@@ -206,9 +206,9 @@ export function getPopupState(keys: PopupStateKey[]) {
 
 export function getPopupPageInfo(options?: PageInfoOptions) {
   return callbackPromise<PageInfo | undefined>((callback) => {
-    const getActivePageInfo = popupTarget().getActivePageInfo;
+    const getActivePageInfo = popupBridge().getActivePageInfo;
     if (!getActivePageInfo) {
-      callback(popupMethodUnavailable('getActivePageInfo'));
+      callback(popupBridgeMethodUnavailable('getActivePageInfo'));
       return;
     }
     if (options) {
@@ -220,5 +220,5 @@ export function getPopupPageInfo(options?: PageInfoOptions) {
 }
 
 export function popupMessage(key: string, fallback = key, substitutions?: string | string[]) {
-  return message(key, '', substitutions) || popupTarget().getMessage?.(key, substitutions) || fallback;
+  return message(key, '', substitutions) || popupBridge().getMessage?.(key, substitutions) || fallback;
 }

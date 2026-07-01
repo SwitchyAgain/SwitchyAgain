@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import {setUiLocale} from './i18n_client';
-import {closePopup, popupMessage, popupTarget} from './popup_target';
+import {closePopup, popupMessage, popupBridge} from './popup_bridge_client';
 import {applyUiTheme} from './ui_theme';
 
 function ProxyNotControllableDialog() {
@@ -9,7 +9,7 @@ function ProxyNotControllableDialog() {
   const [detailsText, setDetailsText] = useState('');
 
   useEffect(() => {
-    popupTarget().getState?.(['proxyNotControllable', 'uiLocale', 'uiTheme'], (_error, state) => {
+    popupBridge().getState?.(['proxyNotControllable', 'uiLocale', 'uiTheme'], (_error, state) => {
       document.title = popupMessage('popup_title', 'SwitchyAgain Popup');
       applyUiTheme(state?.uiTheme);
       const reason = state?.proxyNotControllable || '';
@@ -37,11 +37,11 @@ function ProxyNotControllableDialog() {
           id="js-nc-learn-more"
           className="om-btn om-btn-link"
           type="button"
-          onClick={() => popupTarget().openOptions?.('#!/general', closePopup)}
+          onClick={() => popupBridge().openOptions?.('#!/general', closePopup)}
         >
           Learn More
         </button>
-        <button id="js-manage-ext" className="om-btn om-btn-primary" type="button" onClick={() => popupTarget().openManage?.(closePopup)}>
+        <button id="js-manage-ext" className="om-btn om-btn-primary" type="button" onClick={() => popupBridge().openManage?.(closePopup)}>
           {popupMessage('popup_proxyNotControllableManage')}
         </button>
       </p>

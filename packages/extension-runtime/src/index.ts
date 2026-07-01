@@ -7,7 +7,7 @@ import OptionsSync from './options_sync';
 import Storage from './storage';
 import * as utils from './utils';
 
-const omegaTarget: Record<string, unknown> = {
+const extensionRuntime: Record<string, unknown> = {
   Log,
   Storage,
   BrowserStorage,
@@ -18,12 +18,12 @@ const omegaTarget: Record<string, unknown> = {
 
 const utilExports = utils as Record<string, unknown>;
 for (const name of Object.keys(utilExports)) {
-  omegaTarget[name] = utilExports[name];
+  extensionRuntime[name] = utilExports[name];
 }
 
 const errorExports = errors as Record<string, unknown>;
 for (const name of Object.keys(errorExports)) {
-  omegaTarget[name] = errorExports[name];
+  extensionRuntime[name] = errorExports[name];
 }
 
 export {BrowserStorage, Log, Options, OptionsSync, Storage, ProxyEngine};
@@ -31,4 +31,4 @@ export {BrowserStorage, Log, Options, OptionsSync, Storage, ProxyEngine};
 export * from './errors';
 export * from './utils';
 
-export default omegaTarget;
+export default extensionRuntime;

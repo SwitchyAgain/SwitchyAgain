@@ -143,7 +143,7 @@ async function installExtensionApi(page, initialState = {}) {
   }, messages);
 }
 
-async function installPopupTarget(page) {
+async function installPopupBridge(page) {
   await page.addInitScript(({mockMessages, mockPageInfo, mockPopupState}) => {
     function pageInfoForRequest(options) {
       const result = structuredClone(mockPageInfo);
@@ -241,7 +241,7 @@ async function runPage(page, target) {
   const guard = installBrowserErrorGuards(page, target.label);
   await installExtensionApi(page, target.state);
   if (target.popup) {
-    await installPopupTarget(page);
+    await installPopupBridge(page);
     await page.route('**/js/popup_bridge.js', (route) => {
       route.fulfill({
         body: '',

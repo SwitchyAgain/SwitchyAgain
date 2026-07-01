@@ -736,38 +736,38 @@ body {
   vertical-align: middle;
 }
 
-.omega-profile-select-host {
+.profile-select-host {
   display: block;
 }
 
-.omega-profile-select {
+.profile-select {
   display: block;
   width: 100%;
 }
 
-.omega-profile-select .dropdown-toggle {
+.profile-select .dropdown-toggle {
   box-sizing: border-box;
   text-align: left;
   width: 100%;
 }
 
-.omega-profile-select .dropdown-toggle .glyphicon {
+.profile-select .dropdown-toggle .glyphicon {
   margin-right: 8px;
 }
 
-.omega-profile-select .dropdown-toggle .om-profile-icon {
+.profile-select .dropdown-toggle .om-profile-icon {
   margin-right: 0;
 }
 
-.omega-profile-select .dropdown-toggle .om-profile-name {
+.profile-select .dropdown-toggle .om-profile-name {
   margin-left: 6px;
 }
 
-.omega-profile-select .dropdown-toggle .om-profile-name-legacy {
+.profile-select .dropdown-toggle .om-profile-name-legacy {
   margin-left: 0;
 }
 
-.omega-profile-select .dropdown-toggle .caret {
+.profile-select .dropdown-toggle .caret {
   float: right;
   margin-left: 6px;
   margin-top: 8px;
@@ -804,25 +804,25 @@ body {
   z-index: 1000;
 }
 
-.omega-profile-select .dropdown-menu {
+.profile-select .dropdown-menu {
   max-height: 240px;
   overflow: auto;
   width: 100%;
 }
 
-.omega-profile-select .dropdown-menu .glyphicon {
+.profile-select .dropdown-menu .glyphicon {
   margin-right: 8px;
 }
 
-.omega-profile-select .dropdown-menu .om-profile-icon {
+.profile-select .dropdown-menu .om-profile-icon {
   margin-right: 0;
 }
 
-.omega-profile-select .dropdown-menu .om-profile-name {
+.profile-select .dropdown-menu .om-profile-name {
   margin-left: 6px;
 }
 
-.omega-profile-select .dropdown-menu .om-profile-name-legacy {
+.profile-select .dropdown-menu .om-profile-name-legacy {
   margin-left: 0;
 }
 

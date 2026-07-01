@@ -242,17 +242,17 @@ a[role='button'] {
   padding: 0 5px;
 }
 
-/* omega-profile-select */
+/* profile-select */
 
-.omega-profile-select {
+.profile-select {
   width: 100%;
 }
 
-.omega-profile-select .dropdown-menu > li > a {
+.profile-select .dropdown-menu > li > a {
   max-width: none !important;
 }
 
-.omega-profile-select .btn {
+.profile-select .btn {
   width: 100%;
   display: block;
   text-align: left;
@@ -261,7 +261,7 @@ a[role='button'] {
   padding-right: 25px;
 }
 
-.omega-profile-select .btn .caret {
+.profile-select .btn .caret {
   position: absolute;
   top: 50%;
   right: 12px;
@@ -269,7 +269,7 @@ a[role='button'] {
   vertical-align: middle;
 }
 
-.omega-profile-select .dropdown-menu {
+.profile-select .dropdown-menu {
   width: 100%;
   cursor: pointer;
 }
@@ -287,17 +287,17 @@ a[role='button'] {
   margin-right: 6px;
 }
 
-.profile-duplicate-source .omega-profile-select {
+.profile-duplicate-source .profile-select {
   vertical-align: middle;
   width: auto;
 }
 
-.profile-duplicate-source .omega-profile-select .btn {
+.profile-duplicate-source .profile-select .btn {
   min-width: 160px;
   width: auto;
 }
 
-.profile-duplicate-source .omega-profile-select .dropdown-menu {
+.profile-duplicate-source .profile-select .dropdown-menu {
   min-width: 100%;
   width: auto;
 }

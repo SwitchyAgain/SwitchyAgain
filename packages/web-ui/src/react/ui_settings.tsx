@@ -147,7 +147,7 @@ function UiLocaleSelect({value, onChange}: {value: string; onChange: (value: str
   useOutsidePointer(rootRef, () => setOpen(false), open);
 
   return (
-    <div ref={rootRef} className={`btn-group omega-profile-select ui-locale-select ${open ? 'open' : ''}`}>
+    <div ref={rootRef} className={`btn-group profile-select ui-locale-select ${open ? 'open' : ''}`}>
       <button
         id="react-ui-locale"
         type="button"
@@ -187,7 +187,7 @@ function UiThemeSelect({value, onChange}: {value: UiTheme; onChange: (value: UiT
   useOutsidePointer(rootRef, () => setOpen(false), open);
 
   return (
-    <div ref={rootRef} className={`btn-group omega-profile-select ui-theme-select ${open ? 'open' : ''}`}>
+    <div ref={rootRef} className={`btn-group profile-select ui-theme-select ${open ? 'open' : ''}`}>
       <button
         id="react-ui-theme"
         type="button"

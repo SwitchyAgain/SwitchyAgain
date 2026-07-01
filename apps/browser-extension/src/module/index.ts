@@ -1,4 +1,4 @@
-import omegaTarget from '@switchyagain/extension-runtime';
+import extensionRuntime from '@switchyagain/extension-runtime';
 import ExternalApi from './external_api';
 import Options from './options';
 import * as proxy from './proxy';
@@ -23,7 +23,7 @@ const Url = {
   }
 };
 
-const chromiumTarget: Record<string, unknown> = {
+const browserExtensionRuntime: Record<string, unknown> = {
   Storage,
   Options,
   ChromeTabs,
@@ -33,12 +33,12 @@ const chromiumTarget: Record<string, unknown> = {
   proxy
 };
 
-for (const name of Object.keys(omegaTarget)) {
-  if (chromiumTarget[name] == null) {
-    chromiumTarget[name] = omegaTarget[name];
+for (const name of Object.keys(extensionRuntime)) {
+  if (browserExtensionRuntime[name] == null) {
+    browserExtensionRuntime[name] = extensionRuntime[name];
   }
 }
 
 export {ChromeTabs, ExternalApi, Options, Storage, Url, WebRequestMonitor, proxy};
 
-export default chromiumTarget;
+export default browserExtensionRuntime;

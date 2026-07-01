@@ -58,12 +58,12 @@ describe('profile widget components', () => {
     const {container} = render(<ProfileSelect name="proxy" onChange={onChange} profiles={profiles} />);
 
     fireEvent.click(screen.getByRole('listbox'));
-    expect(container.querySelector('.omega-profile-select.open')).toBeTruthy();
+    expect(container.querySelector('.profile-select.open')).toBeTruthy();
 
     fireEvent.click(screen.getByText('pac'));
 
     expect(onChange).toHaveBeenCalledWith('pac');
-    expect(container.querySelector('.omega-profile-select.open')).toBeNull();
+    expect(container.querySelector('.profile-select.open')).toBeNull();
   });
 
   it('supports default choices and closes on outside pointer input', () => {
@@ -73,7 +73,7 @@ describe('profile widget components', () => {
     fireEvent.click(screen.getByRole('listbox'));
     fireEvent.mouseDown(document.body);
 
-    expect(container.querySelector('.omega-profile-select.open')).toBeNull();
+    expect(container.querySelector('.profile-select.open')).toBeNull();
 
     fireEvent.click(screen.getByRole('listbox'));
     fireEvent.click(screen.getByRole('option', {name: 'Current profile'}).querySelector('a') as HTMLAnchorElement);
