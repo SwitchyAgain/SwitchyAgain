@@ -1373,13 +1373,13 @@ msgid "popup_errorLog"
 msgstr "Save error log"
 
 msgid "popup_requestErrorWarning"
-msgstr "A few resources failed to load due to issues with your network, proxy server or the webpage."
+msgstr "Some resources failed to load."
 
 msgid "popup_requestErrorWarningHelp"
 msgstr "SwitchyAgain is just the reporter of these issues, not the cause of them."
 
 msgid "popup_requestErrorAddCondition"
-msgstr "You can review the following domains and use proxy for them when appropriate."
+msgstr "Review the domains below and add proxy rules if needed."
 
 msgid "popup_requestErrorCannotAddCondition"
 msgstr "You can add switch conditions for them only when using a Switch Profile."

@@ -810,6 +810,12 @@ body {
   width: 100%;
 }
 
+.profile-select.profile-select-in-flow .dropdown-menu {
+  max-height: none;
+  overflow: visible;
+  position: static;
+}
+
 .profile-select .dropdown-menu .glyphicon {
   margin-right: 8px;
 }

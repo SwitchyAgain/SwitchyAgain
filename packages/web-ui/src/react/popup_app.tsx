@@ -1148,13 +1148,15 @@ function RouteInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
 
         {hasRequestFailures && (
           <div className="sa-popup-route-info-add-condition">
-            <div className="text-warning">{popupMessage('popup_requestErrorWarning', 'Some requests have failed.')}</div>
-            <p className="help-block">{popupMessage('popup_requestErrorWarningHelp', 'You can add conditions for failed domains.')}</p>
+            <div className="text-warning">{popupMessage('popup_requestErrorWarning', 'Some resources failed to load.')}</div>
             {state.currentProfileCanAddRule ? (
-              <p className="help-block">{popupMessage('popup_requestErrorAddCondition', 'Add conditions for selected domains.')}</p>
+              <p className="help-block">{popupMessage('popup_requestErrorAddCondition', 'Review the domains below and add proxy rules if needed.')}</p>
             ) : (
               <p className="help-block">
-                {popupMessage('popup_requestErrorCannotAddCondition', 'The current profile cannot accept new conditions.')}
+                {popupMessage(
+                  'popup_requestErrorCannotAddCondition',
+                  'You can add switch conditions for them only when using a Switch Profile.'
+                )}
               </p>
             )}
             <div className="sa-popup-domain-list">
@@ -1175,7 +1177,7 @@ function RouteInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
             {state.currentProfileCanAddRule && (
               <div className="form-group">
                 <label>{popupMessage('options_resultProfileForSelectedDomains', 'Result Profile for Selected Domains')}</label>
-                <ProfileSelect profiles={profiles} state={state} value={profile} onChange={setProfile} />
+                <ProfileSelect expandDropdownInFlow profiles={profiles} state={state} value={profile} onChange={setProfile} />
               </div>
             )}
           </div>
@@ -1274,11 +1276,13 @@ function ExternalProfileForm({state, onClose}: {state: PopupState; onClose: () =
 }
 
 function ProfileSelect({
+  expandDropdownInFlow = false,
   profiles,
   state,
   value,
   onChange
 }: {
+  expandDropdownInFlow?: boolean;
   profiles: Profile[];
   state: PopupState;
   value: string;
@@ -1290,9 +1294,17 @@ function ProfileSelect({
     onChange(profileName);
     setOpen(false);
   };
+  const selectClasses = [
+    'btn-group',
+    'profile-select',
+    expandDropdownInFlow ? 'profile-select-in-flow' : '',
+    open ? 'open' : ''
+  ]
+    .filter(Boolean)
+    .join(' ');
   return (
     <div className="profile-select-host">
-      <div className={`btn-group profile-select ${open ? 'open' : ''}`}>
+      <div className={selectClasses}>
         <button
           aria-expanded={open}
           aria-haspopup="true"
