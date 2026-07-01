@@ -443,7 +443,7 @@ export function OptionsShell({
         <a href="#/about" title={message('about_title', 'About')} onClick={(event) => navClick(event, () => onNavigate?.('about'))}>
           {message('appNameShort', 'SwitchyAgain')}
         </a>
-        {isExperimental && <sup className="om-experimental text-danger">{message('options_experimental_badge', 'Experimental')}</sup>}
+        {isExperimental && <sup className="options-experimental-badge text-danger">{message('options_experimental_badge', 'Experimental')}</sup>}
       </h1>
       <nav className="options-shell-nav">
         <ul className="nav nav-pills nav-stacked options-shell-settings">

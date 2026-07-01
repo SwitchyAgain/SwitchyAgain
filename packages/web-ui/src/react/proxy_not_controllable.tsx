@@ -22,26 +22,26 @@ function ProxyNotControllableDialog() {
   }, []);
 
   return (
-    <div className="om-dialog">
-      <p className="om-text-danger" id="js-nc-text">
+    <div className="sa-popup-dialog">
+      <p className="sa-popup-text-danger" id="js-nc-text">
         {mainText}
       </p>
-      <p className="om-dialog-help" id="js-nc-details">
+      <p className="sa-popup-dialog-help" id="js-nc-details">
         {detailsText}
       </p>
-      <p className="om-dialog-controls">
-        <button id="js-close" className="om-btn om-btn-default" type="button" onClick={closePopup}>
+      <p className="sa-popup-dialog-controls">
+        <button id="js-close" className="sa-popup-btn sa-popup-btn-default" type="button" onClick={closePopup}>
           {popupMessage('dialog_cancel')}
         </button>
         <button
           id="js-nc-learn-more"
-          className="om-btn om-btn-link"
+          className="sa-popup-btn sa-popup-btn-link"
           type="button"
           onClick={() => popupBridge().openOptions?.('#!/general', closePopup)}
         >
           Learn More
         </button>
-        <button id="js-manage-ext" className="om-btn om-btn-primary" type="button" onClick={() => popupBridge().openManage?.(closePopup)}>
+        <button id="js-manage-ext" className="sa-popup-btn sa-popup-btn-primary" type="button" onClick={() => popupBridge().openManage?.(closePopup)}>
           {popupMessage('popup_proxyNotControllableManage')}
         </button>
       </p>

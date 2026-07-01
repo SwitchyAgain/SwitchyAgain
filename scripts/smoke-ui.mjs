@@ -355,7 +355,7 @@ const pages = [
     url: extensionServer.url('popup/index.html'),
     selector: '#js-routeinfo',
     click: '#js-routeinfo',
-    afterClickSelector: '.om-route-info'
+    afterClickSelector: '.sa-popup-route-info'
   },
   {
     label: 'popup proxy-not-controllable page',

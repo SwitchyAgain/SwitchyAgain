@@ -63,7 +63,7 @@ function finalLabel(explanation: RequestExplanation, state: PopupState, {showPac
     return (
       <>
         {profile && <ProfileInline profile={profile} availableProfiles={state.availableProfiles} />}
-        <span className="om-route-info-muted">{popupMessage('popup_routeInfoSystem', 'System proxy')}</span>
+        <span className="sa-popup-route-info-muted">{popupMessage('popup_routeInfoSystem', 'System proxy')}</span>
       </>
     );
   }
@@ -71,7 +71,7 @@ function finalLabel(explanation: RequestExplanation, state: PopupState, {showPac
     return (
       <>
         {profile && <ProfileInline profile={profile} availableProfiles={state.availableProfiles} />}
-        <span className="om-route-info-muted">{popupMessage('popup_routeInfoPac', 'PAC script')}</span>
+        <span className="sa-popup-route-info-muted">{popupMessage('popup_routeInfoPac', 'PAC script')}</span>
       </>
     );
   }
@@ -79,7 +79,7 @@ function finalLabel(explanation: RequestExplanation, state: PopupState, {showPac
     return (
       <>
         <ProfileInline profile={profile} availableProfiles={state.availableProfiles} />
-        {showPacResult && final.pacResult && <span className="om-route-info-pac">{final.pacResult}</span>}
+        {showPacResult && final.pacResult && <span className="sa-popup-route-info-pac">{final.pacResult}</span>}
       </>
     );
   }
@@ -151,7 +151,7 @@ function RouteInfoGroupResult({group, loading, state}: {group: RouteInfoGroup; l
   const resultKeys = Object.keys(group.results);
   if (resultKeys.length === 0) {
     return (
-      <span className="om-route-info-pending">
+      <span className="sa-popup-route-info-pending">
         {loading
           ? popupMessage('options_profileDownloadStatusDownloading', 'Loading...')
           : popupMessage('popup_routeInfoUnknown', 'Unknown')}
@@ -163,8 +163,8 @@ function RouteInfoGroupResult({group, loading, state}: {group: RouteInfoGroup; l
   }
   return (
     <>
-      <span className="label label-default om-route-info-mixed">{popupMessage('popup_routeInfoMixed', 'Mixed')}</span>
-      <span className="om-route-info-muted">
+      <span className="label label-default sa-popup-route-info-mixed">{popupMessage('popup_routeInfoMixed', 'Mixed')}</span>
+      <span className="sa-popup-route-info-muted">
         {resultKeys.length} {popupMessage('popup_routeInfoResults', 'results')}
       </span>
     </>
@@ -185,41 +185,41 @@ function RouteInfoList({loading = false, pageInfo, state}: {loading?: boolean; p
   }
   const groups = aggregateRouteInfo(explanations, requests, popupMessage('popup_routeInfoUnknownHost', 'Unknown host'));
   return (
-    <div className="om-route-info-list">
+    <div className="sa-popup-route-info-list">
       {groups.map((group) => {
         return (
-          <div className="om-route-info" key={group.hostname}>
-            <div className="om-route-info-line">
+          <div className="sa-popup-route-info" key={group.hostname}>
+            <div className="sa-popup-route-info-line">
               <span
-                className="label label-info om-route-info-request-count"
+                className="label label-info sa-popup-route-info-request-count"
                 title={`${group.requestCount} ${requestCountText(group.requestCount)}`}
               >
                 {group.requestCount}
               </span>
               {group.errorCount > 0 && (
                 <span
-                  className="label label-warning om-route-info-error-count"
+                  className="label label-warning sa-popup-route-info-error-count"
                   title={`${group.errorCount} ${popupMessage('popup_routeInfoErrors', 'errors')}`}
                 >
                   {group.errorCount}
                 </span>
               )}
-              <span className="om-route-info-host">
-                <strong className="om-route-info-host-text" title={group.hostname}>
+              <span className="sa-popup-route-info-host">
+                <strong className="sa-popup-route-info-host-text" title={group.hostname}>
                   {group.hostname}
                 </strong>
               </span>
-              <span className="om-route-info-result">
+              <span className="sa-popup-route-info-result">
                 <RouteInfoGroupResult group={group} loading={loading} state={state} />
               </span>
             </div>
             {group.errors.map((item) => (
-              <div className="om-route-info-error" key={item}>
+              <div className="sa-popup-route-info-error" key={item}>
                 {item}
               </div>
             ))}
             {group.pacLimited && (
-              <div className="om-route-info-warning">
+              <div className="sa-popup-route-info-warning">
                 {popupMessage('popup_routeInfoPacLimited', 'PAC scripts are delegated to the browser and cannot be fully expanded here.')}
               </div>
             )}
@@ -360,7 +360,7 @@ function PopupApp() {
   }
 
   function visibleLinks() {
-    return Array.from(document.querySelectorAll<HTMLAnchorElement>('.om-nav a')).filter((element) => !element.closest('.om-hidden'));
+    return Array.from(document.querySelectorAll<HTMLAnchorElement>('.sa-popup-nav a')).filter((element) => !element.closest('.sa-popup-hidden'));
   }
 
   function move(delta: number) {
@@ -385,15 +385,15 @@ function PopupApp() {
 
   function openDropdown() {
     const active = document.activeElement as HTMLElement | null;
-    const item = active?.closest<HTMLElement>('.om-nav-item');
+    const item = active?.closest<HTMLElement>('.sa-popup-nav-item');
     const profileName = item?.dataset.defaultProfileName;
     if (profileName) {
       setDefaultMenuOpen(profileName);
-    } else if (item?.classList.contains('om-nav-hidden-profiles')) {
+    } else if (item?.classList.contains('sa-popup-nav-hidden-profiles')) {
       setHiddenMenuOpen(true);
     } else if (item?.dataset.profileScope) {
       setProfileScopeMenuOpen(item.dataset.profileScope);
-    } else if (item?.classList.contains('om-nav-temprule')) {
+    } else if (item?.classList.contains('sa-popup-nav-temp-rule')) {
       setTempMenuOpen(true);
     }
   }
@@ -477,15 +477,15 @@ function PopupApp() {
     if (mode !== 'menu') {
       return;
     }
-    const activeLink = document.querySelector<HTMLAnchorElement>('.om-nav-item.om-active > a');
+    const activeLink = document.querySelector<HTMLAnchorElement>('.sa-popup-nav-item.sa-popup-active > a');
     activeLink?.focus();
   }, [mode, state]);
 
   if (error) {
     return (
-      <form className="condition-form om-popup-form">
+      <form className="condition-form sa-popup-form">
         <fieldset>
-          <p className="om-alert">{error}</p>
+          <p className="sa-popup-alert">{error}</p>
         </fieldset>
       </form>
     );
@@ -493,9 +493,9 @@ function PopupApp() {
 
   if (!state) {
     return (
-      <ul className="om-nav om-nav-loading">
-        <li className="om-nav-item">
-          <span className="om-nav-loading-text" role="status">
+      <ul className="sa-popup-nav sa-popup-nav-loading">
+        <li className="sa-popup-nav-item">
+          <span className="sa-popup-nav-loading-text" role="status">
             {popupMessage('options_profileDownloadStatusDownloading', 'Loading...')}
           </span>
         </li>
@@ -525,7 +525,7 @@ function PopupApp() {
     name: 'system',
     profileType: 'SystemProfile'
   };
-  const currentProfileClass = state.isSystemProfile ? 'om-effective' : 'om-active';
+  const currentProfileClass = state.isSystemProfile ? 'sa-popup-effective' : 'sa-popup-active';
   const tempRuleProfiles = resultProfiles
     .filter((profile) => profile.name.indexOf('__') !== 0)
     .filter((profile) => !!pageInfo?.tempRuleProfileName || resultProfiles.length === 1 || profile.name !== state.currentProfileName);
@@ -538,7 +538,7 @@ function PopupApp() {
   const showProfileScopes = showTabScope || showGroupScope || showContainerScope || showWindowScope;
 
   return (
-    <ul className="om-nav">
+    <ul className="sa-popup-nav">
       <MenuProfileItem
         id="js-direct"
         keyboardKey={keyboardHelp ? '0' : ''}
@@ -567,7 +567,7 @@ function PopupApp() {
           onClick={() => showMode('external')}
         />
       )}
-      <li className="om-divider" />
+      <li className="sa-popup-divider" />
       {customProfiles.map((profile, index) => (
         <MenuProfileItem
           id={`js-profile-${index + 1}`}
@@ -587,7 +587,7 @@ function PopupApp() {
       {hiddenProfiles.length > 0 && (
         <li
           ref={hiddenDropdown.anchorRef}
-          className={`om-nav-item om-nav-hidden-profiles om-has-dropdown ${hiddenMenuOpen ? 'om-open' : ''}`}
+          className={`sa-popup-nav-item sa-popup-nav-hidden-profiles sa-popup-has-dropdown ${hiddenMenuOpen ? 'sa-popup-open' : ''}`}
         >
           <a
             aria-expanded={hiddenMenuOpen}
@@ -602,11 +602,11 @@ function PopupApp() {
             <span className="glyphicon glyphicon-eye-close" />
             <span>
               <span>{popupMessage('popup_hiddenProfilesMenu', 'Hidden')}</span>
-              <span className="om-caret" />
+              <span className="sa-popup-caret" />
             </span>
           </a>
           {hiddenMenuOpen && (
-            <ul ref={hiddenDropdown.dropdownRef} className="om-dropdown om-floating-dropdown" style={hiddenDropdown.dropdownStyle}>
+            <ul ref={hiddenDropdown.dropdownRef} className="sa-popup-dropdown sa-popup-floating-dropdown" style={hiddenDropdown.dropdownStyle}>
               {hiddenProfiles.map((profile, index) => (
                 <MenuProfileItem
                   id={`js-hidden-profile-${index + 1}`}
@@ -628,7 +628,7 @@ function PopupApp() {
       )}
       {showProfileScopes && (
         <>
-          <li className="om-divider" />
+          <li className="sa-popup-divider" />
           {showTabScope && (
             <ProfileScopeMenuItem
               scope="tab"
@@ -687,9 +687,9 @@ function PopupApp() {
           )}
         </>
       )}
-      <li className="om-divider" />
+      <li className="sa-popup-divider" />
       {showAddCondition && (
-        <li className="om-nav-item om-nav-addrule">
+        <li className="sa-popup-nav-item sa-popup-nav-add-rule">
           <a
             href="#!addRule"
             id="js-addrule"
@@ -699,13 +699,13 @@ function PopupApp() {
               showMode('condition');
             }}
           >
-            <span className="glyphicon glyphicon-plus" /> {keyboardHelp && <span className="om-keyboard-help">A</span>}
+            <span className="glyphicon glyphicon-plus" /> {keyboardHelp && <span className="sa-popup-keyboard-help">A</span>}
             <span>{popupMessage('popup_addCondition', 'Add Condition')}</span>
           </a>
         </li>
       )}
       {showTempRule && (
-        <li ref={tempDropdown.anchorRef} className={`om-nav-item om-nav-temprule om-has-dropdown ${tempMenuOpen ? 'om-open' : ''}`}>
+        <li ref={tempDropdown.anchorRef} className={`sa-popup-nav-item sa-popup-nav-temp-rule sa-popup-has-dropdown ${tempMenuOpen ? 'sa-popup-open' : ''}`}>
           <a
             href="#"
             id="js-temprule"
@@ -715,16 +715,16 @@ function PopupApp() {
               setTempMenuOpen(!tempMenuOpen);
             }}
           >
-            <span className="glyphicon glyphicon-filter" /> {keyboardHelp && <span className="om-keyboard-help">T</span>}
+            <span className="glyphicon glyphicon-filter" /> {keyboardHelp && <span className="sa-popup-keyboard-help">T</span>}
             <span>
-              <span className="om-page-domain">{pageInfo?.domain}</span>
-              <span className="om-caret" />
+              <span className="sa-popup-page-domain">{pageInfo?.domain}</span>
+              <span className="sa-popup-caret" />
             </span>
           </a>
           {tempMenuOpen && (
-            <ul ref={tempDropdown.dropdownRef} className="om-dropdown om-floating-dropdown" style={tempDropdown.dropdownStyle}>
+            <ul ref={tempDropdown.dropdownRef} className="sa-popup-dropdown sa-popup-floating-dropdown" style={tempDropdown.dropdownStyle}>
               {tempRuleProfiles.map((profile) => (
-                <li className={`om-nav-item ${profile.name === pageInfo?.tempRuleProfileName ? 'om-active' : ''}`} key={profile.name}>
+                <li className={`sa-popup-nav-item ${profile.name === pageInfo?.tempRuleProfileName ? 'sa-popup-active' : ''}`} key={profile.name}>
                   <a
                     href="#"
                     role="button"
@@ -743,7 +743,7 @@ function PopupApp() {
         </li>
       )}
       {showRouteInfo && (
-        <li className="om-nav-item">
+        <li className="sa-popup-nav-item">
           <a
             href="#!routeInfo"
             id="js-routeinfo"
@@ -753,14 +753,14 @@ function PopupApp() {
               showMode('routeInfo');
             }}
           >
-            <span className="glyphicon glyphicon-road" /> {keyboardHelp && <span className="om-keyboard-help">R</span>}
-            <span className="om-route-info-text">{popupMessage('popup_routeInfoMenu', 'Route Info')}</span>
-            {(pageInfo?.errorCount || 0) > 0 && <span className="label label-warning om-route-info-count">{pageInfo?.errorCount}</span>}
+            <span className="glyphicon glyphicon-road" /> {keyboardHelp && <span className="sa-popup-keyboard-help">R</span>}
+            <span className="sa-popup-route-info-text">{popupMessage('popup_routeInfoMenu', 'Route Info')}</span>
+            {(pageInfo?.errorCount || 0) > 0 && <span className="label label-warning sa-popup-route-info-count">{pageInfo?.errorCount}</span>}
           </a>
         </li>
       )}
-      <li className="om-divider" />
-      <li className="om-nav-item">
+      <li className="sa-popup-divider" />
+      <li className="sa-popup-nav-item">
         <a
           href="../options.html"
           target="_blank"
@@ -771,7 +771,7 @@ function PopupApp() {
             showOptions();
           }}
         >
-          <span className="glyphicon glyphicon-wrench" /> {keyboardHelp && <span className="om-keyboard-help">O</span>}
+          <span className="glyphicon glyphicon-wrench" /> {keyboardHelp && <span className="sa-popup-keyboard-help">O</span>}
           <span>{popupMessage('popup_showOptions', 'Options')}</span>
         </a>
       </li>
@@ -781,7 +781,7 @@ function PopupApp() {
 
 function MenuProfileItem({
   active = false,
-  currentProfileClass = 'om-active',
+  currentProfileClass = 'sa-popup-active',
   defaultMenuOpen = false,
   effective = false,
   id,
@@ -814,11 +814,11 @@ function MenuProfileItem({
     .filter((item): item is Profile => !!item)
     .sort(compareProfile);
   const classes = [
-    'om-nav-item',
+    'sa-popup-nav-item',
     active ? currentProfileClass : '',
-    effective ? 'om-effective' : '',
-    hasDefaultMenu ? 'om-has-dropdown' : '',
-    defaultMenuOpen ? 'om-open' : ''
+    effective ? 'sa-popup-effective' : '',
+    hasDefaultMenu ? 'sa-popup-has-dropdown' : '',
+    defaultMenuOpen ? 'sa-popup-open' : ''
   ]
     .filter(Boolean)
     .join(' ');
@@ -826,7 +826,7 @@ function MenuProfileItem({
   return (
     <li ref={dropdown.anchorRef} className={classes} data-default-profile-name={hasDefaultMenu ? profile?.name : undefined}>
       <a
-        className={hasDefaultMenu ? 'om-has-edit' : ''}
+        className={hasDefaultMenu ? 'sa-popup-has-edit' : ''}
         href="#"
         id={id}
         role="button"
@@ -837,10 +837,10 @@ function MenuProfileItem({
         }}
       >
         <ProfileInline legacySpacing profile={profile} availableProfiles={state.availableProfiles} label={text} />
-        {keyboardKey && <span className="om-keyboard-help">{keyboardKey}</span>}
+        {keyboardKey && <span className="sa-popup-keyboard-help">{keyboardKey}</span>}
         {hasDefaultMenu && (
           <div
-            className="om-edit-toggle"
+            className="sa-popup-edit-toggle"
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();
@@ -852,9 +852,9 @@ function MenuProfileItem({
         )}
       </a>
       {hasDefaultMenu && defaultMenuOpen && (
-        <ul ref={dropdown.dropdownRef} className="om-dropdown om-floating-dropdown" style={dropdown.dropdownStyle}>
+        <ul ref={dropdown.dropdownRef} className="sa-popup-dropdown sa-popup-floating-dropdown" style={dropdown.dropdownStyle}>
           {resultProfiles.map((resultProfile) => (
-            <li className={`om-nav-item ${resultProfile.name === profile?.defaultProfileName ? 'om-active' : ''}`} key={resultProfile.name}>
+            <li className={`sa-popup-nav-item ${resultProfile.name === profile?.defaultProfileName ? 'sa-popup-active' : ''}`} key={resultProfile.name}>
               <a
                 href="#"
                 role="button"
@@ -901,7 +901,7 @@ function ProfileScopeMenuItem({
   return (
     <li
       ref={dropdown.anchorRef}
-      className={`om-nav-item om-nav-profile-scope om-has-dropdown ${activeProfile ? 'om-active' : ''} ${open ? 'om-open' : ''}`}
+      className={`sa-popup-nav-item sa-popup-nav-profile-scope sa-popup-has-dropdown ${activeProfile ? 'sa-popup-active' : ''} ${open ? 'sa-popup-open' : ''}`}
       data-profile-scope={scope}
     >
       <a
@@ -916,12 +916,12 @@ function ProfileScopeMenuItem({
         <span className={`glyphicon ${icon}`} />
         <span>
           <span>{text}</span>
-          <span className="om-caret" />
+          <span className="sa-popup-caret" />
         </span>
       </a>
       {open && (
-        <ul ref={dropdown.dropdownRef} className="om-dropdown om-floating-dropdown" style={dropdown.dropdownStyle}>
-          <li className={`om-nav-item ${activeProfileName ? '' : 'om-active'}`}>
+        <ul ref={dropdown.dropdownRef} className="sa-popup-dropdown sa-popup-floating-dropdown" style={dropdown.dropdownStyle}>
+          <li className={`sa-popup-nav-item ${activeProfileName ? '' : 'sa-popup-active'}`}>
             <a
               href="#"
               role="button"
@@ -934,7 +934,7 @@ function ProfileScopeMenuItem({
             </a>
           </li>
           {profiles.map((profile) => (
-            <li className={`om-nav-item ${profile.name === activeProfileName ? 'om-active' : ''}`} key={profile.name}>
+            <li className={`sa-popup-nav-item ${profile.name === activeProfileName ? 'sa-popup-active' : ''}`} key={profile.name}>
               <a
                 href="#"
                 role="button"
@@ -991,7 +991,7 @@ function ConditionForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
   }
 
   return (
-    <form className="condition-form om-popup-form" onSubmit={submitCondition}>
+    <form className="condition-form sa-popup-form" onSubmit={submitCondition}>
       <fieldset>
         <legend>
           {popupMessage('popup_addConditionTo', 'Add condition to')}
@@ -1002,7 +1002,7 @@ function ConditionForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
             />
           </span>
         </legend>
-        {error && <p className="om-alert">{error}</p>}
+        {error && <p className="sa-popup-alert">{error}</p>}
         <div className="form-group">
           <label>
             {popupMessage('options_conditionType', 'Condition Type')}{' '}
@@ -1129,10 +1129,10 @@ function RouteInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
   }
 
   return (
-    <form className="route-info-details om-popup-form" onSubmit={submitRouteInfo}>
+    <form className="route-info-details sa-popup-form" onSubmit={submitRouteInfo}>
       <fieldset>
         <legend>{popupMessage('popup_routeInfoHeading', 'Route Info')}</legend>
-        {error && <p className="om-alert">{error}</p>}
+        {error && <p className="sa-popup-alert">{error}</p>}
         {tempRulesActive && (
           <p className="help-block text-warning">
             {popupMessage(
@@ -1147,7 +1147,7 @@ function RouteInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
         <RouteInfoList loading={loadingExplanations || needsExplanations} pageInfo={detailPageInfo} state={state} />
 
         {hasRequestFailures && (
-          <div className="om-route-info-add-condition">
+          <div className="sa-popup-route-info-add-condition">
             <div className="text-warning">{popupMessage('popup_requestErrorWarning', 'Some requests have failed.')}</div>
             <p className="help-block">{popupMessage('popup_requestErrorWarningHelp', 'You can add conditions for failed domains.')}</p>
             {state.currentProfileCanAddRule ? (
@@ -1157,7 +1157,7 @@ function RouteInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
                 {popupMessage('popup_requestErrorCannotAddCondition', 'The current profile cannot accept new conditions.')}
               </p>
             )}
-            <div className="om-domain-list">
+            <div className="sa-popup-domain-list">
               {domains.map((domain, index) => (
                 <div className="checkbox" key={domain.domain}>
                   <label>
@@ -1240,19 +1240,19 @@ function ExternalProfileForm({state, onClose}: {state: PopupState; onClose: () =
   }
 
   return (
-    <form className="condition-form om-popup-form" onSubmit={submitExternal}>
+    <form className="condition-form sa-popup-form" onSubmit={submitExternal}>
       <fieldset>
         <legend>{popupMessage('popup_externalProfile', 'External Profile')}</legend>
-        {error && <p className="om-alert">{error}</p>}
+        {error && <p className="sa-popup-alert">{error}</p>}
         <div className="form-group">
           <label>{popupMessage('popup_externalProfileName', 'Profile name')}</label>
           <input className="form-control" autoFocus value={externalName} onChange={(event) => setExternalName(event.currentTarget.value)} />
         </div>
         {externalNameConflict && (
-          <p className="om-alert">{popupMessage('options_profileNameConflict', 'A profile with this name already exists.')}</p>
+          <p className="sa-popup-alert">{popupMessage('options_profileNameConflict', 'A profile with this name already exists.')}</p>
         )}
         {externalNameHidden && (
-          <p className="om-alert">
+          <p className="sa-popup-alert">
             {popupMessage('options_profileNameHidden', 'Profiles with names starting with underscore will be hidden on the popup menu.')}
           </p>
         )}
@@ -1343,10 +1343,10 @@ function ProfileInline({
     ? iconForProfileType[targetProfile.profileType] || 'glyphicon-question-sign'
     : 'glyphicon-question-sign';
   const virtual = !!(profile && targetProfile && profile !== targetProfile);
-  const iconClasses = ['glyphicon', legacySpacing ? '' : 'om-profile-icon', iconClass, virtual ? 'om-virtual-profile-icon' : '']
+  const iconClasses = ['glyphicon', legacySpacing ? '' : 'sa-popup-profile-icon', iconClass, virtual ? 'sa-popup-virtual-profile-icon' : '']
     .filter(Boolean)
     .join(' ');
-  const nameClass = legacySpacing ? 'om-profile-name om-profile-name-legacy' : 'om-profile-name';
+  const nameClass = legacySpacing ? 'sa-popup-profile-name sa-popup-profile-name-legacy' : 'sa-popup-profile-name';
   if (legacySpacing) {
     return (
       <>
