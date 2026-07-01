@@ -1429,17 +1429,14 @@ msgid "popup_errorLog"
 msgstr "Guardar registro de errores"
 
 msgid "popup_requestErrorWarning"
-msgstr ""
-"Algunos recursos no se pudieron cargar debido a problemas con tu red, "
-"servidor proxy o la página web."
+msgstr "Algunos recursos no se pudieron cargar."
 
 msgid "popup_requestErrorWarningHelp"
 msgstr ""
 "SwitchyAgain es solo el informador de estos problemas, no la causa de ellos."
 
 msgid "popup_requestErrorAddCondition"
-msgstr ""
-"Puede revisar los siguientes dominios y usar un proxy cuando sea apropiado."
+msgstr "Revisa los dominios siguientes y añade reglas de proxy si es necesario."
 
 msgid "popup_requestErrorCannotAddCondition"
 msgstr ""

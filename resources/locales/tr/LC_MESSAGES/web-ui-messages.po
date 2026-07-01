@@ -1222,13 +1222,13 @@ msgid "popup_errorLog"
 msgstr "Hata kayıtlarını kaydet"
 
 msgid "popup_requestErrorWarning"
-msgstr ""
+msgstr "Bazı kaynaklar yüklenemedi."
 
 msgid "popup_requestErrorWarningHelp"
 msgstr ""
 
 msgid "popup_requestErrorAddCondition"
-msgstr ""
+msgstr "Aşağıdaki alan adlarını gözden geçirin ve gerekirse proxy kuralları ekleyin."
 
 msgid "popup_requestErrorCannotAddCondition"
 msgstr ""

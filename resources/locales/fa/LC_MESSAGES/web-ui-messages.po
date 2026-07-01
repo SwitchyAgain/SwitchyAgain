@@ -1388,18 +1388,14 @@ msgid "popup_errorLog"
 msgstr "ذخیره لاگ خطا"
 
 msgid "popup_requestErrorWarning"
-msgstr ""
-"بارگزاری تعدا کمی از منابع بخاطر مشکلات شبکه ، سرور پروکسی یا صفحه ی وب به "
-"مشکل برخورد ."
+msgstr "برخی منابع بارگیری نشدند."
 
 msgid "popup_requestErrorWarningHelp"
 msgstr ""
 "SwitchyAgain تنها گزارش دهنده این خطاها میباشد ، نه ایجاد کننده ی آن ها ."
 
 msgid "popup_requestErrorAddCondition"
-msgstr ""
-"شما میتوانید دامین های زیر را بررسی کنید و در صورت نیاز از پروکسی برای آن ها "
-"استفاده نمایید ."
+msgstr "دامنه‌های زیر را بررسی کنید و در صورت نیاز قوانین پروکسی اضافه کنید."
 
 msgid "popup_requestErrorCannotAddCondition"
 msgstr ""

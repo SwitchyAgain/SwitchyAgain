@@ -1211,13 +1211,13 @@ msgid "popup_errorLog"
 msgstr "儲存錯誤記錄"
 
 msgid "popup_requestErrorWarning"
-msgstr "由於網路原因，此頁面部分資源載入失敗。這些問題可能是由您的網路、代理伺服器或網站本身引起的。"
+msgstr "部分資源載入失敗。"
 
 msgid "popup_requestErrorWarningHelp"
 msgstr "這些問題並非由 SwitchyAgain 自身導致，它只不過偵測並報告了錯誤而已。"
 
 msgid "popup_requestErrorAddCondition"
-msgstr "您可以檢視以下網域，並依據實際情況確定是否對其使用代理。"
+msgstr "檢視以下網域，並視需要新增代理規則。"
 
 msgid "popup_requestErrorCannotAddCondition"
 msgstr "在使用自動切換情境時，才可以將這些資源新增為切換條件。"

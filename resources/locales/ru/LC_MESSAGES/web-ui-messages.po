@@ -1411,17 +1411,13 @@ msgid "popup_errorLog"
 msgstr "Сохранить журнал ошибок"
 
 msgid "popup_requestErrorWarning"
-msgstr ""
-"Невозможно загрузить несколько ресурсов из-за проблем с сетью, прокси-"
-"сервером или веб-страницей."
+msgstr "Некоторые ресурсы не удалось загрузить."
 
 msgid "popup_requestErrorWarningHelp"
 msgstr "SwitchyAgain просто сообщает о них, а не является причиной."
 
 msgid "popup_requestErrorAddCondition"
-msgstr ""
-"Вы можете просмотреть следующие домены и использовать прокси для них при "
-"необходимости."
+msgstr "Просмотрите домены ниже и при необходимости добавьте правила прокси."
 
 msgid "popup_requestErrorCannotAddCondition"
 msgstr ""

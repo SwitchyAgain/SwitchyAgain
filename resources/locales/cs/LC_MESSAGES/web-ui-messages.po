@@ -1377,15 +1377,13 @@ msgid "popup_errorLog"
 msgstr "Uložit protokol chyb"
 
 msgid "popup_requestErrorWarning"
-msgstr "Několik zdrojů se nepodařilo načíst kvůli potížím se sítí."
+msgstr "Některé zdroje se nepodařilo načíst."
 
 msgid "popup_requestErrorWarningHelp"
 msgstr "SwitchyAgain jen reportuje tyto chyby, ale není příčinou těchto chyb."
 
 msgid "popup_requestErrorAddCondition"
-msgstr ""
-"Můžete zkontrolovat následující domény a použít proxy server pro ně v "
-"případě potřeby."
+msgstr "Zkontrolujte níže uvedené domény a v případě potřeby přidejte pravidla proxy."
 
 msgid "popup_requestErrorCannotAddCondition"
 msgstr ""

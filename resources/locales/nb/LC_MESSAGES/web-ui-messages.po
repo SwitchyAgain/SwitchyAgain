@@ -1222,17 +1222,13 @@ msgid "popup_errorLog"
 msgstr "Lagre feilrettingslogg"
 
 msgid "popup_requestErrorWarning"
-msgstr ""
-"En del ressurser kunne ikke lastes inn på grunn av feil med ditt nettverk, "
-"mellomtjeneren eller nettsiden."
+msgstr "Noen ressurser kunne ikke lastes inn."
 
 msgid "popup_requestErrorWarningHelp"
 msgstr "SwitchyAgain rapporterer bare disse feilene, det er ikke opphavet."
 
 msgid "popup_requestErrorAddCondition"
-msgstr ""
-"Du kan se over følgende domener og bruke mellomtjener for dem når det høver "
-"seg."
+msgstr "Se over domenene nedenfor og legg til mellomtjenerregler ved behov."
 
 msgid "popup_requestErrorCannotAddCondition"
 msgstr ""
