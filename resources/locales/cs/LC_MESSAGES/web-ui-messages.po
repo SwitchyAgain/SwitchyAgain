@@ -617,6 +617,21 @@ msgstr ""
 msgid "options_profileTabPrefix"
 msgstr "Profil :: "
 
+msgid "options_profileColor"
+msgstr "Barva profilu"
+
+msgid "options_profileUseColor"
+msgstr "Použít barvu $1"
+
+msgid "options_profileHexColor"
+msgstr "Hexadecimální barva"
+
+msgid "options_profileApplyColor"
+msgstr "Použít"
+
+msgid "options_profileCustomColor"
+msgstr "Vlastní"
+
 msgid "options_renameProfile"
 msgstr "Přejmenovat"
 

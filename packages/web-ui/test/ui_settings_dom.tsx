@@ -143,9 +143,7 @@ describe('ui settings component', () => {
     );
     expect(document.documentElement.classList.contains('theme-dark')).toBe(false);
 
-    fireEvent.click(
-      container.querySelector('.profile-select:not(.ui-locale-select):not(.ui-theme-select) button') as HTMLButtonElement
-    );
+    fireEvent.click(container.querySelector('.profile-select:not(.ui-locale-select):not(.ui-theme-select) button') as HTMLButtonElement);
     fireEvent.click(screen.getByRole('option', {name: 'proxy'}).querySelector('a') as HTMLAnchorElement);
     expect(onOptionsChange).toHaveBeenLastCalledWith(
       expect.objectContaining({

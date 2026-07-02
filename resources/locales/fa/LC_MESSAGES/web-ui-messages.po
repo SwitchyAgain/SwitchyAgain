@@ -622,6 +622,21 @@ msgstr ""
 msgid "options_profileTabPrefix"
 msgstr "نمایه :: "
 
+msgid "options_profileColor"
+msgstr "رنگ نمایه"
+
+msgid "options_profileUseColor"
+msgstr "استفاده از رنگ $1"
+
+msgid "options_profileHexColor"
+msgstr "رنگ هگز"
+
+msgid "options_profileApplyColor"
+msgstr "اعمال"
+
+msgid "options_profileCustomColor"
+msgstr "سفارشی"
+
 msgid "options_renameProfile"
 msgstr "تغییر نام"
 

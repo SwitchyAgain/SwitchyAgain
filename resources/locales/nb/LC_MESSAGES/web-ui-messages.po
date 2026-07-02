@@ -545,6 +545,21 @@ msgstr ""
 msgid "options_profileTabPrefix"
 msgstr ""
 
+msgid "options_profileColor"
+msgstr "Profilfarge"
+
+msgid "options_profileUseColor"
+msgstr "Bruk fargen $1"
+
+msgid "options_profileHexColor"
+msgstr "Heksadesimal farge"
+
+msgid "options_profileApplyColor"
+msgstr "Bruk"
+
+msgid "options_profileCustomColor"
+msgstr "Egendefinert"
+
 msgid "options_renameProfile"
 msgstr "Gi nytt navn"
 

@@ -41,7 +41,12 @@ function ProxyNotControllableDialog() {
         >
           Learn More
         </button>
-        <button id="js-manage-ext" className="sa-popup-btn sa-popup-btn-primary" type="button" onClick={() => popupBridge().openManage?.(closePopup)}>
+        <button
+          id="js-manage-ext"
+          className="sa-popup-btn sa-popup-btn-primary"
+          type="button"
+          onClick={() => popupBridge().openManage?.(closePopup)}
+        >
           {popupMessage('popup_proxyNotControllableManage')}
         </button>
       </p>

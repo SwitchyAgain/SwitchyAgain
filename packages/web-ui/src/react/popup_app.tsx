@@ -360,7 +360,9 @@ function PopupApp() {
   }
 
   function visibleLinks() {
-    return Array.from(document.querySelectorAll<HTMLAnchorElement>('.sa-popup-nav a')).filter((element) => !element.closest('.sa-popup-hidden'));
+    return Array.from(document.querySelectorAll<HTMLAnchorElement>('.sa-popup-nav a')).filter(
+      (element) => !element.closest('.sa-popup-hidden')
+    );
   }
 
   function move(delta: number) {
@@ -606,7 +608,11 @@ function PopupApp() {
             </span>
           </a>
           {hiddenMenuOpen && (
-            <ul ref={hiddenDropdown.dropdownRef} className="sa-popup-dropdown sa-popup-floating-dropdown" style={hiddenDropdown.dropdownStyle}>
+            <ul
+              ref={hiddenDropdown.dropdownRef}
+              className="sa-popup-dropdown sa-popup-floating-dropdown"
+              style={hiddenDropdown.dropdownStyle}
+            >
               {hiddenProfiles.map((profile, index) => (
                 <MenuProfileItem
                   id={`js-hidden-profile-${index + 1}`}
@@ -705,7 +711,10 @@ function PopupApp() {
         </li>
       )}
       {showTempRule && (
-        <li ref={tempDropdown.anchorRef} className={`sa-popup-nav-item sa-popup-nav-temp-rule sa-popup-has-dropdown ${tempMenuOpen ? 'sa-popup-open' : ''}`}>
+        <li
+          ref={tempDropdown.anchorRef}
+          className={`sa-popup-nav-item sa-popup-nav-temp-rule sa-popup-has-dropdown ${tempMenuOpen ? 'sa-popup-open' : ''}`}
+        >
           <a
             href="#"
             id="js-temprule"
@@ -724,7 +733,10 @@ function PopupApp() {
           {tempMenuOpen && (
             <ul ref={tempDropdown.dropdownRef} className="sa-popup-dropdown sa-popup-floating-dropdown" style={tempDropdown.dropdownStyle}>
               {tempRuleProfiles.map((profile) => (
-                <li className={`sa-popup-nav-item ${profile.name === pageInfo?.tempRuleProfileName ? 'sa-popup-active' : ''}`} key={profile.name}>
+                <li
+                  className={`sa-popup-nav-item ${profile.name === pageInfo?.tempRuleProfileName ? 'sa-popup-active' : ''}`}
+                  key={profile.name}
+                >
                   <a
                     href="#"
                     role="button"
@@ -755,7 +767,9 @@ function PopupApp() {
           >
             <span className="glyphicon glyphicon-road" /> {keyboardHelp && <span className="sa-popup-keyboard-help">R</span>}
             <span className="sa-popup-route-info-text">{popupMessage('popup_routeInfoMenu', 'Route Info')}</span>
-            {(pageInfo?.errorCount || 0) > 0 && <span className="label label-warning sa-popup-route-info-count">{pageInfo?.errorCount}</span>}
+            {(pageInfo?.errorCount || 0) > 0 && (
+              <span className="label label-warning sa-popup-route-info-count">{pageInfo?.errorCount}</span>
+            )}
           </a>
         </li>
       )}
@@ -854,7 +868,10 @@ function MenuProfileItem({
       {hasDefaultMenu && defaultMenuOpen && (
         <ul ref={dropdown.dropdownRef} className="sa-popup-dropdown sa-popup-floating-dropdown" style={dropdown.dropdownStyle}>
           {resultProfiles.map((resultProfile) => (
-            <li className={`sa-popup-nav-item ${resultProfile.name === profile?.defaultProfileName ? 'sa-popup-active' : ''}`} key={resultProfile.name}>
+            <li
+              className={`sa-popup-nav-item ${resultProfile.name === profile?.defaultProfileName ? 'sa-popup-active' : ''}`}
+              key={resultProfile.name}
+            >
               <a
                 href="#"
                 role="button"
@@ -1150,7 +1167,9 @@ function RouteInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
           <div className="sa-popup-route-info-add-condition">
             <div className="text-warning">{popupMessage('popup_requestErrorWarning', 'Some resources failed to load.')}</div>
             {state.currentProfileCanAddRule ? (
-              <p className="help-block">{popupMessage('popup_requestErrorAddCondition', 'Review the domains below and add proxy rules if needed.')}</p>
+              <p className="help-block">
+                {popupMessage('popup_requestErrorAddCondition', 'Review the domains below and add proxy rules if needed.')}
+              </p>
             ) : (
               <p className="help-block">
                 {popupMessage(
@@ -1294,12 +1313,7 @@ function ProfileSelect({
     onChange(profileName);
     setOpen(false);
   };
-  const selectClasses = [
-    'btn-group',
-    'profile-select',
-    expandDropdownInFlow ? 'profile-select-in-flow' : '',
-    open ? 'open' : ''
-  ]
+  const selectClasses = ['btn-group', 'profile-select', expandDropdownInFlow ? 'profile-select-in-flow' : '', open ? 'open' : '']
     .filter(Boolean)
     .join(' ');
   return (

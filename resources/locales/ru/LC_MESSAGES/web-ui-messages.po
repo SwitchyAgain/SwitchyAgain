@@ -636,6 +636,21 @@ msgstr ""
 msgid "options_profileTabPrefix"
 msgstr "Профиль: "
 
+msgid "options_profileColor"
+msgstr "Цвет профиля"
+
+msgid "options_profileUseColor"
+msgstr "Использовать цвет $1"
+
+msgid "options_profileHexColor"
+msgstr "Цвет HEX"
+
+msgid "options_profileApplyColor"
+msgstr "Применить"
+
+msgid "options_profileCustomColor"
+msgstr "Другой"
+
 msgid "options_renameProfile"
 msgstr "Переименовать"
 

@@ -554,6 +554,21 @@ msgstr "此情景模式使用存储空间过多，因此无法进行同步。"
 msgid "options_profileTabPrefix"
 msgstr "情景模式： "
 
+msgid "options_profileColor"
+msgstr "情景模式颜色"
+
+msgid "options_profileUseColor"
+msgstr "使用颜色 $1"
+
+msgid "options_profileHexColor"
+msgstr "十六进制颜色"
+
+msgid "options_profileApplyColor"
+msgstr "应用"
+
+msgid "options_profileCustomColor"
+msgstr "自定义"
+
 msgid "options_renameProfile"
 msgstr "更改名称"
 

@@ -543,6 +543,21 @@ msgstr "此情境模式使用儲存空間過多，因此無法進行同步。"
 msgid "options_profileTabPrefix"
 msgstr "情境模式： "
 
+msgid "options_profileColor"
+msgstr "情境模式顏色"
+
+msgid "options_profileUseColor"
+msgstr "使用顏色 $1"
+
+msgid "options_profileHexColor"
+msgstr "十六進位顏色"
+
+msgid "options_profileApplyColor"
+msgstr "套用"
+
+msgid "options_profileCustomColor"
+msgstr "自訂"
+
 msgid "options_renameProfile"
 msgstr "變更名稱"
 

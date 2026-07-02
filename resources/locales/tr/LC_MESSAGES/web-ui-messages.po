@@ -545,6 +545,21 @@ msgstr ""
 msgid "options_profileTabPrefix"
 msgstr "Profil :: "
 
+msgid "options_profileColor"
+msgstr "Profil rengi"
+
+msgid "options_profileUseColor"
+msgstr "$1 rengini kullan"
+
+msgid "options_profileHexColor"
+msgstr "Onaltılık renk"
+
+msgid "options_profileApplyColor"
+msgstr "Uygula"
+
+msgid "options_profileCustomColor"
+msgstr "Özel"
+
 msgid "options_renameProfile"
 msgstr "Yeniden adlandır"
 
