@@ -1839,6 +1839,7 @@ export function OptionsApp() {
             currentState={route.name}
             generalHref={routeHref('general')}
             importExportHref={routeHref('io')}
+            keepSettingsExpanded={options ? options['-keepSettingsExpanded'] !== false : undefined}
             onApply={requestApplyOptions}
             onDeleteProfile={requestDeleteProfile}
             onDiscard={discardOptions}
@@ -1854,6 +1855,7 @@ export function OptionsApp() {
             onRenameProfile={(profile) => requestRenameProfile(profile, {navigateAfterRename: false})}
             options={options}
             optionsDirty={dirty || pendingSourceDraftDirty || status === 'saving'}
+            profileActionMenuOptions={options?.['-profileActionMenuOptions'] || null}
             profileHref={(profile) => routeHref('profile', {name: profile.name})}
             profileScopeHref={routeHref('profileScope')}
             routeTraceHref={routeHref('routeTrace')}

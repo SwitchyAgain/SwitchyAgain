@@ -11,7 +11,7 @@ import {Profile, ProfileInline, ProfileSelect, allProfilesFromOptions, profileBy
 import {DEFAULT_PROXY_DNS_CAPABILITIES, cloneOptions} from './options_logic';
 import {UI_THEME_ICON, UI_THEMES, uiThemeForOptions} from './ui_theme';
 import type {UiTheme} from './ui_theme';
-import type {ProxyDnsCapabilities} from './profile_types';
+import type {ProfileActionMenuOptions, ProxyDnsCapabilities} from './profile_types';
 import {
   moveQuickSwitchProfileName,
   notCycledProfileNames,
@@ -49,6 +49,8 @@ type ContextMenuOptions = {
   tabProfile: boolean;
   windowProfile: boolean;
 };
+
+type ProfileActionMenuOptionKey = keyof Required<ProfileActionMenuOptions>;
 
 const DEFAULT_PROFILE_SCOPE_CAPABILITIES: ProfileScopeCapabilities = {
   container: false,
@@ -105,6 +107,17 @@ function contextMenuOptionsForOptions(options?: Options | null): ContextMenuOpti
     linkProfileNewTab: contextMenuOptions.linkProfileNewTab === true,
     linkProfileNewWindow: contextMenuOptions.linkProfileNewWindow === true,
     linkProfileNewPrivateWindow: contextMenuOptions.linkProfileNewPrivateWindow === true
+  };
+}
+
+function profileActionMenuOptionsForOptions(options?: Options | null): Required<ProfileActionMenuOptions> {
+  const raw = options?.['-profileActionMenuOptions'];
+  const profileActionMenuOptions = raw && typeof raw === 'object' ? (raw as ProfileActionMenuOptions) : {};
+  return {
+    browserColor: profileActionMenuOptions.browserColor === true,
+    browserExport: profileActionMenuOptions.browserExport !== false,
+    sidebarColor: profileActionMenuOptions.sidebarColor === true,
+    sidebarExport: profileActionMenuOptions.sidebarExport !== false
   };
 }
 
@@ -359,6 +372,16 @@ export function UiSettings({
     }));
   }
 
+  function updateProfileActionMenuOption(key: ProfileActionMenuOptionKey, enabled: boolean) {
+    updateOptions((current) => ({
+      ...current,
+      '-profileActionMenuOptions': {
+        ...profileActionMenuOptionsForOptions(current),
+        [key]: enabled
+      }
+    }));
+  }
+
   function updateQuickSwitchProfiles(profiles: string[]) {
     updateOption('-quickSwitchProfiles', profiles);
   }
@@ -481,6 +504,7 @@ export function UiSettings({
   const notCycledProfiles = notCycledProfileNames(allProfiles, quickSwitchProfiles);
   const profileScopes = profileScopesForOptions(draftOptions);
   const contextMenuOptions = contextMenuOptionsForOptions(draftOptions);
+  const profileActionMenuOptions = profileActionMenuOptionsForOptions(draftOptions);
   const contextMenuCapabilities = contextMenuCapabilitiesForProfileScope(profileScopeCapabilities);
   const socks5LocalDnsSupported = proxyDnsCapabilities.socks5 === true;
 
@@ -675,6 +699,16 @@ export function UiSettings({
           <label>
             <input
               type="checkbox"
+              checked={draftOptions['-keepSettingsExpanded'] !== false}
+              onChange={(event) => updateOption('-keepSettingsExpanded', event.currentTarget.checked)}
+            />
+            <span> {message('options_keepSettingsExpanded', 'Keep Settings expanded in the sidebar.')}</span>
+          </label>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
               checked={Boolean(draftOptions['-showCurrentProfileInGeneral'])}
               onChange={(event) => updateOption('-showCurrentProfileInGeneral', event.currentTarget.checked)}
             />
@@ -715,7 +749,7 @@ export function UiSettings({
               {' '}
               {message(
                 'options_showProfileOptions',
-                'Show Profile Options on profile pages for hiding profiles from the popup and context menus.'
+                'Show Profile Options on profile pages for hiding profiles from the popup menu, context menu, and options sidebar.'
               )}
             </span>
           </label>
@@ -817,6 +851,50 @@ export function UiSettings({
           messageKey="options_contextMenuOpenLinkInNewPrivateWindowWithProfile"
           fallback="Show Open Link in New Private Window with Profile"
         />
+      </section>
+
+      <section className="settings-group">
+        <h3>{message('options_group_profileActionMenuOptions', 'Action Menu')}</h3>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={profileActionMenuOptions.sidebarColor}
+              onChange={(event) => updateProfileActionMenuOption('sidebarColor', event.currentTarget.checked)}
+            />
+            <span> {message('options_profileActionMenuSidebarColor', 'Show profile color in sidebar profile action menus.')}</span>
+          </label>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={profileActionMenuOptions.browserColor}
+              onChange={(event) => updateProfileActionMenuOption('browserColor', event.currentTarget.checked)}
+            />
+            <span> {message('options_profileActionMenuBrowserColor', 'Show profile color in profile browser action menus.')}</span>
+          </label>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={profileActionMenuOptions.sidebarExport}
+              onChange={(event) => updateProfileActionMenuOption('sidebarExport', event.currentTarget.checked)}
+            />
+            <span> {message('options_profileActionMenuSidebarExport', 'Show export actions in sidebar profile action menus.')}</span>
+          </label>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={profileActionMenuOptions.browserExport}
+              onChange={(event) => updateProfileActionMenuOption('browserExport', event.currentTarget.checked)}
+            />
+            <span> {message('options_profileActionMenuBrowserExport', 'Show export actions in profile browser action menus.')}</span>
+          </label>
+        </div>
       </section>
 
       <section className="settings-group">

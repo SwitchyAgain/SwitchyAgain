@@ -77,10 +77,22 @@ describe('ui settings component', () => {
       })
     );
 
-    fireEvent.click(screen.getByLabelText('Show Profile Options on profile pages for hiding profiles from the popup and context menus.'));
+    fireEvent.click(
+      screen.getByLabelText(
+        'Show Profile Options on profile pages for hiding profiles from the popup menu, context menu, and options sidebar.'
+      )
+    );
     expect(onOptionsChange).toHaveBeenLastCalledWith(
       expect.objectContaining({
         '-showProfileOptions': true
+      })
+    );
+
+    expect((screen.getByLabelText('Keep Settings expanded in the sidebar.') as HTMLInputElement).checked).toBe(true);
+    fireEvent.click(screen.getByLabelText('Keep Settings expanded in the sidebar.'));
+    expect(onOptionsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        '-keepSettingsExpanded': false
       })
     );
 
@@ -95,6 +107,59 @@ describe('ui settings component', () => {
     expect(onOptionsChange).toHaveBeenLastCalledWith(
       expect.objectContaining({
         '-showRouteTrace': false
+      })
+    );
+
+    expect((screen.getByLabelText('Show profile color in sidebar profile action menus.') as HTMLInputElement).checked).toBe(false);
+    expect((screen.getByLabelText('Show profile color in profile browser action menus.') as HTMLInputElement).checked).toBe(false);
+    expect((screen.getByLabelText('Show export actions in sidebar profile action menus.') as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByLabelText('Show export actions in profile browser action menus.') as HTMLInputElement).checked).toBe(true);
+
+    fireEvent.click(screen.getByLabelText('Show profile color in sidebar profile action menus.'));
+    expect(onOptionsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        '-profileActionMenuOptions': {
+          browserColor: false,
+          browserExport: true,
+          sidebarColor: true,
+          sidebarExport: true
+        }
+      })
+    );
+
+    fireEvent.click(screen.getByLabelText('Show profile color in profile browser action menus.'));
+    expect(onOptionsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        '-profileActionMenuOptions': {
+          browserColor: true,
+          browserExport: true,
+          sidebarColor: true,
+          sidebarExport: true
+        }
+      })
+    );
+
+    fireEvent.click(screen.getByLabelText('Show export actions in sidebar profile action menus.'));
+    expect(onOptionsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        '-profileActionMenuOptions': {
+          browserColor: true,
+          browserExport: true,
+          sidebarColor: true,
+          sidebarExport: false
+        }
+      })
+    );
+
+    fireEvent.click(screen.getByLabelText('Show export actions in profile browser action menus.'));
+    expect(onOptionsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        '-profileActionMenuOptions': {
+          browserColor: true,
+          browserExport: false,
+          sidebarColor: true,
+          sidebarExport: false
+        }
       })
     );
 

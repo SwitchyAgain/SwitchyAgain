@@ -1,8 +1,9 @@
-import React, {useCallback, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {useOutsidePointer} from './dom_event_hooks';
 import {message} from './i18n_client';
 import type {Options} from './options_client_types';
 import {isEditableColor, normalizeColor, PROFILE_COLOR_SWATCHES} from './profile_content_logic';
+import type {ProfileActionMenuOptions} from './profile_types';
 import {isBuiltinProfile, isVirtualProfile, Profile, ProfileInline, profileName, profilesForFilter} from './profile_widgets';
 
 export type OptionsShellProps = {
@@ -12,6 +13,7 @@ export type OptionsShellProps = {
   generalHref?: string;
   importExportHref?: string;
   isExperimental?: boolean;
+  keepSettingsExpanded?: boolean;
   newProfileHref?: string;
   onApply?: () => void | Promise<unknown>;
   onDiscard?: () => void;
@@ -24,6 +26,7 @@ export type OptionsShellProps = {
   onRenameProfile?: (profile: Profile) => void;
   options?: Options | null;
   optionsDirty?: boolean;
+  profileActionMenuOptions?: ProfileActionMenuOptions | null;
   profileScopeHref?: string;
   profileHref?: (profile: Profile) => string;
   routeTraceHref?: string;
@@ -92,6 +95,15 @@ function canExportPacProfile(profile: Profile) {
 
 function canExportRuleListProfile(profile: Profile) {
   return profile.profileType === 'SwitchProfile';
+}
+
+function normalizedProfileActionMenuOptions(options?: ProfileActionMenuOptions | null): Required<ProfileActionMenuOptions> {
+  return {
+    browserColor: options?.browserColor === true,
+    browserExport: options?.browserExport !== false,
+    sidebarColor: options?.sidebarColor === true,
+    sidebarExport: options?.sidebarExport !== false
+  };
 }
 
 function hasProfileActions(
@@ -912,6 +924,7 @@ export function OptionsShell({
   generalHref = '#',
   importExportHref = '#',
   isExperimental = false,
+  keepSettingsExpanded,
   newProfileHref = '#',
   onApply,
   onDiscard,
@@ -924,6 +937,7 @@ export function OptionsShell({
   onRenameProfile,
   options,
   optionsDirty = false,
+  profileActionMenuOptions,
   profileScopeHref = '#',
   profileHref,
   routeTraceHref = '#',
@@ -933,12 +947,21 @@ export function OptionsShell({
 }: OptionsShellProps) {
   const [hiddenProfilesOpen, setHiddenProfilesOpen] = useState(false);
   const [profileBrowserOpen, setProfileBrowserOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(keepSettingsExpanded ?? true);
+  const settingsPreferenceAppliedRef = useRef(keepSettingsExpanded != null);
+  const settingsToggledRef = useRef(false);
   const profiles = profilesForFilter(options, 'sorted');
   const appliedProfiles = profilesForFilter(appliedOptions || options, 'sorted');
   const hiddenProfileNames = new Set(appliedProfiles.filter((profile) => !!profile.hiddenInOptions).map((profile) => profile.name));
   const visibleProfiles = profiles.filter((profile) => !hiddenProfileNames.has(profile.name));
   const hiddenProfiles = profiles.filter((profile) => hiddenProfileNames.has(profile.name));
+  const actionMenuOptions = normalizedProfileActionMenuOptions(profileActionMenuOptions);
+  const sidebarProfileColorChange = actionMenuOptions.sidebarColor ? onProfileColorChange : undefined;
+  const sidebarExportPacProfile = actionMenuOptions.sidebarExport ? onExportPacProfile : undefined;
+  const sidebarExportRuleListProfile = actionMenuOptions.sidebarExport ? onExportRuleListProfile : undefined;
+  const browserProfileColorChange = actionMenuOptions.browserColor ? onProfileColorChange : undefined;
+  const browserExportPacProfile = actionMenuOptions.browserExport ? onExportPacProfile : undefined;
+  const browserExportRuleListProfile = actionMenuOptions.browserExport ? onExportRuleListProfile : undefined;
   const profilesLabel = message('options_navHeader_profiles', 'Profiles');
   const hiddenProfilesLabel = message('options_navHeader_hiddenProfiles', 'Hidden');
   const settingsItems: SettingsNavItem[] = [
@@ -992,6 +1015,19 @@ export function OptionsShell({
     }
   ];
 
+  useEffect(() => {
+    if (settingsPreferenceAppliedRef.current || keepSettingsExpanded == null || settingsToggledRef.current) {
+      return;
+    }
+    settingsPreferenceAppliedRef.current = true;
+    setSettingsOpen(keepSettingsExpanded);
+  }, [keepSettingsExpanded]);
+
+  function toggleSettings() {
+    settingsToggledRef.current = true;
+    setSettingsOpen((open) => !open);
+  }
+
   return (
     <>
       <h1>
@@ -1015,7 +1051,7 @@ export function OptionsShell({
                   ? message('options_collapseSettings', 'Collapse settings')
                   : message('options_expandSettings', 'Expand settings')
               }
-              onClick={() => setSettingsOpen(!settingsOpen)}
+              onClick={toggleSettings}
             >
               <span className={`glyphicon ${settingsOpen ? 'glyphicon-chevron-up' : 'glyphicon-chevron-down'}`} />
             </button>
@@ -1061,10 +1097,10 @@ export function OptionsShell({
                 currentProfileName={currentProfileName}
                 currentState={currentState}
                 onDeleteProfile={onDeleteProfile}
-                onExportPacProfile={onExportPacProfile}
-                onExportRuleListProfile={onExportRuleListProfile}
+                onExportPacProfile={sidebarExportPacProfile}
+                onExportRuleListProfile={sidebarExportRuleListProfile}
                 onNavigate={onNavigate}
-                onProfileColorChange={onProfileColorChange}
+                onProfileColorChange={sidebarProfileColorChange}
                 onRenameProfile={onRenameProfile}
                 profile={profile}
                 profileHref={profileHref}
@@ -1105,10 +1141,10 @@ export function OptionsShell({
                       currentProfileName={currentProfileName}
                       currentState={currentState}
                       onDeleteProfile={onDeleteProfile}
-                      onExportPacProfile={onExportPacProfile}
-                      onExportRuleListProfile={onExportRuleListProfile}
+                      onExportPacProfile={sidebarExportPacProfile}
+                      onExportRuleListProfile={sidebarExportRuleListProfile}
                       onNavigate={onNavigate}
-                      onProfileColorChange={onProfileColorChange}
+                      onProfileColorChange={sidebarProfileColorChange}
                       onRenameProfile={onRenameProfile}
                       profile={profile}
                       profileHref={profileHref}
@@ -1151,10 +1187,10 @@ export function OptionsShell({
           hiddenProfiles={hiddenProfiles}
           onClose={() => setProfileBrowserOpen(false)}
           onDeleteProfile={onDeleteProfile}
-          onExportPacProfile={onExportPacProfile}
-          onExportRuleListProfile={onExportRuleListProfile}
+          onExportPacProfile={browserExportPacProfile}
+          onExportRuleListProfile={browserExportRuleListProfile}
           onNavigate={onNavigate}
-          onProfileColorChange={onProfileColorChange}
+          onProfileColorChange={browserProfileColorChange}
           onRenameProfile={onRenameProfile}
           profileHref={profileHref}
           profiles={visibleProfiles}

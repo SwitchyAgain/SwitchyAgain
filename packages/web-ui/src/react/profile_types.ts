@@ -54,6 +54,13 @@ export type NamedBuiltinProfileModel = NamedDirectProfileModel | NamedSystemProf
 
 export type ProfileKey = `+${string}`;
 
+export type ProfileActionMenuOptions = {
+  browserColor?: boolean;
+  browserExport?: boolean;
+  sidebarColor?: boolean;
+  sidebarExport?: boolean;
+};
+
 export type OptionsData = {
   [key: string]: unknown;
   '-addConditionsToBottom'?: boolean;
@@ -71,7 +78,9 @@ export type OptionsData = {
   '-downloadInterval'?: number | string;
   '-enableQuickSwitch'?: boolean;
   '-exportLegacyRuleList'?: boolean;
+  '-keepSettingsExpanded'?: boolean;
   '-monitorWebRequests'?: boolean;
+  '-profileActionMenuOptions'?: ProfileActionMenuOptions;
   '-profileScopeAssignments'?: {
     containers?: Record<string, string>;
     normalDefaultProfileName?: string;

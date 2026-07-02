@@ -28,6 +28,11 @@ describe('ui settings logic', () => {
       }
     };
     const after: Options = {
+      '-keepSettingsExpanded': false,
+      '-profileActionMenuOptions': {
+        browserColor: true,
+        sidebarExport: false
+      },
       '-quickSwitchProfiles': ['direct', 'proxy'],
       '-showBypassListGroups': true,
       '-showCurrentProfileInGeneral': true,
@@ -45,7 +50,15 @@ describe('ui settings logic', () => {
 
     expect(uiOptionsDirty(before, after)).toBe(true);
     expect(uiOptionPatch(before, after)).toEqual({
+      '-profileActionMenuOptions': [
+        undefined,
+        {
+          browserColor: true,
+          sidebarExport: false
+        }
+      ],
       '-quickSwitchProfiles': [['direct'], ['direct', 'proxy']],
+      '-keepSettingsExpanded': [undefined, false],
       '-showBypassListGroups': [undefined, true],
       '-showCurrentProfileInGeneral': [undefined, true],
       '-showHttpProxyOverrideRows': [undefined, false],

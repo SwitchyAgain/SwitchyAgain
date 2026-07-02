@@ -70,6 +70,29 @@ describe('options shell components', () => {
     expect(container.querySelector('.options-shell-actions .btn-success')).toBeTruthy();
   });
 
+  it('initially collapses settings navigation when configured', () => {
+    render(<OptionsShell keepSettingsExpanded={false} options={optionsFixture()} />);
+
+    const expandButton = screen.getByRole('button', {name: 'Expand settings'});
+    expect(expandButton.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.queryByRole('link', {name: 'General'})).toBeNull();
+
+    fireEvent.click(expandButton);
+
+    expect(screen.getByRole('button', {name: 'Collapse settings'}).getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByRole('link', {name: 'General'})).toBeTruthy();
+  });
+
+  it('applies settings navigation preference after options load', () => {
+    const {rerender} = render(<OptionsShell options={null} />);
+    expect(screen.getByRole('button', {name: 'Collapse settings'}).getAttribute('aria-expanded')).toBe('true');
+
+    rerender(<OptionsShell keepSettingsExpanded={false} options={optionsFixture()} />);
+
+    expect(screen.getByRole('button', {name: 'Expand settings'}).getAttribute('aria-expanded')).toBe('false');
+    expect(screen.queryByRole('link', {name: 'General'})).toBeNull();
+  });
+
   it('keeps discard disabled when there are no dirty options', () => {
     const onDiscard = vi.fn();
 
@@ -256,6 +279,7 @@ describe('options shell components', () => {
         onProfileColorChange={onProfileColorChange}
         onRenameProfile={onRenameProfile}
         options={optionsFixture()}
+        profileActionMenuOptions={{browserColor: true}}
       />
     );
 
@@ -330,6 +354,7 @@ describe('options shell components', () => {
         onProfileColorChange={onProfileColorChange}
         onRenameProfile={onRenameProfile}
         options={options}
+        profileActionMenuOptions={{sidebarColor: true}}
       />
     );
 
@@ -362,6 +387,47 @@ describe('options shell components', () => {
     fireEvent.click(within(autoItem).getByRole('button', {name: 'Profile Options'}));
     fireEvent.click(within(autoItem).getByRole('menuitem', {name: 'Delete Profile'}));
     expect(onDeleteProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'auto'}));
+  });
+
+  it('hides configured profile action menu entries', () => {
+    const onDeleteProfile = vi.fn();
+    const onExportPacProfile = vi.fn();
+    const onProfileColorChange = vi.fn();
+    const onRenameProfile = vi.fn();
+
+    const {container} = render(
+      <OptionsShell
+        onDeleteProfile={onDeleteProfile}
+        onExportPacProfile={onExportPacProfile}
+        onProfileColorChange={onProfileColorChange}
+        onRenameProfile={onRenameProfile}
+        options={optionsFixture()}
+        profileActionMenuOptions={{
+          browserExport: false,
+          sidebarExport: false
+        }}
+      />
+    );
+
+    const profileList = container.querySelector('.options-shell-profile-list') as HTMLElement;
+    const sidebarProxyItem = within(profileList).getByRole('link', {name: /proxy/}).closest('.nav-profile') as HTMLElement;
+    fireEvent.click(within(sidebarProxyItem).getByRole('button', {name: 'Profile Options'}));
+    expect(within(sidebarProxyItem).queryByRole('menuitem', {name: 'Profile color'})).toBeNull();
+    expect(within(sidebarProxyItem).queryByRole('menuitem', {name: 'Export PAC'})).toBeNull();
+    expect(within(sidebarProxyItem).getByRole('menuitem', {name: 'Rename'})).toBeTruthy();
+    expect(within(sidebarProxyItem).getByRole('menuitem', {name: 'Delete Profile'})).toBeTruthy();
+
+    fireEvent.click(screen.getAllByRole('button', {name: 'Show all'})[0]);
+    fireEvent.click(screen.getByRole('menuitem', {name: 'Browse all'}));
+    const dialog = screen.getByRole('dialog');
+    const browserProxyItem = within(dialog)
+      .getByRole('link', {name: /proxy/})
+      .closest('.options-shell-profile-browser-item') as HTMLElement;
+    fireEvent.click(within(browserProxyItem).getByRole('button', {name: 'Profile Options'}));
+    expect(within(browserProxyItem).queryByRole('menuitem', {name: 'Profile color'})).toBeNull();
+    expect(within(browserProxyItem).queryByRole('menuitem', {name: 'Export PAC'})).toBeNull();
+    expect(within(browserProxyItem).getByRole('menuitem', {name: 'Rename'})).toBeTruthy();
+    expect(within(browserProxyItem).getByRole('menuitem', {name: 'Delete Profile'})).toBeTruthy();
   });
 
   it('shows dismissible alerts with mapped alert classes', () => {
