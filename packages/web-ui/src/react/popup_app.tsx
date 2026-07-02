@@ -36,6 +36,7 @@ import {
   profileTitle,
   requestDomains,
   suggestCondition,
+  splitPopupHiddenProfiles,
   visibleMenuProfiles,
   visibleResultProfiles,
   visibleScopeAssignableProfiles
@@ -913,8 +914,35 @@ function ProfileScopeMenuItem({
   state: PopupState;
 }) {
   const dropdown = useFloatingDropdown<HTMLLIElement>(open);
+  const [hiddenOpen, setHiddenOpen] = useState(false);
   const activeProfile = profileFromMap(state.availableProfiles, activeProfileName);
+  const profileGroups = useMemo(() => splitPopupHiddenProfiles(profiles, activeProfileName), [activeProfileName, profiles]);
   const text = activeProfile ? `${label}: ${displayProfileName(activeProfile)}` : label;
+
+  useEffect(() => {
+    if (!open) {
+      setHiddenOpen(false);
+    }
+  }, [open]);
+
+  function profileItem(profile: Profile) {
+    return (
+      <li className={`sa-popup-nav-item ${profile.name === activeProfileName ? 'sa-popup-active' : ''}`} key={profile.name}>
+        <a
+          href="#"
+          role="button"
+          title={profileTitle(profile, state.availableProfiles)}
+          onClick={(event) => {
+            event.preventDefault();
+            onProfileChange(profile.name);
+          }}
+        >
+          <ProfileInline legacySpacing profile={profile} availableProfiles={state.availableProfiles} />
+        </a>
+      </li>
+    );
+  }
+
   return (
     <li
       ref={dropdown.anchorRef}
@@ -950,21 +978,28 @@ function ProfileScopeMenuItem({
               <span className="glyphicon glyphicon-share-alt" /> {popupMessage('popup_profileScopeUseDefault', 'Use Default')}
             </a>
           </li>
-          {profiles.map((profile) => (
-            <li className={`sa-popup-nav-item ${profile.name === activeProfileName ? 'sa-popup-active' : ''}`} key={profile.name}>
+          {profileGroups.visible.map(profileItem)}
+          {profileGroups.hidden.length > 0 && (
+            <li className={`sa-popup-nav-item sa-popup-hidden-scope-profiles ${hiddenOpen ? 'sa-popup-open' : ''}`}>
               <a
                 href="#"
                 role="button"
-                title={profileTitle(profile, state.availableProfiles)}
+                aria-expanded={hiddenOpen}
+                aria-haspopup="true"
                 onClick={(event) => {
                   event.preventDefault();
-                  onProfileChange(profile.name);
+                  setHiddenOpen(!hiddenOpen);
                 }}
               >
-                <ProfileInline legacySpacing profile={profile} availableProfiles={state.availableProfiles} />
+                <span className="glyphicon glyphicon-eye-close" />
+                <span>
+                  <span>{popupMessage('popup_hiddenProfilesMenu', 'Hidden')}</span>
+                  <span className="sa-popup-caret" />
+                </span>
               </a>
+              {hiddenOpen && <ul className="sa-popup-scope-hidden-list">{profileGroups.hidden.map(profileItem)}</ul>}
             </li>
-          ))}
+          )}
         </ul>
       )}
     </li>

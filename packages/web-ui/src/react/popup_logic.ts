@@ -117,6 +117,19 @@ export function visibleScopeAssignableProfiles(state?: PopupState) {
     .sort(compareProfile);
 }
 
+export function splitPopupHiddenProfiles(profiles: Profile[], activeProfileName?: string) {
+  const visible: Profile[] = [];
+  const hidden: Profile[] = [];
+  for (const profile of profiles) {
+    if (profile.hiddenInPopup === true && profile.name !== activeProfileName) {
+      hidden.push(profile);
+    } else {
+      visible.push(profile);
+    }
+  }
+  return {hidden, visible};
+}
+
 export function requestDomains(info?: PageInfo) {
   return Object.keys(info?.summary || {})
     .map((domain) => ({

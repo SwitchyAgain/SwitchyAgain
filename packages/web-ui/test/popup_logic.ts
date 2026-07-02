@@ -20,6 +20,7 @@ import {
   requestHasError,
   requestHostname,
   suggestCondition,
+  splitPopupHiddenProfiles,
   visibleMenuProfiles,
   visibleResultProfiles,
   visibleScopeAssignableProfiles
@@ -96,16 +97,27 @@ describe('popup logic', () => {
     const availableProfiles: ProfileMap = {
       '+direct': profile('direct', 'DirectProfile', {builtin: true}),
       '+system': profile('system', 'SystemProfile', {builtin: true}),
+      '+hidden-scope': profile('hidden-scope', 'FixedProfile', {hiddenInPopup: true}),
       '+proxy-z': profile('proxy-z', 'FixedProfile')
     };
     const state: PopupState = {
       availableProfiles,
-      scopeAssignableProfiles: ['system', 'direct', 'proxy-z'],
+      scopeAssignableProfiles: ['system', 'direct', 'hidden-scope', 'proxy-z'],
       validResultProfiles: ['proxy-z']
     };
+    const scopeProfiles = visibleScopeAssignableProfiles(state);
 
     expect(visibleResultProfiles(state).map((item) => item.name)).toEqual(['proxy-z']);
-    expect(visibleScopeAssignableProfiles(state).map((item) => item.name)).toEqual(['proxy-z', 'direct', 'system']);
+    expect(scopeProfiles.map((item) => item.name)).toEqual(['hidden-scope', 'proxy-z', 'direct', 'system']);
+    expect(splitPopupHiddenProfiles(scopeProfiles).visible.map((item) => item.name)).toEqual(['proxy-z', 'direct', 'system']);
+    expect(splitPopupHiddenProfiles(scopeProfiles).hidden.map((item) => item.name)).toEqual(['hidden-scope']);
+    expect(splitPopupHiddenProfiles(scopeProfiles, 'hidden-scope').visible.map((item) => item.name)).toEqual([
+      'hidden-scope',
+      'proxy-z',
+      'direct',
+      'system'
+    ]);
+    expect(splitPopupHiddenProfiles(scopeProfiles, 'hidden-scope').hidden).toEqual([]);
   });
 
   it('resolves profiles, virtual targets, and titles', () => {

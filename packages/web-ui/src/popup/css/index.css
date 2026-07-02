@@ -13,7 +13,7 @@
   --sa-popup-panel-bg: #fff;
   --sa-popup-text: #333;
   --sa-popup-muted: #777;
-  --sa-popup-border: #e5e5e5;
+  --sa-popup-border: #ddd;
   --sa-popup-control-bg: #fff;
   --sa-popup-control-text: #555;
   --sa-popup-control-border: #ccc;
@@ -233,6 +233,16 @@ body {
 
 .sa-popup-dropdown .sa-popup-nav-item > a .sa-popup-profile-name {
   margin-left: 8px;
+}
+
+.sa-popup-scope-hidden-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sa-popup-scope-hidden-list .sa-popup-nav-item > a {
+  padding-left: 32px;
 }
 
 .sa-popup-nav-item > a .sa-popup-profile-name-legacy,
