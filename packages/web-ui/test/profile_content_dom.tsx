@@ -99,6 +99,34 @@ describe('profile content components', () => {
     expect(screen.queryByRole('heading', {name: 'Profile Options'})).toBeNull();
   });
 
+  it('updates profile colors from the profile color popover', () => {
+    const onColorChange = vi.fn();
+
+    render(
+      <ProfileShell
+        onColorChange={onColorChange}
+        profile={{
+          name: 'proxy',
+          profileType: 'FixedProfile'
+        }}
+        profileColor="#99dd99"
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', {name: 'Profile color'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Use #dd6633'}));
+    expect(onColorChange).toHaveBeenCalledWith('#dd6633');
+
+    fireEvent.click(screen.getByRole('button', {name: 'Profile color'}));
+    fireEvent.change(screen.getByRole('textbox', {name: 'Hex color'}), {
+      target: {
+        value: '#123abc'
+      }
+    });
+    fireEvent.click(screen.getByRole('button', {name: 'Apply'}));
+    expect(onColorChange).toHaveBeenCalledWith('#123abc');
+  });
+
   it('updates PAC URLs and exposes download/auth actions', () => {
     const onDownload = vi.fn();
     const onEditProxyAuth = vi.fn();

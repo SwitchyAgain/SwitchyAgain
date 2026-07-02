@@ -73,6 +73,20 @@ import type {
 const INITIAL_SWITCH_RULE_BATCH_SIZE = 15;
 const SWITCH_RULE_BATCH_SIZE = 8;
 const SWITCH_RULE_BATCH_DELAY_MS = 32;
+const PROFILE_COLOR_SWATCHES = [
+  '#99ccee',
+  '#99dd99',
+  '#ffaa88',
+  '#ffee99',
+  '#d497ee',
+  '#4477bb',
+  '#55bb55',
+  '#dd6633',
+  '#ccaa00',
+  '#7f8c8d',
+  '#000000',
+  '#ffffff'
+];
 const CHROMIUM_HTTPS_URL_LIMITATION_INTRO =
   'Chromium-based browsers do not expose the path or query of HTTPS and WSS requests to URL conditions.';
 const CHROMIUM_HTTPS_URL_LIMITATION_DETAIL =
@@ -82,6 +96,139 @@ const CHROMIUM_HTTPS_URL_LIMITATION_TOOLTIP =
 
 function shouldShowChromiumHttpsUrlInfo(proxyFeatures: ProxyFeature[] = []) {
   return proxyFeatures.includes('fullUrlHttp') && !proxyFeatures.includes('fullUrl');
+}
+
+function isEditableColor(value: string) {
+  return /^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(value);
+}
+
+type ProfileColorEditorProps = {
+  color: string;
+  isVirtual?: boolean;
+  onColorChange?: (color: string) => void;
+};
+
+function ProfileColorEditor({color, isVirtual = false, onColorChange}: ProfileColorEditorProps) {
+  const editorRef = useRef<HTMLSpanElement | null>(null);
+  const nativeInputRef = useRef<HTMLInputElement | null>(null);
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(color);
+  const normalizedDraft = isEditableColor(draft) ? normalizeColor(draft).toLowerCase() : '';
+
+  useEffect(() => {
+    setDraft(color);
+  }, [color]);
+
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target;
+      if (target instanceof Node && !editorRef.current?.contains(target)) {
+        setOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('touchstart', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('touchstart', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open]);
+
+  const commitColor = (value: string, close = true) => {
+    if (!isEditableColor(value)) {
+      return;
+    }
+    const nextColor = normalizeColor(value).toLowerCase();
+    setDraft(nextColor);
+    onColorChange?.(nextColor);
+    if (close) {
+      setOpen(false);
+    }
+  };
+
+  if (isVirtual) {
+    return (
+      <span className="profile-color-editor">
+        <span className="profile-color-editor-fake" style={{backgroundColor: color}} />
+      </span>
+    );
+  }
+
+  return (
+    <span className="profile-color-editor" ref={editorRef}>
+      <button
+        type="button"
+        className="profile-color-editor-button"
+        title={message('options_profileColor', 'Profile color')}
+        aria-label={message('options_profileColor', 'Profile color')}
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        onClick={() => setOpen((shown) => !shown)}
+      >
+        <span className="profile-color-editor-swatch" style={{backgroundColor: color}} />
+      </button>
+      <input
+        ref={nativeInputRef}
+        className="profile-color-editor-native"
+        type="color"
+        value={color}
+        tabIndex={-1}
+        aria-hidden="true"
+        onChange={(event) => commitColor(event.currentTarget.value)}
+      />
+      {open && (
+        <div className="profile-color-popover" role="dialog" aria-label={message('options_profileColor', 'Profile color')}>
+          <div className="profile-color-swatch-grid">
+            {PROFILE_COLOR_SWATCHES.map((swatch) => (
+              <button
+                key={swatch}
+                type="button"
+                className={`profile-color-swatch-option${normalizeColor(swatch).toLowerCase() === color.toLowerCase() ? ' active' : ''}`}
+                style={{backgroundColor: swatch}}
+                title={swatch}
+                aria-label={message('options_profileUseColor', `Use ${swatch}`, swatch)}
+                onClick={() => commitColor(swatch)}
+              />
+            ))}
+          </div>
+          <div className="profile-color-hex-row">
+            <input
+              type="text"
+              className="form-control profile-color-hex-input"
+              value={draft}
+              maxLength={7}
+              spellCheck={false}
+              aria-label={message('options_profileHexColor', 'Hex color')}
+              onChange={(event) => setDraft(event.currentTarget.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  commitColor(draft);
+                }
+              }}
+            />
+            <button type="button" className="btn btn-default btn-sm" disabled={!normalizedDraft} onClick={() => commitColor(draft)}>
+              {message('options_profileApplyColor', 'Apply')}
+            </button>
+          </div>
+          <button type="button" className="btn btn-default btn-sm profile-color-custom" onClick={() => nativeInputRef.current?.click()}>
+            <span className="glyphicon glyphicon-tint" /> {message('options_profileCustomColor', 'Custom')}
+          </button>
+        </div>
+      )}
+    </span>
+  );
 }
 
 function ruleListSourceErrorMessage(error?: SwitchRuleSourceState['error']) {
@@ -358,13 +505,7 @@ export function ProfileShell({
     <>
       <div className="page-header profile-header">
         <div className="profile-title">
-          <span className="profile-color-editor">
-            {isVirtual ? (
-              <span className="profile-color-editor-fake" style={{backgroundColor: color}} />
-            ) : (
-              <input type="color" value={color} onChange={(event) => onColorChange?.(event.currentTarget.value)} />
-            )}
-          </span>
+          <ProfileColorEditor color={color} isVirtual={isVirtual} onColorChange={onColorChange} />
           <h2 className="profile-name">
             {message('options_profileTabPrefix', 'Profile :: ')}
             {profile.name}

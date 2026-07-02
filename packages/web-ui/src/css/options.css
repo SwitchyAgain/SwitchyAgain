@@ -1089,35 +1089,103 @@ main .page-header h2 {
   display: inline-block;
   flex: none;
   margin-right: 10px;
+  position: relative;
 }
 
-.profile-color-editor input[type='color'] {
+.profile-color-editor-button {
+  align-items: center;
+  background: none;
+  border: none;
+  display: inline-flex;
+  height: 30px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  width: 30px;
+}
+
+.profile-color-editor-button:hover,
+.profile-color-editor-button:focus {
+  outline: none;
+}
+
+.profile-color-editor-button:focus {
+  box-shadow: 0 0 0 2px rgba(102, 175, 233, 0.35);
+}
+
+.profile-color-editor-swatch,
+.profile-color-editor-fake {
+  border: solid 1px #222;
   height: 30px;
   width: 30px;
-  padding: 0;
-  border: none;
-  background: none;
 }
 
-.profile-color-editor input[type='color']::-webkit-color-swatch-wrapper {
-  padding: 0;
-}
-
-.profile-color-editor .sp-replacer {
-  padding: 0;
-  border: none;
-}
-
-.profile-color-editor .sp-preview,
 .profile-color-editor .profile-color-editor-fake {
   margin-right: 0;
-  height: 30px;
-  width: 30px;
-  border: solid 1px #222;
 }
 
-.profile-color-editor .sp-dd {
-  display: none;
+.profile-color-editor-native {
+  height: 1px;
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  width: 1px;
+}
+
+.profile-color-popover {
+  background-color: var(--sa-panel-bg);
+  border: solid 1px var(--sa-border-strong);
+  border-radius: 4px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  left: 0;
+  margin-top: 6px;
+  padding: 10px;
+  position: absolute;
+  top: 100%;
+  width: 190px;
+  z-index: 1050;
+}
+
+.profile-color-swatch-grid {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(6, 24px);
+  margin-bottom: 10px;
+}
+
+.profile-color-swatch-option {
+  border: solid 1px var(--sa-border-strong);
+  border-radius: 3px;
+  height: 24px;
+  padding: 0;
+  width: 24px;
+}
+
+.profile-color-swatch-option:hover,
+.profile-color-swatch-option:focus,
+.profile-color-swatch-option.active {
+  border-color: var(--sa-focus);
+  box-shadow: 0 0 0 2px rgba(102, 175, 233, 0.35);
+  outline: none;
+}
+
+.profile-color-hex-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.profile-color-hex-input {
+  flex: 1 1 auto;
+  height: 30px;
+  min-width: 0;
+  text-transform: lowercase;
+}
+
+.profile-color-custom {
+  width: 100%;
 }
 
 main .profile-header {
