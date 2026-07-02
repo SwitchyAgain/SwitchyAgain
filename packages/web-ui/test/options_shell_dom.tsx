@@ -241,6 +241,48 @@ describe('options shell components', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
+  it('runs profile browser item actions from the overflow menu', () => {
+    const onDeleteProfile = vi.fn();
+    const onExportProfile = vi.fn();
+    const onRenameProfile = vi.fn();
+
+    render(
+      <OptionsShell
+        onDeleteProfile={onDeleteProfile}
+        onExportProfile={onExportProfile}
+        onRenameProfile={onRenameProfile}
+        options={optionsFixture()}
+      />
+    );
+
+    function openProfileBrowser() {
+      fireEvent.click(screen.getAllByRole('button', {name: 'Show all'})[0]);
+      fireEvent.click(screen.getByRole('menuitem', {name: 'Browse all'}));
+      return screen.getByRole('dialog');
+    }
+
+    function openProxyActions(dialog: HTMLElement) {
+      const proxyItem = within(dialog).getByRole('link', {name: /proxy/}).closest('.options-shell-profile-browser-item') as HTMLElement;
+      fireEvent.click(within(proxyItem).getByRole('button', {name: 'Profile Options'}));
+      return within(proxyItem);
+    }
+
+    let dialog = openProfileBrowser();
+    fireEvent.click(openProxyActions(dialog).getByRole('menuitem', {name: 'Export PAC'}));
+    expect(onExportProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'proxy'}));
+    expect(screen.getByRole('dialog')).toBeTruthy();
+
+    dialog = screen.getByRole('dialog');
+    fireEvent.click(openProxyActions(dialog).getByRole('menuitem', {name: 'Rename'}));
+    expect(onRenameProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'proxy'}));
+    expect(screen.getByRole('dialog')).toBeTruthy();
+
+    dialog = screen.getByRole('dialog');
+    fireEvent.click(openProxyActions(dialog).getByRole('menuitem', {name: 'Delete Profile'}));
+    expect(onDeleteProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'proxy'}));
+    expect(screen.getByRole('dialog')).toBeTruthy();
+  });
+
   it('shows dismissible alerts with mapped alert classes', () => {
     const onClose = vi.fn();
 

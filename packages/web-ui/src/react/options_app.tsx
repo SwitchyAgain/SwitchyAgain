@@ -170,6 +170,7 @@ type ModalState =
   | {
       fromName: string;
       kind: 'renameProfile';
+      navigateAfterRename?: boolean;
     }
   | {
       kind: 'resetOptions';
@@ -1230,7 +1231,7 @@ export function OptionsApp() {
     });
   }
 
-  function requestRenameProfile(profile: Profile | null | undefined) {
+  function requestRenameProfile(profile: Profile | null | undefined, options?: {navigateAfterRename?: boolean}) {
     if (!profile) {
       return;
     }
@@ -1238,12 +1239,13 @@ export function OptionsApp() {
     return requireAppliedOptions(() =>
       setModal({
         fromName,
-        kind: 'renameProfile'
+        kind: 'renameProfile',
+        navigateAfterRename: options?.navigateAfterRename
       })
     );
   }
 
-  function renameProfile(fromName: string, toName: string) {
+  function renameProfile(fromName: string, toName: string, navigateAfterRename = true) {
     setModal(null);
     if (!fromName || !toName || fromName === toName) {
       return Promise.resolve();
@@ -1297,9 +1299,11 @@ export function OptionsApp() {
       })
       .then((loadedOptions) => {
         replaceOptions(loadedOptions);
-        navigate('profile', {
-          name: toName
-        });
+        if (navigateAfterRename || route.profileName === fromName) {
+          navigate('profile', {
+            name: toName
+          });
+        }
       })
       .catch((err) => {
         showAlert({
@@ -1361,6 +1365,16 @@ export function OptionsApp() {
     });
     setModal(null);
     navigate('ui');
+  }
+
+  function requestExportProfile(profile: Profile | null | undefined) {
+    if (!profile || isBuiltinProfile(profile)) {
+      return;
+    }
+    if (isSwitchProfile(profile)) {
+      return exportRuleList(profile.name);
+    }
+    return exportScript(profile.name);
   }
 
   function exportRuleList(profileName: string) {
@@ -1836,9 +1850,12 @@ export function OptionsApp() {
             generalHref={routeHref('general')}
             importExportHref={routeHref('io')}
             onApply={requestApplyOptions}
+            onDeleteProfile={requestDeleteProfile}
             onDiscard={discardOptions}
+            onExportProfile={requestExportProfile}
             onNavigate={requestNavigate}
             onNewProfile={requestNewProfile}
+            onRenameProfile={(profile) => requestRenameProfile(profile, {navigateAfterRename: false})}
             options={options}
             optionsDirty={dirty || pendingSourceDraftDirty || status === 'saving'}
             profileHref={(profile) => routeHref('profile', {name: profile.name})}
@@ -1914,7 +1931,7 @@ export function OptionsApp() {
             fromName={modal.fromName}
             isProfileNameHidden={isProfileNameHidden}
             isProfileNameReserved={isProfileNameReserved}
-            onClose={(toName) => renameProfile(modal.fromName, toName)}
+            onClose={(toName) => renameProfile(modal.fromName, toName, modal.navigateAfterRename)}
             onDismiss={() => setModal(null)}
             profileByName={(name) => profileByName(options, name)}
           />

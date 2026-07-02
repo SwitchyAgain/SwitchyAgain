@@ -14,8 +14,11 @@ export type OptionsShellProps = {
   newProfileHref?: string;
   onApply?: () => void | Promise<unknown>;
   onDiscard?: () => void;
+  onDeleteProfile?: (profile: Profile) => void;
+  onExportProfile?: (profile: Profile) => void;
   onNavigate?: (state: string, params?: Record<string, string>) => void;
   onNewProfile?: () => void;
+  onRenameProfile?: (profile: Profile) => void;
   options?: Options | null;
   optionsDirty?: boolean;
   profileScopeHref?: string;
@@ -264,7 +267,10 @@ function ProfileBrowserModal({
   currentState,
   hiddenProfiles,
   onClose,
+  onDeleteProfile,
+  onExportProfile,
   onNavigate,
+  onRenameProfile,
   profileHref,
   profiles
 }: {
@@ -272,7 +278,10 @@ function ProfileBrowserModal({
   currentState: string;
   hiddenProfiles: Profile[];
   onClose: () => void;
+  onDeleteProfile?: (profile: Profile) => void;
+  onExportProfile?: (profile: Profile) => void;
   onNavigate?: (state: string, params?: Record<string, string>) => void;
+  onRenameProfile?: (profile: Profile) => void;
   profileHref?: (profile: Profile) => string;
   profiles: Profile[];
 }) {
@@ -299,9 +308,9 @@ function ProfileBrowserModal({
     <>
       <div className="modal-backdrop fade in" />
       <div
-        className="modal fade in options-shell-profile-browser-modal"
+        className="modal fade in options-modal options-shell-profile-browser-modal"
         role="dialog"
-        style={{display: 'block'}}
+        style={{display: 'flex'}}
         tabIndex={-1}
         onMouseDown={(event) => {
           if (event.target === event.currentTarget) {
@@ -334,7 +343,10 @@ function ProfileBrowserModal({
                       activeProfileName={activeProfileName}
                       currentState={currentState}
                       label={profilesLabel}
+                      onDeleteProfile={onDeleteProfile}
+                      onExportProfile={onExportProfile}
                       onNavigate={navigateToProfile}
+                      onRenameProfile={onRenameProfile}
                       profileHref={profileHref}
                       profiles={filteredProfiles}
                     />
@@ -344,7 +356,10 @@ function ProfileBrowserModal({
                       activeProfileName={activeProfileName}
                       currentState={currentState}
                       label={hiddenProfilesLabel}
+                      onDeleteProfile={onDeleteProfile}
+                      onExportProfile={onExportProfile}
                       onNavigate={navigateToProfile}
+                      onRenameProfile={onRenameProfile}
                       profileHref={profileHref}
                       profiles={filteredHiddenProfiles}
                     />
@@ -367,14 +382,20 @@ function ProfileBrowserSection({
   activeProfileName,
   currentState,
   label,
+  onDeleteProfile,
+  onExportProfile,
   onNavigate,
+  onRenameProfile,
   profileHref,
   profiles
 }: {
   activeProfileName: string;
   currentState: string;
   label: string;
+  onDeleteProfile?: (profile: Profile) => void;
+  onExportProfile?: (profile: Profile) => void;
   onNavigate: (profile: Profile) => void;
+  onRenameProfile?: (profile: Profile) => void;
   profileHref?: (profile: Profile) => string;
   profiles: Profile[];
 }) {
@@ -383,19 +404,110 @@ function ProfileBrowserSection({
       <h5>{label}</h5>
       <div className="options-shell-profile-browser-grid">
         {profiles.map((profile) => (
-          <a
+          <ProfileBrowserItem
             key={profile.name}
-            className={`options-shell-profile-browser-item ${
-              currentState === 'profile' && profile.name === activeProfileName ? 'active' : ''
-            }`}
-            href={profileHref?.(profile) || '#'}
-            onClick={(event) => navClick(event, () => onNavigate(profile))}
-          >
-            <ProfileInline profile={profile} />
-          </a>
+            active={currentState === 'profile' && profile.name === activeProfileName}
+            onDeleteProfile={onDeleteProfile}
+            onExportProfile={onExportProfile}
+            onNavigate={onNavigate}
+            onRenameProfile={onRenameProfile}
+            profile={profile}
+            profileHref={profileHref}
+          />
         ))}
       </div>
     </section>
+  );
+}
+
+function ProfileBrowserItem({
+  active,
+  onDeleteProfile,
+  onExportProfile,
+  onNavigate,
+  onRenameProfile,
+  profile,
+  profileHref
+}: {
+  active?: boolean;
+  onDeleteProfile?: (profile: Profile) => void;
+  onExportProfile?: (profile: Profile) => void;
+  onNavigate: (profile: Profile) => void;
+  onRenameProfile?: (profile: Profile) => void;
+  profile: Profile;
+  profileHref?: (profile: Profile) => string;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const exportLabel =
+    profile.profileType === 'SwitchProfile'
+      ? message('options_profileExportRuleList', 'Export Rule List')
+      : message('options_profileExportPac', 'Export PAC');
+  useOutsidePointer(rootRef, () => setOpen(false), open);
+
+  function action(handler?: (profile: Profile) => void) {
+    return () => {
+      setOpen(false);
+      handler?.(profile);
+    };
+  }
+
+  return (
+    <div ref={rootRef} className={`options-shell-profile-browser-item${active ? ' active' : ''}`}>
+      <a
+        className="options-shell-profile-browser-link"
+        href={profileHref?.(profile) || '#'}
+        onClick={(event) => navClick(event, () => onNavigate(profile))}
+      >
+        <ProfileInline profile={profile} />
+      </a>
+      <span className="options-shell-profile-browser-actions">
+        <button
+          type="button"
+          className="options-shell-profile-browser-actions-button"
+          aria-expanded={open}
+          aria-haspopup="menu"
+          aria-label={message('options_group_profileOptions', 'Profile Options')}
+          onClick={() => setOpen(!open)}
+        >
+          <span className="glyphicon glyphicon-option-vertical" />
+        </button>
+        {open && (
+          <span className="options-shell-profile-browser-actions-menu" role="menu">
+            {onExportProfile && (
+              <button
+                type="button"
+                className="options-shell-profile-browser-actions-menu-item"
+                role="menuitem"
+                onClick={action(onExportProfile)}
+              >
+                <span className="glyphicon glyphicon-download" /> <span>{exportLabel}</span>
+              </button>
+            )}
+            {onRenameProfile && (
+              <button
+                type="button"
+                className="options-shell-profile-browser-actions-menu-item"
+                role="menuitem"
+                onClick={action(onRenameProfile)}
+              >
+                <span className="glyphicon glyphicon-edit" /> <span>{message('options_renameProfile', 'Rename')}</span>
+              </button>
+            )}
+            {onDeleteProfile && (
+              <button
+                type="button"
+                className="options-shell-profile-browser-actions-menu-item text-danger"
+                role="menuitem"
+                onClick={action(onDeleteProfile)}
+              >
+                <span className="glyphicon glyphicon-trash" /> <span>{message('options_deleteProfile', 'Delete Profile')}</span>
+              </button>
+            )}
+          </span>
+        )}
+      </span>
+    </div>
   );
 }
 
@@ -416,8 +528,11 @@ export function OptionsShell({
   newProfileHref = '#',
   onApply,
   onDiscard,
+  onDeleteProfile,
+  onExportProfile,
   onNavigate,
   onNewProfile,
+  onRenameProfile,
   options,
   optionsDirty = false,
   profileScopeHref = '#',
@@ -594,7 +709,10 @@ export function OptionsShell({
           currentState={currentState}
           hiddenProfiles={hiddenProfiles}
           onClose={() => setProfileBrowserOpen(false)}
+          onDeleteProfile={onDeleteProfile}
+          onExportProfile={onExportProfile}
           onNavigate={onNavigate}
+          onRenameProfile={onRenameProfile}
           profileHref={profileHref}
           profiles={visibleProfiles}
         />

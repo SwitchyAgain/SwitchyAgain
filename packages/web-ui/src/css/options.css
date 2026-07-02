@@ -826,7 +826,8 @@ h1 {
 }
 
 .options-shell-profile-browser-modal .modal-dialog {
-  width: 760px;
+  max-width: 760px;
+  width: 100%;
 }
 
 .options-shell-profile-browser-search {
@@ -852,36 +853,137 @@ h1 {
 }
 
 .options-shell-profile-browser-item {
+  align-items: center;
   border: 1px solid var(--sa-border);
   border-radius: 4px;
-  color: var(--sa-link);
-  display: block;
+  display: flex;
+  gap: 6px;
   line-height: 1.4;
   min-width: 0;
+  padding: 0;
+  position: relative;
+}
+
+.options-shell-profile-browser-link {
+  color: var(--sa-link);
+  flex: 1 1 auto;
+  min-width: 0;
   overflow: hidden;
-  padding: 8px 10px;
+  padding: 8px 0 8px 10px;
   text-decoration: none;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.options-shell-profile-browser-item .glyphicon {
+.options-shell-profile-browser-link .glyphicon {
   margin-right: 6px;
 }
 
-.options-shell-profile-browser-item:hover,
-.options-shell-profile-browser-item:focus {
+.options-shell-profile-browser-item:hover {
   background-color: var(--sa-hover-bg);
+}
+
+.options-shell-profile-browser-link:hover,
+.options-shell-profile-browser-link:focus {
   color: var(--sa-link-hover);
   text-decoration: none;
 }
 
-.options-shell-profile-browser-item.active,
-.options-shell-profile-browser-item.active:hover,
-.options-shell-profile-browser-item.active:focus {
+.options-shell-profile-browser-item.active {
   background-color: var(--sa-active-bg);
   border-color: var(--sa-active-bg);
+}
+
+.options-shell-profile-browser-item.active .options-shell-profile-browser-link,
+.options-shell-profile-browser-item.active .options-shell-profile-browser-link:hover,
+.options-shell-profile-browser-item.active .options-shell-profile-browser-link:focus {
   color: var(--sa-active-text);
+}
+
+.options-shell-profile-browser-actions {
+  flex: 0 0 auto;
+  line-height: 1;
+  position: relative;
+}
+
+.options-shell-profile-browser-actions-button {
+  background: transparent;
+  border: 0;
+  color: var(--sa-muted);
+  line-height: 1;
+  opacity: 0;
+  padding: 8px 10px 8px 6px;
+}
+
+.options-shell-profile-browser-item:hover .options-shell-profile-browser-actions-button,
+.options-shell-profile-browser-item:focus-within .options-shell-profile-browser-actions-button,
+.options-shell-profile-browser-actions-button[aria-expanded='true'] {
+  opacity: 0.85;
+}
+
+.options-shell-profile-browser-actions-button:hover,
+.options-shell-profile-browser-actions-button:focus {
+  color: var(--sa-text);
+  opacity: 1;
+  outline: none;
+}
+
+.options-shell-profile-browser-item.active .options-shell-profile-browser-actions-button {
+  color: var(--sa-active-text);
+}
+
+.options-shell-profile-browser-actions-menu {
+  background-color: var(--sa-panel-bg);
+  border: 1px solid var(--sa-border);
+  border-radius: 4px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+  left: 0;
+  min-width: 12em;
+  padding: 4px 0;
+  position: absolute;
+  top: 100%;
+  z-index: 1300;
+}
+
+.options-shell-profile-browser-actions-menu-item {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--sa-text);
+  display: flex;
+  gap: 8px;
+  line-height: 1.5em;
+  padding: 5px 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.options-shell-profile-browser-actions-menu-item:hover,
+.options-shell-profile-browser-actions-menu-item:focus {
+  background-color: var(--sa-hover-bg);
+  outline: none;
+}
+
+.options-shell-profile-browser-actions-menu-item .glyphicon {
+  margin-right: 0;
+}
+
+.options-shell-profile-browser-actions-menu-item.text-danger,
+.options-shell-profile-browser-actions-menu-item.text-danger:hover,
+.options-shell-profile-browser-actions-menu-item.text-danger:focus {
+  color: #c9302c;
+}
+
+.theme-dark .options-shell-profile-browser-actions-menu-item.text-danger,
+.theme-dark .options-shell-profile-browser-actions-menu-item.text-danger:hover,
+.theme-dark .options-shell-profile-browser-actions-menu-item.text-danger:focus {
+  color: #ea868f;
+}
+
+@media (hover: none) {
+  .options-shell-profile-browser-actions-button {
+    opacity: 0.85;
+  }
 }
 
 .options-shell-profile-browser-empty {
