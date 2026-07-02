@@ -1067,6 +1067,11 @@ h1 {
   z-index: 1600;
 }
 
+.options-shell-profile-browser-actions-menu-entry {
+  display: block;
+  position: relative;
+}
+
 .options-shell-profile-browser-actions-menu-item {
   align-items: center;
   background: transparent;
@@ -1078,6 +1083,58 @@ h1 {
   padding: 5px 10px;
   text-align: left;
   width: 100%;
+}
+
+.options-shell-profile-color-menu-item {
+  justify-content: space-between;
+}
+
+.options-shell-profile-menu-item .glyphicon-chevron-right,
+.options-shell-profile-color-menu-item .glyphicon-chevron-right {
+  line-height: 1;
+  top: 0;
+  transform: translateY(-1px);
+}
+
+.options-shell-profile-color-menu-label {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.options-shell-profile-color-menu-swatch {
+  border: 1px solid var(--sa-border-strong);
+  display: inline-block;
+  flex: 0 0 auto;
+  height: 14px;
+  width: 14px;
+}
+
+.options-shell-profile-color-submenu {
+  background-color: var(--sa-panel-bg);
+  border: 1px solid var(--sa-border-strong);
+  border-radius: 4px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  overflow: auto;
+  padding: 10px;
+  width: 212px;
+  z-index: 1700;
+}
+
+.options-shell-profile-color-submenu-fixed {
+  position: fixed;
+}
+
+.options-shell-profile-color-submenu-attached {
+  left: calc(100% + 2px);
+  position: absolute;
+  top: 0;
+}
+
+.options-shell-profile-color-submenu-attached.open-left {
+  left: auto;
+  right: calc(100% + 2px);
 }
 
 .options-shell-profile-browser-actions-menu-item:hover,

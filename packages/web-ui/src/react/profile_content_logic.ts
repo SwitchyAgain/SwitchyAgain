@@ -40,9 +40,27 @@ export const FIXED_PROFILE_KNOWN_PROTOCOLS: FixedProfileProxyProtocol[] = [
   ...FIXED_PROFILE_PROTOCOLS,
   FIXED_PROFILE_SOCKS5_LOCAL_DNS_PROTOCOL
 ];
+export const PROFILE_COLOR_SWATCHES = [
+  '#99ccee',
+  '#99dd99',
+  '#ffaa88',
+  '#ffee99',
+  '#d497ee',
+  '#4477bb',
+  '#55bb55',
+  '#dd6633',
+  '#ccaa00',
+  '#7f8c8d',
+  '#000000',
+  '#ffffff'
+];
 
 const PAC_URL_REGEX = /^(http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?$/;
 const PAC_URL_WITH_FILE_REGEX = /^(http|https|file):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?$/;
+
+export function isEditableColor(value: string) {
+  return /^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(value);
+}
 
 export function normalizeColor(color?: string) {
   if (!color) {

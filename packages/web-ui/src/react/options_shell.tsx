@@ -2,7 +2,8 @@ import React, {useCallback, useLayoutEffect, useMemo, useRef, useState} from 're
 import {useOutsidePointer} from './dom_event_hooks';
 import {message} from './i18n_client';
 import type {Options} from './options_client_types';
-import {Profile, ProfileInline, profileName, profilesForFilter} from './profile_widgets';
+import {isEditableColor, normalizeColor, PROFILE_COLOR_SWATCHES} from './profile_content_logic';
+import {isBuiltinProfile, isVirtualProfile, Profile, ProfileInline, profileName, profilesForFilter} from './profile_widgets';
 
 export type OptionsShellProps = {
   appliedOptions?: Options | null;
@@ -15,9 +16,11 @@ export type OptionsShellProps = {
   onApply?: () => void | Promise<unknown>;
   onDiscard?: () => void;
   onDeleteProfile?: (profile: Profile) => void;
-  onExportProfile?: (profile: Profile) => void;
+  onExportPacProfile?: (profile: Profile) => void;
+  onExportRuleListProfile?: (profile: Profile) => void;
   onNavigate?: (state: string, params?: Record<string, string>) => void;
   onNewProfile?: () => void;
+  onProfileColorChange?: (profile: Profile, color: string) => void;
   onRenameProfile?: (profile: Profile) => void;
   options?: Options | null;
   optionsDirty?: boolean;
@@ -29,7 +32,10 @@ export type OptionsShellProps = {
   uiHref?: string;
 };
 
-type ProfileActionProps = Pick<OptionsShellProps, 'onDeleteProfile' | 'onExportProfile' | 'onRenameProfile'>;
+type ProfileActionProps = Pick<
+  OptionsShellProps,
+  'onDeleteProfile' | 'onExportPacProfile' | 'onExportRuleListProfile' | 'onProfileColorChange' | 'onRenameProfile'
+>;
 type SettingsNavItem = {
   active?: boolean;
   href: string;
@@ -50,6 +56,7 @@ export type OptionsAlertProps = {
 };
 
 const PROFILE_ACTION_MENU_GAP = 12;
+const PROFILE_COLOR_SUBMENU_WIDTH = 212;
 
 const ALERT_ICONS: Record<string, string> = {
   danger: 'glyphicon-danger',
@@ -75,14 +82,29 @@ function actionClick(event: React.MouseEvent<HTMLElement>, action?: () => void) 
   navClick(event, action);
 }
 
-function hasProfileActions({onDeleteProfile, onExportProfile, onRenameProfile}: ProfileActionProps) {
-  return !!(onDeleteProfile || onExportProfile || onRenameProfile);
+function canEditProfileColor(profile: Profile) {
+  return !isVirtualProfile(profile);
 }
 
-function profileExportLabel(profile: Profile) {
-  return profile.profileType === 'SwitchProfile'
-    ? message('options_profileExportRuleList', 'Export Rule List')
-    : message('options_profileExportPac', 'Export PAC');
+function canExportPacProfile(profile: Profile) {
+  return !isBuiltinProfile(profile);
+}
+
+function canExportRuleListProfile(profile: Profile) {
+  return profile.profileType === 'SwitchProfile';
+}
+
+function hasProfileActions(
+  {onDeleteProfile, onExportPacProfile, onExportRuleListProfile, onProfileColorChange, onRenameProfile}: ProfileActionProps,
+  profile: Profile
+) {
+  return !!(
+    onDeleteProfile ||
+    onRenameProfile ||
+    (onProfileColorChange && canEditProfileColor(profile)) ||
+    (onExportPacProfile && canExportPacProfile(profile)) ||
+    (onExportRuleListProfile && canExportRuleListProfile(profile))
+  );
 }
 
 function SettingsLink({
@@ -129,7 +151,11 @@ function SettingsSectionMenuButton({items}: {items: SettingsNavItem[]}) {
         <span className="glyphicon glyphicon-option-vertical" />
       </button>
       {open && (
-        <span className="options-shell-profile-menu-panel options-shell-settings-menu-panel" role="menu" aria-label={message('options_navHeader_setting', 'Settings')}>
+        <span
+          className="options-shell-profile-menu-panel options-shell-settings-menu-panel"
+          role="menu"
+          aria-label={message('options_navHeader_setting', 'Settings')}
+        >
           {items.map((item) => (
             <a
               key={item.key}
@@ -151,12 +177,183 @@ function SettingsSectionMenuButton({items}: {items: SettingsNavItem[]}) {
   );
 }
 
+function ProfileColorActionSubmenu({
+  fixedPosition = false,
+  onClose,
+  onColorChange,
+  profile
+}: {
+  fixedPosition?: boolean;
+  onClose: () => void;
+  onColorChange: (profile: Profile, color: string) => void;
+  profile: Profile;
+}) {
+  const viewportGap = PROFILE_ACTION_MENU_GAP;
+  const color = normalizeColor(profile.color).toLowerCase();
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(color);
+  const [anchorElement, setAnchorElement] = useState<HTMLButtonElement | null>(null);
+  const [openLeft, setOpenLeft] = useState(false);
+  const [submenuStyle, setSubmenuStyle] = useState<React.CSSProperties | undefined>();
+  const nativeInputRef = useRef<HTMLInputElement>(null);
+  const submenuRef = useRef<HTMLSpanElement>(null);
+  const normalizedDraft = isEditableColor(draft) ? normalizeColor(draft).toLowerCase() : '';
+
+  useLayoutEffect(() => {
+    setDraft(color);
+  }, [color]);
+
+  const updateSubmenuPosition = useCallback(() => {
+    if (!open || !anchorElement) {
+      return;
+    }
+    const anchorRect = anchorElement.getBoundingClientRect();
+    const boundary = {
+      bottom: window.innerHeight,
+      left: 0,
+      right: window.innerWidth,
+      top: 0
+    };
+    const boundaryRight = boundary.right - viewportGap;
+    setOpenLeft(anchorRect.right + 2 + PROFILE_COLOR_SUBMENU_WIDTH > boundaryRight);
+    if (!fixedPosition) {
+      setSubmenuStyle(undefined);
+      return;
+    }
+    if (!submenuRef.current) {
+      return;
+    }
+    const maxHeight = Math.max(80, Math.floor((boundary.bottom - boundary.top) * 0.9));
+    const width = submenuRef.current.offsetWidth || PROFILE_COLOR_SUBMENU_WIDTH;
+    const height = Math.min(submenuRef.current.scrollHeight || 180, maxHeight);
+    const boundaryLeft = boundary.left + viewportGap;
+    const rightLeft = Math.round(anchorRect.right + 2);
+    const leftLeft = Math.round(anchorRect.left - width - 2);
+    let left = rightLeft;
+    if (rightLeft + width > boundaryRight && leftLeft >= boundaryLeft) {
+      left = leftLeft;
+    }
+    left = Math.max(boundaryLeft, Math.min(left, boundaryRight - width));
+    const top = Math.max(boundary.top + viewportGap, Math.min(Math.round(anchorRect.top), boundary.bottom - viewportGap - height));
+    setSubmenuStyle({
+      left,
+      maxHeight,
+      maxWidth: Math.max(160, boundaryRight - left),
+      top
+    });
+  }, [anchorElement, fixedPosition, open, viewportGap]);
+
+  useLayoutEffect(() => {
+    updateSubmenuPosition();
+  }, [updateSubmenuPosition]);
+
+  function openSubmenu(event: React.FocusEvent<HTMLButtonElement> | React.MouseEvent<HTMLButtonElement>) {
+    setAnchorElement(event.currentTarget);
+    setOpen(true);
+  }
+
+  function closeSubmenu() {
+    setOpen(false);
+  }
+
+  function commitColor(value: string) {
+    if (!isEditableColor(value)) {
+      return;
+    }
+    const nextColor = normalizeColor(value).toLowerCase();
+    setDraft(nextColor);
+    onColorChange(profile, nextColor);
+    closeSubmenu();
+    onClose();
+  }
+
+  return (
+    <span className="options-shell-profile-browser-actions-menu-entry" onMouseLeave={closeSubmenu}>
+      <button
+        type="button"
+        className="options-shell-profile-browser-actions-menu-item options-shell-profile-color-menu-item"
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        role="menuitem"
+        onFocus={openSubmenu}
+        onMouseEnter={openSubmenu}
+      >
+        <span className="options-shell-profile-color-menu-label">
+          <span className="options-shell-profile-color-menu-swatch" style={{backgroundColor: color}} />
+          <span>{message('options_profileColor', 'Profile color')}</span>
+        </span>
+        <span className="glyphicon glyphicon-chevron-right" />
+      </button>
+      {open && (
+        <span
+          ref={submenuRef}
+          className={`options-shell-profile-color-submenu ${
+            fixedPosition
+              ? 'options-shell-profile-color-submenu-fixed'
+              : `options-shell-profile-color-submenu-attached${openLeft ? ' open-left' : ''}`
+          }`}
+          role="dialog"
+          aria-label={message('options_profileColor', 'Profile color')}
+          style={fixedPosition ? submenuStyle : undefined}
+        >
+          <div className="profile-color-swatch-grid">
+            {PROFILE_COLOR_SWATCHES.map((swatch) => (
+              <button
+                key={swatch}
+                type="button"
+                className={`profile-color-swatch-option${normalizeColor(swatch).toLowerCase() === color ? ' active' : ''}`}
+                style={{backgroundColor: swatch}}
+                title={swatch}
+                aria-label={message('options_profileUseColor', `Use ${swatch}`, swatch)}
+                onClick={() => commitColor(swatch)}
+              />
+            ))}
+          </div>
+          <div className="profile-color-hex-row">
+            <input
+              type="text"
+              className="form-control profile-color-hex-input"
+              value={draft}
+              maxLength={7}
+              spellCheck={false}
+              aria-label={message('options_profileHexColor', 'Hex color')}
+              onChange={(event) => setDraft(event.currentTarget.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  commitColor(draft);
+                }
+              }}
+            />
+            <button type="button" className="btn btn-default btn-sm" disabled={!normalizedDraft} onClick={() => commitColor(draft)}>
+              {message('options_profileApplyColor', 'Apply')}
+            </button>
+          </div>
+          <button type="button" className="btn btn-default btn-sm profile-color-custom" onClick={() => nativeInputRef.current?.click()}>
+            <span className="glyphicon glyphicon-tint" /> {message('options_profileCustomColor', 'Custom')}
+          </button>
+          <input
+            ref={nativeInputRef}
+            className="profile-color-editor-native"
+            type="color"
+            value={color}
+            tabIndex={-1}
+            aria-hidden="true"
+            onChange={(event) => commitColor(event.currentTarget.value)}
+          />
+        </span>
+      )}
+    </span>
+  );
+}
+
 function ProfileActionsControl({
   buttonClassName,
   fixedMenu = false,
   menuClassName,
   onDeleteProfile,
-  onExportProfile,
+  onExportPacProfile,
+  onExportRuleListProfile,
+  onProfileColorChange,
   onRenameProfile,
   profile,
   rootClassName
@@ -233,14 +430,32 @@ function ProfileActionsControl({
       </button>
       {open && (
         <span ref={menuRef} className={menuClassName} role="menu" style={fixedMenu ? menuStyle : undefined}>
-          {onExportProfile && (
+          {onProfileColorChange && canEditProfileColor(profile) && (
+            <ProfileColorActionSubmenu
+              fixedPosition={fixedMenu}
+              onClose={() => setOpen(false)}
+              onColorChange={onProfileColorChange}
+              profile={profile}
+            />
+          )}
+          {onExportRuleListProfile && canExportRuleListProfile(profile) && (
             <button
               type="button"
               className="options-shell-profile-browser-actions-menu-item"
               role="menuitem"
-              onClick={action(onExportProfile)}
+              onClick={action(onExportRuleListProfile)}
             >
-              <span className="glyphicon glyphicon-download" /> <span>{profileExportLabel(profile)}</span>
+              <span className="glyphicon glyphicon-list" /> <span>{message('options_profileExportRuleList', 'Export Rule List')}</span>
+            </button>
+          )}
+          {onExportPacProfile && canExportPacProfile(profile) && (
+            <button
+              type="button"
+              className="options-shell-profile-browser-actions-menu-item"
+              role="menuitem"
+              onClick={action(onExportPacProfile)}
+            >
+              <span className="glyphicon glyphicon-download" /> <span>{message('options_profileExportPac', 'Export PAC')}</span>
             </button>
           )}
           {onRenameProfile && (
@@ -273,8 +488,10 @@ function ProfileNavItem({
   currentProfileName,
   currentState,
   onDeleteProfile,
-  onExportProfile,
+  onExportPacProfile,
+  onExportRuleListProfile,
   onNavigate,
+  onProfileColorChange,
   onRenameProfile,
   profile,
   profileHref
@@ -282,13 +499,15 @@ function ProfileNavItem({
   currentProfileName: string;
   currentState: string;
   onDeleteProfile?: (profile: Profile) => void;
-  onExportProfile?: (profile: Profile) => void;
+  onExportPacProfile?: (profile: Profile) => void;
+  onExportRuleListProfile?: (profile: Profile) => void;
   onNavigate?: (state: string, params?: Record<string, string>) => void;
+  onProfileColorChange?: (profile: Profile, color: string) => void;
   onRenameProfile?: (profile: Profile) => void;
   profile: Profile;
   profileHref?: (profile: Profile) => string;
 }) {
-  const actionProps = {onDeleteProfile, onExportProfile, onRenameProfile};
+  const actionProps = {onDeleteProfile, onExportPacProfile, onExportRuleListProfile, onProfileColorChange, onRenameProfile};
   return (
     <li
       className={`nav-profile ${currentState === 'profile' && profile.name === currentProfileName ? 'active' : ''}`}
@@ -297,7 +516,7 @@ function ProfileNavItem({
       <a href={profileHref?.(profile) || '#'} onClick={(event) => navClick(event, () => onNavigate?.('profile', {name: profile.name}))}>
         <ProfileInline profile={profile} />
       </a>
-      {hasProfileActions(actionProps) && (
+      {hasProfileActions(actionProps, profile) && (
         <ProfileActionsControl
           {...actionProps}
           buttonClassName="options-shell-profile-nav-actions-button"
@@ -469,8 +688,10 @@ function ProfileBrowserModal({
   hiddenProfiles,
   onClose,
   onDeleteProfile,
-  onExportProfile,
+  onExportPacProfile,
+  onExportRuleListProfile,
   onNavigate,
+  onProfileColorChange,
   onRenameProfile,
   profileHref,
   profiles
@@ -480,8 +701,10 @@ function ProfileBrowserModal({
   hiddenProfiles: Profile[];
   onClose: () => void;
   onDeleteProfile?: (profile: Profile) => void;
-  onExportProfile?: (profile: Profile) => void;
+  onExportPacProfile?: (profile: Profile) => void;
+  onExportRuleListProfile?: (profile: Profile) => void;
   onNavigate?: (state: string, params?: Record<string, string>) => void;
+  onProfileColorChange?: (profile: Profile, color: string) => void;
   onRenameProfile?: (profile: Profile) => void;
   profileHref?: (profile: Profile) => string;
   profiles: Profile[];
@@ -545,8 +768,10 @@ function ProfileBrowserModal({
                       currentState={currentState}
                       label={profilesLabel}
                       onDeleteProfile={onDeleteProfile}
-                      onExportProfile={onExportProfile}
+                      onExportPacProfile={onExportPacProfile}
+                      onExportRuleListProfile={onExportRuleListProfile}
                       onNavigate={navigateToProfile}
+                      onProfileColorChange={onProfileColorChange}
                       onRenameProfile={onRenameProfile}
                       profileHref={profileHref}
                       profiles={filteredProfiles}
@@ -558,8 +783,10 @@ function ProfileBrowserModal({
                       currentState={currentState}
                       label={hiddenProfilesLabel}
                       onDeleteProfile={onDeleteProfile}
-                      onExportProfile={onExportProfile}
+                      onExportPacProfile={onExportPacProfile}
+                      onExportRuleListProfile={onExportRuleListProfile}
                       onNavigate={navigateToProfile}
+                      onProfileColorChange={onProfileColorChange}
                       onRenameProfile={onRenameProfile}
                       profileHref={profileHref}
                       profiles={filteredHiddenProfiles}
@@ -584,8 +811,10 @@ function ProfileBrowserSection({
   currentState,
   label,
   onDeleteProfile,
-  onExportProfile,
+  onExportPacProfile,
+  onExportRuleListProfile,
   onNavigate,
+  onProfileColorChange,
   onRenameProfile,
   profileHref,
   profiles
@@ -594,8 +823,10 @@ function ProfileBrowserSection({
   currentState: string;
   label: string;
   onDeleteProfile?: (profile: Profile) => void;
-  onExportProfile?: (profile: Profile) => void;
+  onExportPacProfile?: (profile: Profile) => void;
+  onExportRuleListProfile?: (profile: Profile) => void;
   onNavigate: (profile: Profile) => void;
+  onProfileColorChange?: (profile: Profile, color: string) => void;
   onRenameProfile?: (profile: Profile) => void;
   profileHref?: (profile: Profile) => string;
   profiles: Profile[];
@@ -609,8 +840,10 @@ function ProfileBrowserSection({
             key={profile.name}
             active={currentState === 'profile' && profile.name === activeProfileName}
             onDeleteProfile={onDeleteProfile}
-            onExportProfile={onExportProfile}
+            onExportPacProfile={onExportPacProfile}
+            onExportRuleListProfile={onExportRuleListProfile}
             onNavigate={onNavigate}
+            onProfileColorChange={onProfileColorChange}
             onRenameProfile={onRenameProfile}
             profile={profile}
             profileHref={profileHref}
@@ -624,21 +857,25 @@ function ProfileBrowserSection({
 function ProfileBrowserItem({
   active,
   onDeleteProfile,
-  onExportProfile,
+  onExportPacProfile,
+  onExportRuleListProfile,
   onNavigate,
+  onProfileColorChange,
   onRenameProfile,
   profile,
   profileHref
 }: {
   active?: boolean;
   onDeleteProfile?: (profile: Profile) => void;
-  onExportProfile?: (profile: Profile) => void;
+  onExportPacProfile?: (profile: Profile) => void;
+  onExportRuleListProfile?: (profile: Profile) => void;
   onNavigate: (profile: Profile) => void;
+  onProfileColorChange?: (profile: Profile, color: string) => void;
   onRenameProfile?: (profile: Profile) => void;
   profile: Profile;
   profileHref?: (profile: Profile) => string;
 }) {
-  const actionProps = {onDeleteProfile, onExportProfile, onRenameProfile};
+  const actionProps = {onDeleteProfile, onExportPacProfile, onExportRuleListProfile, onProfileColorChange, onRenameProfile};
   return (
     <div className={`options-shell-profile-browser-item${active ? ' active' : ''}`}>
       <a
@@ -648,7 +885,7 @@ function ProfileBrowserItem({
       >
         <ProfileInline profile={profile} />
       </a>
-      {hasProfileActions(actionProps) && (
+      {hasProfileActions(actionProps, profile) && (
         <ProfileActionsControl
           {...actionProps}
           buttonClassName="options-shell-profile-browser-actions-button"
@@ -679,9 +916,11 @@ export function OptionsShell({
   onApply,
   onDiscard,
   onDeleteProfile,
-  onExportProfile,
+  onExportPacProfile,
+  onExportRuleListProfile,
   onNavigate,
   onNewProfile,
+  onProfileColorChange,
   onRenameProfile,
   options,
   optionsDirty = false,
@@ -822,8 +1061,10 @@ export function OptionsShell({
                 currentProfileName={currentProfileName}
                 currentState={currentState}
                 onDeleteProfile={onDeleteProfile}
-                onExportProfile={onExportProfile}
+                onExportPacProfile={onExportPacProfile}
+                onExportRuleListProfile={onExportRuleListProfile}
                 onNavigate={onNavigate}
+                onProfileColorChange={onProfileColorChange}
                 onRenameProfile={onRenameProfile}
                 profile={profile}
                 profileHref={profileHref}
@@ -864,8 +1105,10 @@ export function OptionsShell({
                       currentProfileName={currentProfileName}
                       currentState={currentState}
                       onDeleteProfile={onDeleteProfile}
-                      onExportProfile={onExportProfile}
+                      onExportPacProfile={onExportPacProfile}
+                      onExportRuleListProfile={onExportRuleListProfile}
                       onNavigate={onNavigate}
+                      onProfileColorChange={onProfileColorChange}
                       onRenameProfile={onRenameProfile}
                       profile={profile}
                       profileHref={profileHref}
@@ -908,8 +1151,10 @@ export function OptionsShell({
           hiddenProfiles={hiddenProfiles}
           onClose={() => setProfileBrowserOpen(false)}
           onDeleteProfile={onDeleteProfile}
-          onExportProfile={onExportProfile}
+          onExportPacProfile={onExportPacProfile}
+          onExportRuleListProfile={onExportRuleListProfile}
           onNavigate={onNavigate}
+          onProfileColorChange={onProfileColorChange}
           onRenameProfile={onRenameProfile}
           profileHref={profileHref}
           profiles={visibleProfiles}

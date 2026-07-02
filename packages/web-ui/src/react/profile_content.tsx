@@ -44,10 +44,12 @@ import {
   formatMediumDate,
   getRuleListFormats,
   groupedConditionTypes,
+  isEditableColor,
   isFixedProfileProxyProtocol,
   moveIndex,
   normalizeColor,
-  pacProfileUrlState
+  pacProfileUrlState,
+  PROFILE_COLOR_SWATCHES
 } from './profile_content_logic';
 import type {
   FixedProfileBypassGroup,
@@ -73,20 +75,6 @@ import type {
 const INITIAL_SWITCH_RULE_BATCH_SIZE = 15;
 const SWITCH_RULE_BATCH_SIZE = 8;
 const SWITCH_RULE_BATCH_DELAY_MS = 32;
-const PROFILE_COLOR_SWATCHES = [
-  '#99ccee',
-  '#99dd99',
-  '#ffaa88',
-  '#ffee99',
-  '#d497ee',
-  '#4477bb',
-  '#55bb55',
-  '#dd6633',
-  '#ccaa00',
-  '#7f8c8d',
-  '#000000',
-  '#ffffff'
-];
 const CHROMIUM_HTTPS_URL_LIMITATION_INTRO =
   'Chromium-based browsers do not expose the path or query of HTTPS and WSS requests to URL conditions.';
 const CHROMIUM_HTTPS_URL_LIMITATION_DETAIL =
@@ -96,10 +84,6 @@ const CHROMIUM_HTTPS_URL_LIMITATION_TOOLTIP =
 
 function shouldShowChromiumHttpsUrlInfo(proxyFeatures: ProxyFeature[] = []) {
   return proxyFeatures.includes('fullUrlHttp') && !proxyFeatures.includes('fullUrl');
-}
-
-function isEditableColor(value: string) {
-  return /^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(value);
 }
 
 type ProfileColorEditorProps = {

@@ -243,13 +243,17 @@ describe('options shell components', () => {
 
   it('runs profile browser item actions from the overflow menu', () => {
     const onDeleteProfile = vi.fn();
-    const onExportProfile = vi.fn();
+    const onExportPacProfile = vi.fn();
+    const onExportRuleListProfile = vi.fn();
+    const onProfileColorChange = vi.fn();
     const onRenameProfile = vi.fn();
 
     render(
       <OptionsShell
         onDeleteProfile={onDeleteProfile}
-        onExportProfile={onExportProfile}
+        onExportPacProfile={onExportPacProfile}
+        onExportRuleListProfile={onExportRuleListProfile}
+        onProfileColorChange={onProfileColorChange}
         onRenameProfile={onRenameProfile}
         options={optionsFixture()}
       />
@@ -261,31 +265,52 @@ describe('options shell components', () => {
       return screen.getByRole('dialog');
     }
 
-    function openProxyActions(dialog: HTMLElement) {
-      const proxyItem = within(dialog).getByRole('link', {name: /proxy/}).closest('.options-shell-profile-browser-item') as HTMLElement;
-      fireEvent.click(within(proxyItem).getByRole('button', {name: 'Profile Options'}));
-      return within(proxyItem);
+    function openProfileActions(dialog: HTMLElement, profileName: string) {
+      const profileItem = within(dialog)
+        .getByRole('link', {name: new RegExp(profileName)})
+        .closest('.options-shell-profile-browser-item') as HTMLElement;
+      fireEvent.click(within(profileItem).getByRole('button', {name: 'Profile Options'}));
+      return within(profileItem);
     }
 
     let dialog = openProfileBrowser();
-    fireEvent.click(openProxyActions(dialog).getByRole('menuitem', {name: 'Export PAC'}));
-    expect(onExportProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'proxy'}));
+    let actions = openProfileActions(dialog, 'proxy');
+    fireEvent.mouseEnter(actions.getByRole('menuitem', {name: 'Profile color'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Use #dd6633'}));
+    expect(onProfileColorChange).toHaveBeenCalledWith(expect.objectContaining({name: 'proxy'}), '#dd6633');
     expect(screen.getByRole('dialog')).toBeTruthy();
 
     dialog = screen.getByRole('dialog');
-    fireEvent.click(openProxyActions(dialog).getByRole('menuitem', {name: 'Rename'}));
+    fireEvent.click(openProfileActions(dialog, 'auto').getByRole('menuitem', {name: 'Export Rule List'}));
+    expect(onExportRuleListProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'auto'}));
+    expect(screen.getByRole('dialog')).toBeTruthy();
+
+    dialog = screen.getByRole('dialog');
+    fireEvent.click(openProfileActions(dialog, 'auto').getByRole('menuitem', {name: 'Export PAC'}));
+    expect(onExportPacProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'auto'}));
+    expect(screen.getByRole('dialog')).toBeTruthy();
+
+    dialog = screen.getByRole('dialog');
+    fireEvent.click(openProfileActions(dialog, 'proxy').getByRole('menuitem', {name: 'Export PAC'}));
+    expect(onExportPacProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'proxy'}));
+    expect(screen.getByRole('dialog')).toBeTruthy();
+
+    dialog = screen.getByRole('dialog');
+    fireEvent.click(openProfileActions(dialog, 'proxy').getByRole('menuitem', {name: 'Rename'}));
     expect(onRenameProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'proxy'}));
     expect(screen.getByRole('dialog')).toBeTruthy();
 
     dialog = screen.getByRole('dialog');
-    fireEvent.click(openProxyActions(dialog).getByRole('menuitem', {name: 'Delete Profile'}));
+    fireEvent.click(openProfileActions(dialog, 'proxy').getByRole('menuitem', {name: 'Delete Profile'}));
     expect(onDeleteProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'proxy'}));
     expect(screen.getByRole('dialog')).toBeTruthy();
   });
 
   it('runs sidebar profile item actions from overflow menus', () => {
     const onDeleteProfile = vi.fn();
-    const onExportProfile = vi.fn();
+    const onExportPacProfile = vi.fn();
+    const onExportRuleListProfile = vi.fn();
+    const onProfileColorChange = vi.fn();
     const onRenameProfile = vi.fn();
     const options = {
       ...optionsFixture(),
@@ -300,7 +325,9 @@ describe('options shell components', () => {
       <OptionsShell
         appliedOptions={options}
         onDeleteProfile={onDeleteProfile}
-        onExportProfile={onExportProfile}
+        onExportPacProfile={onExportPacProfile}
+        onExportRuleListProfile={onExportRuleListProfile}
+        onProfileColorChange={onProfileColorChange}
         onRenameProfile={onRenameProfile}
         options={options}
       />
@@ -309,8 +336,13 @@ describe('options shell components', () => {
     const profileList = container.querySelector('.options-shell-profile-list') as HTMLElement;
     const proxyItem = within(profileList).getByRole('link', {name: /proxy/}).closest('.nav-profile') as HTMLElement;
     fireEvent.click(within(proxyItem).getByRole('button', {name: 'Profile Options'}));
+    fireEvent.mouseEnter(within(proxyItem).getByRole('menuitem', {name: 'Profile color'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Use #99dd99'}));
+    expect(onProfileColorChange).toHaveBeenCalledWith(expect.objectContaining({name: 'proxy'}), '#99dd99');
+
+    fireEvent.click(within(proxyItem).getByRole('button', {name: 'Profile Options'}));
     fireEvent.click(within(proxyItem).getByRole('menuitem', {name: 'Export PAC'}));
-    expect(onExportProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'proxy'}));
+    expect(onExportPacProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'proxy'}));
 
     fireEvent.click(within(proxyItem).getByRole('button', {name: 'Profile Options'}));
     fireEvent.click(within(proxyItem).getByRole('menuitem', {name: 'Rename'}));
@@ -319,6 +351,14 @@ describe('options shell components', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Hidden'}));
     const hiddenList = container.querySelector('.options-shell-hidden-profile-list') as HTMLElement;
     const autoItem = within(hiddenList).getByRole('link', {name: /auto/}).closest('.nav-profile') as HTMLElement;
+    fireEvent.click(within(autoItem).getByRole('button', {name: 'Profile Options'}));
+    fireEvent.click(within(autoItem).getByRole('menuitem', {name: 'Export Rule List'}));
+    expect(onExportRuleListProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'auto'}));
+
+    fireEvent.click(within(autoItem).getByRole('button', {name: 'Profile Options'}));
+    fireEvent.click(within(autoItem).getByRole('menuitem', {name: 'Export PAC'}));
+    expect(onExportPacProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'auto'}));
+
     fireEvent.click(within(autoItem).getByRole('button', {name: 'Profile Options'}));
     fireEvent.click(within(autoItem).getByRole('menuitem', {name: 'Delete Profile'}));
     expect(onDeleteProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'auto'}));

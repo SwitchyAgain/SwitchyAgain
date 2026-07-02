@@ -1367,16 +1367,6 @@ export function OptionsApp() {
     navigate('ui');
   }
 
-  function requestExportProfile(profile: Profile | null | undefined) {
-    if (!profile || isBuiltinProfile(profile)) {
-      return;
-    }
-    if (isSwitchProfile(profile)) {
-      return exportRuleList(profile.name);
-    }
-    return exportScript(profile.name);
-  }
-
   function exportRuleList(profileName: string) {
     if (!profileName) {
       return Promise.resolve();
@@ -1852,9 +1842,15 @@ export function OptionsApp() {
             onApply={requestApplyOptions}
             onDeleteProfile={requestDeleteProfile}
             onDiscard={discardOptions}
-            onExportProfile={requestExportProfile}
+            onExportPacProfile={(profile) => exportScript(profile.name)}
+            onExportRuleListProfile={(profile) => isSwitchProfile(profile) && exportRuleList(profile.name)}
             onNavigate={requestNavigate}
             onNewProfile={requestNewProfile}
+            onProfileColorChange={(profile, color) =>
+              updateProfile(profile.name, (nextProfile) => {
+                nextProfile.color = color;
+              })
+            }
             onRenameProfile={(profile) => requestRenameProfile(profile, {navigateAfterRename: false})}
             options={options}
             optionsDirty={dirty || pendingSourceDraftDirty || status === 'saving'}
