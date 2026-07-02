@@ -253,6 +253,15 @@ msgstr "α"
 msgid "options_navHeader_setting"
 msgstr "Nastavení"
 
+msgid "options_showSettingsMenu"
+msgstr "Zobrazit nastavení"
+
+msgid "options_collapseSettings"
+msgstr "Sbalit nastavení"
+
+msgid "options_expandSettings"
+msgstr "Rozbalit nastavení"
+
 msgid "options_navHeader_profiles"
 msgstr "Profily"
 
@@ -310,6 +319,9 @@ msgstr "Potvrdit smazání podmínky."
 msgid "options_refreshOnProfileChange"
 msgstr "Obnovit aktuální záložku při změnu profilu."
 
+msgid "options_keepSettingsExpanded"
+msgstr "Ponechat Nastavení rozbalené v postranním panelu."
+
 msgid "options_showPopupAddCondition"
 msgstr "Zobrazit „Přidat podmínku“ ve vyskakovacím menu."
 
@@ -326,7 +338,7 @@ msgid "options_addConditionsToBottom"
 msgstr "Put new conditions added using the popup menu to the bottom of the list."
 
 msgid "options_showProfileOptions"
-msgstr "Zobrazit možnosti profilu na stránkách profilů pro skrytí profilů ve vyskakovacím a kontextovém menu."
+msgstr "Zobrazit možnosti profilu na stránkách profilů pro skrytí profilů ve vyskakovacím menu, kontextovém menu a postranním panelu nastavení."
 
 msgid "options_showSocks5LocalDnsOption"
 msgstr "Zobrazit volbu místního DNS pro SOCKS5. Pouze Firefox."
@@ -366,6 +378,21 @@ msgstr "Zobrazit Otevřít odkaz v novém okně s profilem"
 
 msgid "options_contextMenuOpenLinkInNewPrivateWindowWithProfile"
 msgstr "Zobrazit Otevřít odkaz v novém soukromém okně s profilem"
+
+msgid "options_group_profileActionMenuOptions"
+msgstr "Nabídka akcí"
+
+msgid "options_profileActionMenuSidebarColor"
+msgstr "Zobrazit barvu profilu v nabídkách akcí profilů v postranním panelu."
+
+msgid "options_profileActionMenuBrowserColor"
+msgstr "Zobrazit barvu profilu v nabídkách akcí v prohlížeči profilů."
+
+msgid "options_profileActionMenuSidebarExport"
+msgstr "Zobrazit akce exportu v nabídkách akcí profilů v postranním panelu."
+
+msgid "options_profileActionMenuBrowserExport"
+msgstr "Zobrazit akce exportu v nabídkách akcí v prohlížeči profilů."
 
 msgid "options_group_keyboardShortcut"
 msgstr "Klávesové zkratky"

@@ -250,6 +250,15 @@ msgstr "α"
 msgid "options_navHeader_setting"
 msgstr "Settings"
 
+msgid "options_showSettingsMenu"
+msgstr "Show settings"
+
+msgid "options_collapseSettings"
+msgstr "Collapse settings"
+
+msgid "options_expandSettings"
+msgstr "Expand settings"
+
 msgid "options_navHeader_profiles"
 msgstr "Profiles"
 
@@ -307,6 +316,9 @@ msgstr "Confirm on condition deletion."
 msgid "options_refreshOnProfileChange"
 msgstr "Refresh current tab on profile change."
 
+msgid "options_keepSettingsExpanded"
+msgstr "Keep Settings expanded in the sidebar."
+
 msgid "options_showPopupAddCondition"
 msgstr "Show Add Condition in the popup menu."
 
@@ -324,8 +336,8 @@ msgstr "Put new conditions added using the popup menu to the bottom of the list.
 
 msgid "options_showProfileOptions"
 msgstr ""
-"Show Profile Options on profile pages for hiding profiles from the popup and "
-"context menus."
+"Show Profile Options on profile pages for hiding profiles from the popup "
+"menu, context menu, and options sidebar."
 
 msgid "options_showSocks5LocalDnsOption"
 msgstr "Show SOCKS5 local DNS option. Firefox only."
@@ -365,6 +377,21 @@ msgstr "Show Open Link in New Window with Profile"
 
 msgid "options_contextMenuOpenLinkInNewPrivateWindowWithProfile"
 msgstr "Show Open Link in New Private Window with Profile"
+
+msgid "options_group_profileActionMenuOptions"
+msgstr "Action Menu"
+
+msgid "options_profileActionMenuSidebarColor"
+msgstr "Show profile color in sidebar profile action menus."
+
+msgid "options_profileActionMenuBrowserColor"
+msgstr "Show profile color in profile browser action menus."
+
+msgid "options_profileActionMenuSidebarExport"
+msgstr "Show export actions in sidebar profile action menus."
+
+msgid "options_profileActionMenuBrowserExport"
+msgstr "Show export actions in profile browser action menus."
 
 msgid "options_group_keyboardShortcut"
 msgstr "Keyboard Shortcut"
@@ -607,6 +634,21 @@ msgstr "Syncing is disabled for this profile for using too much storage space."
 
 msgid "options_profileTabPrefix"
 msgstr "Profile :: "
+
+msgid "options_profileColor"
+msgstr "Profile color"
+
+msgid "options_profileUseColor"
+msgstr "Use color $1"
+
+msgid "options_profileHexColor"
+msgstr "Hex color"
+
+msgid "options_profileApplyColor"
+msgstr "Apply"
+
+msgid "options_profileCustomColor"
+msgstr "Custom"
 
 msgid "options_renameProfile"
 msgstr "Rename"

@@ -208,6 +208,15 @@ msgstr "α"
 msgid "options_navHeader_setting"
 msgstr "Innstillinger"
 
+msgid "options_showSettingsMenu"
+msgstr "Vis innstillinger"
+
+msgid "options_collapseSettings"
+msgstr "Skjul innstillinger"
+
+msgid "options_expandSettings"
+msgstr "Utvid innstillinger"
+
 msgid "options_navHeader_profiles"
 msgstr "Profiler"
 
@@ -265,6 +274,9 @@ msgstr ""
 msgid "options_refreshOnProfileChange"
 msgstr "Gjenoppfrisk gjeldende fane ved profilendring."
 
+msgid "options_keepSettingsExpanded"
+msgstr "Hold delen Innstillinger utvidet i sidepanelet."
+
 msgid "options_showPopupAddCondition"
 msgstr "Vis «Legg til betingelse» i oppsprettsmenyen."
 
@@ -281,7 +293,7 @@ msgid "options_addConditionsToBottom"
 msgstr "Put new conditions added using the popup menu to the bottom of the list."
 
 msgid "options_showProfileOptions"
-msgstr "Vis profilalternativer på profilsider for å skjule profiler fra sprettopp- og kontekstmenyer."
+msgstr "Vis profilalternativer på profilsider for å skjule profiler fra sprettoppmenyen, kontekstmenyen og sidepanelet for innstillinger."
 
 msgid "options_showSocks5LocalDnsOption"
 msgstr "Vis alternativet for lokal DNS med SOCKS5. Bare Firefox."
@@ -321,6 +333,21 @@ msgstr "Vis Åpne lenke i nytt vindu med profil"
 
 msgid "options_contextMenuOpenLinkInNewPrivateWindowWithProfile"
 msgstr "Vis Åpne lenke i nytt privat vindu med profil"
+
+msgid "options_group_profileActionMenuOptions"
+msgstr "Handlingsmeny"
+
+msgid "options_profileActionMenuSidebarColor"
+msgstr "Vis profilfarge i handlingsmenyer for profiler i sidepanelet."
+
+msgid "options_profileActionMenuBrowserColor"
+msgstr "Vis profilfarge i profiloversiktens handlingsmenyer."
+
+msgid "options_profileActionMenuSidebarExport"
+msgstr "Vis eksporthandlinger i handlingsmenyer for profiler i sidepanelet."
+
+msgid "options_profileActionMenuBrowserExport"
+msgstr "Vis eksporthandlinger i profiloversiktens handlingsmenyer."
 
 msgid "options_group_keyboardShortcut"
 msgstr "Tastatursnarvei"

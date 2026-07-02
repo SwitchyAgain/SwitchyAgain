@@ -259,6 +259,15 @@ msgstr "α"
 msgid "options_navHeader_setting"
 msgstr "Ajustes"
 
+msgid "options_showSettingsMenu"
+msgstr "Mostrar ajustes"
+
+msgid "options_collapseSettings"
+msgstr "Contraer ajustes"
+
+msgid "options_expandSettings"
+msgstr "Expandir ajustes"
+
 msgid "options_navHeader_profiles"
 msgstr "Perfiles"
 
@@ -318,6 +327,9 @@ msgstr "Recargar pestaña actual al cambiar perfil."
 "Permitir inspeccionar el proxy utilizado por cada elemento de la página a "
 "través del menú contextual."
 
+msgid "options_keepSettingsExpanded"
+msgstr "Mantener la sección Ajustes expandida en la barra lateral."
+
 msgid "options_showPopupAddCondition"
 msgstr "Mostrar «Añadir condición» en el menú emergente."
 
@@ -337,7 +349,7 @@ msgstr ""
 msgid "options_showProfileOptions"
 msgstr ""
 "Mostrar Opciones de perfil en las páginas de perfil para ocultar perfiles "
-"del menú emergente y del menú contextual."
+"del menú emergente, del menú contextual y de la barra lateral de ajustes."
 
 msgid "options_showSocks5LocalDnsOption"
 msgstr "Mostrar la opción de DNS local SOCKS5. Solo Firefox."
@@ -377,6 +389,21 @@ msgstr "Mostrar Abrir enlace en nueva ventana con perfil"
 
 msgid "options_contextMenuOpenLinkInNewPrivateWindowWithProfile"
 msgstr "Mostrar Abrir enlace en nueva ventana privada con perfil"
+
+msgid "options_group_profileActionMenuOptions"
+msgstr "Menú de acciones"
+
+msgid "options_profileActionMenuSidebarColor"
+msgstr "Mostrar el color del perfil en los menús de acciones de perfiles de la barra lateral."
+
+msgid "options_profileActionMenuBrowserColor"
+msgstr "Mostrar el color del perfil en los menús de acciones del explorador de perfiles."
+
+msgid "options_profileActionMenuSidebarExport"
+msgstr "Mostrar acciones de exportación en los menús de acciones de perfiles de la barra lateral."
+
+msgid "options_profileActionMenuBrowserExport"
+msgstr "Mostrar acciones de exportación en los menús de acciones del explorador de perfiles."
 
 msgid "options_group_keyboardShortcut"
 msgstr "Atajo de teclado"

@@ -227,6 +227,15 @@ msgstr "测试版"
 msgid "options_navHeader_setting"
 msgstr "设置"
 
+msgid "options_showSettingsMenu"
+msgstr "显示设置"
+
+msgid "options_collapseSettings"
+msgstr "折叠设置"
+
+msgid "options_expandSettings"
+msgstr "展开设置"
+
 msgid "options_navHeader_profiles"
 msgstr "情景模式"
 
@@ -284,6 +293,9 @@ msgstr "删除切换条件时需要确认。"
 msgid "options_refreshOnProfileChange"
 msgstr "当更改情景模式时刷新当前标签。"
 
+msgid "options_keepSettingsExpanded"
+msgstr "在侧栏中保持“设置”展开。"
+
 msgid "options_showPopupAddCondition"
 msgstr "在弹出菜单中显示“添加条件”入口。"
 
@@ -300,7 +312,7 @@ msgid "options_addConditionsToBottom"
 msgstr "把以弹出菜单方式创建的规则添加到列表末尾。"
 
 msgid "options_showProfileOptions"
-msgstr "在情景模式页面显示“情景模式选项”，用于从弹出菜单和右键菜单隐藏情景模式。"
+msgstr "在情景模式页面显示“情景模式选项”，用于从弹出菜单、右键菜单和设置侧栏隐藏情景模式。"
 
 msgid "options_showSocks5LocalDnsOption"
 msgstr "显示 SOCKS5 本地 DNS 选项。仅 Firefox 支持。"
@@ -340,6 +352,21 @@ msgstr "显示“在新窗口中以情景模式打开链接”"
 
 msgid "options_contextMenuOpenLinkInNewPrivateWindowWithProfile"
 msgstr "显示“在新隐私窗口中以情景模式打开链接”"
+
+msgid "options_group_profileActionMenuOptions"
+msgstr "操作菜单"
+
+msgid "options_profileActionMenuSidebarColor"
+msgstr "在侧栏情景模式操作菜单中显示情景模式颜色。"
+
+msgid "options_profileActionMenuBrowserColor"
+msgstr "在情景模式浏览窗口的操作菜单中显示情景模式颜色。"
+
+msgid "options_profileActionMenuSidebarExport"
+msgstr "在侧栏情景模式操作菜单中显示导出操作。"
+
+msgid "options_profileActionMenuBrowserExport"
+msgstr "在情景模式浏览窗口的操作菜单中显示导出操作。"
 
 msgid "options_group_keyboardShortcut"
 msgstr "键盘快捷键"

@@ -221,6 +221,15 @@ msgstr "α"
 msgid "options_navHeader_setting"
 msgstr "Ayarlar"
 
+msgid "options_showSettingsMenu"
+msgstr "Ayarları göster"
+
+msgid "options_collapseSettings"
+msgstr "Ayarları daralt"
+
+msgid "options_expandSettings"
+msgstr "Ayarları genişlet"
+
 msgid "options_navHeader_profiles"
 msgstr "Profiller"
 
@@ -278,6 +287,9 @@ msgstr "Koşula bağlı silinmeyi onayla."
 msgid "options_refreshOnProfileChange"
 msgstr "Profil güncellendiğinde mevcut sekmeyi yenile."
 
+msgid "options_keepSettingsExpanded"
+msgstr "Ayarlar'ı kenar çubuğunda genişletilmiş tut."
+
 msgid "options_showPopupAddCondition"
 msgstr "Açılır menüde \"Koşul Ekle\" öğesini göster."
 
@@ -294,7 +306,7 @@ msgid "options_addConditionsToBottom"
 msgstr ""
 
 msgid "options_showProfileOptions"
-msgstr "Açılır ve bağlam menülerinden profilleri gizlemek için profil sayfalarında Profil Seçenekleri'ni göster."
+msgstr "Açılır menüden, bağlam menüsünden ve ayarlar kenar çubuğundan profilleri gizlemek için profil sayfalarında Profil Seçenekleri'ni göster."
 
 msgid "options_showSocks5LocalDnsOption"
 msgstr "SOCKS5 yerel DNS seçeneğini göster. Yalnızca Firefox."
@@ -334,6 +346,21 @@ msgstr "Profille Yeni Pencerede Bağlantı Aç'ı göster"
 
 msgid "options_contextMenuOpenLinkInNewPrivateWindowWithProfile"
 msgstr "Profille Yeni Gizli Pencerede Bağlantı Aç'ı göster"
+
+msgid "options_group_profileActionMenuOptions"
+msgstr "Hareket Menüsü"
+
+msgid "options_profileActionMenuSidebarColor"
+msgstr "Kenar çubuğundaki profil hareket menülerinde profil rengini göster."
+
+msgid "options_profileActionMenuBrowserColor"
+msgstr "Profil tarayıcısı hareket menülerinde profil rengini göster."
+
+msgid "options_profileActionMenuSidebarExport"
+msgstr "Kenar çubuğundaki profil hareket menülerinde dışa aktarma işlemlerini göster."
+
+msgid "options_profileActionMenuBrowserExport"
+msgstr "Profil tarayıcısı hareket menülerinde dışa aktarma işlemlerini göster."
 
 msgid "options_group_keyboardShortcut"
 msgstr "Klavye Kısayolu"
