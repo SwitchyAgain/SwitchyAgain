@@ -1,4 +1,4 @@
-import React, {useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {useOutsidePointer} from './dom_event_hooks';
 import {message} from './i18n_client';
 import type {Options} from './options_client_types';
@@ -29,6 +29,16 @@ export type OptionsShellProps = {
   uiHref?: string;
 };
 
+type ProfileActionProps = Pick<OptionsShellProps, 'onDeleteProfile' | 'onExportProfile' | 'onRenameProfile'>;
+type SettingsNavItem = {
+  active?: boolean;
+  href: string;
+  icon: string;
+  key: string;
+  label: string;
+  onClick?: () => void | Promise<unknown>;
+};
+
 export type OptionsAlertProps = {
   alert?: {
     i18n?: string;
@@ -38,6 +48,8 @@ export type OptionsAlertProps = {
   onClose?: () => void;
   shown?: boolean;
 };
+
+const PROFILE_ACTION_MENU_GAP = 12;
 
 const ALERT_ICONS: Record<string, string> = {
   danger: 'glyphicon-danger',
@@ -63,6 +75,16 @@ function actionClick(event: React.MouseEvent<HTMLElement>, action?: () => void) 
   navClick(event, action);
 }
 
+function hasProfileActions({onDeleteProfile, onExportProfile, onRenameProfile}: ProfileActionProps) {
+  return !!(onDeleteProfile || onExportProfile || onRenameProfile);
+}
+
+function profileExportLabel(profile: Profile) {
+  return profile.profileType === 'SwitchProfile'
+    ? message('options_profileExportRuleList', 'Export Rule List')
+    : message('options_profileExportPac', 'Export PAC');
+}
+
 function SettingsLink({
   active,
   href = '#',
@@ -85,19 +107,188 @@ function SettingsLink({
   );
 }
 
+function SettingsSectionMenuButton({items}: {items: SettingsNavItem[]}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLSpanElement>(null);
+  useOutsidePointer(rootRef, () => setOpen(false), open);
+
+  if (items.length === 0) {
+    return null;
+  }
+
+  return (
+    <span ref={rootRef} className={`options-shell-settings-menu options-shell-profile-menu ${open ? 'open' : ''}`}>
+      <button
+        type="button"
+        className="options-shell-settings-menu-button options-shell-profile-menu-button"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        aria-label={message('options_showSettingsMenu', 'Show settings')}
+        onClick={() => setOpen(!open)}
+      >
+        <span className="glyphicon glyphicon-option-vertical" />
+      </button>
+      {open && (
+        <span className="options-shell-profile-menu-panel options-shell-settings-menu-panel" role="menu" aria-label={message('options_navHeader_setting', 'Settings')}>
+          {items.map((item) => (
+            <a
+              key={item.key}
+              className={`options-shell-profile-menu-item options-shell-settings-menu-item ${item.active ? 'active' : ''}`}
+              href={item.href}
+              role="menuitem"
+              onClick={(event) => {
+                navClick(event, item.onClick);
+                setOpen(false);
+              }}
+            >
+              <span className={`glyphicon ${item.icon}`} />
+              <span>{item.label}</span>
+            </a>
+          ))}
+        </span>
+      )}
+    </span>
+  );
+}
+
+function ProfileActionsControl({
+  buttonClassName,
+  fixedMenu = false,
+  menuClassName,
+  onDeleteProfile,
+  onExportProfile,
+  onRenameProfile,
+  profile,
+  rootClassName
+}: ProfileActionProps & {
+  buttonClassName: string;
+  fixedMenu?: boolean;
+  menuClassName: string;
+  profile: Profile;
+  rootClassName: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>();
+  const rootRef = useRef<HTMLSpanElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLSpanElement>(null);
+  useOutsidePointer(rootRef, () => setOpen(false), open);
+
+  const updateFixedMenuPosition = useCallback(() => {
+    if (!fixedMenu || !buttonRef.current) {
+      return;
+    }
+    const rect = buttonRef.current.getBoundingClientRect();
+    const maxHeight = Math.floor(window.innerHeight * 0.9);
+    const menuWidth = menuRef.current?.offsetWidth || 192;
+    const menuHeight = Math.min(menuRef.current?.scrollHeight || 112, maxHeight);
+    let left = Math.round(rect.left);
+    if (left + menuWidth + PROFILE_ACTION_MENU_GAP > window.innerWidth) {
+      left = Math.max(PROFILE_ACTION_MENU_GAP, window.innerWidth - PROFILE_ACTION_MENU_GAP - menuWidth);
+    }
+    const top = Math.max(
+      PROFILE_ACTION_MENU_GAP,
+      Math.min(Math.round(rect.bottom + 2), window.innerHeight - PROFILE_ACTION_MENU_GAP - menuHeight)
+    );
+    setMenuStyle({
+      left,
+      maxHeight,
+      maxWidth: `calc(100vw - ${left}px - ${PROFILE_ACTION_MENU_GAP}px)`,
+      top
+    });
+  }, [fixedMenu]);
+
+  useLayoutEffect(() => {
+    if (open) {
+      updateFixedMenuPosition();
+    }
+  }, [open, updateFixedMenuPosition]);
+
+  function toggleMenu() {
+    if (!open) {
+      updateFixedMenuPosition();
+    }
+    setOpen(!open);
+  }
+
+  function action(handler?: (profile: Profile) => void) {
+    return () => {
+      setOpen(false);
+      handler?.(profile);
+    };
+  }
+
+  return (
+    <span ref={rootRef} className={`${rootClassName}${open ? ' open' : ''}`}>
+      <button
+        ref={buttonRef}
+        type="button"
+        className={buttonClassName}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        aria-label={message('options_group_profileOptions', 'Profile Options')}
+        onClick={toggleMenu}
+      >
+        <span className="glyphicon glyphicon-option-vertical" />
+      </button>
+      {open && (
+        <span ref={menuRef} className={menuClassName} role="menu" style={fixedMenu ? menuStyle : undefined}>
+          {onExportProfile && (
+            <button
+              type="button"
+              className="options-shell-profile-browser-actions-menu-item"
+              role="menuitem"
+              onClick={action(onExportProfile)}
+            >
+              <span className="glyphicon glyphicon-download" /> <span>{profileExportLabel(profile)}</span>
+            </button>
+          )}
+          {onRenameProfile && (
+            <button
+              type="button"
+              className="options-shell-profile-browser-actions-menu-item"
+              role="menuitem"
+              onClick={action(onRenameProfile)}
+            >
+              <span className="glyphicon glyphicon-edit" /> <span>{message('options_renameProfile', 'Rename')}</span>
+            </button>
+          )}
+          {onDeleteProfile && (
+            <button
+              type="button"
+              className="options-shell-profile-browser-actions-menu-item text-danger"
+              role="menuitem"
+              onClick={action(onDeleteProfile)}
+            >
+              <span className="glyphicon glyphicon-trash" /> <span>{message('options_deleteProfile', 'Delete Profile')}</span>
+            </button>
+          )}
+        </span>
+      )}
+    </span>
+  );
+}
+
 function ProfileNavItem({
   currentProfileName,
   currentState,
+  onDeleteProfile,
+  onExportProfile,
   onNavigate,
+  onRenameProfile,
   profile,
   profileHref
 }: {
   currentProfileName: string;
   currentState: string;
+  onDeleteProfile?: (profile: Profile) => void;
+  onExportProfile?: (profile: Profile) => void;
   onNavigate?: (state: string, params?: Record<string, string>) => void;
+  onRenameProfile?: (profile: Profile) => void;
   profile: Profile;
   profileHref?: (profile: Profile) => string;
 }) {
+  const actionProps = {onDeleteProfile, onExportProfile, onRenameProfile};
   return (
     <li
       className={`nav-profile ${currentState === 'profile' && profile.name === currentProfileName ? 'active' : ''}`}
@@ -106,6 +297,16 @@ function ProfileNavItem({
       <a href={profileHref?.(profile) || '#'} onClick={(event) => navClick(event, () => onNavigate?.('profile', {name: profile.name}))}>
         <ProfileInline profile={profile} />
       </a>
+      {hasProfileActions(actionProps) && (
+        <ProfileActionsControl
+          {...actionProps}
+          buttonClassName="options-shell-profile-nav-actions-button"
+          fixedMenu
+          menuClassName="options-shell-profile-browser-actions-menu options-shell-profile-nav-actions-menu"
+          profile={profile}
+          rootClassName="options-shell-profile-nav-actions"
+        />
+      )}
     </li>
   );
 }
@@ -437,23 +638,9 @@ function ProfileBrowserItem({
   profile: Profile;
   profileHref?: (profile: Profile) => string;
 }) {
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const exportLabel =
-    profile.profileType === 'SwitchProfile'
-      ? message('options_profileExportRuleList', 'Export Rule List')
-      : message('options_profileExportPac', 'Export PAC');
-  useOutsidePointer(rootRef, () => setOpen(false), open);
-
-  function action(handler?: (profile: Profile) => void) {
-    return () => {
-      setOpen(false);
-      handler?.(profile);
-    };
-  }
-
+  const actionProps = {onDeleteProfile, onExportProfile, onRenameProfile};
   return (
-    <div ref={rootRef} className={`options-shell-profile-browser-item${active ? ' active' : ''}`}>
+    <div className={`options-shell-profile-browser-item${active ? ' active' : ''}`}>
       <a
         className="options-shell-profile-browser-link"
         href={profileHref?.(profile) || '#'}
@@ -461,52 +648,15 @@ function ProfileBrowserItem({
       >
         <ProfileInline profile={profile} />
       </a>
-      <span className="options-shell-profile-browser-actions">
-        <button
-          type="button"
-          className="options-shell-profile-browser-actions-button"
-          aria-expanded={open}
-          aria-haspopup="menu"
-          aria-label={message('options_group_profileOptions', 'Profile Options')}
-          onClick={() => setOpen(!open)}
-        >
-          <span className="glyphicon glyphicon-option-vertical" />
-        </button>
-        {open && (
-          <span className="options-shell-profile-browser-actions-menu" role="menu">
-            {onExportProfile && (
-              <button
-                type="button"
-                className="options-shell-profile-browser-actions-menu-item"
-                role="menuitem"
-                onClick={action(onExportProfile)}
-              >
-                <span className="glyphicon glyphicon-download" /> <span>{exportLabel}</span>
-              </button>
-            )}
-            {onRenameProfile && (
-              <button
-                type="button"
-                className="options-shell-profile-browser-actions-menu-item"
-                role="menuitem"
-                onClick={action(onRenameProfile)}
-              >
-                <span className="glyphicon glyphicon-edit" /> <span>{message('options_renameProfile', 'Rename')}</span>
-              </button>
-            )}
-            {onDeleteProfile && (
-              <button
-                type="button"
-                className="options-shell-profile-browser-actions-menu-item text-danger"
-                role="menuitem"
-                onClick={action(onDeleteProfile)}
-              >
-                <span className="glyphicon glyphicon-trash" /> <span>{message('options_deleteProfile', 'Delete Profile')}</span>
-              </button>
-            )}
-          </span>
-        )}
-      </span>
+      {hasProfileActions(actionProps) && (
+        <ProfileActionsControl
+          {...actionProps}
+          buttonClassName="options-shell-profile-browser-actions-button"
+          menuClassName="options-shell-profile-browser-actions-menu"
+          profile={profile}
+          rootClassName="options-shell-profile-browser-actions"
+        />
+      )}
     </div>
   );
 }
@@ -544,6 +694,7 @@ export function OptionsShell({
 }: OptionsShellProps) {
   const [hiddenProfilesOpen, setHiddenProfilesOpen] = useState(false);
   const [profileBrowserOpen, setProfileBrowserOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(true);
   const profiles = profilesForFilter(options, 'sorted');
   const appliedProfiles = profilesForFilter(appliedOptions || options, 'sorted');
   const hiddenProfileNames = new Set(appliedProfiles.filter((profile) => !!profile.hiddenInOptions).map((profile) => profile.name));
@@ -551,6 +702,56 @@ export function OptionsShell({
   const hiddenProfiles = profiles.filter((profile) => hiddenProfileNames.has(profile.name));
   const profilesLabel = message('options_navHeader_profiles', 'Profiles');
   const hiddenProfilesLabel = message('options_navHeader_hiddenProfiles', 'Hidden');
+  const settingsItems: SettingsNavItem[] = [
+    {
+      active: currentState === 'ui',
+      href: uiHref,
+      icon: 'glyphicon-wrench',
+      key: 'ui',
+      label: message('options_tab_ui', 'Interface'),
+      onClick: () => onNavigate?.('ui')
+    },
+    {
+      active: currentState === 'general',
+      href: generalHref,
+      icon: 'glyphicon-cog',
+      key: 'general',
+      label: message('options_tab_general', 'General'),
+      onClick: () => onNavigate?.('general')
+    },
+    ...(showProfileScope
+      ? [
+          {
+            active: currentState === 'profileScope',
+            href: profileScopeHref,
+            icon: 'glyphicon-file',
+            key: 'profileScope',
+            label: message('options_tab_profileScope', 'Profile Scope'),
+            onClick: () => onNavigate?.('profileScope')
+          }
+        ]
+      : []),
+    ...(showRouteTrace
+      ? [
+          {
+            active: currentState === 'routeTrace',
+            href: routeTraceHref,
+            icon: 'glyphicon-sort',
+            key: 'routeTrace',
+            label: message('options_tab_routeTrace', 'Route Trace'),
+            onClick: () => onNavigate?.('routeTrace')
+          }
+        ]
+      : []),
+    {
+      active: currentState === 'io',
+      href: importExportHref,
+      icon: 'glyphicon-floppy-save',
+      key: 'io',
+      label: message('options_tab_importExport', 'Import/Export'),
+      onClick: () => onNavigate?.('io')
+    }
+  ];
 
   return (
     <>
@@ -564,46 +765,37 @@ export function OptionsShell({
       </h1>
       <nav className="options-shell-nav">
         <ul className="nav nav-pills nav-stacked options-shell-settings">
-          <li className="nav-header">{message('options_navHeader_setting', 'Settings')}</li>
-          <SettingsLink
-            active={currentState === 'ui'}
-            href={uiHref}
-            icon="glyphicon-wrench"
-            label={message('options_tab_ui', 'Interface')}
-            onClick={() => onNavigate?.('ui')}
-          />
-          <SettingsLink
-            active={currentState === 'general'}
-            href={generalHref}
-            icon="glyphicon-cog"
-            label={message('options_tab_general', 'General')}
-            onClick={() => onNavigate?.('general')}
-          />
-          {showProfileScope && (
-            <SettingsLink
-              active={currentState === 'profileScope'}
-              href={profileScopeHref}
-              icon="glyphicon-file"
-              label={message('options_tab_profileScope', 'Profile Scope')}
-              onClick={() => onNavigate?.('profileScope')}
-            />
+          <li className="nav-header options-shell-settings-header">
+            <span>{message('options_navHeader_setting', 'Settings')}</span>
+            <button
+              type="button"
+              className="options-shell-settings-toggle"
+              aria-expanded={settingsOpen}
+              aria-label={
+                settingsOpen
+                  ? message('options_collapseSettings', 'Collapse settings')
+                  : message('options_expandSettings', 'Expand settings')
+              }
+              onClick={() => setSettingsOpen(!settingsOpen)}
+            >
+              <span className={`glyphicon ${settingsOpen ? 'glyphicon-chevron-up' : 'glyphicon-chevron-down'}`} />
+            </button>
+            {!settingsOpen && <SettingsSectionMenuButton items={settingsItems} />}
+          </li>
+          {settingsOpen && (
+            <>
+              {settingsItems.map((item) => (
+                <SettingsLink
+                  key={item.key}
+                  active={item.active}
+                  href={item.href}
+                  icon={item.icon}
+                  label={item.label}
+                  onClick={item.onClick}
+                />
+              ))}
+            </>
           )}
-          {showRouteTrace && (
-            <SettingsLink
-              active={currentState === 'routeTrace'}
-              href={routeTraceHref}
-              icon="glyphicon-sort"
-              label={message('options_tab_routeTrace', 'Route Trace')}
-              onClick={() => onNavigate?.('routeTrace')}
-            />
-          )}
-          <SettingsLink
-            active={currentState === 'io'}
-            href={importExportHref}
-            icon="glyphicon-floppy-save"
-            label={message('options_tab_importExport', 'Import/Export')}
-            onClick={() => onNavigate?.('io')}
-          />
           <li className="divider" />
         </ul>
         <ul className="nav nav-pills nav-stacked options-shell-profile-header">
@@ -629,7 +821,10 @@ export function OptionsShell({
                 key={profile.name}
                 currentProfileName={currentProfileName}
                 currentState={currentState}
+                onDeleteProfile={onDeleteProfile}
+                onExportProfile={onExportProfile}
                 onNavigate={onNavigate}
+                onRenameProfile={onRenameProfile}
                 profile={profile}
                 profileHref={profileHref}
               />
@@ -668,7 +863,10 @@ export function OptionsShell({
                       key={profile.name}
                       currentProfileName={currentProfileName}
                       currentState={currentState}
+                      onDeleteProfile={onDeleteProfile}
+                      onExportProfile={onExportProfile}
                       onNavigate={onNavigate}
+                      onRenameProfile={onRenameProfile}
                       profile={profile}
                       profileHref={profileHref}
                     />

@@ -283,6 +283,47 @@ describe('options shell components', () => {
     expect(screen.getByRole('dialog')).toBeTruthy();
   });
 
+  it('runs sidebar profile item actions from overflow menus', () => {
+    const onDeleteProfile = vi.fn();
+    const onExportProfile = vi.fn();
+    const onRenameProfile = vi.fn();
+    const options = {
+      ...optionsFixture(),
+      '+auto': {
+        name: 'auto',
+        hiddenInOptions: true,
+        profileType: 'SwitchProfile'
+      }
+    };
+
+    const {container} = render(
+      <OptionsShell
+        appliedOptions={options}
+        onDeleteProfile={onDeleteProfile}
+        onExportProfile={onExportProfile}
+        onRenameProfile={onRenameProfile}
+        options={options}
+      />
+    );
+
+    const profileList = container.querySelector('.options-shell-profile-list') as HTMLElement;
+    const proxyItem = within(profileList).getByRole('link', {name: /proxy/}).closest('.nav-profile') as HTMLElement;
+    fireEvent.click(within(proxyItem).getByRole('button', {name: 'Profile Options'}));
+    fireEvent.click(within(proxyItem).getByRole('menuitem', {name: 'Export PAC'}));
+    expect(onExportProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'proxy'}));
+
+    fireEvent.click(within(proxyItem).getByRole('button', {name: 'Profile Options'}));
+    fireEvent.click(within(proxyItem).getByRole('menuitem', {name: 'Rename'}));
+    expect(onRenameProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'proxy'}));
+
+    fireEvent.click(screen.getByRole('button', {name: 'Hidden'}));
+    const hiddenList = container.querySelector('.options-shell-hidden-profile-list') as HTMLElement;
+    const autoItem = within(hiddenList).getByRole('link', {name: /auto/}).closest('.nav-profile') as HTMLElement;
+    fireEvent.click(within(autoItem).getByRole('button', {name: 'Profile Options'}));
+    fireEvent.click(within(autoItem).getByRole('menuitem', {name: 'Delete Profile'}));
+    expect(onDeleteProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'auto'}));
+  });
+
   it('shows dismissible alerts with mapped alert classes', () => {
     const onClose = vi.fn();
 

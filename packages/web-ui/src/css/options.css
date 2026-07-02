@@ -686,6 +686,18 @@ h1 {
   margin-bottom: 0;
 }
 
+.options-shell-profile-list .nav-profile,
+.options-shell-hidden-profile-list .nav-profile {
+  position: relative;
+}
+
+.options-shell-profile-list .nav-profile > a,
+.options-shell-hidden-profile-list .nav-profile > a {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .options-shell-profile-header,
 .options-shell-hidden-profile-header {
   margin-bottom: 0;
@@ -699,7 +711,14 @@ h1 {
   position: relative;
 }
 
+.options-shell-settings-header {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+}
+
 .options-shell-hidden-profile-toggle,
+.options-shell-settings-toggle,
 .options-shell-profile-menu-button,
 .options-shell-profile-menu-item {
   background: transparent;
@@ -715,6 +734,54 @@ h1 {
   text-transform: uppercase;
 }
 
+.options-shell-settings-toggle {
+  border-radius: 3px;
+  line-height: 1;
+  opacity: 0;
+  padding: 1px 3px;
+}
+
+.options-shell-settings-header:hover .options-shell-settings-toggle,
+.options-shell-settings-header:focus-within .options-shell-settings-toggle,
+.options-shell-settings-header:hover .options-shell-settings-menu-button,
+.options-shell-settings-header:focus-within .options-shell-settings-menu-button,
+.options-shell-settings-menu.open .options-shell-settings-menu-button {
+  opacity: 0.9;
+}
+
+.options-shell-settings-toggle:hover,
+.options-shell-settings-toggle:focus,
+.options-shell-settings-menu-button:hover,
+.options-shell-settings-menu-button:focus {
+  opacity: 1;
+  outline: none;
+}
+
+.options-shell-settings-menu-panel {
+  left: auto;
+  right: 0;
+}
+
+.options-shell-settings-menu-panel .options-shell-settings-menu-item {
+  color: var(--sa-link);
+  gap: 8px;
+  justify-content: flex-start;
+  text-decoration: none;
+}
+
+.options-shell-settings-menu-panel .options-shell-settings-menu-item:hover,
+.options-shell-settings-menu-panel .options-shell-settings-menu-item:focus {
+  color: var(--sa-link-hover);
+  text-decoration: none;
+}
+
+.options-shell-settings-menu-panel .options-shell-settings-menu-item.active,
+.options-shell-settings-menu-panel .options-shell-settings-menu-item.active:hover,
+.options-shell-settings-menu-panel .options-shell-settings-menu-item.active:focus {
+  background-color: var(--sa-active-bg);
+  color: var(--sa-active-text);
+}
+
 .options-shell-profile-menu {
   display: inline-block;
   line-height: 1;
@@ -723,13 +790,18 @@ h1 {
 
 .options-shell-profile-menu-button {
   border-radius: 3px;
-  opacity: 0.9;
+  opacity: 0;
   padding: 1px 3px;
+}
+
+.options-shell-section-header:hover .options-shell-profile-menu-button,
+.options-shell-section-header:focus-within .options-shell-profile-menu-button,
+.options-shell-profile-menu.open .options-shell-profile-menu-button {
+  opacity: 0.9;
 }
 
 .options-shell-profile-menu-button:hover,
 .options-shell-profile-menu-button:focus {
-  background-color: var(--sa-hover-bg);
   opacity: 1;
   outline: none;
 }
@@ -816,6 +888,50 @@ h1 {
 .options-shell-profile-submenu > a.active:hover,
 .options-shell-profile-submenu > a.active:focus {
   background-color: var(--sa-active-bg);
+  color: var(--sa-active-text);
+}
+
+.options-shell-profile-nav-actions {
+  align-items: center;
+  bottom: 0;
+  display: flex;
+  line-height: 1;
+  position: absolute;
+  right: 4px;
+  top: 0;
+  z-index: 1;
+}
+
+.options-shell-profile-nav-actions.open {
+  z-index: 1600;
+}
+
+.options-shell-profile-nav-actions-button {
+  background: transparent;
+  border: 0;
+  border-radius: 3px;
+  color: var(--sa-muted);
+  line-height: 1;
+  opacity: 0;
+  padding: 4px 6px;
+}
+
+.options-shell-profile-list .nav-profile:hover .options-shell-profile-nav-actions-button,
+.options-shell-profile-list .nav-profile:focus-within .options-shell-profile-nav-actions-button,
+.options-shell-hidden-profile-list .nav-profile:hover .options-shell-profile-nav-actions-button,
+.options-shell-hidden-profile-list .nav-profile:focus-within .options-shell-profile-nav-actions-button,
+.options-shell-profile-nav-actions-button[aria-expanded='true'] {
+  opacity: 0.85;
+}
+
+.options-shell-profile-nav-actions-button:hover,
+.options-shell-profile-nav-actions-button:focus {
+  color: var(--sa-text);
+  opacity: 1;
+  outline: none;
+}
+
+.side-nav .nav-pills > li.active .options-shell-profile-nav-actions-button {
   color: var(--sa-active-text);
 }
 
@@ -945,6 +1061,12 @@ h1 {
   z-index: 1300;
 }
 
+.options-shell-profile-nav-actions-menu {
+  overflow: auto;
+  position: fixed;
+  z-index: 1600;
+}
+
 .options-shell-profile-browser-actions-menu-item {
   align-items: center;
   background: transparent;
@@ -981,6 +1103,9 @@ h1 {
 }
 
 @media (hover: none) {
+  .options-shell-settings-toggle,
+  .options-shell-profile-menu-button,
+  .options-shell-profile-nav-actions-button,
   .options-shell-profile-browser-actions-button {
     opacity: 0.85;
   }
@@ -1028,6 +1153,11 @@ h1 {
   .side-nav .nav-pills > li > a {
     padding: 5px 15px;
   }
+}
+
+.side-nav .options-shell-profile-list .nav-profile > a,
+.side-nav .options-shell-hidden-profile-list .nav-profile > a {
+  padding-right: 34px;
 }
 
 .side-nav .nav-pills > li > a.btn-success:hover {
