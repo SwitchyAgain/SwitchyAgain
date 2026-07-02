@@ -25,6 +25,7 @@ import {
   defaultConditionType,
   hiddenMenuProfiles,
   iconForProfileType,
+  ignoredRouteInfoRules,
   isPopupConditionType,
   isVisibleResultProfileName,
   lastResultProfile,
@@ -43,6 +44,13 @@ import {
 } from './popup_logic';
 import type {RouteInfoGroup} from './popup_logic';
 import {applyUiTheme} from './ui_theme';
+import {
+  NETWORK_REQUEST_IGNORE_LIST_KEY,
+  addNetworkRequestIgnorePatterns,
+  removeNetworkRequestIgnorePatterns
+} from './network_request_ignore';
+
+type RouteInfoAddTarget = 'ignoreList' | 'switchRule';
 
 function displayProfileName(profile?: Profile, override?: string) {
   if (override) {
@@ -172,6 +180,27 @@ function RouteInfoGroupResult({group, loading, state}: {group: RouteInfoGroup; l
   );
 }
 
+function RouteInfoSection({
+  children,
+  tone = 'default',
+  title
+}: {
+  children: React.ReactNode;
+  tone?: 'default' | 'ignored' | 'warning';
+  title: string;
+}) {
+  return (
+    <section className={`sa-popup-route-info-section sa-popup-route-info-section-${tone}`}>
+      <h4>{title}</h4>
+      {children}
+    </section>
+  );
+}
+
+function stopRouteInfoCheckboxEvent(event: React.SyntheticEvent) {
+  event.stopPropagation();
+}
+
 function RouteInfoList({loading = false, pageInfo, state}: {loading?: boolean; pageInfo?: PageInfo; state: PopupState}) {
   const explanations = pageInfo?.requestExplanations || [];
   const requests = pageInfo?.requests || [];
@@ -186,48 +215,179 @@ function RouteInfoList({loading = false, pageInfo, state}: {loading?: boolean; p
   }
   const groups = aggregateRouteInfo(explanations, requests, popupMessage('popup_routeInfoUnknownHost', 'Unknown host'));
   return (
-    <div className="sa-popup-route-info-list">
-      {groups.map((group) => {
-        return (
-          <div className="sa-popup-route-info" key={group.hostname}>
-            <div className="sa-popup-route-info-line">
-              <span
-                className="label label-info sa-popup-route-info-request-count"
-                title={`${group.requestCount} ${requestCountText(group.requestCount)}`}
-              >
-                {group.requestCount}
-              </span>
-              {group.errorCount > 0 && (
+    <RouteInfoSection title={popupMessage('popup_routeInfoRequestsHeading', 'Requests')}>
+      <div className="sa-popup-route-info-list">
+        {groups.map((group) => {
+          return (
+            <div className="sa-popup-route-info" key={group.hostname}>
+              <div className="sa-popup-route-info-line">
                 <span
-                  className="label label-warning sa-popup-route-info-error-count"
-                  title={`${group.errorCount} ${popupMessage('popup_routeInfoErrors', 'errors')}`}
+                  className="label label-info sa-popup-route-info-request-count"
+                  title={`${group.requestCount} ${requestCountText(group.requestCount)}`}
                 >
-                  {group.errorCount}
+                  {group.requestCount}
                 </span>
+                {group.ignoredCount > 0 && (
+                  <span
+                    className="label label-default sa-popup-route-info-ignored-count"
+                    title={`${group.ignoredCount} ${popupMessage('popup_routeInfoIgnored', 'ignored')}`}
+                  >
+                    {group.ignoredCount}
+                  </span>
+                )}
+                {group.errorCount > 0 && (
+                  <span
+                    className="label label-warning sa-popup-route-info-error-count"
+                    title={`${group.errorCount} ${popupMessage('popup_routeInfoErrors', 'errors')}`}
+                  >
+                    {group.errorCount}
+                  </span>
+                )}
+                <span className="sa-popup-route-info-host">
+                  <strong className="sa-popup-route-info-host-text" title={group.hostname}>
+                    {group.hostname}
+                  </strong>
+                </span>
+                <span className="sa-popup-route-info-result">
+                  <RouteInfoGroupResult group={group} loading={loading} state={state} />
+                </span>
+              </div>
+              {group.errors.map((item) => (
+                <div className="sa-popup-route-info-error" key={item}>
+                  {item}
+                </div>
+              ))}
+              {group.pacLimited && (
+                <div className="sa-popup-route-info-warning">
+                  {popupMessage('popup_routeInfoPacLimited', 'PAC scripts are delegated to the browser and cannot be fully expanded here.')}
+                </div>
               )}
-              <span className="sa-popup-route-info-host">
-                <strong className="sa-popup-route-info-host-text" title={group.hostname}>
-                  {group.hostname}
-                </strong>
-              </span>
-              <span className="sa-popup-route-info-result">
-                <RouteInfoGroupResult group={group} loading={loading} state={state} />
-              </span>
             </div>
-            {group.errors.map((item) => (
-              <div className="sa-popup-route-info-error" key={item}>
-                {item}
-              </div>
-            ))}
-            {group.pacLimited && (
-              <div className="sa-popup-route-info-warning">
-                {popupMessage('popup_routeInfoPacLimited', 'PAC scripts are delegated to the browser and cannot be fully expanded here.')}
-              </div>
-            )}
+          );
+        })}
+      </div>
+    </RouteInfoSection>
+  );
+}
+
+function IgnoredRouteInfoSection({
+  checkedRules,
+  disabled,
+  onCheckedRulesChange,
+  onRemove,
+  pageInfo
+}: {
+  checkedRules: Record<string, boolean>;
+  disabled: boolean;
+  onCheckedRulesChange: (updater: (prev: Record<string, boolean>) => Record<string, boolean>) => void;
+  onRemove: () => void;
+  pageInfo?: PageInfo;
+}) {
+  const ignoredRules = ignoredRouteInfoRules(pageInfo, popupMessage('popup_routeInfoUnknownHost', 'Unknown host'));
+  if (!ignoredRules.length) {
+    return null;
+  }
+  const hasChecked = ignoredRules.some((rule) => checkedRules[rule.pattern]);
+  return (
+    <RouteInfoSection tone="ignored" title={popupMessage('popup_routeInfoIgnoredHeading', 'Ignored')}>
+      <div className="sa-popup-domain-list sa-popup-route-info-rule-list">
+        {ignoredRules.map((rule) => (
+          <div
+            className="checkbox"
+            key={rule.pattern}
+            onClick={stopRouteInfoCheckboxEvent}
+            onKeyDown={stopRouteInfoCheckboxEvent}
+            onMouseDown={stopRouteInfoCheckboxEvent}
+          >
+            <label title={rule.hosts.join(', ')}>
+              <input
+                type="checkbox"
+                checked={!!checkedRules[rule.pattern]}
+                onChange={(event) => onCheckedRulesChange((prev) => ({...prev, [rule.pattern]: event.currentTarget.checked}))}
+              />
+              <span className="label label-default sa-popup-route-info-ignored-label">{rule.requestCount}</span>{' '}
+              {rule.errorCount > 0 && <span className="label label-warning">{rule.errorCount}</span>} {rule.pattern}
+            </label>
           </div>
-        );
-      })}
-    </div>
+        ))}
+      </div>
+      <div className="condition-controls sa-popup-route-info-section-controls">
+        <button className="btn btn-primary" type="button" disabled={disabled || !hasChecked} onClick={onRemove}>
+          {popupMessage('popup_routeInfoRemoveIgnoredRules', 'Remove from Ignore List')}
+        </button>
+      </div>
+    </RouteInfoSection>
+  );
+}
+
+function FailedRouteInfoSection({
+  addTarget,
+  checkedDomains,
+  domains,
+  onAddTargetChange,
+  onCheckedDomainsChange,
+  profile,
+  profiles,
+  saving,
+  state,
+  setProfile
+}: {
+  addTarget: RouteInfoAddTarget;
+  checkedDomains: Record<string, boolean>;
+  domains: ReturnType<typeof requestDomains>;
+  onAddTargetChange: (target: RouteInfoAddTarget) => void;
+  onCheckedDomainsChange: (updater: (prev: Record<string, boolean>) => Record<string, boolean>) => void;
+  profile: string;
+  profiles: Profile[];
+  saving: boolean;
+  state: PopupState;
+  setProfile: (profileName: string) => void;
+}) {
+  if (!domains.length) {
+    return null;
+  }
+  const canAddSwitchRule = !!state.currentProfileCanAddRule;
+  return (
+    <RouteInfoSection tone="warning" title={popupMessage('popup_routeInfoFailedHeading', 'Failed Requests')}>
+      <div className="form-group sa-popup-route-info-add-target">
+        <label>{popupMessage('popup_routeInfoAddTo', 'Add to')}</label>
+        <select
+          className="form-control"
+          disabled={saving}
+          value={addTarget}
+          onChange={(event) => onAddTargetChange(event.currentTarget.value === 'switchRule' ? 'switchRule' : 'ignoreList')}
+        >
+          <option value="ignoreList">{popupMessage('popup_routeInfoIgnoreListTarget', 'Ignore list')}</option>
+          {canAddSwitchRule && <option value="switchRule">{popupMessage('popup_routeInfoSwitchRuleTarget', 'Switch rule')}</option>}
+        </select>
+      </div>
+      <div className="sa-popup-domain-list">
+        {domains.map((domain) => (
+          <div
+            className="checkbox"
+            key={domain.domain}
+            onClick={stopRouteInfoCheckboxEvent}
+            onKeyDown={stopRouteInfoCheckboxEvent}
+            onMouseDown={stopRouteInfoCheckboxEvent}
+          >
+            <label>
+              <input
+                type="checkbox"
+                checked={!!checkedDomains[domain.domain]}
+                onChange={(event) => onCheckedDomainsChange((prev) => ({...prev, [domain.domain]: event.currentTarget.checked}))}
+              />
+              <span className="label label-warning">{domain.errorCount}</span> {domain.domain}
+            </label>
+          </div>
+        ))}
+      </div>
+      {addTarget === 'switchRule' && canAddSwitchRule && (
+        <div className="form-group">
+          <label>{popupMessage('options_resultProfileForSelectedDomains', 'Result Profile for Selected Domains')}</label>
+          <ProfileSelect expandDropdownInFlow profiles={profiles} state={state} value={profile} onChange={setProfile} />
+        </div>
+      )}
+    </RouteInfoSection>
   );
 }
 
@@ -510,7 +670,7 @@ function PopupApp() {
     return <ConditionForm pageInfo={pageInfo} state={state} onClose={closeToMenu} />;
   }
   if (mode === 'routeInfo') {
-    return <RouteInfoForm pageInfo={pageInfo} state={state} onClose={closeToMenu} />;
+    return <RouteInfoForm pageInfo={pageInfo} state={state} onClose={closeToMenu} onPageInfoChange={setPageInfo} />;
   }
   if (mode === 'external') {
     return <ExternalProfileForm state={state} onClose={closeToMenu} />;
@@ -1108,7 +1268,17 @@ function ConditionForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
   );
 }
 
-function RouteInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: PopupState; onClose: () => void}) {
+function RouteInfoForm({
+  pageInfo,
+  state,
+  onClose,
+  onPageInfoChange
+}: {
+  pageInfo?: PageInfo;
+  state: PopupState;
+  onClose: () => void;
+  onPageInfoChange?: (pageInfo?: PageInfo) => void;
+}) {
   const profiles = useMemo(() => visibleResultProfiles(state), [state]);
   const selectedProfile = lastResultProfile(state, pageInfo);
   const [profile, setProfile] = useState(selectedProfile);
@@ -1116,14 +1286,25 @@ function RouteInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
   const [loadingExplanations, setLoadingExplanations] = useState(false);
   const [explanationsRequested, setExplanationsRequested] = useState(false);
   const domains = useMemo(() => requestDomains(detailPageInfo), [detailPageInfo]);
+  const ignoredRules = useMemo(
+    () => ignoredRouteInfoRules(detailPageInfo, popupMessage('popup_routeInfoUnknownHost', 'Unknown host')),
+    [detailPageInfo]
+  );
   const hasRequestFailures = (detailPageInfo?.errorCount || 0) > 0 && domains.length > 0;
   const needsExplanations = !!((detailPageInfo?.requests?.length || 0) > 0 && !detailPageInfo?.requestExplanations);
   const tempRulesActive = !!detailPageInfo?.requestExplanations?.some((explanation) => explanation.tempRulesActive);
+  const [addTarget, setAddTarget] = useState<RouteInfoAddTarget>('ignoreList');
   const [checkedDomains, setCheckedDomains] = useState<Record<string, boolean>>({});
+  const [checkedIgnoreRules, setCheckedIgnoreRules] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => setProfile(selectedProfile), [selectedProfile]);
+  useEffect(() => {
+    if (!state.currentProfileCanAddRule && addTarget === 'switchRule') {
+      setAddTarget('ignoreList');
+    }
+  }, [addTarget, state.currentProfileCanAddRule]);
   useEffect(() => {
     setDetailPageInfo(pageInfo);
     setExplanationsRequested(false);
@@ -1155,24 +1336,52 @@ function RouteInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
       return next;
     });
   }, [domains]);
+  useEffect(() => {
+    setCheckedIgnoreRules((prev) => {
+      const next = {...prev};
+      for (const rule of ignoredRules) {
+        if (next[rule.pattern] == null) {
+          next[rule.pattern] = false;
+        }
+      }
+      return next;
+    });
+  }, [ignoredRules]);
 
-  async function submitRouteInfo(event: React.FormEvent) {
-    event.preventDefault();
-    const conditions: PopupCondition[] = domains
-      .filter((domain) => checkedDomains[domain.domain])
-      .map((domain) => ({
-        conditionType: 'HostWildcardCondition',
-        pattern: domain.domain
-      }));
-    if (conditions.length === 0) {
-      setError(popupMessage('popup_requestErrorCannotAddCondition', 'Select at least one domain.'));
+  async function patchNetworkRequestIgnoreList(nextList: string[], refreshPageInfo = false) {
+    const currentList = detailPageInfo?.networkRequestIgnoreList || [];
+    await callbackPromise<unknown>((callback) => {
+      const patchOptions = popupBridge().patchOptions;
+      if (!patchOptions) {
+        callback(new Error('Popup bridge method unavailable: patchOptions.'));
+        return;
+      }
+      patchOptions(
+        {
+          [NETWORK_REQUEST_IGNORE_LIST_KEY]: [currentList, nextList]
+        },
+        callback
+      );
+    });
+    if (!refreshPageInfo) {
+      return;
+    }
+    const nextPageInfo = await getPopupPageInfo({includeExplanations: true});
+    setDetailPageInfo(nextPageInfo || detailPageInfo);
+    onPageInfoChange?.(nextPageInfo || detailPageInfo);
+    return nextPageInfo;
+  }
+
+  async function removeSelectedIgnoreRules() {
+    const selectedRules = ignoredRules.filter((rule) => checkedIgnoreRules[rule.pattern]).map((rule) => rule.pattern);
+    if (selectedRules.length === 0) {
+      setError(popupMessage('popup_routeInfoSelectIgnoredRule', 'Select at least one ignore rule.'));
       return;
     }
     setSaving(true);
     setError('');
     try {
-      await callbackPromise<void>((callback) => popupBridge().addCondition?.(conditions, profile, true, callback));
-      popupBridge().setState?.('lastProfileNameForCondition', profile);
+      await patchNetworkRequestIgnoreList(removeNetworkRequestIgnorePatterns(detailPageInfo?.networkRequestIgnoreList, selectedRules));
       closePopup();
     } catch (err: unknown) {
       setError(popupErrorMessage(err));
@@ -1180,8 +1389,43 @@ function RouteInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
     }
   }
 
+  async function submitRouteInfo() {
+    const selectedDomains = domains.filter((domain) => checkedDomains[domain.domain]).map((domain) => domain.domain);
+    if (selectedDomains.length === 0) {
+      setError(popupMessage('popup_routeInfoSelectDomain', 'Select at least one domain.'));
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      if (addTarget === 'switchRule' && state.currentProfileCanAddRule) {
+        const conditions: PopupCondition[] = selectedDomains.map((domain) => ({
+          conditionType: 'HostWildcardCondition',
+          pattern: domain
+        }));
+        await callbackPromise<void>((callback) => popupBridge().addCondition?.(conditions, profile, true, callback));
+        popupBridge().setState?.('lastProfileNameForCondition', profile);
+        closePopup();
+        return;
+      }
+      await patchNetworkRequestIgnoreList(addNetworkRequestIgnorePatterns(detailPageInfo?.networkRequestIgnoreList, selectedDomains));
+      closePopup();
+    } catch (err: unknown) {
+      setError(popupErrorMessage(err));
+      setSaving(false);
+    }
+  }
+
+  const selectedDomainCount = domains.filter((domain) => checkedDomains[domain.domain]).length;
+  const submitDisabled =
+    saving || selectedDomainCount === 0 || (addTarget === 'switchRule' && (!state.currentProfileCanAddRule || !profiles.length));
+  const submitText =
+    addTarget === 'switchRule' && state.currentProfileCanAddRule
+      ? popupMessage('popup_routeInfoAddSwitchRule', 'Add Switch Rule')
+      : popupMessage('popup_routeInfoAddIgnoreRule', 'Add to Ignore List');
+
   return (
-    <form className="route-info-details sa-popup-form" onSubmit={submitRouteInfo}>
+    <div className="route-info-details sa-popup-form">
       <fieldset>
         <legend>{popupMessage('popup_routeInfoHeading', 'Route Info')}</legend>
         {error && <p className="sa-popup-alert">{error}</p>}
@@ -1197,66 +1441,39 @@ function RouteInfoForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
           <p className="help-block">{popupMessage('popup_routeInfoLimitExceeded', 'Only the first captured requests are shown.')}</p>
         )}
         <RouteInfoList loading={loadingExplanations || needsExplanations} pageInfo={detailPageInfo} state={state} />
-
+        <IgnoredRouteInfoSection
+          checkedRules={checkedIgnoreRules}
+          disabled={saving}
+          onCheckedRulesChange={setCheckedIgnoreRules}
+          onRemove={removeSelectedIgnoreRules}
+          pageInfo={detailPageInfo}
+        />
         {hasRequestFailures && (
-          <div className="sa-popup-route-info-add-condition">
-            <div className="text-warning">{popupMessage('popup_requestErrorWarning', 'Some resources failed to load.')}</div>
-            {state.currentProfileCanAddRule ? (
-              <p className="help-block">
-                {popupMessage('popup_requestErrorAddCondition', 'Review the domains below and add proxy rules if needed.')}
-              </p>
-            ) : (
-              <p className="help-block">
-                {popupMessage(
-                  'popup_requestErrorCannotAddCondition',
-                  'You can add switch conditions for them only when using a Switch Profile.'
-                )}
-              </p>
-            )}
-            <div className="sa-popup-domain-list">
-              {domains.map((domain, index) => (
-                <div className="checkbox" key={domain.domain}>
-                  <label>
-                    <input
-                      autoFocus={index === 0}
-                      type="checkbox"
-                      checked={!!checkedDomains[domain.domain]}
-                      onChange={(event) => setCheckedDomains((prev) => ({...prev, [domain.domain]: event.currentTarget.checked}))}
-                    />
-                    <span className="label label-warning">{domain.errorCount}</span> {domain.domain}
-                  </label>
-                </div>
-              ))}
-            </div>
-            {state.currentProfileCanAddRule && (
-              <div className="form-group">
-                <label>{popupMessage('options_resultProfileForSelectedDomains', 'Result Profile for Selected Domains')}</label>
-                <ProfileSelect expandDropdownInFlow profiles={profiles} state={state} value={profile} onChange={setProfile} />
-              </div>
-            )}
-          </div>
+          <FailedRouteInfoSection
+            addTarget={addTarget}
+            checkedDomains={checkedDomains}
+            domains={domains}
+            onAddTargetChange={setAddTarget}
+            onCheckedDomainsChange={setCheckedDomains}
+            profile={profile}
+            profiles={profiles}
+            saving={saving}
+            state={state}
+            setProfile={setProfile}
+          />
         )}
         <div className="condition-controls">
           <button className="btn btn-default" type="button" onClick={onClose}>
             {popupMessage('dialog_cancel', 'Cancel')}
           </button>
-          {hasRequestFailures &&
-            (state.currentProfileCanAddRule ? (
-              <button className="btn btn-primary" type="submit" disabled={saving || !profiles.length}>
-                {popupMessage('popup_addCondition', 'Add Condition')}
-              </button>
-            ) : (
-              <button
-                className="btn btn-default pull-right"
-                type="button"
-                onClick={() => popupBridge().openOptions?.('#!/general', closePopup)}
-              >
-                {popupMessage('popup_configureMonitorWebRequests', 'Configure monitor web requests')}
-              </button>
-            ))}
+          {hasRequestFailures && (
+            <button className="btn btn-primary" type="button" disabled={submitDisabled} onClick={submitRouteInfo}>
+              {submitText}
+            </button>
+          )}
         </div>
       </fieldset>
-    </form>
+    </div>
   );
 }
 

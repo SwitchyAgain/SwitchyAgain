@@ -118,6 +118,7 @@ export type ProfileMatchResult =
 export type ProxyEngineModule = {
   Conditions: {
     localHosts: string[];
+    match(condition: Record<string, unknown>, request: Record<string, unknown>): boolean;
     requestFromUrl(url: string): Record<string, unknown>;
     str(condition: Record<string, unknown>): string;
     tag(condition: Record<string, unknown>): string;

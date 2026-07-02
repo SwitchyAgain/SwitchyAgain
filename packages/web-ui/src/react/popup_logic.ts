@@ -170,9 +170,17 @@ export type RouteInfoGroup = {
   errorCount: number;
   errors: string[];
   hostname: string;
+  ignoredCount: number;
   pacLimited: boolean;
   requestCount: number;
   results: Record<string, RequestExplanation>;
+};
+
+export type RouteInfoIgnoredRule = {
+  errorCount: number;
+  hosts: string[];
+  pattern: string;
+  requestCount: number;
 };
 
 type PageRequest = NonNullable<PageInfo['requests']>[number];
@@ -184,6 +192,7 @@ function routeInfoGroup(groups: Record<string, RouteInfoGroup>, hostname: string
       errorCount: 0,
       errors: [],
       hostname,
+      ignoredCount: 0,
       pacLimited: false,
       requestCount: 0,
       results: {}
@@ -194,6 +203,10 @@ function routeInfoGroup(groups: Record<string, RouteInfoGroup>, hostname: string
 
 export function requestHasError(request?: PageRequest) {
   return !!request?.error || request?.status === 'error' || request?.status === 'timeout' || request?.status === 'timeoutAbort';
+}
+
+export function requestIsIgnored(request?: PageRequest) {
+  return request?.ignored === true || (request?.ignoreMatches?.length || 0) > 0;
 }
 
 export function finalRouteKey(explanation: RequestExplanation) {
@@ -213,7 +226,9 @@ export function aggregateRouteInfo(
     const hostname = requestHostname(request?.url) || unknownHost;
     const group = routeInfoGroup(groups, hostname);
     group.requestCount++;
-    if (requestHasError(request)) {
+    if (requestIsIgnored(request)) {
+      group.ignoredCount++;
+    } else if (requestHasError(request)) {
       group.errorCount++;
     }
   });
@@ -249,6 +264,47 @@ export function aggregateRouteInfo(
         return countDiff;
       }
       return a.hostname.localeCompare(b.hostname);
+    });
+}
+
+export function ignoredRouteInfoRules(info?: PageInfo, unknownHost = 'Unknown host'): RouteInfoIgnoredRule[] {
+  const groups: Record<string, RouteInfoIgnoredRule> = {};
+  for (const request of info?.requests || []) {
+    const matches = request.ignoreMatches || [];
+    if (!matches.length) {
+      continue;
+    }
+    const hostname = requestHostname(request.url) || unknownHost;
+    for (const pattern of matches) {
+      let group = groups[pattern];
+      if (!group) {
+        group = groups[pattern] = {
+          errorCount: 0,
+          hosts: [],
+          pattern,
+          requestCount: 0
+        };
+      }
+      group.requestCount++;
+      if (requestHasError(request)) {
+        group.errorCount++;
+      }
+      if (group.hosts.indexOf(hostname) < 0) {
+        group.hosts.push(hostname);
+      }
+    }
+  }
+  return Object.keys(groups)
+    .map((pattern) => ({
+      ...groups[pattern],
+      hosts: groups[pattern].hosts.sort((a, b) => a.localeCompare(b))
+    }))
+    .sort((a, b) => {
+      const requestDiff = b.requestCount - a.requestCount;
+      if (requestDiff !== 0) {
+        return requestDiff;
+      }
+      return a.pattern.localeCompare(b.pattern);
     });
 }
 

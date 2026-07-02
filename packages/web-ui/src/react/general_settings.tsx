@@ -7,11 +7,10 @@ import {optionPatch} from './option_patch';
 import {applyProfile as applyBackgroundProfile, loadOptions, patchOptions} from './options_api_client';
 import type {Options} from './options_client_types';
 import {getState} from './state_client';
-import {cloneOptions} from './options_logic';
+import {cloneOptions, sameValue} from './options_logic';
 import {ProfileSelect, allProfilesFromOptions} from './profile_widgets';
-import {richMessage} from './rich_message';
 
-const GENERAL_KEYS = ['-monitorWebRequests', '-downloadInterval', '-showExternalProfile'];
+const GENERAL_KEYS = ['-downloadInterval', '-showExternalProfile'];
 
 const DOWNLOAD_INTERVALS = [15, 60, 180, 360, 720, 1440, -1];
 const ACTIVE_PROFILE_STATE_KEYS = ['currentProfileName', 'isSystemProfile'];
@@ -138,7 +137,7 @@ export function GeneralSettings({
     if (!savedOptions || !draftOptions) {
       return false;
     }
-    return GENERAL_KEYS.some((key) => savedOptions[key] !== draftOptions[key]);
+    return GENERAL_KEYS.some((key) => !sameValue(savedOptions[key], draftOptions[key]));
   }, [savedOptions, draftOptions]);
   function updateOption(key: string, value: unknown) {
     const current = draftOptionsRef.current || draftOptions;
@@ -299,24 +298,6 @@ export function GeneralSettings({
           </div>
         </section>
       )}
-
-      <section className="settings-group">
-        <h3>{message('options_group_networkRequests', 'Network Requests')}</h3>
-        <div className="checkbox">
-          <label>
-            <input
-              id="react-monitor-web-requests"
-              type="checkbox"
-              checked={Boolean(draftOptions['-monitorWebRequests'])}
-              onChange={(event) => updateOption('-monitorWebRequests', event.currentTarget.checked)}
-            />
-            <span> {message('options_monitorWebRequests', 'Show count of failed web requests for resources in the current tab.')}</span>
-          </label>
-          <p className="help-block">
-            {richMessage('options_monitorWebRequestsHelp', 'A yellow badge will be displayed on the icon if some resources fail to load.')}
-          </p>
-        </div>
-      </section>
 
       <section className="settings-group width-limit">
         <h3>{message('options_downloadOptions', 'Download Options')}</h3>

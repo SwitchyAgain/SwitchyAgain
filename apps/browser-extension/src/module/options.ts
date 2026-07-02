@@ -30,6 +30,7 @@ const PRIVATE_WINDOW_PROFILE_CONTEXT_MENU_ITEM_PREFIX = `${PRIVATE_WINDOW_PROFIL
 const CLEAR_PRIVATE_WINDOW_PROFILE_CONTEXT_MENU_ID = `${PRIVATE_WINDOW_PROFILE_CONTEXT_MENU_ROOT_ID}:clear`;
 const TAB_GROUP_ID_NONE = -1;
 const WEB_LINK_PATTERNS = ['http://*/*', 'https://*/*'];
+const NETWORK_REQUEST_IGNORE_LIST_KEY = '-networkRequestIgnoreList';
 const PROFILE_MENU_ORDER: Record<string, number> = {
   FixedProfile: -2000,
   PacProfile: -1000,
@@ -167,6 +168,8 @@ type MonitoredRequestInfo = {
 type PageRequestInfo = {
   error?: string;
   id: string;
+  ignored?: boolean;
+  ignoreMatches?: string[];
   status?: RequestStatus;
   type?: string;
   url: string;
@@ -371,6 +374,106 @@ function isFirefoxContainerId(cookieStoreId?: string): cookieStoreId is string {
   return !!cookieStoreId && cookieStoreId !== 'firefox-default' && cookieStoreId !== 'firefox-private';
 }
 
+function normalizeNetworkRequestIgnoreList(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const seen: Record<string, boolean> = {};
+  const result: string[] = [];
+  for (const item of value) {
+    const pattern = String(item || '').trim();
+    if (!pattern || seen[pattern]) {
+      continue;
+    }
+    seen[pattern] = true;
+    result.push(pattern);
+  }
+  return result;
+}
+
+function routeInfoIgnoreRuleMatches(url: string, pattern: string) {
+  try {
+    const conditionType = pattern.indexOf('://') >= 0 || pattern.indexOf('/') >= 0 ? 'UrlWildcardCondition' : 'HostWildcardCondition';
+    const request = ProxyEngine.Conditions.requestFromUrl(url) as Record<string, unknown>;
+    return Boolean(
+      (ProxyEngine.Conditions as {match?: (condition: Record<string, unknown>, request: Record<string, unknown>) => boolean}).match?.(
+        {
+          conditionType,
+          pattern
+        },
+        request
+      )
+    );
+  } catch (_error) {
+    return false;
+  }
+}
+
+function routeInfoIgnoreMatches(url: string, ignoreList: string[]) {
+  if (!ignoreList.length || !url) {
+    return [];
+  }
+  return ignoreList.filter((pattern) => routeInfoIgnoreRuleMatches(url, pattern));
+}
+
+function requestIgnoreInfo(url: string, ignoreList: string[]) {
+  const ignoreMatches = routeInfoIgnoreMatches(url, ignoreList);
+  if (!ignoreMatches.length) {
+    return {};
+  }
+  return {
+    ignored: true,
+    ignoreMatches
+  };
+}
+
+function requestStatusHasError(status?: RequestStatus, request?: MonitoredRequestInfo) {
+  return !!request?.error || status === 'error' || status === 'timeout' || status === 'timeoutAbort';
+}
+
+function requestSummaryId(request: MonitoredRequestInfo) {
+  try {
+    return ProxyEngine.wildcardForUrl(request.url);
+  } catch (_error) {
+    return undefined;
+  }
+}
+
+function incrementRequestSummary(summary: Record<string, RequestSummaryItem>, summaryKey?: string) {
+  if (summaryKey == null) {
+    return;
+  }
+  let summaryItem = summary[summaryKey];
+  if (summaryItem == null) {
+    summaryItem = summary[summaryKey] = {
+      errorCount: 0
+    };
+  }
+  summaryItem.errorCount++;
+}
+
+function filteredTabRequestInfo(tabInfo: TabRequestInfo | undefined, ignoreList: string[]) {
+  const summary: Record<string, RequestSummaryItem> = {};
+  let errorCount = 0;
+  const rawRequests = tabInfo?.requests || {};
+  for (const requestId in rawRequests) {
+    if (!Object.prototype.hasOwnProperty.call(rawRequests, requestId)) {
+      continue;
+    }
+    const request = rawRequests[requestId];
+    const status = tabInfo?.requestStatus?.[requestId];
+    if (!request || !requestStatusHasError(status, request) || routeInfoIgnoreMatches(request.url, ignoreList).length > 0) {
+      continue;
+    }
+    errorCount++;
+    incrementRequestSummary(summary, requestSummaryId(request));
+  }
+  return {
+    errorCount,
+    summary
+  };
+}
+
 function requestStartTime(request: MonitoredRequestInfo) {
   return typeof request._startTime === 'number' ? request._startTime : 0;
 }
@@ -398,7 +501,7 @@ function tabInfoPageUrl(tabInfo?: TabRequestInfo, currentUrl?: string) {
   }
 }
 
-function pageRequestsFromTabInfo(tabInfo?: TabRequestInfo, pageUrl?: string) {
+function pageRequestsFromTabInfo(tabInfo?: TabRequestInfo, pageUrl?: string, ignoreList: string[] = []) {
   const monitored: MonitoredRequestInfo[] = [];
   const rawRequests = tabInfo?.requests || {};
   for (const requestId in rawRequests) {
@@ -415,6 +518,7 @@ function pageRequestsFromTabInfo(tabInfo?: TabRequestInfo, pageUrl?: string) {
   if (explainableRequestUrl(pageUrl) && !monitored.some((request) => request.url === pageUrl && request.type === 'main_frame')) {
     requests.push({
       id: 'page',
+      ...requestIgnoreInfo(pageUrl as string, ignoreList),
       status: 'done',
       type: 'main_frame',
       url: pageUrl as string
@@ -424,6 +528,7 @@ function pageRequestsFromTabInfo(tabInfo?: TabRequestInfo, pageUrl?: string) {
     requests.push({
       error: request.error,
       id: request.requestId,
+      ...requestIgnoreInfo(request.url, ignoreList),
       status: tabInfo?.requestStatus?.[request.requestId],
       type: request.type,
       url: request.url
@@ -2484,10 +2589,14 @@ class ChromeOptions extends ExtensionRuntime.Options {
         if (!this._monitorWebRequests) {
           return;
         }
-        if (info.errorCount > 0) {
+        const filteredInfo = filteredTabRequestInfo(
+          info,
+          normalizeNetworkRequestIgnoreList(this._options[NETWORK_REQUEST_IGNORE_LIST_KEY])
+        );
+        if (filteredInfo.errorCount > 0) {
           info.badgeSet = true;
           const badge = {
-            text: info.errorCount.toString(),
+            text: filteredInfo.errorCount.toString(),
             color: '#f0ad4e'
           };
           actionApi().setBadgeText(
@@ -2515,8 +2624,8 @@ class ChromeOptions extends ExtensionRuntime.Options {
           );
         }
         return this._tabRequestInfoPorts?.[tabId]?.postMessage({
-          errorCount: info.errorCount,
-          summary: info.summary
+          errorCount: filteredInfo.errorCount,
+          summary: filteredInfo.summary
         });
       });
       return chrome.runtime.onConnect.addListener((rawPort: ChromeRuntimePort) => {
@@ -2538,9 +2647,13 @@ class ChromeOptions extends ExtensionRuntime.Options {
           }
           const info = requestMonitor.tabInfo[tabId];
           if (info) {
+            const filteredInfo = filteredTabRequestInfo(
+              info,
+              normalizeNetworkRequestIgnoreList(this._options[NETWORK_REQUEST_IGNORE_LIST_KEY])
+            );
             return port.postMessage({
-              errorCount: info.errorCount,
-              summary: info.summary
+              errorCount: filteredInfo.errorCount,
+              summary: filteredInfo.summary
             });
           }
         });
@@ -2643,6 +2756,8 @@ class ChromeOptions extends ExtensionRuntime.Options {
 
   getPageInfo({cookieStoreId, groupId, includeExplanations = false, incognito, tabId, url, windowId}: PageInfoArgs) {
     const tabInfo = this._requestMonitor?.tabInfo[tabId];
+    const networkRequestIgnoreList = normalizeNetworkRequestIgnoreList(this._options[NETWORK_REQUEST_IGNORE_LIST_KEY]);
+    const filteredInfo = filteredTabRequestInfo(tabInfo, networkRequestIgnoreList);
     const profileScope = this.getProfileScopeInfo({
       cookieStoreId,
       groupId,
@@ -2650,11 +2765,12 @@ class ChromeOptions extends ExtensionRuntime.Options {
       tabId,
       windowId
     });
-    const errorCount = tabInfo?.errorCount;
-    const summary = tabInfo?.summary;
+    const errorCount = filteredInfo.errorCount;
+    const summary = filteredInfo.summary;
     const result = errorCount
       ? {
           errorCount,
+          networkRequestIgnoreList,
           summary
         }
       : null;
@@ -2681,13 +2797,14 @@ class ChromeOptions extends ExtensionRuntime.Options {
       return result;
     }
     const domain = ProxyEngine.getBaseDomain(new URL(url).hostname.replace(/^\[(.*)\]$/, '$1'));
-    const pageRequests = pageRequestsFromTabInfo(tabInfo, url);
+    const pageRequests = pageRequestsFromTabInfo(tabInfo, url, networkRequestIgnoreList);
     const basePageInfo = {
       url,
       domain,
       tempRuleProfileName: this.queryTempRule(domain),
       profileScope,
       errorCount,
+      networkRequestIgnoreList,
       summary,
       requests: pageRequests.requests,
       requestLimitExceeded: pageRequests.requestLimitExceeded

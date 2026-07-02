@@ -1,15 +1,18 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {message} from './i18n_client';
 import {explainRequest} from './options_api_client';
 import type {Options, RequestExplanation, RequestExplainStep} from './options_client_types';
 import {getState} from './state_client';
 import {ProfileInline, ProfileSelect, allProfilesFromOptions, profileByName} from './profile_widgets';
 import {formatRequestUrl, profileFromExplanation, routeTraceStepCondition, routeTraceSteps} from './route_trace_logic';
+import {richMessage} from './rich_message';
+import {NETWORK_REQUEST_IGNORE_LIST_KEY, networkRequestIgnoreListFromText, networkRequestIgnoreText} from './network_request_ignore';
 
-export type RouteTraceProps = {
+export type RouteLensProps = {
   currentProfileName?: string;
   embedded?: boolean;
   options?: Options | null;
+  onOptionsChange?: (options: Options) => void;
 };
 
 function FinalResult({explanation, options}: {explanation: RequestExplanation; options?: Options | null}) {
@@ -68,7 +71,7 @@ function ExplanationResult({explanation, options}: {explanation: RequestExplanat
   const steps = routeTraceSteps(explanation.steps);
   return (
     <section className="settings-group route-trace-result">
-      <h3>{message('routeTrace_result', 'Result')}</h3>
+      <h4>{message('routeTrace_result', 'Result')}</h4>
       {explanation.tempRulesActive && (
         <p className="help-text text-warning">
           <span className="glyphicon glyphicon-filter" />{' '}
@@ -115,7 +118,7 @@ function ExplanationResult({explanation, options}: {explanation: RequestExplanat
       </table>
       {steps.length > 0 && (
         <>
-          <h3>{message('routeTrace_trace', 'Trace')}</h3>
+          <h4>{message('routeTrace_trace', 'Trace')}</h4>
           <table className="table table-condensed route-trace-steps">
             <thead>
               <tr>
@@ -136,13 +139,15 @@ function ExplanationResult({explanation, options}: {explanation: RequestExplanat
   );
 }
 
-export function RouteTrace({currentProfileName: initialCurrentProfileName, embedded = false, options}: RouteTraceProps) {
+export function RouteLens({currentProfileName: initialCurrentProfileName, embedded = false, options, onOptionsChange}: RouteLensProps) {
   const [url, setUrl] = useState('https://example.com/');
   const [profileName, setProfileName] = useState('');
   const [currentProfileName, setCurrentProfileName] = useState(initialCurrentProfileName || '');
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [error, setError] = useState('');
   const [explanation, setExplanation] = useState<RequestExplanation | null>(null);
+  const [networkRequestIgnoreDraft, setNetworkRequestIgnoreDraft] = useState(() => networkRequestIgnoreText(options));
+  const optionsRef = useRef<Options | null | undefined>(options);
   const profiles = useMemo(() => allProfilesFromOptions(options), [options]);
   const currentProfile = profileByName(options, currentProfileName);
 
@@ -160,6 +165,32 @@ export function RouteTrace({currentProfileName: initialCurrentProfileName, embed
       .then((name) => setCurrentProfileName(name || ''))
       .catch(() => {});
   }, [initialCurrentProfileName]);
+
+  useEffect(() => {
+    optionsRef.current = options;
+    const nextText = networkRequestIgnoreText(options);
+    setNetworkRequestIgnoreDraft((current) =>
+      networkRequestIgnoreText(networkRequestIgnoreListFromText(current)) === nextText ? current : nextText
+    );
+  }, [options]);
+
+  function updateOption(key: string, value: unknown) {
+    const currentOptions = optionsRef.current;
+    if (!currentOptions || !onOptionsChange) {
+      return;
+    }
+    const nextOptions = {
+      ...currentOptions,
+      [key]: value
+    };
+    optionsRef.current = nextOptions;
+    onOptionsChange(nextOptions);
+  }
+
+  function changeNetworkRequestIgnoreList(value: string) {
+    setNetworkRequestIgnoreDraft(value);
+    updateOption(NETWORK_REQUEST_IGNORE_LIST_KEY, networkRequestIgnoreListFromText(value));
+  }
 
   function explain(event: React.FormEvent) {
     event.preventDefault();
@@ -183,9 +214,44 @@ export function RouteTrace({currentProfileName: initialCurrentProfileName, embed
   const content = (
     <>
       <div className="page-header">
-        <h2>{message('options_tab_routeTrace', 'Route Trace')}</h2>
+        <h2>{message('options_tab_routeLens', 'Route Lens')}</h2>
       </div>
+      <section className="settings-group width-limit">
+        <h3>{message('options_group_networkRequests', 'Network Requests')}</h3>
+        <div className="checkbox">
+          <label>
+            <input
+              id="react-monitor-web-requests"
+              type="checkbox"
+              checked={Boolean(options?.['-monitorWebRequests'])}
+              onChange={(event) => updateOption('-monitorWebRequests', event.currentTarget.checked)}
+            />
+            <span> {message('options_monitorWebRequests', 'Show count of failed web requests for resources in the current tab.')}</span>
+          </label>
+          <p className="help-block">
+            {richMessage('options_monitorWebRequestsHelp', 'A yellow badge will be displayed on the icon if some resources fail to load.')}
+          </p>
+        </div>
+      </section>
+      <section className="settings-group">
+        <h3>{message('options_networkRequestIgnoreList', 'Ignore List')}</h3>
+        <p className="help-block">
+          {message(
+            'options_networkRequestIgnoreListHelp',
+            'Route Info marks matching network requests as ignored instead of failed. Use one wildcard pattern per line.'
+          )}
+        </p>
+        <textarea
+          aria-label={message('options_networkRequestIgnoreList', 'Ignore List')}
+          id="react-network-request-ignore-list"
+          className="monospace form-control width-limit"
+          rows={10}
+          value={networkRequestIgnoreDraft}
+          onChange={(event) => changeNetworkRequestIgnoreList(event.currentTarget.value)}
+        />
+      </section>
       <section className="settings-group width-limit route-trace-input">
+        <h3>{message('options_group_routeTrace', 'Route Trace')}</h3>
         <form onSubmit={explain}>
           <div className="form-group">
             <label htmlFor="route-trace-url">URL</label>

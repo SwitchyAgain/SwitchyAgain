@@ -698,15 +698,15 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: 'Interface'});
-    expect(screen.getByRole('link', {name: 'Route Trace'})).toBeTruthy();
+    expect(screen.getByRole('link', {name: 'Route Lens'})).toBeTruthy();
 
-    fireEvent.click(screen.getByLabelText('Show Route Trace in the settings sidebar.'));
+    fireEvent.click(screen.getByLabelText('Show Route Lens in the settings sidebar.'));
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
 
-    await waitFor(() => expect(screen.queryByRole('link', {name: 'Route Trace'})).toBeNull());
-    expect(patchedOptionValue<boolean>(firstPatch(requests), '-showRouteTrace')).toBe(false);
+    await waitFor(() => expect(screen.queryByRole('link', {name: 'Route Lens'})).toBeNull());
+    expect(patchedOptionValue<boolean>(firstPatch(requests), '-showRouteLens')).toBe(false);
 
-    window.location.hash = '#/routeTrace';
+    window.location.hash = '#/routeLens';
     window.dispatchEvent(new HashChangeEvent('hashchange'));
 
     await waitFor(() => expect(screen.getByRole('heading', {name: 'Interface'})).toBeTruthy());

@@ -29,12 +29,13 @@ export default function defaultOptions() {
     '-revertProxyChanges': true,
     '-confirmDeletion': true,
     '-showCurrentProfileInGeneral': false,
-    '-showRouteTrace': true,
+    '-showRouteLens': true,
     '-addConditionsToBottom': false,
     '-showProfileOptions': false,
     '-showPopupAddCondition': true,
     '-showPopupAddTempRule': true,
     '-showExternalProfile': true,
+    '-networkRequestIgnoreList': [] as string[],
     '-downloadInterval': 1440,
     '+proxy': {
       bypassList: [

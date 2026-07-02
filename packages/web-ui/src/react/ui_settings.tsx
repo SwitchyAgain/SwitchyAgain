@@ -719,10 +719,10 @@ export function UiSettings({
           <label>
             <input
               type="checkbox"
-              checked={draftOptions['-showRouteTrace'] !== false}
-              onChange={(event) => updateOption('-showRouteTrace', event.currentTarget.checked)}
+              checked={draftOptions['-showRouteLens'] !== false}
+              onChange={(event) => updateOption('-showRouteLens', event.currentTarget.checked)}
             />
-            <span> {message('options_showRouteTrace', 'Show Route Trace in the settings sidebar.')}</span>
+            <span> {message('options_showRouteLens', 'Show Route Lens in the settings sidebar.')}</span>
           </label>
         </div>
         <div className="checkbox">

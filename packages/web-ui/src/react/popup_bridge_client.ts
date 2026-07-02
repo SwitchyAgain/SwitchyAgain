@@ -1,5 +1,5 @@
 import {message} from './i18n_client';
-import type {RequestExplanation} from './options_client_types';
+import type {OptionsPatch, RequestExplanation} from './options_client_types';
 import type {NamedProfile, ProfileKey} from './profile_types';
 import {closeWindow, getGlobalValue, reloadHistory, setBodyOpacity} from './browser_env';
 
@@ -20,12 +20,15 @@ export type ProfileMap = Record<ProfileKey, Profile | undefined>;
 export type PageInfo = {
   domain?: string;
   errorCount?: number;
+  networkRequestIgnoreList?: string[];
   profileScope?: ProfileScopeInfo;
   requestExplanations?: RequestExplanation[];
   requestLimitExceeded?: boolean;
   requests?: Array<{
     error?: string;
     id: string;
+    ignored?: boolean;
+    ignoreMatches?: string[];
     status?: string;
     type?: string;
     url: string;
@@ -133,6 +136,7 @@ export type PopupBridgeClient = {
     (domain?: string, profileName?: string, callback?: PopupVoidCallback): void;
   };
   openOptions?: (hash?: string | null, callback?: PopupVoidCallback) => void;
+  patchOptions?: (patch: OptionsPatch, callback?: PopupCallback<unknown>) => void;
   setDefaultProfile?: (profileName: string, defaultProfileName: string, callback?: PopupVoidCallback) => void;
   setProfileScope?: (args: ProfileScopeSetRequest, callback?: PopupVoidCallback) => void;
   setState?: <TKey extends PopupWritableStateKey>(name: TKey, value: PopupState[TKey], callback?: PopupCallback) => void;

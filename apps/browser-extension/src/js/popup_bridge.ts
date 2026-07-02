@@ -44,6 +44,7 @@ type PopupBackgroundMethodArgs = {
   getOptionsPageState: [tabId: number];
   getPageInfo: [args: PageInfoRequest];
   getState: [keys: PopupApiStateKey[]];
+  patch: [patch: Record<string, unknown>];
   setDefaultProfile: [profileName: string, defaultProfileName: string];
   setProfileScope: [args: ProfileScopeSetRequest];
   setState: [name: PopupApiWritableStateKey, value: PopupApiState[PopupApiWritableStateKey]];
@@ -61,6 +62,7 @@ type PopupBackgroundMethodResult = {
   };
   getPageInfo: PopupApiPageInfo;
   getState: PopupApiState;
+  patch: unknown;
   setDefaultProfile: unknown;
   setProfileScope: unknown;
   setState: unknown;
@@ -349,6 +351,9 @@ function removeOptionsTab(tabId: number | undefined, callback: () => void) {
   },
   addProfile(profile: PopupApiProfile, cb?: PopupCallback) {
     callBackgroundWithRefresh('addProfile', [profile], cb);
+  },
+  patchOptions(patch: Record<string, unknown>, cb?: PopupCallback) {
+    callBackground('patch', [patch], cb);
   },
   setState(name: PopupApiWritableStateKey, value: PopupApiState[PopupApiWritableStateKey], cb?: PopupCallback) {
     callBackground('setState', [name, value], cb);

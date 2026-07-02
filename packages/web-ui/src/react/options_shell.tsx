@@ -29,9 +29,9 @@ export type OptionsShellProps = {
   profileActionMenuOptions?: ProfileActionMenuOptions | null;
   profileScopeHref?: string;
   profileHref?: (profile: Profile) => string;
-  routeTraceHref?: string;
+  routeLensHref?: string;
   showProfileScope?: boolean;
-  showRouteTrace?: boolean;
+  showRouteLens?: boolean;
   uiHref?: string;
 };
 
@@ -940,9 +940,9 @@ export function OptionsShell({
   profileActionMenuOptions,
   profileScopeHref = '#',
   profileHref,
-  routeTraceHref = '#',
+  routeLensHref = '#',
   showProfileScope = false,
-  showRouteTrace = true,
+  showRouteLens = true,
   uiHref = '#'
 }: OptionsShellProps) {
   const [hiddenProfilesOpen, setHiddenProfilesOpen] = useState(false);
@@ -993,15 +993,15 @@ export function OptionsShell({
           }
         ]
       : []),
-    ...(showRouteTrace
+    ...(showRouteLens
       ? [
           {
-            active: currentState === 'routeTrace',
-            href: routeTraceHref,
+            active: currentState === 'routeLens',
+            href: routeLensHref,
             icon: 'glyphicon-sort',
-            key: 'routeTrace',
-            label: message('options_tab_routeTrace', 'Route Trace'),
-            onClick: () => onNavigate?.('routeTrace')
+            key: 'routeLens',
+            label: message('options_tab_routeLens', 'Route Lens'),
+            onClick: () => onNavigate?.('routeLens')
           }
         ]
       : []),

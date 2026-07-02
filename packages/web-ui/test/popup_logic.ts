@@ -6,6 +6,7 @@ import {
   finalRouteKey,
   hiddenMenuProfiles,
   iconForProfileType,
+  ignoredRouteInfoRules,
   isPopupConditionType,
   isVisibleResultProfileName,
   lastResultProfile,
@@ -19,6 +20,7 @@ import {
   requestDomains,
   requestHasError,
   requestHostname,
+  requestIsIgnored,
   suggestCondition,
   splitPopupHiddenProfiles,
   visibleMenuProfiles,
@@ -191,6 +193,8 @@ describe('popup logic', () => {
     expect(requestHostname('not a url')).toBe('not a url');
     expect(requestHasError({id: '1', status: 'timeout', url: 'https://example.com'})).toBe(true);
     expect(requestHasError({id: '1', status: 'ok', url: 'https://example.com'})).toBe(false);
+    expect(requestIsIgnored({id: '1', ignored: true, status: 'ok', url: 'https://example.com'})).toBe(true);
+    expect(requestIsIgnored({id: '1', ignoreMatches: ['*.example.com'], status: 'ok', url: 'https://example.com'})).toBe(true);
   });
 
   it('aggregates route info by hostname', () => {
@@ -225,6 +229,53 @@ describe('popup logic', () => {
     expect(Object.keys(groups[0].results)).toEqual(['profile\nproxy']);
     expect(groups[2].requestCount).toBe(1);
     expect(finalRouteKey(explanations[1])).toBe('profile\ndirect');
+  });
+
+  it('keeps ignored route info out of failed counts and groups ignore rules', () => {
+    const pageInfo: PageInfo = {
+      requests: [
+        {
+          id: '1',
+          ignoreMatches: ['*.example.com'],
+          ignored: true,
+          status: 'error',
+          url: 'https://a.example.com/request'
+        },
+        {
+          id: '2',
+          ignoreMatches: ['*.example.com', '*://b.example.com/*'],
+          ignored: true,
+          status: 'ok',
+          url: 'https://b.example.com/request'
+        },
+        {
+          id: '3',
+          status: 'error',
+          url: 'https://c.example.com/request'
+        }
+      ]
+    };
+
+    const groups = aggregateRouteInfo([], pageInfo.requests, 'Unknown host');
+    const ignoredRules = ignoredRouteInfoRules(pageInfo, 'Unknown host');
+
+    expect(groups.find((group) => group.hostname === 'a.example.com')?.errorCount).toBe(0);
+    expect(groups.find((group) => group.hostname === 'a.example.com')?.ignoredCount).toBe(1);
+    expect(groups.find((group) => group.hostname === 'c.example.com')?.errorCount).toBe(1);
+    expect(ignoredRules).toEqual([
+      {
+        errorCount: 1,
+        hosts: ['a.example.com', 'b.example.com'],
+        pattern: '*.example.com',
+        requestCount: 2
+      },
+      {
+        errorCount: 0,
+        hosts: ['b.example.com'],
+        pattern: '*://b.example.com/*',
+        requestCount: 1
+      }
+    ]);
   });
 
   it('suggests conditions for domains and IP-looking hosts', () => {

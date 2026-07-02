@@ -306,6 +306,7 @@ type ProxyProfileScheme = {
 interface ProxyEngineApi extends DynamicGlobalValue {
   Conditions: DynamicGlobalValue & {
     localHosts: string[];
+    match(condition: unknown, request: unknown): boolean;
     requestFromUrl(url: string): unknown;
     str(condition: unknown): string;
   };
@@ -365,6 +366,7 @@ interface OmegaOptionsState {
 
 interface OmegaOptionsData extends Record<string, unknown> {
   '-enableQuickSwitch'?: boolean;
+  '-networkRequestIgnoreList'?: string[];
   '-profileScopeAssignments'?: {
     containers?: Record<string, string>;
     normalDefaultProfileName?: string;
@@ -475,6 +477,7 @@ type PopupApiRequestExplanation = {
 type PopupApiPageInfo = {
   domain?: string;
   errorCount?: number;
+  networkRequestIgnoreList?: string[];
   profileScope?: {
     assignments?: {
       containers?: Record<string, string>;
@@ -506,6 +509,8 @@ type PopupApiPageInfo = {
   requests?: Array<{
     error?: string;
     id: string;
+    ignored?: boolean;
+    ignoreMatches?: string[];
     status?: string;
     type?: string;
     url: string;
@@ -566,6 +571,7 @@ interface PopupBridgeApi {
   openManage(cb?: PopupApiCallback): void;
   openManage(domain?: string, profileName?: string, cb?: PopupApiCallback): void;
   openOptions(hash?: string | null, cb?: PopupApiCallback): void;
+  patchOptions(patch: Record<string, unknown>, cb?: PopupApiCallback): void;
   setDefaultProfile(profileName: string, defaultProfileName: string, cb?: PopupApiCallback): void;
   setProfileScope(
     args: {

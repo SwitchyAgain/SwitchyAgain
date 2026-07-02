@@ -8,7 +8,6 @@ import type {Options} from '../src/react/options_client_types';
 function optionsFixture(): Options {
   return {
     '-downloadInterval': 60,
-    '-monitorWebRequests': false,
     '-showExternalProfile': false,
     '+proxy': {
       name: 'proxy',
@@ -42,13 +41,6 @@ describe('general settings component', () => {
     render(<GeneralSettings embedded onOptionsChange={onOptionsChange} options={optionsFixture()} />);
 
     expect(screen.getByRole('heading', {name: 'General'})).toBeTruthy();
-
-    fireEvent.click(screen.getByLabelText('Show count of failed web requests for resources in the current tab.'));
-    expect(onOptionsChange).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        '-monitorWebRequests': true
-      })
-    );
 
     fireEvent.change(screen.getByLabelText('Download Interval'), {
       target: {
@@ -134,7 +126,7 @@ describe('general settings component', () => {
     };
     const savedOptions = {
       ...loadedOptions,
-      '-monitorWebRequests': true
+      '-downloadInterval': 180
     };
     const requests: any[] = [];
     const sendMessage = vi.fn((request, callback) => {
@@ -168,14 +160,18 @@ describe('general settings component', () => {
       })
     );
 
-    fireEvent.click(screen.getByLabelText('Show count of failed web requests for resources in the current tab.'));
+    fireEvent.change(screen.getByLabelText('Download Interval'), {
+      target: {
+        value: '180'
+      }
+    });
     fireEvent.click(screen.getByRole('button', {name: /Apply changes/}));
 
     await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('Options saved.'));
     expect(requests).toContainEqual({
       args: [
         {
-          '-monitorWebRequests': [false, true]
+          '-downloadInterval': [60, 180]
         }
       ],
       method: 'patch'

@@ -557,10 +557,35 @@ body {
   margin-bottom: 10px;
 }
 
+.sa-popup-route-info-section {
+  margin-top: 10px;
+}
+
+.sa-popup-route-info-section + .sa-popup-route-info-section {
+  border-top: 1px solid var(--sa-popup-border);
+  padding-top: 8px;
+}
+
+.sa-popup-route-info-section h4 {
+  color: var(--sa-popup-muted);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0 0 6px;
+  text-transform: uppercase;
+}
+
+.sa-popup-route-info-section-warning h4 {
+  color: #8a6d3b;
+}
+
+.theme-dark .sa-popup-route-info-section-warning h4 {
+  color: #ffda6a;
+}
+
 .sa-popup-route-info-list {
   border-top: 1px solid var(--sa-popup-border);
-  margin-top: 8px;
-  max-height: 360px;
+  max-height: 280px;
   overflow: auto;
 }
 
@@ -577,12 +602,25 @@ body {
 }
 
 .sa-popup-route-info-request-count,
+.sa-popup-route-info-ignored-count,
 .sa-popup-route-info-error-count {
   box-sizing: border-box;
   flex: 0 0 auto;
   min-width: 1.8em;
   padding-left: .35em;
   padding-right: .35em;
+}
+
+.sa-popup-route-info-ignored-count,
+.sa-popup-route-info-ignored-label {
+  background-color: #d9dee3;
+  color: #495057;
+}
+
+.theme-dark .sa-popup-route-info-ignored-count,
+.theme-dark .sa-popup-route-info-ignored-label {
+  background-color: #5c6670;
+  color: #f1f3f5;
 }
 
 .sa-popup-route-info-host {
@@ -658,10 +696,28 @@ body {
   color: #ffda6a;
 }
 
-.sa-popup-route-info-add-condition {
-  border-top: 1px solid var(--sa-popup-border);
-  margin-top: 10px;
-  padding-top: 10px;
+.sa-popup-route-info-add-target {
+  margin-bottom: 10px;
+}
+
+.sa-popup-route-info-add-target .form-control {
+  max-width: 180px;
+}
+
+.sa-popup-route-info-rule-list .checkbox {
+  margin-bottom: 6px;
+  margin-top: 6px;
+}
+
+.sa-popup-route-info-section-controls {
+  margin-top: 4px;
+  min-height: 34px;
+}
+
+.sa-popup-route-info-section-controls::after {
+  clear: both;
+  content: '';
+  display: table;
 }
 
 .btn {

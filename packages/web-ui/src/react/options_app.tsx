@@ -68,7 +68,7 @@ import {
   UnsupportedProfile,
   VirtualProfile
 } from './profile_content';
-import {RouteTrace} from './route_trace';
+import {RouteLens} from './route_lens';
 import {
   Profile,
   isBuiltinProfile,
@@ -647,7 +647,7 @@ export function OptionsApp() {
     () => hasVisibleProfileScopes(savedOptions, profileScopeCapabilities),
     [savedOptions, profileScopeCapabilities]
   );
-  const showRouteTrace = savedOptions?.['-showRouteTrace'] !== false;
+  const showRouteLens = savedOptions?.['-showRouteLens'] !== false;
   const appliedVisibleProfileScopes = useMemo(
     () => visibleProfileScopes(savedOptions, profileScopeCapabilities),
     [savedOptions, profileScopeCapabilities]
@@ -667,11 +667,11 @@ export function OptionsApp() {
   }, [navigate, route.name, showProfileScope, status]);
 
   useEffect(() => {
-    if (status !== 'ready' || route.name !== 'routeTrace' || showRouteTrace) {
+    if (status !== 'ready' || route.name !== 'routeLens' || showRouteLens) {
       return;
     }
     navigate('ui');
-  }, [navigate, route.name, showRouteTrace, status]);
+  }, [navigate, route.name, showRouteLens, status]);
 
   useEffect(() => {
     if (status !== 'ready' || !appliedVisibleProfileScopes.container) {
@@ -1637,10 +1637,10 @@ export function OptionsApp() {
         </div>
       );
     }
-    if (route.name === 'routeTrace') {
+    if (route.name === 'routeLens') {
       return (
-        <div className="react-settings-host-route-trace">
-          <RouteTrace currentProfileName={activeProfileName} embedded options={options} />
+        <div className="react-settings-host-route-lens">
+          <RouteLens currentProfileName={activeProfileName} embedded options={options} onOptionsChange={updateOptions} />
         </div>
       );
     }
@@ -1858,9 +1858,9 @@ export function OptionsApp() {
             profileActionMenuOptions={options?.['-profileActionMenuOptions'] || null}
             profileHref={(profile) => routeHref('profile', {name: profile.name})}
             profileScopeHref={routeHref('profileScope')}
-            routeTraceHref={routeHref('routeTrace')}
+            routeLensHref={routeHref('routeLens')}
             showProfileScope={showProfileScope}
-            showRouteTrace={showRouteTrace}
+            showRouteLens={showRouteLens}
             isExperimental={isExperimental}
             uiHref={routeHref('ui')}
           />

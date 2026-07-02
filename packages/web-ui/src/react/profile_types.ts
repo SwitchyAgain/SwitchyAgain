@@ -80,6 +80,7 @@ export type OptionsData = {
   '-exportLegacyRuleList'?: boolean;
   '-keepSettingsExpanded'?: boolean;
   '-monitorWebRequests'?: boolean;
+  '-networkRequestIgnoreList'?: string[];
   '-profileActionMenuOptions'?: ProfileActionMenuOptions;
   '-profileScopeAssignments'?: {
     containers?: Record<string, string>;
@@ -96,6 +97,7 @@ export type OptionsData = {
   '-refreshOnProfileChange'?: boolean;
   '-showConditionTypes'?: number;
   '-showExternalProfile'?: boolean;
+  '-showRouteLens'?: boolean;
   '-showBypassListGroups'?: boolean;
   '-showHttpProxyOverrideRows'?: boolean;
   '-showSocks5LocalDnsOption'?: boolean;

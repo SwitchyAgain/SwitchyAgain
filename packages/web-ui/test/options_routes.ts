@@ -4,7 +4,7 @@ describe('options routes', () => {
   it('builds stable route hrefs', () => {
     expect(routeHref('about')).toBe('#/about');
     expect(routeHref('general')).toBe('#/general');
-    expect(routeHref('routeTrace')).toBe('#/routeTrace');
+    expect(routeHref('routeLens')).toBe('#/routeLens');
     expect(routeHref('profile', {name: 'proxy/main'})).toBe('#/profile/proxy%2Fmain');
   });
 
@@ -24,8 +24,8 @@ describe('options routes', () => {
   });
 
   it('preserves query params on non-profile routes', () => {
-    expect(parseRoute('#/routeTrace?url=https%3A%2F%2Fexample.com%2F&includeTempRules=1')).toEqual({
-      name: 'routeTrace',
+    expect(parseRoute('#/routeLens?url=https%3A%2F%2Fexample.com%2F&includeTempRules=1')).toEqual({
+      name: 'routeLens',
       params: {
         includeTempRules: '1',
         url: 'https://example.com/'

@@ -127,9 +127,9 @@ describe('options shell components', () => {
   });
 
   it('hides route trace navigation when disabled', () => {
-    render(<OptionsShell options={optionsFixture()} showRouteTrace={false} />);
+    render(<OptionsShell options={optionsFixture()} showRouteLens={false} />);
 
-    expect(screen.queryByRole('link', {name: 'Route Trace'})).toBeNull();
+    expect(screen.queryByRole('link', {name: 'Route Lens'})).toBeNull();
   });
 
   it('keeps hidden profiles collapsed in a separate navigation group', () => {

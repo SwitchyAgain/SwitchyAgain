@@ -2,7 +2,7 @@
 
 import React from 'react';
 import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
-import {RouteTrace} from '../src/react/route_trace';
+import {RouteLens} from '../src/react/route_lens';
 import type {Options, RequestExplanation} from '../src/react/options_client_types';
 
 const optionsClientMock = vi.hoisted(() => ({
@@ -26,6 +26,8 @@ vi.mock('../src/react/i18n_client', () => ({
 
 function optionsFixture(): Options {
   return {
+    '-monitorWebRequests': true,
+    '-networkRequestIgnoreList': ['*.tracker.example'],
     '+proxy': {
       name: 'proxy',
       profileType: 'FixedProfile'
@@ -79,9 +81,37 @@ beforeEach(() => {
   optionsClientMock.getState.mockResolvedValue('proxy');
 });
 
-describe('route trace component', () => {
+describe('route lens component', () => {
+  it('renders route lens settings and updates network request options', () => {
+    const onOptionsChange = vi.fn();
+    render(<RouteLens currentProfileName="proxy" embedded options={optionsFixture()} onOptionsChange={onOptionsChange} />);
+
+    expect(screen.getByRole('heading', {name: 'Route Lens'})).toBeTruthy();
+    expect(screen.getByRole('heading', {name: 'Network Requests'})).toBeTruthy();
+    expect(screen.getByRole('heading', {name: 'Ignore List'})).toBeTruthy();
+    expect(screen.getByRole('heading', {name: 'Route Trace'})).toBeTruthy();
+
+    fireEvent.click(screen.getByLabelText('Show count of failed web requests for resources in the current tab.'));
+    expect(onOptionsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        '-monitorWebRequests': false
+      })
+    );
+
+    fireEvent.change(screen.getByLabelText('Ignore List'), {
+      target: {
+        value: '*.tracker.example\n*.ads.example'
+      }
+    });
+    expect(onOptionsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        '-networkRequestIgnoreList': ['*.tracker.example', '*.ads.example']
+      })
+    );
+  });
+
   it('uses a provided current profile without loading state again', () => {
-    render(<RouteTrace currentProfileName="proxy" embedded options={optionsFixture()} />);
+    render(<RouteLens currentProfileName="proxy" embedded options={optionsFixture()} />);
 
     expect(screen.getByText('proxy')).toBeTruthy();
     expect(optionsClientMock.getState).not.toHaveBeenCalled();
@@ -90,7 +120,7 @@ describe('route trace component', () => {
   it('submits trace requests and renders returned explanations', async () => {
     optionsClientMock.explainRequest.mockResolvedValue(explanationFixture('https://example.com/path?x=1'));
 
-    render(<RouteTrace embedded options={optionsFixture()} />);
+    render(<RouteLens embedded options={optionsFixture()} />);
 
     await screen.findByText('proxy');
 
@@ -117,7 +147,7 @@ describe('route trace component', () => {
   it('disables empty submissions and shows explain errors', async () => {
     optionsClientMock.explainRequest.mockRejectedValue(new Error('No route info'));
 
-    render(<RouteTrace embedded options={optionsFixture()} />);
+    render(<RouteLens embedded options={optionsFixture()} />);
 
     const urlInput = screen.getByLabelText('URL');
     const traceButton = screen.getByRole('button', {name: 'Trace'}) as HTMLButtonElement;
