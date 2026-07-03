@@ -274,14 +274,18 @@ function IgnoredRouteInfoSection({
   checkedRules,
   disabled,
   onCheckedRulesChange,
+  onClose,
   onRemove,
-  pageInfo
+  pageInfo,
+  showCancel = false
 }: {
   checkedRules: Record<string, boolean>;
   disabled: boolean;
   onCheckedRulesChange: (updater: (prev: Record<string, boolean>) => Record<string, boolean>) => void;
+  onClose?: () => void;
   onRemove: () => void;
   pageInfo?: PageInfo;
+  showCancel?: boolean;
 }) {
   const ignoredRules = ignoredRouteInfoRules(pageInfo, popupMessage('popup_routeInfoUnknownHost', 'Unknown host'));
   if (!ignoredRules.length) {
@@ -303,7 +307,10 @@ function IgnoredRouteInfoSection({
               <input
                 type="checkbox"
                 checked={!!checkedRules[rule.pattern]}
-                onChange={(event) => onCheckedRulesChange((prev) => ({...prev, [rule.pattern]: event.currentTarget.checked}))}
+                onChange={(event) => {
+                  const checked = event.currentTarget.checked;
+                  onCheckedRulesChange((prev) => ({...prev, [rule.pattern]: checked}));
+                }}
               />
               <span className="label label-default sa-popup-route-info-ignored-label">{rule.requestCount}</span>{' '}
               {rule.errorCount > 0 && <span className="label label-warning">{rule.errorCount}</span>} {rule.pattern}
@@ -312,6 +319,11 @@ function IgnoredRouteInfoSection({
         ))}
       </div>
       <div className="condition-controls sa-popup-route-info-section-controls">
+        {showCancel && (
+          <button className="btn btn-default" type="button" onClick={onClose}>
+            {popupMessage('dialog_cancel', 'Cancel')}
+          </button>
+        )}
         <button className="btn btn-primary" type="button" disabled={disabled || !hasChecked} onClick={onRemove}>
           {popupMessage('popup_routeInfoRemoveIgnoredRules', 'Remove from Ignore List')}
         </button>
@@ -374,7 +386,10 @@ function FailedRouteInfoSection({
               <input
                 type="checkbox"
                 checked={!!checkedDomains[domain.domain]}
-                onChange={(event) => onCheckedDomainsChange((prev) => ({...prev, [domain.domain]: event.currentTarget.checked}))}
+                onChange={(event) => {
+                  const checked = event.currentTarget.checked;
+                  onCheckedDomainsChange((prev) => ({...prev, [domain.domain]: checked}));
+                }}
               />
               <span className="label label-warning">{domain.errorCount}</span> {domain.domain}
             </label>
@@ -391,7 +406,7 @@ function FailedRouteInfoSection({
   );
 }
 
-function PopupApp() {
+export function PopupApp() {
   const [mode, setMode] = useState(modeFromHash);
   const [state, setState] = useState<PopupState>();
   const [pageInfo, setPageInfo] = useState<PageInfo>();
@@ -1423,6 +1438,7 @@ function RouteInfoForm({
     addTarget === 'switchRule' && state.currentProfileCanAddRule
       ? popupMessage('popup_routeInfoAddSwitchRule', 'Add Switch Rule')
       : popupMessage('popup_routeInfoAddIgnoreRule', 'Add to Ignore List');
+  const showBottomControls = hasRequestFailures || ignoredRules.length === 0;
 
   return (
     <div className="route-info-details sa-popup-form">
@@ -1445,8 +1461,10 @@ function RouteInfoForm({
           checkedRules={checkedIgnoreRules}
           disabled={saving}
           onCheckedRulesChange={setCheckedIgnoreRules}
+          onClose={onClose}
           onRemove={removeSelectedIgnoreRules}
           pageInfo={detailPageInfo}
+          showCancel={!hasRequestFailures}
         />
         {hasRequestFailures && (
           <FailedRouteInfoSection
@@ -1462,16 +1480,18 @@ function RouteInfoForm({
             setProfile={setProfile}
           />
         )}
-        <div className="condition-controls">
-          <button className="btn btn-default" type="button" onClick={onClose}>
-            {popupMessage('dialog_cancel', 'Cancel')}
-          </button>
-          {hasRequestFailures && (
-            <button className="btn btn-primary" type="button" disabled={submitDisabled} onClick={submitRouteInfo}>
-              {submitText}
+        {showBottomControls && (
+          <div className="condition-controls">
+            <button className="btn btn-default" type="button" onClick={onClose}>
+              {popupMessage('dialog_cancel', 'Cancel')}
             </button>
-          )}
-        </div>
+            {hasRequestFailures && (
+              <button className="btn btn-primary" type="button" disabled={submitDisabled} onClick={submitRouteInfo}>
+                {submitText}
+              </button>
+            )}
+          </div>
+        )}
       </fieldset>
     </div>
   );

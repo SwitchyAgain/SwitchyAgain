@@ -255,6 +255,9 @@ class WebRequestMonitor {
     if (req.error === 'net::ERR_INCOMPLETE_CHUNKED_ENCODING') {
       return;
     }
+    if (req.error === 'net::ERR_CACHE_MISS') {
+      return;
+    }
     if ((req.error || '').indexOf('BLOCKED') >= 0) {
       return;
     }
