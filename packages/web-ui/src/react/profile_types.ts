@@ -57,8 +57,11 @@ export type ProfileKey = `+${string}`;
 export type ProfileActionMenuOptions = {
   browserColor?: boolean;
   browserExport?: boolean;
+  browserMenu?: boolean;
+  sectionMenu?: boolean;
   sidebarColor?: boolean;
   sidebarExport?: boolean;
+  sidebarMenu?: boolean;
 };
 
 export type OptionsData = {

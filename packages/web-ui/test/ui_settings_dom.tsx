@@ -110,6 +110,9 @@ describe('ui settings component', () => {
       })
     );
 
+    expect((screen.getByLabelText('Show action menus for profile section headers.') as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByLabelText('Show action menus for sidebar profiles.') as HTMLInputElement).checked).toBe(false);
+    expect((screen.getByLabelText('Show action menus for profile browser profiles.') as HTMLInputElement).checked).toBe(true);
     expect((screen.getByLabelText('Show profile color in sidebar profile action menus.') as HTMLInputElement).checked).toBe(false);
     expect((screen.getByLabelText('Show profile color in profile browser action menus.') as HTMLInputElement).checked).toBe(false);
     expect((screen.getByLabelText('Show export actions in sidebar profile action menus.') as HTMLInputElement).checked).toBe(true);
@@ -121,8 +124,11 @@ describe('ui settings component', () => {
         '-profileActionMenuOptions': {
           browserColor: false,
           browserExport: true,
+          browserMenu: true,
+          sectionMenu: true,
           sidebarColor: true,
-          sidebarExport: true
+          sidebarExport: true,
+          sidebarMenu: false
         }
       })
     );
@@ -133,8 +139,11 @@ describe('ui settings component', () => {
         '-profileActionMenuOptions': {
           browserColor: true,
           browserExport: true,
+          browserMenu: true,
+          sectionMenu: true,
           sidebarColor: true,
-          sidebarExport: true
+          sidebarExport: true,
+          sidebarMenu: false
         }
       })
     );
@@ -145,8 +154,11 @@ describe('ui settings component', () => {
         '-profileActionMenuOptions': {
           browserColor: true,
           browserExport: true,
+          browserMenu: true,
+          sectionMenu: true,
           sidebarColor: true,
-          sidebarExport: false
+          sidebarExport: false,
+          sidebarMenu: false
         }
       })
     );
@@ -157,8 +169,11 @@ describe('ui settings component', () => {
         '-profileActionMenuOptions': {
           browserColor: true,
           browserExport: false,
+          browserMenu: true,
+          sectionMenu: true,
           sidebarColor: true,
-          sidebarExport: false
+          sidebarExport: false,
+          sidebarMenu: false
         }
       })
     );

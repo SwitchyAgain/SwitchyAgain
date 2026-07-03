@@ -101,8 +101,11 @@ function normalizedProfileActionMenuOptions(options?: ProfileActionMenuOptions |
   return {
     browserColor: options?.browserColor === true,
     browserExport: options?.browserExport !== false,
+    browserMenu: options?.browserMenu !== false,
+    sectionMenu: options?.sectionMenu !== false,
     sidebarColor: options?.sidebarColor === true,
-    sidebarExport: options?.sidebarExport !== false
+    sidebarExport: options?.sidebarExport !== false,
+    sidebarMenu: options?.sidebarMenu === true
   };
 }
 
@@ -956,12 +959,18 @@ export function OptionsShell({
   const visibleProfiles = profiles.filter((profile) => !hiddenProfileNames.has(profile.name));
   const hiddenProfiles = profiles.filter((profile) => hiddenProfileNames.has(profile.name));
   const actionMenuOptions = normalizedProfileActionMenuOptions(profileActionMenuOptions);
-  const sidebarProfileColorChange = actionMenuOptions.sidebarColor ? onProfileColorChange : undefined;
-  const sidebarExportPacProfile = actionMenuOptions.sidebarExport ? onExportPacProfile : undefined;
-  const sidebarExportRuleListProfile = actionMenuOptions.sidebarExport ? onExportRuleListProfile : undefined;
-  const browserProfileColorChange = actionMenuOptions.browserColor ? onProfileColorChange : undefined;
-  const browserExportPacProfile = actionMenuOptions.browserExport ? onExportPacProfile : undefined;
-  const browserExportRuleListProfile = actionMenuOptions.browserExport ? onExportRuleListProfile : undefined;
+  const sidebarDeleteProfile = actionMenuOptions.sidebarMenu ? onDeleteProfile : undefined;
+  const sidebarRenameProfile = actionMenuOptions.sidebarMenu ? onRenameProfile : undefined;
+  const sidebarProfileColorChange = actionMenuOptions.sidebarMenu && actionMenuOptions.sidebarColor ? onProfileColorChange : undefined;
+  const sidebarExportPacProfile = actionMenuOptions.sidebarMenu && actionMenuOptions.sidebarExport ? onExportPacProfile : undefined;
+  const sidebarExportRuleListProfile =
+    actionMenuOptions.sidebarMenu && actionMenuOptions.sidebarExport ? onExportRuleListProfile : undefined;
+  const browserDeleteProfile = actionMenuOptions.browserMenu ? onDeleteProfile : undefined;
+  const browserRenameProfile = actionMenuOptions.browserMenu ? onRenameProfile : undefined;
+  const browserProfileColorChange = actionMenuOptions.browserMenu && actionMenuOptions.browserColor ? onProfileColorChange : undefined;
+  const browserExportPacProfile = actionMenuOptions.browserMenu && actionMenuOptions.browserExport ? onExportPacProfile : undefined;
+  const browserExportRuleListProfile =
+    actionMenuOptions.browserMenu && actionMenuOptions.browserExport ? onExportRuleListProfile : undefined;
   const profilesLabel = message('options_navHeader_profiles', 'Profiles');
   const hiddenProfilesLabel = message('options_navHeader_hiddenProfiles', 'Hidden');
   const settingsItems: SettingsNavItem[] = [
@@ -1076,17 +1085,19 @@ export function OptionsShell({
         <ul className="nav nav-pills nav-stacked options-shell-profile-header">
           <li className="nav-header options-shell-section-header">
             <span>{profilesLabel}</span>
-            <ProfileSectionMenuButton
-              activeProfileName={currentProfileName}
-              ariaLabel={message('options_showProfilesFlyout', 'Show all')}
-              browseAllLabel={message('options_browseAllProfiles', 'Browse all')}
-              currentState={currentState}
-              label={profilesLabel}
-              onBrowseAll={() => setProfileBrowserOpen(true)}
-              onNavigate={onNavigate}
-              profileHref={profileHref}
-              profiles={visibleProfiles}
-            />
+            {actionMenuOptions.sectionMenu && (
+              <ProfileSectionMenuButton
+                activeProfileName={currentProfileName}
+                ariaLabel={message('options_showProfilesFlyout', 'Show all')}
+                browseAllLabel={message('options_browseAllProfiles', 'Browse all')}
+                currentState={currentState}
+                label={profilesLabel}
+                onBrowseAll={() => setProfileBrowserOpen(true)}
+                onNavigate={onNavigate}
+                profileHref={profileHref}
+                profiles={visibleProfiles}
+              />
+            )}
           </li>
         </ul>
         <div className="options-shell-profile-list">
@@ -1096,12 +1107,12 @@ export function OptionsShell({
                 key={profile.name}
                 currentProfileName={currentProfileName}
                 currentState={currentState}
-                onDeleteProfile={onDeleteProfile}
+                onDeleteProfile={sidebarDeleteProfile}
                 onExportPacProfile={sidebarExportPacProfile}
                 onExportRuleListProfile={sidebarExportRuleListProfile}
                 onNavigate={onNavigate}
                 onProfileColorChange={sidebarProfileColorChange}
-                onRenameProfile={onRenameProfile}
+                onRenameProfile={sidebarRenameProfile}
                 profile={profile}
                 profileHref={profileHref}
               />
@@ -1121,15 +1132,17 @@ export function OptionsShell({
                   <span className={`glyphicon ${hiddenProfilesOpen ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right'}`} />{' '}
                   <span>{hiddenProfilesLabel}</span>
                 </button>
-                <ProfileSectionMenuButton
-                  activeProfileName={currentProfileName}
-                  ariaLabel={message('options_showHiddenProfilesFlyout', 'Show all')}
-                  currentState={currentState}
-                  label={hiddenProfilesLabel}
-                  onNavigate={onNavigate}
-                  profileHref={profileHref}
-                  profiles={hiddenProfiles}
-                />
+                {actionMenuOptions.sectionMenu && (
+                  <ProfileSectionMenuButton
+                    activeProfileName={currentProfileName}
+                    ariaLabel={message('options_showHiddenProfilesFlyout', 'Show all')}
+                    currentState={currentState}
+                    label={hiddenProfilesLabel}
+                    onNavigate={onNavigate}
+                    profileHref={profileHref}
+                    profiles={hiddenProfiles}
+                  />
+                )}
               </li>
             </ul>
             {hiddenProfilesOpen && (
@@ -1140,12 +1153,12 @@ export function OptionsShell({
                       key={profile.name}
                       currentProfileName={currentProfileName}
                       currentState={currentState}
-                      onDeleteProfile={onDeleteProfile}
+                      onDeleteProfile={sidebarDeleteProfile}
                       onExportPacProfile={sidebarExportPacProfile}
                       onExportRuleListProfile={sidebarExportRuleListProfile}
                       onNavigate={onNavigate}
                       onProfileColorChange={sidebarProfileColorChange}
-                      onRenameProfile={onRenameProfile}
+                      onRenameProfile={sidebarRenameProfile}
                       profile={profile}
                       profileHref={profileHref}
                     />
@@ -1186,12 +1199,12 @@ export function OptionsShell({
           currentState={currentState}
           hiddenProfiles={hiddenProfiles}
           onClose={() => setProfileBrowserOpen(false)}
-          onDeleteProfile={onDeleteProfile}
+          onDeleteProfile={browserDeleteProfile}
           onExportPacProfile={browserExportPacProfile}
           onExportRuleListProfile={browserExportRuleListProfile}
           onNavigate={onNavigate}
           onProfileColorChange={browserProfileColorChange}
-          onRenameProfile={onRenameProfile}
+          onRenameProfile={browserRenameProfile}
           profileHref={profileHref}
           profiles={visibleProfiles}
         />

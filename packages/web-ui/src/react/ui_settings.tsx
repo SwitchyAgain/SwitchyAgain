@@ -116,8 +116,11 @@ function profileActionMenuOptionsForOptions(options?: Options | null): Required<
   return {
     browserColor: profileActionMenuOptions.browserColor === true,
     browserExport: profileActionMenuOptions.browserExport !== false,
+    browserMenu: profileActionMenuOptions.browserMenu !== false,
+    sectionMenu: profileActionMenuOptions.sectionMenu !== false,
     sidebarColor: profileActionMenuOptions.sidebarColor === true,
-    sidebarExport: profileActionMenuOptions.sidebarExport !== false
+    sidebarExport: profileActionMenuOptions.sidebarExport !== false,
+    sidebarMenu: profileActionMenuOptions.sidebarMenu === true
   };
 }
 
@@ -855,6 +858,36 @@ export function UiSettings({
 
       <section className="settings-group">
         <h3>{message('options_group_profileActionMenuOptions', 'Action Menu')}</h3>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={profileActionMenuOptions.sectionMenu}
+              onChange={(event) => updateProfileActionMenuOption('sectionMenu', event.currentTarget.checked)}
+            />
+            <span> {message('options_profileActionMenuSectionMenu', 'Show action menus for profile section headers.')}</span>
+          </label>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={profileActionMenuOptions.sidebarMenu}
+              onChange={(event) => updateProfileActionMenuOption('sidebarMenu', event.currentTarget.checked)}
+            />
+            <span> {message('options_profileActionMenuSidebarMenu', 'Show action menus for sidebar profiles.')}</span>
+          </label>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={profileActionMenuOptions.browserMenu}
+              onChange={(event) => updateProfileActionMenuOption('browserMenu', event.currentTarget.checked)}
+            />
+            <span> {message('options_profileActionMenuBrowserMenu', 'Show action menus for profile browser profiles.')}</span>
+          </label>
+        </div>
         <div className="checkbox">
           <label>
             <input

@@ -264,6 +264,29 @@ describe('options shell components', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
+  it('uses default profile action menu visibility by surface', () => {
+    const onDeleteProfile = vi.fn();
+    const onRenameProfile = vi.fn();
+    const {container} = render(
+      <OptionsShell onDeleteProfile={onDeleteProfile} onRenameProfile={onRenameProfile} options={optionsFixture()} />
+    );
+
+    expect(screen.getAllByRole('button', {name: 'Show all'}).length).toBeGreaterThan(0);
+
+    const profileList = container.querySelector('.options-shell-profile-list') as HTMLElement;
+    const sidebarProxyItem = within(profileList).getByRole('link', {name: /proxy/}).closest('.nav-profile') as HTMLElement;
+    expect(within(sidebarProxyItem).queryByRole('button', {name: 'Profile Options'})).toBeNull();
+
+    fireEvent.click(screen.getAllByRole('button', {name: 'Show all'})[0]);
+    fireEvent.click(screen.getByRole('menuitem', {name: 'Browse all'}));
+
+    const dialog = screen.getByRole('dialog');
+    const browserProxyItem = within(dialog)
+      .getByRole('link', {name: /proxy/})
+      .closest('.options-shell-profile-browser-item') as HTMLElement;
+    expect(within(browserProxyItem).getByRole('button', {name: 'Profile Options'})).toBeTruthy();
+  });
+
   it('runs profile browser item actions from the overflow menu', () => {
     const onDeleteProfile = vi.fn();
     const onExportPacProfile = vi.fn();
@@ -354,7 +377,7 @@ describe('options shell components', () => {
         onProfileColorChange={onProfileColorChange}
         onRenameProfile={onRenameProfile}
         options={options}
-        profileActionMenuOptions={{sidebarColor: true}}
+        profileActionMenuOptions={{sidebarColor: true, sidebarMenu: true}}
       />
     );
 
@@ -404,7 +427,8 @@ describe('options shell components', () => {
         options={optionsFixture()}
         profileActionMenuOptions={{
           browserExport: false,
-          sidebarExport: false
+          sidebarExport: false,
+          sidebarMenu: true
         }}
       />
     );
