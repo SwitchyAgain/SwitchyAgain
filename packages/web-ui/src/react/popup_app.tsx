@@ -293,7 +293,7 @@ function IgnoredRouteInfoSection({
   }
   const hasChecked = ignoredRules.some((rule) => checkedRules[rule.pattern]);
   return (
-    <RouteInfoSection tone="ignored" title={popupMessage('popup_routeInfoIgnoredHeading', 'Ignored')}>
+    <RouteInfoSection tone="ignored" title={popupMessage('popup_routeInfoIgnoredHeading', 'Ignored Requests')}>
       <div className="sa-popup-domain-list sa-popup-route-info-rule-list">
         {ignoredRules.map((rule) => (
           <div
@@ -1481,7 +1481,7 @@ function RouteInfoForm({
           />
         )}
         {showBottomControls && (
-          <div className="condition-controls">
+          <div className="condition-controls sa-popup-route-info-bottom-controls">
             <button className="btn btn-default" type="button" onClick={onClose}>
               {popupMessage('dialog_cancel', 'Cancel')}
             </button>
