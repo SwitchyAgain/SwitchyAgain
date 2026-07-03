@@ -449,6 +449,10 @@ li.list-style-none {
   background-color: #fff;
 }
 
+.options-guide-active .side-nav {
+  z-index: auto;
+}
+
 .options-guide-active:not([data-options-guide-step='fixed-servers-step']) .side-nav {
   position: absolute;
   overflow: visible;
@@ -1170,15 +1174,6 @@ h1 {
 .theme-dark .options-shell-profile-browser-actions-menu-item.text-danger:hover,
 .theme-dark .options-shell-profile-browser-actions-menu-item.text-danger:focus {
   color: #ea868f;
-}
-
-@media (hover: none) {
-  .options-shell-settings-toggle,
-  .options-shell-profile-menu-button,
-  .options-shell-profile-nav-actions-button,
-  .options-shell-profile-browser-actions-button {
-    opacity: 0.85;
-  }
 }
 
 .options-shell-profile-browser-empty {
