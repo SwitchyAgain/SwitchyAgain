@@ -160,6 +160,7 @@ type MonitoredRequestInfo = {
   _startTime?: number;
   error?: string;
   requestId: string;
+  routeInfoHidden?: boolean;
   type?: string;
   url: string;
   [key: string]: unknown;
@@ -462,7 +463,12 @@ function filteredTabRequestInfo(tabInfo: TabRequestInfo | undefined, ignoreList:
     }
     const request = rawRequests[requestId];
     const status = tabInfo?.requestStatus?.[requestId];
-    if (!request || !requestStatusHasError(status, request) || routeInfoIgnoreMatches(request.url, ignoreList).length > 0) {
+    if (
+      !request ||
+      request.routeInfoHidden ||
+      !requestStatusHasError(status, request) ||
+      routeInfoIgnoreMatches(request.url, ignoreList).length > 0
+    ) {
       continue;
     }
     errorCount++;
@@ -509,7 +515,7 @@ function pageRequestsFromTabInfo(tabInfo?: TabRequestInfo, pageUrl?: string, ign
       continue;
     }
     const request = rawRequests[requestId];
-    if (request && explainableRequestUrl(request.url)) {
+    if (request && !request.routeInfoHidden && explainableRequestUrl(request.url)) {
       monitored.push(request);
     }
   }

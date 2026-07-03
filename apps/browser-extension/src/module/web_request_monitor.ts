@@ -85,6 +85,7 @@ type RequestInfo = {
   noTimeout?: boolean;
   redirectUrl?: string;
   requestId: string;
+  routeInfoHidden?: boolean;
   tabId: number;
   timeoutCalled?: boolean;
   type?: string;
@@ -117,6 +118,10 @@ type TabInfo = {
 
 type RequestCallback = (status: RequestStatus, req: RequestInfo) => unknown;
 type TabCallback = (tabId: number, info: TabInfo, req: RequestInfo | null, status: RequestStatus | 'updated') => unknown;
+
+function isNetworkRequestUrl(url: string) {
+  return /^(https?|ws|wss):/i.test(url);
+}
 
 function shouldResetTabInfoForUpdatedUrl(url?: string) {
   if (!url) {
@@ -241,7 +246,8 @@ class WebRequestMonitor {
     if (!url) {
       return;
     }
-    if (url.indexOf('data:') === 0 || url.indexOf('about:') === 0) {
+    if (!isNetworkRequestUrl(url)) {
+      req.routeInfoHidden = true;
       return this._requestDone(req);
     }
   }
