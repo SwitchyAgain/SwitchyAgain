@@ -1490,7 +1490,7 @@ msgid "options_group_profileScope"
 msgstr "情景模式作用范围"
 
 msgid "options_tab_profileScope"
-msgstr "情景模式作用范围"
+msgstr "作用范围"
 
 msgid "options_profileScopeTab"
 msgstr "标签页情景模式"
@@ -1611,3 +1611,87 @@ msgstr "为普通窗口使用情景模式"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "为隐私窗口使用情景模式"
+
+msgid "options_group_routeTrace"
+msgstr "路由追踪"
+
+msgid "options_networkRequestIgnoreList"
+msgstr "忽略列表"
+
+msgid "options_networkRequestIgnoreListEnabled"
+msgstr "启用路由信息忽略列表。"
+
+msgid "options_networkRequestIgnoreListEnabledHelp"
+msgstr "启用后，匹配的失败请求会在路由信息中显示为已忽略，并且不会触发失败请求角标。"
+
+msgid "options_networkRequestIgnoreListHelp"
+msgstr "每行使用一个通配符模式。"
+
+msgid "options_profileActionMenuBrowserMenu"
+msgstr "为情景模式浏览器中的情景模式显示操作菜单。"
+
+msgid "options_profileActionMenuSectionMenu"
+msgstr "为情景模式分区标题显示操作菜单。"
+
+msgid "options_profileActionMenuSidebarMenu"
+msgstr "为侧边栏中的情景模式显示操作菜单。"
+
+msgid "options_routeInfoEnabled"
+msgstr "启用路由信息"
+
+msgid "options_routeInfoEnabledHelp"
+msgstr "在弹出菜单中显示路由信息，并启用与请求相关的诊断功能。关闭后，失败请求检测、请求详情和忽略列表均不会生效。"
+
+msgid "options_routeInfoRequestDetailsEnabled"
+msgstr "在路由信息中显示请求详情"
+
+msgid "options_routeInfoRequestDetailsEnabledHelp"
+msgstr "在“请求”区域加载捕获的请求和路由结果。资源较多的页面可能会比较慢。"
+
+msgid "options_showRequestLens"
+msgstr "在设置侧边栏中显示请求诊断。"
+
+msgid "options_tab_requestLens"
+msgstr "请求诊断"
+
+msgid "popup_configureNetworkRequests"
+msgstr "配置网络请求"
+
+msgid "popup_routeInfoAddIgnoreRule"
+msgstr "添加到忽略列表"
+
+msgid "popup_routeInfoAddSwitchRule"
+msgstr "添加切换规则"
+
+msgid "popup_routeInfoAddTo"
+msgstr "添加到"
+
+msgid "popup_routeInfoFailedHeading"
+msgstr "失败请求"
+
+msgid "popup_routeInfoIgnoreListTarget"
+msgstr "忽略列表"
+
+msgid "popup_routeInfoIgnored"
+msgstr "已忽略"
+
+msgid "popup_routeInfoIgnoredHeading"
+msgstr "已忽略请求"
+
+msgid "popup_routeInfoRemoveIgnoredRules"
+msgstr "从忽略列表移除"
+
+msgid "popup_routeInfoRequestDetailsDisabled"
+msgstr "请求详情已关闭。"
+
+msgid "popup_routeInfoRequestsHeading"
+msgstr "请求"
+
+msgid "popup_routeInfoSelectDomain"
+msgstr "请至少选择一个域名。"
+
+msgid "popup_routeInfoSelectIgnoredRule"
+msgstr "请至少选择一条忽略规则。"
+
+msgid "popup_routeInfoSwitchRuleTarget"
+msgstr "切换规则"

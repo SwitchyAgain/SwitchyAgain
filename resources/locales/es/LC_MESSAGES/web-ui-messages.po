@@ -1826,3 +1826,87 @@ msgstr "Usar perfil para ventanas normales"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "Usar perfil para ventanas privadas"
+
+msgid "options_group_routeTrace"
+msgstr "Traza de ruta"
+
+msgid "options_networkRequestIgnoreList"
+msgstr "Lista de ignorados"
+
+msgid "options_networkRequestIgnoreListEnabled"
+msgstr "Activar lista de ignorados para Información de ruta."
+
+msgid "options_networkRequestIgnoreListEnabledHelp"
+msgstr "Cuando está activada, las solicitudes fallidas coincidentes se muestran como ignoradas en Información de ruta y no activan el indicador de solicitudes fallidas."
+
+msgid "options_networkRequestIgnoreListHelp"
+msgstr "Usa un patrón comodín por línea."
+
+msgid "options_profileActionMenuBrowserMenu"
+msgstr "Mostrar menús de acciones para los perfiles del explorador de perfiles."
+
+msgid "options_profileActionMenuSectionMenu"
+msgstr "Mostrar menús de acciones para los encabezados de secciones de perfiles."
+
+msgid "options_profileActionMenuSidebarMenu"
+msgstr "Mostrar menús de acciones para los perfiles de la barra lateral."
+
+msgid "options_routeInfoEnabled"
+msgstr "Activar Información de ruta"
+
+msgid "options_routeInfoEnabledHelp"
+msgstr "Muestra Información de ruta en el menú emergente y activa diagnósticos relacionados con las solicitudes. Al desactivarlo, no se usan la detección de solicitudes fallidas, los detalles de solicitudes ni la lista de ignorados."
+
+msgid "options_routeInfoRequestDetailsEnabled"
+msgstr "Mostrar detalles de solicitudes en Información de ruta"
+
+msgid "options_routeInfoRequestDetailsEnabledHelp"
+msgstr "Carga las solicitudes capturadas y los resultados de enrutamiento en la sección Solicitudes. Puede ser lento en páginas con muchos recursos."
+
+msgid "options_showRequestLens"
+msgstr "Mostrar Diagnóstico de solicitudes en la barra lateral de ajustes."
+
+msgid "options_tab_requestLens"
+msgstr "Diagnóstico de solicitudes"
+
+msgid "popup_configureNetworkRequests"
+msgstr "Configurar solicitudes de red"
+
+msgid "popup_routeInfoAddIgnoreRule"
+msgstr "Añadir a la lista de ignorados"
+
+msgid "popup_routeInfoAddSwitchRule"
+msgstr "Añadir regla de cambio"
+
+msgid "popup_routeInfoAddTo"
+msgstr "Añadir a"
+
+msgid "popup_routeInfoFailedHeading"
+msgstr "Solicitudes fallidas"
+
+msgid "popup_routeInfoIgnoreListTarget"
+msgstr "Lista de ignorados"
+
+msgid "popup_routeInfoIgnored"
+msgstr "ignorada"
+
+msgid "popup_routeInfoIgnoredHeading"
+msgstr "Solicitudes ignoradas"
+
+msgid "popup_routeInfoRemoveIgnoredRules"
+msgstr "Quitar de la lista de ignorados"
+
+msgid "popup_routeInfoRequestDetailsDisabled"
+msgstr "Los detalles de solicitudes están desactivados."
+
+msgid "popup_routeInfoRequestsHeading"
+msgstr "Solicitudes"
+
+msgid "popup_routeInfoSelectDomain"
+msgstr "Selecciona al menos un dominio."
+
+msgid "popup_routeInfoSelectIgnoredRule"
+msgstr "Selecciona al menos una regla de ignorados."
+
+msgid "popup_routeInfoSwitchRuleTarget"
+msgstr "Regla de cambio"

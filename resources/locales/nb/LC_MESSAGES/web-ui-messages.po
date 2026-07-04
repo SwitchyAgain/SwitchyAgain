@@ -1611,3 +1611,93 @@ msgstr "Bruk profil for normale vinduer"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "Bruk profil for private vinduer"
+
+msgid "options_group_routeTrace"
+msgstr "Rutesporing"
+
+msgid "options_networkRequestIgnoreList"
+msgstr "Ignoreringsliste"
+
+msgid "options_networkRequestIgnoreListEnabled"
+msgstr "Aktiver ignoreringsliste for ruteinfo."
+
+msgid "options_networkRequestIgnoreListEnabledHelp"
+msgstr "Når aktivert vises samsvarende feilede forespørsler som ignorert i ruteinfo, og de utløser ikke merket for feilede forespørsler."
+
+msgid "options_networkRequestIgnoreListHelp"
+msgstr "Bruk ett jokertegnmønster per linje."
+
+msgid "options_profileActionMenuBrowserMenu"
+msgstr "Vis handlingsmenyer for profiler i profilutforskeren."
+
+msgid "options_profileActionMenuSectionMenu"
+msgstr "Vis handlingsmenyer for profilseksjonsoverskrifter."
+
+msgid "options_profileActionMenuSidebarMenu"
+msgstr "Vis handlingsmenyer for profiler i sidepanelet."
+
+msgid "options_routeInfoEnabled"
+msgstr "Aktiver ruteinfo"
+
+msgid "options_routeInfoEnabledHelp"
+msgstr "Vis ruteinfo i sprettoppmenyen og aktiver forespørselsrelatert diagnostikk. Når deaktivert brukes ikke oppdaging av feilede forespørsler, forespørselsdetaljer eller ignoreringslisten."
+
+msgid "options_routeInfoRequestDetailsEnabled"
+msgstr "Vis forespørselsdetaljer i ruteinfo"
+
+msgid "options_routeInfoRequestDetailsEnabledHelp"
+msgstr "Last inn fangede forespørsler og ruteresultater i Forespørsler-delen. Dette kan være tregt på sider med mange ressurser."
+
+msgid "options_showRequestLens"
+msgstr "Vis forespørselsdiagnostikk i sidepanelet for innstillinger."
+
+msgid "options_tab_requestLens"
+msgstr "Forespørselsdiagnostikk"
+
+msgid "popup_configureNetworkRequests"
+msgstr "Sett opp nettverksforespørsler"
+
+msgid "popup_routeInfoAddIgnoreRule"
+msgstr "Legg til i ignoreringsliste"
+
+msgid "popup_routeInfoAddSwitchRule"
+msgstr "Legg til bytteregel"
+
+msgid "popup_routeInfoAddTo"
+msgstr "Legg til i"
+
+msgid "popup_routeInfoFailedHeading"
+msgstr "Feilede forespørsler"
+
+msgid "popup_routeInfoIgnoreListTarget"
+msgstr "Ignoreringsliste"
+
+msgid "popup_routeInfoIgnored"
+msgstr "ignorert"
+
+msgid "popup_routeInfoIgnoredHeading"
+msgstr "Ignorerte forespørsler"
+
+msgid "popup_routeInfoRemoveIgnoredRules"
+msgstr "Fjern fra ignoreringsliste"
+
+msgid "popup_routeInfoRequestDetailsDisabled"
+msgstr "Forespørselsdetaljer er deaktivert."
+
+msgid "popup_routeInfoRequestsHeading"
+msgstr "Forespørsler"
+
+msgid "popup_routeInfoSelectDomain"
+msgstr "Velg minst ett domene."
+
+msgid "popup_routeInfoSelectIgnoredRule"
+msgstr "Velg minst én ignoreringsregel."
+
+msgid "popup_routeInfoSwitchRuleTarget"
+msgstr "Bytteregel"
+
+msgid "options_group_language"
+msgstr "Språk"
+
+msgid "options_interfaceLanguage"
+msgstr "Grensesnittspråk"

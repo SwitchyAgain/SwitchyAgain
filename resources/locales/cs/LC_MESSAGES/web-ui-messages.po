@@ -1768,3 +1768,87 @@ msgstr "Použít profil pro normální okna"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "Použít profil pro soukromá okna"
+
+msgid "options_group_routeTrace"
+msgstr "Trasování trasy"
+
+msgid "options_networkRequestIgnoreList"
+msgstr "Seznam ignorovaných"
+
+msgid "options_networkRequestIgnoreListEnabled"
+msgstr "Povolit seznam ignorovaných pro informace o trase."
+
+msgid "options_networkRequestIgnoreListEnabledHelp"
+msgstr "Když je povolen, odpovídající neúspěšné požadavky se v informacích o trase zobrazí jako ignorované a nespustí odznak neúspěšných požadavků."
+
+msgid "options_networkRequestIgnoreListHelp"
+msgstr "Na každý řádek zadejte jeden zástupný vzor."
+
+msgid "options_profileActionMenuBrowserMenu"
+msgstr "Zobrazovat nabídky akcí pro profily v prohlížeči profilů."
+
+msgid "options_profileActionMenuSectionMenu"
+msgstr "Zobrazovat nabídky akcí pro záhlaví oddílů profilů."
+
+msgid "options_profileActionMenuSidebarMenu"
+msgstr "Zobrazovat nabídky akcí pro profily v postranním panelu."
+
+msgid "options_routeInfoEnabled"
+msgstr "Povolit informace o trase"
+
+msgid "options_routeInfoEnabledHelp"
+msgstr "Zobrazí informace o trase ve vyskakovací nabídce a povolí diagnostiku související s požadavky. Když je vypnuto, detekce neúspěšných požadavků, podrobnosti požadavků ani seznam ignorovaných se nepoužijí."
+
+msgid "options_routeInfoRequestDetailsEnabled"
+msgstr "Zobrazit podrobnosti požadavků v informacích o trase"
+
+msgid "options_routeInfoRequestDetailsEnabledHelp"
+msgstr "Načte zachycené požadavky a výsledky trasování v oddílu Požadavky. Na stránkách s mnoha prostředky to může být pomalé."
+
+msgid "options_showRequestLens"
+msgstr "Zobrazit diagnostiku požadavků v postranním panelu nastavení."
+
+msgid "options_tab_requestLens"
+msgstr "Diagnostika požadavků"
+
+msgid "popup_configureNetworkRequests"
+msgstr "Nastavit síťové požadavky"
+
+msgid "popup_routeInfoAddIgnoreRule"
+msgstr "Přidat do seznamu ignorovaných"
+
+msgid "popup_routeInfoAddSwitchRule"
+msgstr "Přidat pravidlo přepnutí"
+
+msgid "popup_routeInfoAddTo"
+msgstr "Přidat do"
+
+msgid "popup_routeInfoFailedHeading"
+msgstr "Neúspěšné požadavky"
+
+msgid "popup_routeInfoIgnoreListTarget"
+msgstr "Seznam ignorovaných"
+
+msgid "popup_routeInfoIgnored"
+msgstr "ignorováno"
+
+msgid "popup_routeInfoIgnoredHeading"
+msgstr "Ignorované požadavky"
+
+msgid "popup_routeInfoRemoveIgnoredRules"
+msgstr "Odebrat ze seznamu ignorovaných"
+
+msgid "popup_routeInfoRequestDetailsDisabled"
+msgstr "Podrobnosti požadavků jsou vypnuté."
+
+msgid "popup_routeInfoRequestsHeading"
+msgstr "Požadavky"
+
+msgid "popup_routeInfoSelectDomain"
+msgstr "Vyberte alespoň jednu doménu."
+
+msgid "popup_routeInfoSelectIgnoredRule"
+msgstr "Vyberte alespoň jedno pravidlo ignorování."
+
+msgid "popup_routeInfoSwitchRuleTarget"
+msgstr "Pravidlo přepnutí"

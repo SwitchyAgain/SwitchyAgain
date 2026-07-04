@@ -1782,3 +1782,87 @@ msgstr "استفاده از نمایه برای پنجره‌های عادی"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "استفاده از نمایه برای پنجره‌های خصوصی"
+
+msgid "options_group_routeTrace"
+msgstr "ردیابی مسیر"
+
+msgid "options_networkRequestIgnoreList"
+msgstr "فهرست نادیده‌گیری"
+
+msgid "options_networkRequestIgnoreListEnabled"
+msgstr "فعال‌سازی فهرست نادیده‌گیری برای اطلاعات مسیر."
+
+msgid "options_networkRequestIgnoreListEnabledHelp"
+msgstr "هنگام فعال بودن، درخواست‌های ناموفق منطبق در اطلاعات مسیر به‌عنوان نادیده‌گرفته‌شده نشان داده می‌شوند و نشان درخواست‌های ناموفق را فعال نمی‌کنند."
+
+msgid "options_networkRequestIgnoreListHelp"
+msgstr "در هر خط یک الگوی وایلدکارد وارد کنید."
+
+msgid "options_profileActionMenuBrowserMenu"
+msgstr "نمایش منوهای کنش برای نمایه‌های مرورگر نمایه."
+
+msgid "options_profileActionMenuSectionMenu"
+msgstr "نمایش منوهای کنش برای سرصفحه‌های بخش نمایه."
+
+msgid "options_profileActionMenuSidebarMenu"
+msgstr "نمایش منوهای کنش برای نمایه‌های نوار کناری."
+
+msgid "options_routeInfoEnabled"
+msgstr "فعال‌سازی اطلاعات مسیر"
+
+msgid "options_routeInfoEnabledHelp"
+msgstr "اطلاعات مسیر را در پنجره بازشو نشان می‌دهد و عیب‌یابی مربوط به درخواست‌ها را فعال می‌کند. هنگام غیرفعال بودن، تشخیص درخواست‌های ناموفق، جزئیات درخواست و فهرست نادیده‌گیری استفاده نمی‌شوند."
+
+msgid "options_routeInfoRequestDetailsEnabled"
+msgstr "نمایش جزئیات درخواست در اطلاعات مسیر"
+
+msgid "options_routeInfoRequestDetailsEnabledHelp"
+msgstr "درخواست‌های ثبت‌شده و نتایج مسیر را در بخش درخواست‌ها بارگیری می‌کند. این کار در صفحه‌هایی با منابع زیاد می‌تواند کند باشد."
+
+msgid "options_showRequestLens"
+msgstr "نمایش عیب‌یابی درخواست‌ها در نوار کناری تنظیمات."
+
+msgid "options_tab_requestLens"
+msgstr "عیب‌یابی درخواست‌ها"
+
+msgid "popup_configureNetworkRequests"
+msgstr "پیکربندی درخواست‌های شبکه"
+
+msgid "popup_routeInfoAddIgnoreRule"
+msgstr "افزودن به فهرست نادیده‌گیری"
+
+msgid "popup_routeInfoAddSwitchRule"
+msgstr "افزودن قانون تغییر"
+
+msgid "popup_routeInfoAddTo"
+msgstr "افزودن به"
+
+msgid "popup_routeInfoFailedHeading"
+msgstr "درخواست‌های ناموفق"
+
+msgid "popup_routeInfoIgnoreListTarget"
+msgstr "فهرست نادیده‌گیری"
+
+msgid "popup_routeInfoIgnored"
+msgstr "نادیده‌گرفته‌شده"
+
+msgid "popup_routeInfoIgnoredHeading"
+msgstr "درخواست‌های نادیده‌گرفته‌شده"
+
+msgid "popup_routeInfoRemoveIgnoredRules"
+msgstr "حذف از فهرست نادیده‌گیری"
+
+msgid "popup_routeInfoRequestDetailsDisabled"
+msgstr "جزئیات درخواست غیرفعال است."
+
+msgid "popup_routeInfoRequestsHeading"
+msgstr "درخواست‌ها"
+
+msgid "popup_routeInfoSelectDomain"
+msgstr "حداقل یک دامنه را انتخاب کنید."
+
+msgid "popup_routeInfoSelectIgnoredRule"
+msgstr "حداقل یک قانون نادیده‌گیری را انتخاب کنید."
+
+msgid "popup_routeInfoSwitchRuleTarget"
+msgstr "قانون تغییر"

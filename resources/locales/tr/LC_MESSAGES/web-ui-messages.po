@@ -1611,3 +1611,93 @@ msgstr "Normal pencereler için profil kullan"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "Gizli pencereler için profil kullan"
+
+msgid "options_group_routeTrace"
+msgstr "Rota İzleme"
+
+msgid "options_networkRequestIgnoreList"
+msgstr "Yok sayma listesi"
+
+msgid "options_networkRequestIgnoreListEnabled"
+msgstr "Rota bilgisi için yok sayma listesini etkinleştir."
+
+msgid "options_networkRequestIgnoreListEnabledHelp"
+msgstr "Etkinleştirildiğinde, eşleşen başarısız istekler Rota bilgisinde yok sayılmış olarak gösterilir ve başarısız istek rozeti tetiklenmez."
+
+msgid "options_networkRequestIgnoreListHelp"
+msgstr "Her satıra bir joker karakter deseni yazın."
+
+msgid "options_profileActionMenuBrowserMenu"
+msgstr "Profil tarayıcısındaki profiller için eylem menülerini göster."
+
+msgid "options_profileActionMenuSectionMenu"
+msgstr "Profil bölüm başlıkları için eylem menülerini göster."
+
+msgid "options_profileActionMenuSidebarMenu"
+msgstr "Kenar çubuğu profilleri için eylem menülerini göster."
+
+msgid "options_routeInfoEnabled"
+msgstr "Rota bilgisini etkinleştir"
+
+msgid "options_routeInfoEnabledHelp"
+msgstr "Açılır menüde Rota bilgisini gösterir ve isteklerle ilgili tanılamayı etkinleştirir. Devre dışı bırakıldığında başarısız istek algılama, istek ayrıntıları ve yok sayma listesi kullanılmaz."
+
+msgid "options_routeInfoRequestDetailsEnabled"
+msgstr "Rota bilgisinde istek ayrıntılarını göster"
+
+msgid "options_routeInfoRequestDetailsEnabledHelp"
+msgstr "Yakalanan istekleri ve rota sonuçlarını İstekler bölümünde yükler. Çok kaynak içeren sayfalarda yavaş olabilir."
+
+msgid "options_showRequestLens"
+msgstr "Ayarlar kenar çubuğunda istek tanılamayı göster."
+
+msgid "options_tab_requestLens"
+msgstr "İstek Tanılama"
+
+msgid "popup_configureNetworkRequests"
+msgstr "Ağ isteklerini yapılandır"
+
+msgid "popup_routeInfoAddIgnoreRule"
+msgstr "Yok sayma listesine ekle"
+
+msgid "popup_routeInfoAddSwitchRule"
+msgstr "Geçiş kuralı ekle"
+
+msgid "popup_routeInfoAddTo"
+msgstr "Şuraya ekle"
+
+msgid "popup_routeInfoFailedHeading"
+msgstr "Başarısız istekler"
+
+msgid "popup_routeInfoIgnoreListTarget"
+msgstr "Yok sayma listesi"
+
+msgid "popup_routeInfoIgnored"
+msgstr "yok sayıldı"
+
+msgid "popup_routeInfoIgnoredHeading"
+msgstr "Yok sayılan istekler"
+
+msgid "popup_routeInfoRemoveIgnoredRules"
+msgstr "Yok sayma listesinden kaldır"
+
+msgid "popup_routeInfoRequestDetailsDisabled"
+msgstr "İstek ayrıntıları devre dışı."
+
+msgid "popup_routeInfoRequestsHeading"
+msgstr "İstekler"
+
+msgid "popup_routeInfoSelectDomain"
+msgstr "En az bir alan adı seçin."
+
+msgid "popup_routeInfoSelectIgnoredRule"
+msgstr "En az bir yok sayma kuralı seçin."
+
+msgid "popup_routeInfoSwitchRuleTarget"
+msgstr "Geçiş kuralı"
+
+msgid "options_group_language"
+msgstr "Dil"
+
+msgid "options_interfaceLanguage"
+msgstr "Arayüz dili"

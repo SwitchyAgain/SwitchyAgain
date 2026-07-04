@@ -1806,3 +1806,87 @@ msgstr "Использовать профиль для обычных окон"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "Использовать профиль для приватных окон"
+
+msgid "options_group_routeTrace"
+msgstr "Трассировка маршрута"
+
+msgid "options_networkRequestIgnoreList"
+msgstr "Список игнорирования"
+
+msgid "options_networkRequestIgnoreListEnabled"
+msgstr "Включить список игнорирования для информации о маршруте."
+
+msgid "options_networkRequestIgnoreListEnabledHelp"
+msgstr "Если включено, совпадающие неудавшиеся запросы отображаются как игнорируемые в информации о маршруте и не вызывают индикатор неудавшихся запросов."
+
+msgid "options_networkRequestIgnoreListHelp"
+msgstr "Указывайте по одному шаблону с подстановочными знаками в строке."
+
+msgid "options_profileActionMenuBrowserMenu"
+msgstr "Показывать меню действий для профилей в браузере профилей."
+
+msgid "options_profileActionMenuSectionMenu"
+msgstr "Показывать меню действий для заголовков разделов профилей."
+
+msgid "options_profileActionMenuSidebarMenu"
+msgstr "Показывать меню действий для профилей на боковой панели."
+
+msgid "options_routeInfoEnabled"
+msgstr "Включить информацию о маршруте"
+
+msgid "options_routeInfoEnabledHelp"
+msgstr "Показывает информацию о маршруте во всплывающем меню и включает диагностику запросов. Если отключено, обнаружение неудавшихся запросов, сведения о запросах и список игнорирования не используются."
+
+msgid "options_routeInfoRequestDetailsEnabled"
+msgstr "Показывать сведения о запросах в информации о маршруте"
+
+msgid "options_routeInfoRequestDetailsEnabledHelp"
+msgstr "Загружает перехваченные запросы и результаты маршрутизации в разделе «Запросы». На страницах с большим количеством ресурсов это может работать медленно."
+
+msgid "options_showRequestLens"
+msgstr "Показывать диагностику запросов на боковой панели настроек."
+
+msgid "options_tab_requestLens"
+msgstr "Диагностика запросов"
+
+msgid "popup_configureNetworkRequests"
+msgstr "Настроить сетевые запросы"
+
+msgid "popup_routeInfoAddIgnoreRule"
+msgstr "Добавить в список игнорирования"
+
+msgid "popup_routeInfoAddSwitchRule"
+msgstr "Добавить правило переключения"
+
+msgid "popup_routeInfoAddTo"
+msgstr "Добавить в"
+
+msgid "popup_routeInfoFailedHeading"
+msgstr "Неудавшиеся запросы"
+
+msgid "popup_routeInfoIgnoreListTarget"
+msgstr "Список игнорирования"
+
+msgid "popup_routeInfoIgnored"
+msgstr "игнорируется"
+
+msgid "popup_routeInfoIgnoredHeading"
+msgstr "Игнорируемые запросы"
+
+msgid "popup_routeInfoRemoveIgnoredRules"
+msgstr "Удалить из списка игнорирования"
+
+msgid "popup_routeInfoRequestDetailsDisabled"
+msgstr "Сведения о запросах отключены."
+
+msgid "popup_routeInfoRequestsHeading"
+msgstr "Запросы"
+
+msgid "popup_routeInfoSelectDomain"
+msgstr "Выберите хотя бы один домен."
+
+msgid "popup_routeInfoSelectIgnoredRule"
+msgstr "Выберите хотя бы одно правило игнорирования."
+
+msgid "popup_routeInfoSwitchRuleTarget"
+msgstr "Правило переключения"

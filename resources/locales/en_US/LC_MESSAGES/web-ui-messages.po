@@ -1760,3 +1760,87 @@ msgstr "Use Profile for Normal Windows"
 
 msgid "contextMenu_useProfileForPrivateWindows"
 msgstr "Use Profile for Private Windows"
+
+msgid "options_group_routeTrace"
+msgstr "Route Trace"
+
+msgid "options_networkRequestIgnoreList"
+msgstr "Ignore List"
+
+msgid "options_networkRequestIgnoreListEnabled"
+msgstr "Enable Ignore List for Route Info."
+
+msgid "options_networkRequestIgnoreListEnabledHelp"
+msgstr "When enabled, matching failed requests are shown as ignored in Route Info, and they do not trigger the failed-request badge."
+
+msgid "options_networkRequestIgnoreListHelp"
+msgstr "Use one wildcard pattern per line."
+
+msgid "options_profileActionMenuBrowserMenu"
+msgstr "Show action menus for profile browser profiles."
+
+msgid "options_profileActionMenuSectionMenu"
+msgstr "Show action menus for profile section headers."
+
+msgid "options_profileActionMenuSidebarMenu"
+msgstr "Show action menus for sidebar profiles."
+
+msgid "options_routeInfoEnabled"
+msgstr "Enable Route Info"
+
+msgid "options_routeInfoEnabledHelp"
+msgstr "Show Route Info in the popup and enable request-related diagnostics. When disabled, failed-request detection, request details, and the ignore list are not used."
+
+msgid "options_routeInfoRequestDetailsEnabled"
+msgstr "Show request details in Route Info"
+
+msgid "options_routeInfoRequestDetailsEnabledHelp"
+msgstr "Load captured requests and routing results in the Requests section. This can be slow on pages with many resources."
+
+msgid "options_showRequestLens"
+msgstr "Show Request Lens in the settings sidebar."
+
+msgid "options_tab_requestLens"
+msgstr "Request Lens"
+
+msgid "popup_configureNetworkRequests"
+msgstr "Configure network requests"
+
+msgid "popup_routeInfoAddIgnoreRule"
+msgstr "Add to Ignore List"
+
+msgid "popup_routeInfoAddSwitchRule"
+msgstr "Add Switch Rule"
+
+msgid "popup_routeInfoAddTo"
+msgstr "Add to"
+
+msgid "popup_routeInfoFailedHeading"
+msgstr "Failed Requests"
+
+msgid "popup_routeInfoIgnoreListTarget"
+msgstr "Ignore list"
+
+msgid "popup_routeInfoIgnored"
+msgstr "ignored"
+
+msgid "popup_routeInfoIgnoredHeading"
+msgstr "Ignored Requests"
+
+msgid "popup_routeInfoRemoveIgnoredRules"
+msgstr "Remove from Ignore List"
+
+msgid "popup_routeInfoRequestDetailsDisabled"
+msgstr "Request details are disabled."
+
+msgid "popup_routeInfoRequestsHeading"
+msgstr "Requests"
+
+msgid "popup_routeInfoSelectDomain"
+msgstr "Select at least one domain."
+
+msgid "popup_routeInfoSelectIgnoredRule"
+msgstr "Select at least one ignore rule."
+
+msgid "popup_routeInfoSwitchRuleTarget"
+msgstr "Switch rule"
