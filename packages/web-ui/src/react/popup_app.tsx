@@ -156,6 +156,53 @@ function useFloatingDropdown<TAnchor extends HTMLElement>(open: boolean) {
   return {anchorRef, dropdownRef, dropdownStyle: style};
 }
 
+type ProfileDropdownPlacement = 'down' | 'up';
+
+function useProfileDropdownPlacement(open: boolean, enabled: boolean, profiles: Profile[]) {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const dropdownRef = useRef<HTMLUListElement | null>(null);
+  const [placement, setPlacement] = useState<ProfileDropdownPlacement>('down');
+  const [maxHeight, setMaxHeight] = useState<number>();
+
+  function updatePlacement() {
+    const root = rootRef.current;
+    const dropdown = dropdownRef.current;
+    if (!open || !enabled || !root || !dropdown) {
+      setPlacement('down');
+      setMaxHeight(undefined);
+      return;
+    }
+
+    const viewportGap = 6;
+    const dropdownOffset = 2;
+    const rootRect = root.getBoundingClientRect();
+    const availableBelow = Math.max(0, window.innerHeight - viewportGap - rootRect.bottom - dropdownOffset);
+    const availableAbove = Math.max(0, rootRect.top - viewportGap - dropdownOffset);
+    const desiredHeight = dropdown.scrollHeight;
+
+    if (desiredHeight <= availableBelow) {
+      setPlacement('down');
+      setMaxHeight(undefined);
+      return;
+    }
+    if (desiredHeight <= availableAbove) {
+      setPlacement('up');
+      setMaxHeight(undefined);
+      return;
+    }
+
+    const openUp = availableAbove > availableBelow;
+    setPlacement(openUp ? 'up' : 'down');
+    setMaxHeight(Math.max(1, openUp ? availableAbove : availableBelow));
+  }
+
+  useLayoutEffect(updatePlacement, [enabled, open, profiles.length]);
+  useWindowEvent('resize', updatePlacement, undefined, open && enabled);
+  useWindowEvent('scroll', updatePlacement, true, open && enabled);
+
+  return {dropdownRef, maxHeight, placement, rootRef};
+}
+
 function RouteInfoGroupResult({group, loading, state}: {group: RouteInfoGroup; loading: boolean; state: PopupState}) {
   const resultKeys = Object.keys(group.results);
   if (resultKeys.length === 0) {
@@ -409,7 +456,7 @@ function FailedRouteInfoSection({
         ))}
       </div>
       {canAddSwitchRule && (!ignoreListEnabled || addTarget === 'switchRule') && (
-        <div className="form-group">
+        <div className="form-group sa-popup-route-info-profile-target">
           <label>{popupMessage('options_resultProfileForSelectedDomains', 'Result Profile for Selected Domains')}</label>
           <ProfileSelect expandDropdownInFlow profiles={profiles} state={state} value={profile} onChange={setProfile} />
         </div>
@@ -1608,17 +1655,25 @@ function ProfileSelect({
   onChange: (value: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const {dropdownRef, maxHeight, placement, rootRef} = useProfileDropdownPlacement(open, expandDropdownInFlow, profiles);
   const selected = profiles.find((profile) => profile.name === value);
   const choose = (profileName: string) => {
     onChange(profileName);
     setOpen(false);
   };
-  const selectClasses = ['btn-group', 'profile-select', expandDropdownInFlow ? 'profile-select-in-flow' : '', open ? 'open' : '']
+  const selectClasses = [
+    'btn-group',
+    'profile-select',
+    expandDropdownInFlow ? 'profile-select-adaptive' : '',
+    placement === 'up' ? 'profile-select-open-up' : '',
+    open ? 'open' : ''
+  ]
     .filter(Boolean)
     .join(' ');
+  const dropdownStyle: React.CSSProperties = maxHeight === undefined ? {} : {maxHeight, overflowX: 'hidden', overflowY: 'auto'};
   return (
     <div className="profile-select-host">
-      <div className={selectClasses}>
+      <div className={selectClasses} ref={rootRef}>
         <button
           aria-expanded={open}
           aria-haspopup="true"
@@ -1631,7 +1686,7 @@ function ProfileSelect({
           <span className="caret" />
         </button>
         {open && (
-          <ul className="dropdown-menu" role="listbox">
+          <ul className="dropdown-menu" ref={dropdownRef} role="listbox" style={dropdownStyle}>
             {profiles.map((profile) => (
               <li className={profile.name === value ? 'active' : ''} key={profile.name} role="option">
                 <a
