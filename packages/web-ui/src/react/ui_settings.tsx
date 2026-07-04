@@ -722,10 +722,10 @@ export function UiSettings({
           <label>
             <input
               type="checkbox"
-              checked={draftOptions['-showRouteLens'] !== false}
-              onChange={(event) => updateOption('-showRouteLens', event.currentTarget.checked)}
+              checked={draftOptions['-showRequestLens'] !== false}
+              onChange={(event) => updateOption('-showRequestLens', event.currentTarget.checked)}
             />
-            <span> {message('options_showRouteLens', 'Show Route Lens in the settings sidebar.')}</span>
+            <span> {message('options_showRequestLens', 'Show Request Lens in the settings sidebar.')}</span>
           </label>
         </div>
         <div className="checkbox">

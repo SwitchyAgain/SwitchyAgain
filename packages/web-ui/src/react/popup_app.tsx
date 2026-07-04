@@ -344,6 +344,7 @@ function FailedRouteInfoSection({
   addTarget,
   checkedDomains,
   domains,
+  ignoreListEnabled,
   onAddTargetChange,
   onCheckedDomainsChange,
   profile,
@@ -355,6 +356,7 @@ function FailedRouteInfoSection({
   addTarget: RouteInfoAddTarget;
   checkedDomains: Record<string, boolean>;
   domains: ReturnType<typeof requestDomains>;
+  ignoreListEnabled: boolean;
   onAddTargetChange: (target: RouteInfoAddTarget) => void;
   onCheckedDomainsChange: (updater: (prev: Record<string, boolean>) => Record<string, boolean>) => void;
   profile: string;
@@ -369,18 +371,20 @@ function FailedRouteInfoSection({
   const canAddSwitchRule = !!state.currentProfileCanAddRule;
   return (
     <RouteInfoSection tone="warning" title={popupMessage('popup_routeInfoFailedHeading', 'Failed Requests')}>
-      <div className="form-group sa-popup-route-info-add-target">
-        <label>{popupMessage('popup_routeInfoAddTo', 'Add to')}</label>
-        <select
-          className="form-control"
-          disabled={saving}
-          value={addTarget}
-          onChange={(event) => onAddTargetChange(event.currentTarget.value === 'switchRule' ? 'switchRule' : 'ignoreList')}
-        >
-          <option value="ignoreList">{popupMessage('popup_routeInfoIgnoreListTarget', 'Ignore list')}</option>
-          {canAddSwitchRule && <option value="switchRule">{popupMessage('popup_routeInfoSwitchRuleTarget', 'Switch rule')}</option>}
-        </select>
-      </div>
+      {ignoreListEnabled && (
+        <div className="form-group sa-popup-route-info-add-target">
+          <label>{popupMessage('popup_routeInfoAddTo', 'Add to')}</label>
+          <select
+            className="form-control"
+            disabled={saving}
+            value={addTarget}
+            onChange={(event) => onAddTargetChange(event.currentTarget.value === 'switchRule' ? 'switchRule' : 'ignoreList')}
+          >
+            <option value="ignoreList">{popupMessage('popup_routeInfoIgnoreListTarget', 'Ignore list')}</option>
+            {canAddSwitchRule && <option value="switchRule">{popupMessage('popup_routeInfoSwitchRuleTarget', 'Switch rule')}</option>}
+          </select>
+        </div>
+      )}
       <div className="sa-popup-domain-list">
         {domains.map((domain) => (
           <div
@@ -404,7 +408,7 @@ function FailedRouteInfoSection({
           </div>
         ))}
       </div>
-      {addTarget === 'switchRule' && canAddSwitchRule && (
+      {canAddSwitchRule && (!ignoreListEnabled || addTarget === 'switchRule') && (
         <div className="form-group">
           <label>{popupMessage('options_resultProfileForSelectedDomains', 'Result Profile for Selected Domains')}</label>
           <ProfileSelect expandDropdownInFlow profiles={profiles} state={state} value={profile} onChange={setProfile} />
@@ -1313,6 +1317,7 @@ function RouteInfoForm({
     () => ignoredRouteInfoRules(detailPageInfo, popupMessage('popup_routeInfoUnknownHost', 'Unknown host')),
     [detailPageInfo]
   );
+  const ignoreListEnabled = detailPageInfo?.networkRequestIgnoreListEnabled === true;
   const hasRequestFailures = (detailPageInfo?.errorCount || 0) > 0 && domains.length > 0;
   const needsExplanations = !!((detailPageInfo?.requests?.length || 0) > 0 && !detailPageInfo?.requestExplanations);
   const tempRulesActive = !!detailPageInfo?.requestExplanations?.some((explanation) => explanation.tempRulesActive);
@@ -1324,10 +1329,10 @@ function RouteInfoForm({
 
   useEffect(() => setProfile(selectedProfile), [selectedProfile]);
   useEffect(() => {
-    if (!state.currentProfileCanAddRule && addTarget === 'switchRule') {
+    if (ignoreListEnabled && !state.currentProfileCanAddRule && addTarget === 'switchRule') {
       setAddTarget('ignoreList');
     }
-  }, [addTarget, state.currentProfileCanAddRule]);
+  }, [addTarget, ignoreListEnabled, state.currentProfileCanAddRule]);
   useEffect(() => {
     setDetailPageInfo(pageInfo);
     setExplanationsRequested(false);
@@ -1421,7 +1426,7 @@ function RouteInfoForm({
     setSaving(true);
     setError('');
     try {
-      if (addTarget === 'switchRule' && state.currentProfileCanAddRule) {
+      if ((!ignoreListEnabled || addTarget === 'switchRule') && state.currentProfileCanAddRule) {
         const conditions: PopupCondition[] = selectedDomains.map((domain) => ({
           conditionType: 'HostWildcardCondition',
           pattern: domain
@@ -1440,12 +1445,15 @@ function RouteInfoForm({
   }
 
   const selectedDomainCount = domains.filter((domain) => checkedDomains[domain.domain]).length;
-  const submitDisabled =
-    saving || selectedDomainCount === 0 || (addTarget === 'switchRule' && (!state.currentProfileCanAddRule || !profiles.length));
+  const canSubmitSwitchRule = !!state.currentProfileCanAddRule && profiles.length > 0;
+  const needsSwitchRule = !ignoreListEnabled || addTarget === 'switchRule';
+  const submitDisabled = saving || selectedDomainCount === 0 || (needsSwitchRule && !canSubmitSwitchRule);
   const submitText =
-    addTarget === 'switchRule' && state.currentProfileCanAddRule
-      ? popupMessage('popup_routeInfoAddSwitchRule', 'Add Switch Rule')
-      : popupMessage('popup_routeInfoAddIgnoreRule', 'Add to Ignore List');
+    !ignoreListEnabled && state.currentProfileCanAddRule
+      ? popupMessage('popup_addCondition', 'Add Condition')
+      : addTarget === 'switchRule' && state.currentProfileCanAddRule
+        ? popupMessage('popup_routeInfoAddSwitchRule', 'Add Switch Rule')
+        : popupMessage('popup_routeInfoAddIgnoreRule', 'Add to Ignore List');
   const showBottomControls = hasRequestFailures || ignoredRules.length === 0;
 
   return (
@@ -1465,20 +1473,23 @@ function RouteInfoForm({
           <p className="help-block">{popupMessage('popup_routeInfoLimitExceeded', 'Only the first captured requests are shown.')}</p>
         )}
         <RouteInfoList loading={loadingExplanations || needsExplanations} pageInfo={detailPageInfo} state={state} />
-        <IgnoredRouteInfoSection
-          checkedRules={checkedIgnoreRules}
-          disabled={saving}
-          onCheckedRulesChange={setCheckedIgnoreRules}
-          onClose={onClose}
-          onRemove={removeSelectedIgnoreRules}
-          pageInfo={detailPageInfo}
-          showCancel={!hasRequestFailures}
-        />
+        {ignoreListEnabled && (
+          <IgnoredRouteInfoSection
+            checkedRules={checkedIgnoreRules}
+            disabled={saving}
+            onCheckedRulesChange={setCheckedIgnoreRules}
+            onClose={onClose}
+            onRemove={removeSelectedIgnoreRules}
+            pageInfo={detailPageInfo}
+            showCancel={!hasRequestFailures}
+          />
+        )}
         {hasRequestFailures && (
           <FailedRouteInfoSection
             addTarget={addTarget}
             checkedDomains={checkedDomains}
             domains={domains}
+            ignoreListEnabled={ignoreListEnabled}
             onAddTargetChange={setAddTarget}
             onCheckedDomainsChange={setCheckedDomains}
             profile={profile}
@@ -1493,11 +1504,20 @@ function RouteInfoForm({
             <button className="btn btn-default" type="button" onClick={onClose}>
               {popupMessage('dialog_cancel', 'Cancel')}
             </button>
-            {hasRequestFailures && (
-              <button className="btn btn-primary" type="button" disabled={submitDisabled} onClick={submitRouteInfo}>
-                {submitText}
-              </button>
-            )}
+            {hasRequestFailures &&
+              (ignoreListEnabled || state.currentProfileCanAddRule ? (
+                <button className="btn btn-primary" type="button" disabled={submitDisabled} onClick={submitRouteInfo}>
+                  {submitText}
+                </button>
+              ) : (
+                <button
+                  className="btn btn-default pull-right"
+                  type="button"
+                  onClick={() => popupBridge().openOptions?.('#/requestLens', closePopup)}
+                >
+                  {popupMessage('popup_configureNetworkRequests', 'Configure network requests')}
+                </button>
+              ))}
           </div>
         )}
       </fieldset>

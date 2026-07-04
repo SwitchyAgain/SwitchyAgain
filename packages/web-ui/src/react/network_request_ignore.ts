@@ -1,6 +1,7 @@
 import type {Options} from './options_client_types';
 
 export const NETWORK_REQUEST_IGNORE_LIST_KEY = '-networkRequestIgnoreList';
+export const NETWORK_REQUEST_IGNORE_LIST_ENABLED_KEY = '-networkRequestIgnoreListEnabled';
 
 export function normalizeNetworkRequestIgnoreList(value: unknown): string[] {
   if (!Array.isArray(value)) {

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
-import {RouteLens} from '../src/react/route_lens';
+import {RequestLens} from '../src/react/request_lens';
 import type {Options, RequestExplanation} from '../src/react/options_client_types';
 
 const optionsClientMock = vi.hoisted(() => ({
@@ -27,6 +27,7 @@ vi.mock('../src/react/i18n_client', () => ({
 function optionsFixture(): Options {
   return {
     '-monitorWebRequests': true,
+    '-networkRequestIgnoreListEnabled': true,
     '-networkRequestIgnoreList': ['*.tracker.example'],
     '+proxy': {
       name: 'proxy',
@@ -81,13 +82,14 @@ beforeEach(() => {
   optionsClientMock.getState.mockResolvedValue('proxy');
 });
 
-describe('route lens component', () => {
-  it('renders route lens settings and updates network request options', () => {
+describe('request lens component', () => {
+  it('renders request lens settings and updates network request options', () => {
     const onOptionsChange = vi.fn();
-    render(<RouteLens currentProfileName="proxy" embedded options={optionsFixture()} onOptionsChange={onOptionsChange} />);
+    render(<RequestLens currentProfileName="proxy" embedded options={optionsFixture()} onOptionsChange={onOptionsChange} />);
 
-    expect(screen.getByRole('heading', {name: 'Route Lens'})).toBeTruthy();
+    expect(screen.getByRole('heading', {name: 'Request Lens'})).toBeTruthy();
     expect(screen.getByRole('heading', {name: 'Network Requests'})).toBeTruthy();
+    expect(screen.getByLabelText('Enable Ignore List for Route Info.')).toBeTruthy();
     expect(screen.getByRole('heading', {name: 'Ignore List'})).toBeTruthy();
     expect(screen.getByRole('heading', {name: 'Route Trace'})).toBeTruthy();
 
@@ -110,8 +112,26 @@ describe('route lens component', () => {
     );
   });
 
+  it('hides the ignore list until the advanced ignore option is enabled', () => {
+    const onOptionsChange = vi.fn();
+    const options = {
+      ...optionsFixture(),
+      '-networkRequestIgnoreListEnabled': false
+    };
+    render(<RequestLens currentProfileName="proxy" embedded options={options} onOptionsChange={onOptionsChange} />);
+
+    expect(screen.queryByRole('heading', {name: 'Ignore List'})).toBeNull();
+
+    fireEvent.click(screen.getByLabelText('Enable Ignore List for Route Info.'));
+    expect(onOptionsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        '-networkRequestIgnoreListEnabled': true
+      })
+    );
+  });
+
   it('uses a provided current profile without loading state again', () => {
-    render(<RouteLens currentProfileName="proxy" embedded options={optionsFixture()} />);
+    render(<RequestLens currentProfileName="proxy" embedded options={optionsFixture()} />);
 
     expect(screen.getByText('proxy')).toBeTruthy();
     expect(optionsClientMock.getState).not.toHaveBeenCalled();
@@ -120,7 +140,7 @@ describe('route lens component', () => {
   it('submits trace requests and renders returned explanations', async () => {
     optionsClientMock.explainRequest.mockResolvedValue(explanationFixture('https://example.com/path?x=1'));
 
-    render(<RouteLens embedded options={optionsFixture()} />);
+    render(<RequestLens embedded options={optionsFixture()} />);
 
     await screen.findByText('proxy');
 
@@ -147,7 +167,7 @@ describe('route lens component', () => {
   it('disables empty submissions and shows explain errors', async () => {
     optionsClientMock.explainRequest.mockRejectedValue(new Error('No route info'));
 
-    render(<RouteLens embedded options={optionsFixture()} />);
+    render(<RequestLens embedded options={optionsFixture()} />);
 
     const urlInput = screen.getByLabelText('URL');
     const traceButton = screen.getByRole('button', {name: 'Trace'}) as HTMLButtonElement;

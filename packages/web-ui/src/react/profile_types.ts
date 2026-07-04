@@ -83,6 +83,7 @@ export type OptionsData = {
   '-exportLegacyRuleList'?: boolean;
   '-keepSettingsExpanded'?: boolean;
   '-monitorWebRequests'?: boolean;
+  '-networkRequestIgnoreListEnabled'?: boolean;
   '-networkRequestIgnoreList'?: string[];
   '-profileActionMenuOptions'?: ProfileActionMenuOptions;
   '-profileScopeAssignments'?: {
@@ -100,7 +101,7 @@ export type OptionsData = {
   '-refreshOnProfileChange'?: boolean;
   '-showConditionTypes'?: number;
   '-showExternalProfile'?: boolean;
-  '-showRouteLens'?: boolean;
+  '-showRequestLens'?: boolean;
   '-showBypassListGroups'?: boolean;
   '-showHttpProxyOverrideRows'?: boolean;
   '-showSocks5LocalDnsOption'?: boolean;

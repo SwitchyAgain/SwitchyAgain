@@ -14,7 +14,7 @@ export const UI_KEYS = [
   '-confirmDeletion',
   '-refreshOnProfileChange',
   '-showCurrentProfileInGeneral',
-  '-showRouteLens',
+  '-showRequestLens',
   '-showBypassListGroups',
   '-showSocks5LocalDnsOption',
   '-showHttpProxyOverrideRows',

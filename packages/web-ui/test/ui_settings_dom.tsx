@@ -103,10 +103,10 @@ describe('ui settings component', () => {
       })
     );
 
-    fireEvent.click(screen.getByLabelText('Show Route Lens in the settings sidebar.'));
+    fireEvent.click(screen.getByLabelText('Show Request Lens in the settings sidebar.'));
     expect(onOptionsChange).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        '-showRouteLens': false
+        '-showRequestLens': false
       })
     );
 

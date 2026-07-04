@@ -28,6 +28,13 @@ function popupState(): PopupState {
   };
 }
 
+function nonSwitchPopupState(): PopupState {
+  return {
+    ...popupState(),
+    currentProfileCanAddRule: false
+  };
+}
+
 function failedPageInfo(): PageInfo {
   return {
     domain: 'example.com',
@@ -55,6 +62,7 @@ function ignoredOnlyPageInfo(): PageInfo {
   return {
     domain: 'example.com',
     errorCount: 0,
+    networkRequestIgnoreListEnabled: true,
     networkRequestIgnoreList: ['*.tracker.example'],
     requests: [
       {
@@ -130,5 +138,25 @@ describe('popup app', () => {
     expect(controls).toBeTruthy();
     expect(controls?.contains(cancelButtons[0])).toBe(true);
     expect(container.querySelector('.sa-popup-route-info-section-warning')).toBeNull();
+  });
+
+  it('shows network request configuration when ignore list is disabled and rules cannot be added', async () => {
+    const openOptions = vi.fn();
+    testGlobal().PopupBridge = {
+      ...testGlobal().PopupBridge,
+      getState(_keys, callback) {
+        callback(undefined, nonSwitchPopupState());
+      },
+      openOptions
+    };
+
+    render(<PopupApp />);
+
+    const configureButton = await screen.findByRole('button', {name: 'Configure network requests'});
+    expect(screen.queryByLabelText('Add to')).toBeNull();
+    expect(screen.queryByText('Ignore list')).toBeNull();
+
+    fireEvent.click(configureButton);
+    expect(openOptions).toHaveBeenCalledWith('#/requestLens', expect.any(Function));
   });
 });

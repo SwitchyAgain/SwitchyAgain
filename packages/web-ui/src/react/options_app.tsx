@@ -68,7 +68,7 @@ import {
   UnsupportedProfile,
   VirtualProfile
 } from './profile_content';
-import {RouteLens} from './route_lens';
+import {RequestLens} from './request_lens';
 import {
   Profile,
   isBuiltinProfile,
@@ -647,7 +647,7 @@ export function OptionsApp() {
     () => hasVisibleProfileScopes(savedOptions, profileScopeCapabilities),
     [savedOptions, profileScopeCapabilities]
   );
-  const showRouteLens = savedOptions?.['-showRouteLens'] !== false;
+  const showRequestLens = savedOptions?.['-showRequestLens'] !== false;
   const appliedVisibleProfileScopes = useMemo(
     () => visibleProfileScopes(savedOptions, profileScopeCapabilities),
     [savedOptions, profileScopeCapabilities]
@@ -667,11 +667,11 @@ export function OptionsApp() {
   }, [navigate, route.name, showProfileScope, status]);
 
   useEffect(() => {
-    if (status !== 'ready' || route.name !== 'routeLens' || showRouteLens) {
+    if (status !== 'ready' || route.name !== 'requestLens' || showRequestLens) {
       return;
     }
     navigate('ui');
-  }, [navigate, route.name, showRouteLens, status]);
+  }, [navigate, route.name, showRequestLens, status]);
 
   useEffect(() => {
     if (status !== 'ready' || !appliedVisibleProfileScopes.container) {
@@ -1637,10 +1637,10 @@ export function OptionsApp() {
         </div>
       );
     }
-    if (route.name === 'routeLens') {
+    if (route.name === 'requestLens') {
       return (
-        <div className="react-settings-host-route-lens">
-          <RouteLens currentProfileName={activeProfileName} embedded options={options} onOptionsChange={updateOptions} />
+        <div className="react-settings-host-request-lens">
+          <RequestLens currentProfileName={activeProfileName} embedded options={options} onOptionsChange={updateOptions} />
         </div>
       );
     }
@@ -1858,9 +1858,9 @@ export function OptionsApp() {
             profileActionMenuOptions={options?.['-profileActionMenuOptions'] || null}
             profileHref={(profile) => routeHref('profile', {name: profile.name})}
             profileScopeHref={routeHref('profileScope')}
-            routeLensHref={routeHref('routeLens')}
+            requestLensHref={routeHref('requestLens')}
             showProfileScope={showProfileScope}
-            showRouteLens={showRouteLens}
+            showRequestLens={showRequestLens}
             isExperimental={isExperimental}
             uiHref={routeHref('ui')}
           />

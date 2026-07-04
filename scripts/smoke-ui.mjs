@@ -314,9 +314,9 @@ const pages = [
     text: messageForKey('options_tab_general') || 'General'
   },
   {
-    label: 'options route lens route',
-    url: extensionServer.url('options.html', '#/routeTrace'),
-    text: messageForKey('options_tab_routeLens') || 'Route Lens'
+    label: 'options request lens route',
+    url: extensionServer.url('options.html', '#/requestLens'),
+    text: messageForKey('options_tab_requestLens') || 'Request Lens'
   },
   {
     label: 'options import/export route',

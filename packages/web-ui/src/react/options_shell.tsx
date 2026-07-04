@@ -29,9 +29,9 @@ export type OptionsShellProps = {
   profileActionMenuOptions?: ProfileActionMenuOptions | null;
   profileScopeHref?: string;
   profileHref?: (profile: Profile) => string;
-  routeLensHref?: string;
+  requestLensHref?: string;
   showProfileScope?: boolean;
-  showRouteLens?: boolean;
+  showRequestLens?: boolean;
   uiHref?: string;
 };
 
@@ -943,9 +943,9 @@ export function OptionsShell({
   profileActionMenuOptions,
   profileScopeHref = '#',
   profileHref,
-  routeLensHref = '#',
+  requestLensHref = '#',
   showProfileScope = false,
-  showRouteLens = true,
+  showRequestLens = true,
   uiHref = '#'
 }: OptionsShellProps) {
   const [hiddenProfilesOpen, setHiddenProfilesOpen] = useState(false);
@@ -1002,15 +1002,15 @@ export function OptionsShell({
           }
         ]
       : []),
-    ...(showRouteLens
+    ...(showRequestLens
       ? [
           {
-            active: currentState === 'routeLens',
-            href: routeLensHref,
-            icon: 'glyphicon-sort',
-            key: 'routeLens',
-            label: message('options_tab_routeLens', 'Route Lens'),
-            onClick: () => onNavigate?.('routeLens')
+            active: currentState === 'requestLens',
+            href: requestLensHref,
+            icon: 'glyphicon-object-align-bottom',
+            key: 'requestLens',
+            label: message('options_tab_requestLens', 'Request Lens'),
+            onClick: () => onNavigate?.('requestLens')
           }
         ]
       : []),

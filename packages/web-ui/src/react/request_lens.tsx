@@ -6,9 +6,14 @@ import {getState} from './state_client';
 import {ProfileInline, ProfileSelect, allProfilesFromOptions, profileByName} from './profile_widgets';
 import {formatRequestUrl, profileFromExplanation, routeTraceStepCondition, routeTraceSteps} from './route_trace_logic';
 import {richMessage} from './rich_message';
-import {NETWORK_REQUEST_IGNORE_LIST_KEY, networkRequestIgnoreListFromText, networkRequestIgnoreText} from './network_request_ignore';
+import {
+  NETWORK_REQUEST_IGNORE_LIST_ENABLED_KEY,
+  NETWORK_REQUEST_IGNORE_LIST_KEY,
+  networkRequestIgnoreListFromText,
+  networkRequestIgnoreText
+} from './network_request_ignore';
 
-export type RouteLensProps = {
+export type RequestLensProps = {
   currentProfileName?: string;
   embedded?: boolean;
   options?: Options | null;
@@ -139,7 +144,7 @@ function ExplanationResult({explanation, options}: {explanation: RequestExplanat
   );
 }
 
-export function RouteLens({currentProfileName: initialCurrentProfileName, embedded = false, options, onOptionsChange}: RouteLensProps) {
+export function RequestLens({currentProfileName: initialCurrentProfileName, embedded = false, options, onOptionsChange}: RequestLensProps) {
   const [url, setUrl] = useState('https://example.com/');
   const [profileName, setProfileName] = useState('');
   const [currentProfileName, setCurrentProfileName] = useState(initialCurrentProfileName || '');
@@ -150,6 +155,7 @@ export function RouteLens({currentProfileName: initialCurrentProfileName, embedd
   const optionsRef = useRef<Options | null | undefined>(options);
   const profiles = useMemo(() => allProfilesFromOptions(options), [options]);
   const currentProfile = profileByName(options, currentProfileName);
+  const networkRequestIgnoreListEnabled = options?.[NETWORK_REQUEST_IGNORE_LIST_ENABLED_KEY] === true;
 
   useEffect(() => {
     if (initialCurrentProfileName) {
@@ -214,7 +220,7 @@ export function RouteLens({currentProfileName: initialCurrentProfileName, embedd
   const content = (
     <>
       <div className="page-header">
-        <h2>{message('options_tab_routeLens', 'Route Lens')}</h2>
+        <h2>{message('options_tab_requestLens', 'Request Lens')}</h2>
       </div>
       <section className="settings-group width-limit">
         <h3>{message('options_group_networkRequests', 'Network Requests')}</h3>
@@ -233,23 +239,38 @@ export function RouteLens({currentProfileName: initialCurrentProfileName, embedd
           </p>
         </div>
       </section>
-      <section className="settings-group">
-        <h3>{message('options_networkRequestIgnoreList', 'Ignore List')}</h3>
-        <p className="help-block">
-          {message(
-            'options_networkRequestIgnoreListHelp',
-            'Route Info marks matching network requests as ignored instead of failed. Use one wildcard pattern per line.'
-          )}
-        </p>
-        <textarea
-          aria-label={message('options_networkRequestIgnoreList', 'Ignore List')}
-          id="react-network-request-ignore-list"
-          className="monospace form-control width-limit"
-          rows={10}
-          value={networkRequestIgnoreDraft}
-          onChange={(event) => changeNetworkRequestIgnoreList(event.currentTarget.value)}
-        />
+      <section className="settings-group width-limit">
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={networkRequestIgnoreListEnabled}
+              onChange={(event) => updateOption(NETWORK_REQUEST_IGNORE_LIST_ENABLED_KEY, event.currentTarget.checked)}
+            />
+            <span> {message('options_networkRequestIgnoreListEnabled', 'Enable Ignore List for Route Info.')}</span>
+          </label>
+          <p className="help-block">
+            {message(
+              'options_networkRequestIgnoreListEnabledHelp',
+              'When enabled, matching failed requests are shown as ignored in Route Info, and they do not trigger the failed-request badge.'
+            )}
+          </p>
+        </div>
       </section>
+      {networkRequestIgnoreListEnabled && (
+        <section className="settings-group">
+          <h3>{message('options_networkRequestIgnoreList', 'Ignore List')}</h3>
+          <p className="help-block">{message('options_networkRequestIgnoreListHelp', 'Use one wildcard pattern per line.')}</p>
+          <textarea
+            aria-label={message('options_networkRequestIgnoreList', 'Ignore List')}
+            id="react-network-request-ignore-list"
+            className="monospace form-control width-limit"
+            rows={10}
+            value={networkRequestIgnoreDraft}
+            onChange={(event) => changeNetworkRequestIgnoreList(event.currentTarget.value)}
+          />
+        </section>
+      )}
       <section className="settings-group width-limit route-trace-input">
         <h3>{message('options_group_routeTrace', 'Route Trace')}</h3>
         <form onSubmit={explain}>

@@ -1263,7 +1263,7 @@ main .page-header {
   .react-settings-host-ui > .page-header::after,
   .react-settings-host-general > .page-header::after,
   .react-settings-host-profile-scope > .page-header::after,
-  .react-settings-host-route-lens > .page-header::after,
+  .react-settings-host-request-lens > .page-header::after,
   .react-settings-host-import-export > .page-header::after {
     background-color: rgba(255, 255, 255, 0.6);
     background-image: linear-gradient(to bottom, #ffffff, rgba(255, 255, 255, 0.6));
@@ -1279,7 +1279,7 @@ main .page-header {
   .theme-dark .react-settings-host-ui > .page-header::after,
   .theme-dark .react-settings-host-general > .page-header::after,
   .theme-dark .react-settings-host-profile-scope > .page-header::after,
-  .theme-dark .react-settings-host-route-lens > .page-header::after,
+  .theme-dark .react-settings-host-request-lens > .page-header::after,
   .theme-dark .react-settings-host-import-export > .page-header::after {
     background-color: rgba(33, 37, 41, 0.8);
     background-image: linear-gradient(to bottom, #212529, rgba(33, 37, 41, 0.8));
