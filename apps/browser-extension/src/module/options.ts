@@ -154,7 +154,7 @@ type RequestSummaryItem = {
   errorCount: number;
 };
 
-type RequestStatus = 'start' | 'ongoing' | 'timeout' | 'error' | 'timeoutAbort' | 'done';
+type RequestStatus = 'start' | 'ongoing' | 'timeout' | 'error' | 'timeoutAbort' | 'done' | 'unknown';
 
 type MonitoredRequestInfo = {
   _startTime?: number;

@@ -616,6 +616,7 @@ body {
 }
 
 .sa-popup-route-info-request-count,
+.sa-popup-route-info-unknown-count,
 .sa-popup-route-info-ignored-count,
 .sa-popup-route-info-error-count {
   box-sizing: border-box;
@@ -623,6 +624,16 @@ body {
   min-width: 1.8em;
   padding-left: .35em;
   padding-right: .35em;
+}
+
+.sa-popup-route-info-unknown-count {
+  background-color: #d8c7f5;
+  color: #4b2e83;
+}
+
+.theme-dark .sa-popup-route-info-unknown-count {
+  background-color: #6f5a96;
+  color: #f4edff;
 }
 
 .sa-popup-route-info-ignored-count,

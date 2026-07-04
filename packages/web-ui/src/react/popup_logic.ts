@@ -174,6 +174,7 @@ export type RouteInfoGroup = {
   pacLimited: boolean;
   requestCount: number;
   results: Record<string, RequestExplanation>;
+  unknownCount: number;
 };
 
 export type RouteInfoIgnoredRule = {
@@ -195,7 +196,8 @@ function routeInfoGroup(groups: Record<string, RouteInfoGroup>, hostname: string
       ignoredCount: 0,
       pacLimited: false,
       requestCount: 0,
-      results: {}
+      results: {},
+      unknownCount: 0
     };
   }
   return group;
@@ -203,6 +205,10 @@ function routeInfoGroup(groups: Record<string, RouteInfoGroup>, hostname: string
 
 export function requestHasError(request?: PageRequest) {
   return !!request?.error || request?.status === 'error' || request?.status === 'timeout' || request?.status === 'timeoutAbort';
+}
+
+export function requestHasUnknownStatus(request?: PageRequest) {
+  return request?.status === 'unknown';
 }
 
 export function requestIsIgnored(request?: PageRequest) {
@@ -228,6 +234,8 @@ export function aggregateRouteInfo(
     group.requestCount++;
     if (requestIsIgnored(request)) {
       group.ignoredCount++;
+    } else if (requestHasUnknownStatus(request)) {
+      group.unknownCount++;
     } else if (requestHasError(request)) {
       group.errorCount++;
     }
@@ -258,6 +266,10 @@ export function aggregateRouteInfo(
       const errorDiff = b.errorCount - a.errorCount;
       if (errorDiff !== 0) {
         return errorDiff;
+      }
+      const unknownDiff = b.unknownCount - a.unknownCount;
+      if (unknownDiff !== 0) {
+        return unknownDiff;
       }
       const countDiff = b.requestCount - a.requestCount;
       if (countDiff !== 0) {

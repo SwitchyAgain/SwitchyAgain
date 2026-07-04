@@ -75,8 +75,8 @@ class MinHeap<T> implements HeapQueue<T> {
   }
 }
 
-type RequestStatus = 'start' | 'ongoing' | 'timeout' | 'error' | 'timeoutAbort' | 'done';
-type EventCategory = 'done' | 'error' | 'ongoing';
+type RequestStatus = 'start' | 'ongoing' | 'timeout' | 'error' | 'timeoutAbort' | 'done' | 'unknown';
+type EventCategory = 'done' | 'error' | 'ongoing' | 'unknown';
 type EventCountKey = `${EventCategory}Count`;
 
 type RequestInfo = {
@@ -114,6 +114,7 @@ type TabInfo = {
   requests: Record<string, RequestInfo>;
   requestStatus: Record<string, RequestStatus>;
   summary: Record<string, SummaryItem>;
+  unknownCount: number;
 };
 
 type RequestCallback = (status: RequestStatus, req: RequestInfo) => unknown;
@@ -121,6 +122,10 @@ type TabCallback = (tabId: number, info: TabInfo, req: RequestInfo | null, statu
 
 function isNetworkRequestUrl(url: string) {
   return /^(https?|ws|wss):/i.test(url);
+}
+
+function isUnknownTerminalRedirect(req: RequestInfo) {
+  return req.redirectUrl === req.url && req.statusCode === 0 && req.statusLine === '' && req.error == null;
 }
 
 function shouldResetTabInfoForUpdatedUrl(url?: string) {
@@ -166,7 +171,8 @@ class WebRequestMonitor {
       timeout: 'error',
       error: 'error',
       timeoutAbort: 'error',
-      done: 'done'
+      done: 'done',
+      unknown: 'unknown'
     };
   }
 
@@ -245,6 +251,17 @@ class WebRequestMonitor {
     const url = req.redirectUrl;
     if (!url) {
       return;
+    }
+    if (isUnknownTerminalRedirect(req)) {
+      const reqInfo = this._requests[req.requestId];
+      if (!reqInfo) {
+        return;
+      }
+      Object.assign(reqInfo, req);
+      for (const callback of this._callbacks) {
+        callback('unknown', reqInfo);
+      }
+      return delete this._requests[req.requestId];
     }
     if (!isNetworkRequestUrl(url)) {
       req.routeInfoHidden = true;
@@ -362,6 +379,7 @@ class WebRequestMonitor {
       ongoingCount: 0,
       errorCount: 0,
       doneCount: 0,
+      unknownCount: 0,
       summary: {}
     };
   }
@@ -439,6 +457,7 @@ class WebRequestMonitor {
     info.ongoingCount = freshInfo.ongoingCount;
     info.errorCount = freshInfo.errorCount;
     info.doneCount = freshInfo.doneCount;
+    info.unknownCount = freshInfo.unknownCount;
     info.summary = freshInfo.summary;
   }
 }

@@ -227,6 +227,14 @@ function RouteInfoList({loading = false, pageInfo, state}: {loading?: boolean; p
                 >
                   {group.requestCount}
                 </span>
+                {group.unknownCount > 0 && (
+                  <span
+                    className="label sa-popup-route-info-unknown-count"
+                    title={`${group.unknownCount} ${popupMessage('popup_routeInfoUnknown', 'unknown')}`}
+                  >
+                    {group.unknownCount}
+                  </span>
+                )}
                 {group.ignoredCount > 0 && (
                   <span
                     className="label label-default sa-popup-route-info-ignored-count"

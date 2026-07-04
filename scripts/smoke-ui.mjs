@@ -314,9 +314,9 @@ const pages = [
     text: messageForKey('options_tab_general') || 'General'
   },
   {
-    label: 'options route trace route',
+    label: 'options route lens route',
     url: extensionServer.url('options.html', '#/routeTrace'),
-    text: messageForKey('options_tab_routeTrace') || 'Route Trace'
+    text: messageForKey('options_tab_routeLens') || 'Route Lens'
   },
   {
     label: 'options import/export route',
