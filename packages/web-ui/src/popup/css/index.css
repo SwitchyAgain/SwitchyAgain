@@ -417,6 +417,7 @@ body {
 
 .route-info-details {
   min-width: 360px;
+  width: 360px;
 }
 
 .sa-popup-form fieldset {
@@ -700,6 +701,15 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.sa-popup-route-info-details-disabled {
+  color: #31708f;
+  overflow-wrap: break-word;
+}
+
+.theme-dark .sa-popup-route-info-details-disabled {
+  color: #9ec5fe;
 }
 
 .sa-popup-route-info-error,

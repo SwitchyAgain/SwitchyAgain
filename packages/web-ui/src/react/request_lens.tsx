@@ -155,6 +155,8 @@ export function RequestLens({currentProfileName: initialCurrentProfileName, embe
   const optionsRef = useRef<Options | null | undefined>(options);
   const profiles = useMemo(() => allProfilesFromOptions(options), [options]);
   const currentProfile = profileByName(options, currentProfileName);
+  const routeInfoEnabled = options?.['-routeInfoEnabled'] !== false;
+  const routeInfoRequestDetailsEnabled = options?.['-routeInfoRequestDetailsEnabled'] === true;
   const networkRequestIgnoreListEnabled = options?.[NETWORK_REQUEST_IGNORE_LIST_ENABLED_KEY] === true;
 
   useEffect(() => {
@@ -227,15 +229,47 @@ export function RequestLens({currentProfileName: initialCurrentProfileName, embe
         <div className="checkbox">
           <label>
             <input
+              type="checkbox"
+              checked={routeInfoEnabled}
+              onChange={(event) => updateOption('-routeInfoEnabled', event.currentTarget.checked)}
+            />
+            <span> {message('options_routeInfoEnabled', 'Enable Route Info')}</span>
+          </label>
+          <p className="help-block">
+            {message(
+              'options_routeInfoEnabledHelp',
+              'Show Route Info in the popup and enable request-related diagnostics. When disabled, failed-request detection, request details, and the ignore list are not used.'
+            )}
+          </p>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
               id="react-monitor-web-requests"
               type="checkbox"
-              checked={Boolean(options?.['-monitorWebRequests'])}
+              checked={options?.['-monitorWebRequests'] !== false}
               onChange={(event) => updateOption('-monitorWebRequests', event.currentTarget.checked)}
             />
             <span> {message('options_monitorWebRequests', 'Show count of failed web requests for resources in the current tab.')}</span>
           </label>
           <p className="help-block">
             {richMessage('options_monitorWebRequestsHelp', 'A yellow badge will be displayed on the icon if some resources fail to load.')}
+          </p>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={routeInfoRequestDetailsEnabled}
+              onChange={(event) => updateOption('-routeInfoRequestDetailsEnabled', event.currentTarget.checked)}
+            />
+            <span> {message('options_routeInfoRequestDetailsEnabled', 'Show request details in Route Info')}</span>
+          </label>
+          <p className="help-block">
+            {message(
+              'options_routeInfoRequestDetailsEnabledHelp',
+              'Load captured requests and routing results in the Requests section. This can be slow on pages with many resources.'
+            )}
           </p>
         </div>
       </section>

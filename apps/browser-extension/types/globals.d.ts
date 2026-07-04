@@ -477,7 +477,9 @@ type PopupApiRequestExplanation = {
 type PopupApiPageInfo = {
   domain?: string;
   errorCount?: number;
+  failedRequestDetectionEnabled?: boolean;
   networkRequestIgnoreList?: string[];
+  networkRequestIgnoreListEnabled?: boolean;
   profileScope?: {
     assignments?: {
       containers?: Record<string, string>;
@@ -506,6 +508,8 @@ type PopupApiPageInfo = {
   };
   requestExplanations?: PopupApiRequestExplanation[];
   requestLimitExceeded?: boolean;
+  routeInfoEnabled?: boolean;
+  routeInfoRequestDetailsEnabled?: boolean;
   requests?: Array<{
     error?: string;
     id: string;

@@ -99,6 +99,8 @@ export type OptionsData = {
   };
   '-quickSwitchProfiles'?: string[];
   '-refreshOnProfileChange'?: boolean;
+  '-routeInfoEnabled'?: boolean;
+  '-routeInfoRequestDetailsEnabled'?: boolean;
   '-showConditionTypes'?: number;
   '-showExternalProfile'?: boolean;
   '-showRequestLens'?: boolean;

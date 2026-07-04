@@ -20,11 +20,14 @@ export type ProfileMap = Record<ProfileKey, Profile | undefined>;
 export type PageInfo = {
   domain?: string;
   errorCount?: number;
+  failedRequestDetectionEnabled?: boolean;
   networkRequestIgnoreListEnabled?: boolean;
   networkRequestIgnoreList?: string[];
   profileScope?: ProfileScopeInfo;
   requestExplanations?: RequestExplanation[];
   requestLimitExceeded?: boolean;
+  routeInfoEnabled?: boolean;
+  routeInfoRequestDetailsEnabled?: boolean;
   requests?: Array<{
     error?: string;
     id: string;

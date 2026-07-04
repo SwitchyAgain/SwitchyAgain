@@ -89,14 +89,30 @@ describe('request lens component', () => {
 
     expect(screen.getByRole('heading', {name: 'Request Lens'})).toBeTruthy();
     expect(screen.getByRole('heading', {name: 'Network Requests'})).toBeTruthy();
+    expect(screen.getByLabelText('Enable Route Info')).toBeTruthy();
+    expect(screen.getByLabelText('Show request details in Route Info')).toBeTruthy();
     expect(screen.getByLabelText('Enable Ignore List for Route Info.')).toBeTruthy();
     expect(screen.getByRole('heading', {name: 'Ignore List'})).toBeTruthy();
     expect(screen.getByRole('heading', {name: 'Route Trace'})).toBeTruthy();
+
+    fireEvent.click(screen.getByLabelText('Enable Route Info'));
+    expect(onOptionsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        '-routeInfoEnabled': false
+      })
+    );
 
     fireEvent.click(screen.getByLabelText('Show count of failed web requests for resources in the current tab.'));
     expect(onOptionsChange).toHaveBeenLastCalledWith(
       expect.objectContaining({
         '-monitorWebRequests': false
+      })
+    );
+
+    fireEvent.click(screen.getByLabelText('Show request details in Route Info'));
+    expect(onOptionsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        '-routeInfoRequestDetailsEnabled': true
       })
     );
 

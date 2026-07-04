@@ -39,7 +39,10 @@ function failedPageInfo(): PageInfo {
   return {
     domain: 'example.com',
     errorCount: 1,
+    failedRequestDetectionEnabled: true,
     networkRequestIgnoreList: [],
+    routeInfoEnabled: true,
+    routeInfoRequestDetailsEnabled: true,
     requests: [
       {
         error: 'net::ERR_FAILED',
@@ -62,8 +65,11 @@ function ignoredOnlyPageInfo(): PageInfo {
   return {
     domain: 'example.com',
     errorCount: 0,
+    failedRequestDetectionEnabled: true,
     networkRequestIgnoreListEnabled: true,
     networkRequestIgnoreList: ['*.tracker.example'],
+    routeInfoEnabled: true,
+    routeInfoRequestDetailsEnabled: true,
     requests: [
       {
         id: '1',
@@ -158,5 +164,90 @@ describe('popup app', () => {
 
     fireEvent.click(configureButton);
     expect(openOptions).toHaveBeenCalledWith('#/requestLens', expect.any(Function));
+  });
+
+  it('shows a request details notice while keeping failed request actions available', async () => {
+    currentPageInfo = {
+      ...failedPageInfo(),
+      requestExplanations: undefined,
+      requestLimitExceeded: undefined,
+      requests: undefined,
+      routeInfoRequestDetailsEnabled: false
+    };
+
+    render(<PopupApp />);
+
+    expect(await screen.findByText('Request details are disabled.')).toBeTruthy();
+    expect(screen.getByRole('heading', {name: 'Failed Requests'})).toBeTruthy();
+    expect(screen.getByRole('checkbox', {name: /api\.example\.com/})).toBeTruthy();
+  });
+
+  it('links to Request Lens when failed request detection is disabled', async () => {
+    const openOptions = vi.fn();
+    currentPageInfo = {
+      ...failedPageInfo(),
+      errorCount: 0,
+      failedRequestDetectionEnabled: false,
+      requestExplanations: undefined,
+      requestLimitExceeded: undefined,
+      requests: undefined,
+      routeInfoRequestDetailsEnabled: false,
+      summary: {}
+    };
+    testGlobal().PopupBridge = {
+      ...testGlobal().PopupBridge,
+      openOptions
+    };
+
+    render(<PopupApp />);
+
+    expect(await screen.findByText('Request details are disabled.')).toBeTruthy();
+    const configureButton = screen.getByRole('button', {name: 'Configure network requests'});
+
+    fireEvent.click(configureButton);
+    expect(openOptions).toHaveBeenCalledWith('#/requestLens', expect.any(Function));
+  });
+
+  it('links to Request Lens when no failed requests are available', async () => {
+    const openOptions = vi.fn();
+    currentPageInfo = {
+      ...failedPageInfo(),
+      errorCount: 0,
+      requestExplanations: undefined,
+      requestLimitExceeded: undefined,
+      requests: undefined,
+      routeInfoRequestDetailsEnabled: false,
+      summary: {}
+    };
+    testGlobal().PopupBridge = {
+      ...testGlobal().PopupBridge,
+      openOptions
+    };
+
+    render(<PopupApp />);
+
+    expect(await screen.findByText('Request details are disabled.')).toBeTruthy();
+    const configureButton = screen.getByRole('button', {name: 'Configure network requests'});
+
+    fireEvent.click(configureButton);
+    expect(openOptions).toHaveBeenCalledWith('#/requestLens', expect.any(Function));
+  });
+
+  it('hides route info without hiding other page-domain popup actions', async () => {
+    currentPageInfo = {
+      ...failedPageInfo(),
+      errorCount: 0,
+      failedRequestDetectionEnabled: false,
+      requests: undefined,
+      routeInfoEnabled: false,
+      routeInfoRequestDetailsEnabled: false,
+      summary: {}
+    };
+
+    render(<PopupApp />);
+
+    expect(await screen.findByText('Add Condition')).toBeTruthy();
+    expect(screen.getByText('example.com')).toBeTruthy();
+    expect(screen.queryByText('Route Info')).toBeNull();
   });
 });

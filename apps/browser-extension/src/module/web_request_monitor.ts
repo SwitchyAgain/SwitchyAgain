@@ -143,6 +143,7 @@ function shouldResetTabInfoForUpdatedUrl(url?: string) {
 
 class WebRequestMonitor {
   eventCategory: Record<RequestStatus, EventCategory>;
+  enabled: boolean;
   getSummaryId?: (req: RequestInfo) => string | number | null | undefined;
   tabInfo: Record<number, TabInfo>;
   tabsWatching: boolean;
@@ -156,11 +157,10 @@ class WebRequestMonitor {
   constructor(getSummaryId?: (req: RequestInfo) => string | number | null | undefined) {
     this.getSummaryId = getSummaryId;
     this._requests = {};
-    this._recentRequests = new MinHeap((a: RequestInfo, b: RequestInfo) => {
-      return (a._startTime || 0) - (b._startTime || 0);
-    });
+    this._recentRequests = this._newRequestQueue();
     this._callbacks = [];
     this._tabCallbacks = [];
+    this.enabled = true;
     this.tabInfo = {};
     this.watching = false;
     this.timer = null;
@@ -203,7 +203,34 @@ class WebRequestMonitor {
     this.watching = true;
   }
 
+  setEnabled(enabled: boolean) {
+    this.enabled = enabled;
+    if (enabled) {
+      return;
+    }
+    this._requests = {};
+    this._recentRequests = this._newRequestQueue();
+    if (this.timer != null) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+    for (const tabId in this.tabInfo) {
+      if (Object.prototype.hasOwnProperty.call(this.tabInfo, tabId)) {
+        this.tabInfo[tabId] = this._newTabInfo();
+      }
+    }
+  }
+
+  private _newRequestQueue() {
+    return new MinHeap<RequestInfo>((a: RequestInfo, b: RequestInfo) => {
+      return (a._startTime || 0) - (b._startTime || 0);
+    });
+  }
+
   private _requestStart(req: RequestInfo) {
+    if (!this.enabled) {
+      return;
+    }
     if (req.tabId < 0) {
       return;
     }
@@ -217,6 +244,9 @@ class WebRequestMonitor {
   }
 
   private _tick() {
+    if (!this.enabled) {
+      return [];
+    }
     const now = Date.now();
     const results = [];
     let req: RequestInfo | undefined;
@@ -237,6 +267,9 @@ class WebRequestMonitor {
   }
 
   private _requestHeadersReceived(req: RequestInfo) {
+    if (!this.enabled) {
+      return;
+    }
     const reqInfo = this._requests[req.requestId];
     if (!reqInfo) {
       return;
@@ -248,6 +281,9 @@ class WebRequestMonitor {
   }
 
   private _requestRedirected(req: RequestInfo) {
+    if (!this.enabled) {
+      return;
+    }
     const url = req.redirectUrl;
     if (!url) {
       return;
@@ -270,6 +306,9 @@ class WebRequestMonitor {
   }
 
   private _requestError(req: RequestInfo) {
+    if (!this.enabled) {
+      return;
+    }
     const reqInfo = this._requests[req.requestId];
     delete this._requests[req.requestId];
     if (req.tabId < 0) {
@@ -320,6 +359,9 @@ class WebRequestMonitor {
   }
 
   private _requestDone(req: RequestInfo) {
+    if (!this.enabled) {
+      return;
+    }
     for (const callback of this._callbacks) {
       callback('done', req);
     }

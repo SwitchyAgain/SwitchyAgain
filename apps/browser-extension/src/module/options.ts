@@ -30,6 +30,8 @@ const PRIVATE_WINDOW_PROFILE_CONTEXT_MENU_ITEM_PREFIX = `${PRIVATE_WINDOW_PROFIL
 const CLEAR_PRIVATE_WINDOW_PROFILE_CONTEXT_MENU_ID = `${PRIVATE_WINDOW_PROFILE_CONTEXT_MENU_ROOT_ID}:clear`;
 const TAB_GROUP_ID_NONE = -1;
 const WEB_LINK_PATTERNS = ['http://*/*', 'https://*/*'];
+const ROUTE_INFO_ENABLED_KEY = '-routeInfoEnabled';
+const ROUTE_INFO_REQUEST_DETAILS_ENABLED_KEY = '-routeInfoRequestDetailsEnabled';
 const NETWORK_REQUEST_IGNORE_LIST_ENABLED_KEY = '-networkRequestIgnoreListEnabled';
 const NETWORK_REQUEST_IGNORE_LIST_KEY = '-networkRequestIgnoreList';
 const PROFILE_MENU_ORDER: Record<string, number> = {
@@ -262,6 +264,7 @@ type ContextualIdentitiesApi = {
 };
 
 type RequestMonitorLike = {
+  setEnabled(enabled: boolean): void;
   tabInfo: Record<string, TabRequestInfo | undefined>;
   watchTabs(callback: (tabId: number, info: TabRequestInfo, req?: unknown, status?: unknown) => unknown): unknown;
 };
@@ -397,7 +400,22 @@ function isNetworkRequestIgnoreListEnabled(options: Record<string, unknown>) {
   return options[NETWORK_REQUEST_IGNORE_LIST_ENABLED_KEY] === true;
 }
 
+function isRouteInfoEnabled(options: Record<string, unknown>) {
+  return options[ROUTE_INFO_ENABLED_KEY] !== false;
+}
+
+function isRouteInfoRequestDetailsEnabled(options: Record<string, unknown>) {
+  return options[ROUTE_INFO_REQUEST_DETAILS_ENABLED_KEY] === true;
+}
+
+function isFailedRequestDetectionEnabled(options: Record<string, unknown>) {
+  return isRouteInfoEnabled(options) && options['-monitorWebRequests'] !== false;
+}
+
 function effectiveNetworkRequestIgnoreList(options: Record<string, unknown>) {
+  if (!isFailedRequestDetectionEnabled(options)) {
+    return [];
+  }
   if (!isNetworkRequestIgnoreListEnabled(options)) {
     return [];
   }
@@ -2596,6 +2614,10 @@ class ChromeOptions extends ExtensionRuntime.Options {
 
   setMonitorWebRequests(enabled: boolean) {
     this._monitorWebRequests = enabled;
+    this._requestMonitor?.setEnabled(enabled);
+    if (!enabled) {
+      this.clearBadge();
+    }
     if (enabled && this._requestMonitor == null) {
       this._tabRequestInfoPorts = {};
       const wildcardForReq = (req: {url: string}) => {
@@ -2767,11 +2789,16 @@ class ChromeOptions extends ExtensionRuntime.Options {
   }
 
   getPageInfo({cookieStoreId, groupId, includeExplanations = false, incognito, tabId, url, windowId}: PageInfoArgs) {
-    const tabInfo = this._requestMonitor?.tabInfo[tabId];
+    const routeInfoEnabled = isRouteInfoEnabled(this._options);
+    const failedRequestDetectionEnabled = isFailedRequestDetectionEnabled(this._options);
+    const routeInfoRequestDetailsEnabled = routeInfoEnabled && isRouteInfoRequestDetailsEnabled(this._options);
+    const tabInfo = failedRequestDetectionEnabled || routeInfoRequestDetailsEnabled ? this._requestMonitor?.tabInfo[tabId] : undefined;
     const networkRequestIgnoreList = normalizeNetworkRequestIgnoreList(this._options[NETWORK_REQUEST_IGNORE_LIST_KEY]);
-    const networkRequestIgnoreListEnabled = isNetworkRequestIgnoreListEnabled(this._options);
+    const networkRequestIgnoreListEnabled = failedRequestDetectionEnabled && isNetworkRequestIgnoreListEnabled(this._options);
     const effectiveIgnoreList = networkRequestIgnoreListEnabled ? networkRequestIgnoreList : [];
-    const filteredInfo = filteredTabRequestInfo(tabInfo, effectiveIgnoreList);
+    const filteredInfo = failedRequestDetectionEnabled
+      ? filteredTabRequestInfo(tabInfo, effectiveIgnoreList)
+      : {errorCount: 0, summary: {}};
     const profileScope = this.getProfileScopeInfo({
       cookieStoreId,
       groupId,
@@ -2784,8 +2811,11 @@ class ChromeOptions extends ExtensionRuntime.Options {
     const result = errorCount
       ? {
           errorCount,
+          failedRequestDetectionEnabled,
           networkRequestIgnoreListEnabled,
           networkRequestIgnoreList,
+          routeInfoEnabled,
+          routeInfoRequestDetailsEnabled,
           summary
         }
       : null;
@@ -2812,20 +2842,29 @@ class ChromeOptions extends ExtensionRuntime.Options {
       return result;
     }
     const domain = ProxyEngine.getBaseDomain(new URL(url).hostname.replace(/^\[(.*)\]$/, '$1'));
-    const pageRequests = pageRequestsFromTabInfo(tabInfo, url, effectiveIgnoreList);
+    const pageRequests = routeInfoRequestDetailsEnabled
+      ? pageRequestsFromTabInfo(tabInfo, url, effectiveIgnoreList)
+      : {requestLimitExceeded: false, requests: []};
     const basePageInfo = {
       url,
       domain,
       tempRuleProfileName: this.queryTempRule(domain),
       profileScope,
       errorCount,
+      failedRequestDetectionEnabled,
       networkRequestIgnoreListEnabled,
       networkRequestIgnoreList,
+      routeInfoEnabled,
+      routeInfoRequestDetailsEnabled,
       summary,
-      requests: pageRequests.requests,
-      requestLimitExceeded: pageRequests.requestLimitExceeded
+      ...(routeInfoRequestDetailsEnabled
+        ? {
+            requests: pageRequests.requests,
+            requestLimitExceeded: pageRequests.requestLimitExceeded
+          }
+        : {})
     };
-    if (!includeExplanations) {
+    if (!routeInfoRequestDetailsEnabled || !includeExplanations) {
       return basePageInfo;
     }
     const explanations = pageRequests.requests.map((request) => {

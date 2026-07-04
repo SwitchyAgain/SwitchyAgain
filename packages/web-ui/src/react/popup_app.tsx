@@ -248,7 +248,26 @@ function stopRouteInfoCheckboxEvent(event: React.SyntheticEvent) {
   event.stopPropagation();
 }
 
-function RouteInfoList({loading = false, pageInfo, state}: {loading?: boolean; pageInfo?: PageInfo; state: PopupState}) {
+function RouteInfoList({
+  detailsEnabled,
+  loading = false,
+  pageInfo,
+  state
+}: {
+  detailsEnabled: boolean;
+  loading?: boolean;
+  pageInfo?: PageInfo;
+  state: PopupState;
+}) {
+  if (!detailsEnabled) {
+    return (
+      <RouteInfoSection title={popupMessage('popup_routeInfoRequestsHeading', 'Requests')}>
+        <p className="help-block sa-popup-route-info-details-disabled">
+          {popupMessage('popup_routeInfoRequestDetailsDisabled', 'Request details are disabled.')}
+        </p>
+      </RouteInfoSection>
+    );
+  }
   const explanations = pageInfo?.requestExplanations || [];
   const requests = pageInfo?.requests || [];
   if (explanations.length === 0 && requests.length === 0) {
@@ -529,8 +548,11 @@ export function PopupApp() {
   const hasScopeAssignableProfiles = scopeAssignableProfiles.length > 0;
   const hasPageDomain = !!pageInfo?.domain;
   const showRouteInfo = !!(
-    pageInfo &&
-    ((pageInfo.errorCount || 0) > 0 || (pageInfo.requestExplanations?.length || pageInfo.requests?.length || 0) > 0)
+    pageInfo?.routeInfoEnabled &&
+    (pageInfo.url ||
+      pageInfo.domain ||
+      (pageInfo.errorCount || 0) > 0 ||
+      (pageInfo.requestExplanations?.length || pageInfo.requests?.length || 0) > 0)
   );
   const showExternal = !!(state?.showExternalProfile && state.externalProfile);
   const showAddCondition = !!(
@@ -743,7 +765,7 @@ export function PopupApp() {
   if (mode === 'condition') {
     return <ConditionForm pageInfo={pageInfo} state={state} onClose={closeToMenu} />;
   }
-  if (mode === 'routeInfo') {
+  if (mode === 'routeInfo' && showRouteInfo) {
     return <RouteInfoForm pageInfo={pageInfo} state={state} onClose={closeToMenu} onPageInfoChange={setPageInfo} />;
   }
   if (mode === 'external') {
@@ -1364,9 +1386,15 @@ function RouteInfoForm({
     () => ignoredRouteInfoRules(detailPageInfo, popupMessage('popup_routeInfoUnknownHost', 'Unknown host')),
     [detailPageInfo]
   );
-  const ignoreListEnabled = detailPageInfo?.networkRequestIgnoreListEnabled === true;
-  const hasRequestFailures = (detailPageInfo?.errorCount || 0) > 0 && domains.length > 0;
-  const needsExplanations = !!((detailPageInfo?.requests?.length || 0) > 0 && !detailPageInfo?.requestExplanations);
+  const failedRequestDetectionEnabled = detailPageInfo?.failedRequestDetectionEnabled === true;
+  const requestDetailsEnabled = detailPageInfo?.routeInfoRequestDetailsEnabled === true;
+  const ignoreListEnabled = failedRequestDetectionEnabled && detailPageInfo?.networkRequestIgnoreListEnabled === true;
+  const hasRequestFailures = failedRequestDetectionEnabled && (detailPageInfo?.errorCount || 0) > 0 && domains.length > 0;
+  const needsExplanations = !!(
+    requestDetailsEnabled &&
+    (detailPageInfo?.requests?.length || 0) > 0 &&
+    !detailPageInfo?.requestExplanations
+  );
   const tempRulesActive = !!detailPageInfo?.requestExplanations?.some((explanation) => explanation.tempRulesActive);
   const [addTarget, setAddTarget] = useState<RouteInfoAddTarget>('ignoreList');
   const [checkedDomains, setCheckedDomains] = useState<Record<string, boolean>>({});
@@ -1441,7 +1469,7 @@ function RouteInfoForm({
     if (!refreshPageInfo) {
       return;
     }
-    const nextPageInfo = await getPopupPageInfo({includeExplanations: true});
+    const nextPageInfo = await getPopupPageInfo({includeExplanations: requestDetailsEnabled});
     setDetailPageInfo(nextPageInfo || detailPageInfo);
     onPageInfoChange?.(nextPageInfo || detailPageInfo);
     return nextPageInfo;
@@ -1502,6 +1530,8 @@ function RouteInfoForm({
         ? popupMessage('popup_routeInfoAddSwitchRule', 'Add Switch Rule')
         : popupMessage('popup_routeInfoAddIgnoreRule', 'Add to Ignore List');
   const showBottomControls = hasRequestFailures || ignoredRules.length === 0;
+  const showSubmitRouteInfo = hasRequestFailures && (ignoreListEnabled || state.currentProfileCanAddRule);
+  const showConfigureNetworkRequests = !showSubmitRouteInfo;
 
   return (
     <div className="route-info-details sa-popup-form">
@@ -1519,7 +1549,12 @@ function RouteInfoForm({
         {detailPageInfo?.requestLimitExceeded && (
           <p className="help-block">{popupMessage('popup_routeInfoLimitExceeded', 'Only the first captured requests are shown.')}</p>
         )}
-        <RouteInfoList loading={loadingExplanations || needsExplanations} pageInfo={detailPageInfo} state={state} />
+        <RouteInfoList
+          detailsEnabled={requestDetailsEnabled}
+          loading={loadingExplanations || needsExplanations}
+          pageInfo={detailPageInfo}
+          state={state}
+        />
         {ignoreListEnabled && (
           <IgnoredRouteInfoSection
             checkedRules={checkedIgnoreRules}
@@ -1551,20 +1586,20 @@ function RouteInfoForm({
             <button className="btn btn-default" type="button" onClick={onClose}>
               {popupMessage('dialog_cancel', 'Cancel')}
             </button>
-            {hasRequestFailures &&
-              (ignoreListEnabled || state.currentProfileCanAddRule ? (
-                <button className="btn btn-primary" type="button" disabled={submitDisabled} onClick={submitRouteInfo}>
-                  {submitText}
-                </button>
-              ) : (
-                <button
-                  className="btn btn-default pull-right"
-                  type="button"
-                  onClick={() => popupBridge().openOptions?.('#/requestLens', closePopup)}
-                >
-                  {popupMessage('popup_configureNetworkRequests', 'Configure network requests')}
-                </button>
-              ))}
+            {showSubmitRouteInfo && (
+              <button className="btn btn-primary" type="button" disabled={submitDisabled} onClick={submitRouteInfo}>
+                {submitText}
+              </button>
+            )}
+            {showConfigureNetworkRequests && (
+              <button
+                className="btn btn-default pull-right"
+                type="button"
+                onClick={() => popupBridge().openOptions?.('#/requestLens', closePopup)}
+              >
+                {popupMessage('popup_configureNetworkRequests', 'Configure network requests')}
+              </button>
+            )}
           </div>
         )}
       </fieldset>

@@ -1065,7 +1065,12 @@ class Options {
           return this.updateProfile();
         });
       }
-      if (changes['-monitorWebRequests'] != null || changes === this._options) {
+      if (
+        changes['-monitorWebRequests'] != null ||
+        changes['-routeInfoEnabled'] != null ||
+        changes['-routeInfoRequestDetailsEnabled'] != null ||
+        changes === this._options
+      ) {
         let monitorWebRequests = this._options['-monitorWebRequests'];
         if (monitorWebRequests == null) {
           monitorWebRequests = true;
@@ -1078,7 +1083,9 @@ class Options {
             }
           );
         }
-        return this.setMonitorWebRequests(monitorWebRequests);
+        const routeInfoEnabled = this._options['-routeInfoEnabled'] !== false;
+        const routeInfoRequestDetailsEnabled = this._options['-routeInfoRequestDetailsEnabled'] === true;
+        return this.setMonitorWebRequests(routeInfoEnabled && (monitorWebRequests || routeInfoRequestDetailsEnabled));
       }
     };
     handler();

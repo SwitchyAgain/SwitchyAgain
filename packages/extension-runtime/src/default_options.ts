@@ -30,6 +30,8 @@ export default function defaultOptions() {
     '-confirmDeletion': true,
     '-showCurrentProfileInGeneral': false,
     '-showRequestLens': true,
+    '-routeInfoEnabled': true,
+    '-routeInfoRequestDetailsEnabled': false,
     '-addConditionsToBottom': false,
     '-showProfileOptions': false,
     '-showPopupAddCondition': true,
