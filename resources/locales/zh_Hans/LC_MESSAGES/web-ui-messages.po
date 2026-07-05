@@ -1695,3 +1695,168 @@ msgstr "请至少选择一条忽略规则。"
 
 msgid "popup_routeInfoSwitchRuleTarget"
 msgstr "切换规则"
+
+msgid "options_cancel"
+msgstr "取消"
+
+msgid "options_delete"
+msgstr "删除"
+
+msgid "options_edit"
+msgstr "编辑"
+
+msgid "options_modalClose"
+msgstr "关闭"
+
+msgid "options_profileAutomaticColor"
+msgstr "自动"
+
+msgid "options_enableProfileGroups"
+msgstr "启用情景模式分组。"
+
+msgid "options_showProfileGroupFlyout"
+msgstr "显示全部"
+
+msgid "options_tab_profileGroups"
+msgstr "情景分组"
+
+msgid "options_hiddenProfileOptionsDisabledByGroup"
+msgstr "此情景模式由其情景模式分组控制。"
+
+msgid "options_useProfileGroup"
+msgstr "将此情景模式加入分组"
+
+msgid "options_profileGroup"
+msgstr "情景模式分组"
+
+msgid "options_profileGroupSelect"
+msgstr "选择分组"
+
+msgid "options_profileGroupNewInline"
+msgstr "新建分组…"
+
+msgid "options_useProfileGroupHelp"
+msgstr "启用后，此情景模式会移入所选情景模式分组。"
+
+msgid "options_profileGroupNameRequired"
+msgstr "分组名称不能为空。"
+
+msgid "options_profileGroupNameReserved"
+msgstr "Default 和 Hidden 是保留的分组名称。"
+
+msgid "options_profileGroupNameTaken"
+msgstr "已存在同名情景模式分组。"
+
+msgid "options_profileGroupUngrouped"
+msgstr "未分组"
+
+msgid "options_profileGroupName"
+msgstr "分组名称"
+
+msgid "options_profileGroupIcon"
+msgstr "图标"
+
+msgid "options_profileGroupColor"
+msgstr "颜色"
+
+msgid "options_profileGroupsGroupsSection"
+msgstr "分组"
+
+msgid "options_profileGroupNew"
+msgstr "新建分组"
+
+msgid "options_profileGroupColumnGroup"
+msgstr "分组"
+
+msgid "options_profileGroupColumnProfiles"
+msgstr "情景模式"
+
+msgid "options_profileGroupColumnActions"
+msgstr "操作"
+
+msgid "options_profileGroupMoveProfiles"
+msgstr "移动情景模式"
+
+msgid "options_profileGroupsEmpty"
+msgstr "尚未创建情景模式分组。"
+
+msgid "options_profileGroupsMoveSection"
+msgstr "移动情景模式"
+
+msgid "options_profileGroupFromGroup"
+msgstr "源分组"
+
+msgid "options_profileGroupColumnProfile"
+msgstr "情景模式"
+
+msgid "options_profileGroupSelectProfile"
+msgstr "选择情景模式"
+
+msgid "options_profileGroupNoProfiles"
+msgstr "没有情景模式"
+
+msgid "options_profileGroupMoveTargetGroup"
+msgstr "移至"
+
+msgid "options_profileGroupMove"
+msgstr "移动"
+
+msgid "options_profileGroupHideAllAssignments"
+msgstr "隐藏所有情景模式分配"
+
+msgid "options_profileGroupShowAllAssignments"
+msgstr "显示所有情景模式分配"
+
+msgid "options_profileGroupCurrentGroup"
+msgstr "当前分组"
+
+msgid "options_profileGroupsProfilesEmpty"
+msgstr "没有可用的情景模式。"
+
+msgid "options_profileGroupCreate"
+msgstr "创建"
+
+msgid "options_profileGroupCreateTitle"
+msgstr "新建情景模式分组"
+
+msgid "options_profileGroupSave"
+msgstr "保存"
+
+msgid "options_profileGroupRenameTitle"
+msgstr "重命名情景模式分组"
+
+msgid "options_profileGroupMoveProfilesTitle"
+msgstr "从分组“$1:GROUP$”移动情景模式"
+
+msgid "options_profileGroupMoveAllProfiles"
+msgstr "移动全部情景模式"
+
+msgid "options_profileGroupMoveAllProfilesTo"
+msgstr "将所有情景模式移至"
+
+msgid "options_profileGroupMoveIndividualProfiles"
+msgstr "移动单个情景模式"
+
+msgid "options_profileGroupColumnMove"
+msgstr "移动"
+
+msgid "options_profileGroupMoveProfileToggle"
+msgstr "移动 $1:PROFILE$"
+
+msgid "options_profileGroupMoveProfilesEmpty"
+msgstr "此分组没有可移动的情景模式。"
+
+msgid "options_profileGroupCannotDeleteTitle"
+msgstr "无法删除情景模式分组"
+
+msgid "options_profileGroupDeleteTitle"
+msgstr "删除情景模式分组"
+
+msgid "options_profileGroupCannotDeleteHelp"
+msgstr "无法删除此情景模式分组，因为其中仍包含情景模式。"
+
+msgid "options_profileGroupMoveProfilesBeforeDelete"
+msgstr "请先将所有情景模式移出此分组，然后再删除。"
+
+msgid "options_profileGroupDeleteHelp"
+msgstr "确定要删除这个情景模式分组吗？"

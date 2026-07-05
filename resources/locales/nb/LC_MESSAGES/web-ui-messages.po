@@ -1701,3 +1701,168 @@ msgstr "Språk"
 
 msgid "options_interfaceLanguage"
 msgstr "Grensesnittspråk"
+
+msgid "options_cancel"
+msgstr "Avbryt"
+
+msgid "options_delete"
+msgstr "Slett"
+
+msgid "options_edit"
+msgstr "Rediger"
+
+msgid "options_modalClose"
+msgstr "Lukk"
+
+msgid "options_profileAutomaticColor"
+msgstr "Automatisk"
+
+msgid "options_enableProfileGroups"
+msgstr "Aktiver profilgrupper."
+
+msgid "options_showProfileGroupFlyout"
+msgstr "Vis alle"
+
+msgid "options_tab_profileGroups"
+msgstr "Profilgrupper"
+
+msgid "options_hiddenProfileOptionsDisabledByGroup"
+msgstr "Denne profilen styres av profilgruppen."
+
+msgid "options_useProfileGroup"
+msgstr "Grupper denne profilen"
+
+msgid "options_profileGroup"
+msgstr "Profilgruppe"
+
+msgid "options_profileGroupSelect"
+msgstr "Velg en gruppe"
+
+msgid "options_profileGroupNewInline"
+msgstr "Ny gruppe..."
+
+msgid "options_useProfileGroupHelp"
+msgstr "Når dette er aktivert, flyttes denne profilen til den valgte profilgruppen."
+
+msgid "options_profileGroupNameRequired"
+msgstr "Gruppenavn er påkrevd."
+
+msgid "options_profileGroupNameReserved"
+msgstr "Default og Hidden er reserverte gruppenavn."
+
+msgid "options_profileGroupNameTaken"
+msgstr "En profilgruppe med dette navnet finnes allerede."
+
+msgid "options_profileGroupUngrouped"
+msgstr "Ugruppert"
+
+msgid "options_profileGroupName"
+msgstr "Gruppenavn"
+
+msgid "options_profileGroupIcon"
+msgstr "Ikon"
+
+msgid "options_profileGroupColor"
+msgstr "Farge"
+
+msgid "options_profileGroupsGroupsSection"
+msgstr "Grupper"
+
+msgid "options_profileGroupNew"
+msgstr "Ny gruppe"
+
+msgid "options_profileGroupColumnGroup"
+msgstr "Gruppe"
+
+msgid "options_profileGroupColumnProfiles"
+msgstr "Profiler"
+
+msgid "options_profileGroupColumnActions"
+msgstr "Handlinger"
+
+msgid "options_profileGroupMoveProfiles"
+msgstr "Flytt profiler"
+
+msgid "options_profileGroupsEmpty"
+msgstr "Ingen profilgrupper er opprettet."
+
+msgid "options_profileGroupsMoveSection"
+msgstr "Flytt profiler"
+
+msgid "options_profileGroupFromGroup"
+msgstr "Fra gruppe"
+
+msgid "options_profileGroupColumnProfile"
+msgstr "Profil"
+
+msgid "options_profileGroupSelectProfile"
+msgstr "Velg profil"
+
+msgid "options_profileGroupNoProfiles"
+msgstr "Ingen profiler"
+
+msgid "options_profileGroupMoveTargetGroup"
+msgstr "Flytt til"
+
+msgid "options_profileGroupMove"
+msgstr "Flytt"
+
+msgid "options_profileGroupHideAllAssignments"
+msgstr "Skjul alle profiltildelinger"
+
+msgid "options_profileGroupShowAllAssignments"
+msgstr "Vis alle profiltildelinger"
+
+msgid "options_profileGroupCurrentGroup"
+msgstr "Gjeldende gruppe"
+
+msgid "options_profileGroupsProfilesEmpty"
+msgstr "Ingen profiler er tilgjengelige."
+
+msgid "options_profileGroupCreate"
+msgstr "Opprett"
+
+msgid "options_profileGroupCreateTitle"
+msgstr "Ny profilgruppe"
+
+msgid "options_profileGroupSave"
+msgstr "Lagre"
+
+msgid "options_profileGroupRenameTitle"
+msgstr "Gi profilgruppe nytt navn"
+
+msgid "options_profileGroupMoveProfilesTitle"
+msgstr "Flytt profiler fra gruppen \"$1:GROUP$\""
+
+msgid "options_profileGroupMoveAllProfiles"
+msgstr "Flytt alle profiler"
+
+msgid "options_profileGroupMoveAllProfilesTo"
+msgstr "Flytt alle profiler til"
+
+msgid "options_profileGroupMoveIndividualProfiles"
+msgstr "Flytt enkeltprofiler"
+
+msgid "options_profileGroupColumnMove"
+msgstr "Flytt"
+
+msgid "options_profileGroupMoveProfileToggle"
+msgstr "Flytt $1:PROFILE$"
+
+msgid "options_profileGroupMoveProfilesEmpty"
+msgstr "Denne gruppen har ingen profiler å flytte."
+
+msgid "options_profileGroupCannotDeleteTitle"
+msgstr "Kan ikke slette profilgruppe"
+
+msgid "options_profileGroupDeleteTitle"
+msgstr "Slett profilgruppe"
+
+msgid "options_profileGroupCannotDeleteHelp"
+msgstr "Denne profilgruppen kan ikke slettes fordi den fortsatt inneholder profiler."
+
+msgid "options_profileGroupMoveProfilesBeforeDelete"
+msgstr "Flytt alle profiler ut av denne gruppen før du sletter den."
+
+msgid "options_profileGroupDeleteHelp"
+msgstr "Vil du virkelig slette denne profilgruppen?"

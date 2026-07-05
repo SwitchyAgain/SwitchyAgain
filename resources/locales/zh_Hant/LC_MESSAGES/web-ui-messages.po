@@ -1682,3 +1682,168 @@ msgstr "請至少選擇一條忽略規則。"
 
 msgid "popup_routeInfoSwitchRuleTarget"
 msgstr "切換規則"
+
+msgid "options_cancel"
+msgstr "取消"
+
+msgid "options_delete"
+msgstr "刪除"
+
+msgid "options_edit"
+msgstr "編輯"
+
+msgid "options_modalClose"
+msgstr "關閉"
+
+msgid "options_profileAutomaticColor"
+msgstr "自動"
+
+msgid "options_enableProfileGroups"
+msgstr "啟用情境模式分組。"
+
+msgid "options_showProfileGroupFlyout"
+msgstr "顯示全部"
+
+msgid "options_tab_profileGroups"
+msgstr "情境分組"
+
+msgid "options_hiddenProfileOptionsDisabledByGroup"
+msgstr "此情境模式由其情境模式分組控制。"
+
+msgid "options_useProfileGroup"
+msgstr "將此情境模式加入分組"
+
+msgid "options_profileGroup"
+msgstr "情境模式分組"
+
+msgid "options_profileGroupSelect"
+msgstr "選擇分組"
+
+msgid "options_profileGroupNewInline"
+msgstr "新增分組…"
+
+msgid "options_useProfileGroupHelp"
+msgstr "啟用後，此情境模式會移入所選情境模式分組。"
+
+msgid "options_profileGroupNameRequired"
+msgstr "分組名稱不能為空。"
+
+msgid "options_profileGroupNameReserved"
+msgstr "Default 和 Hidden 是保留的分組名稱。"
+
+msgid "options_profileGroupNameTaken"
+msgstr "已存在同名情境模式分組。"
+
+msgid "options_profileGroupUngrouped"
+msgstr "未分組"
+
+msgid "options_profileGroupName"
+msgstr "分組名稱"
+
+msgid "options_profileGroupIcon"
+msgstr "圖示"
+
+msgid "options_profileGroupColor"
+msgstr "顏色"
+
+msgid "options_profileGroupsGroupsSection"
+msgstr "分組"
+
+msgid "options_profileGroupNew"
+msgstr "新增分組"
+
+msgid "options_profileGroupColumnGroup"
+msgstr "分組"
+
+msgid "options_profileGroupColumnProfiles"
+msgstr "情境模式"
+
+msgid "options_profileGroupColumnActions"
+msgstr "操作"
+
+msgid "options_profileGroupMoveProfiles"
+msgstr "移動情境模式"
+
+msgid "options_profileGroupsEmpty"
+msgstr "尚未建立情境模式分組。"
+
+msgid "options_profileGroupsMoveSection"
+msgstr "移動情境模式"
+
+msgid "options_profileGroupFromGroup"
+msgstr "來源分組"
+
+msgid "options_profileGroupColumnProfile"
+msgstr "情境模式"
+
+msgid "options_profileGroupSelectProfile"
+msgstr "選擇情境模式"
+
+msgid "options_profileGroupNoProfiles"
+msgstr "沒有情境模式"
+
+msgid "options_profileGroupMoveTargetGroup"
+msgstr "移至"
+
+msgid "options_profileGroupMove"
+msgstr "移動"
+
+msgid "options_profileGroupHideAllAssignments"
+msgstr "隱藏所有情境模式分配"
+
+msgid "options_profileGroupShowAllAssignments"
+msgstr "顯示所有情境模式分配"
+
+msgid "options_profileGroupCurrentGroup"
+msgstr "目前分組"
+
+msgid "options_profileGroupsProfilesEmpty"
+msgstr "沒有可用的情境模式。"
+
+msgid "options_profileGroupCreate"
+msgstr "建立"
+
+msgid "options_profileGroupCreateTitle"
+msgstr "新增情境模式分組"
+
+msgid "options_profileGroupSave"
+msgstr "儲存"
+
+msgid "options_profileGroupRenameTitle"
+msgstr "重新命名情境模式分組"
+
+msgid "options_profileGroupMoveProfilesTitle"
+msgstr "從分組「$1:GROUP$」移動情境模式"
+
+msgid "options_profileGroupMoveAllProfiles"
+msgstr "移動全部情境模式"
+
+msgid "options_profileGroupMoveAllProfilesTo"
+msgstr "將所有情境模式移至"
+
+msgid "options_profileGroupMoveIndividualProfiles"
+msgstr "移動單個情境模式"
+
+msgid "options_profileGroupColumnMove"
+msgstr "移動"
+
+msgid "options_profileGroupMoveProfileToggle"
+msgstr "移動 $1:PROFILE$"
+
+msgid "options_profileGroupMoveProfilesEmpty"
+msgstr "此分組沒有可移動的情境模式。"
+
+msgid "options_profileGroupCannotDeleteTitle"
+msgstr "無法刪除情境模式分組"
+
+msgid "options_profileGroupDeleteTitle"
+msgstr "刪除情境模式分組"
+
+msgid "options_profileGroupCannotDeleteHelp"
+msgstr "無法刪除此情境模式分組，因為其中仍包含情境模式。"
+
+msgid "options_profileGroupMoveProfilesBeforeDelete"
+msgstr "請先將所有情境模式移出此分組，然後再刪除。"
+
+msgid "options_profileGroupDeleteHelp"
+msgstr "確定要刪除此情境模式分組嗎？"

@@ -1852,3 +1852,168 @@ msgstr "Vyberte alespoň jedno pravidlo ignorování."
 
 msgid "popup_routeInfoSwitchRuleTarget"
 msgstr "Pravidlo přepnutí"
+
+msgid "options_cancel"
+msgstr "Storno"
+
+msgid "options_delete"
+msgstr "Odstranit"
+
+msgid "options_edit"
+msgstr "Upravit"
+
+msgid "options_modalClose"
+msgstr "Zavřít"
+
+msgid "options_profileAutomaticColor"
+msgstr "Automaticky"
+
+msgid "options_enableProfileGroups"
+msgstr "Povolit skupiny profilů."
+
+msgid "options_showProfileGroupFlyout"
+msgstr "Zobrazit vše"
+
+msgid "options_tab_profileGroups"
+msgstr "Skupiny profilů"
+
+msgid "options_hiddenProfileOptionsDisabledByGroup"
+msgstr "Tento profil je řízen svou skupinou profilů."
+
+msgid "options_useProfileGroup"
+msgstr "Zařadit tento profil do skupiny"
+
+msgid "options_profileGroup"
+msgstr "Skupina profilů"
+
+msgid "options_profileGroupSelect"
+msgstr "Vyberte skupinu"
+
+msgid "options_profileGroupNewInline"
+msgstr "Nová skupina..."
+
+msgid "options_useProfileGroupHelp"
+msgstr "Po povolení bude tento profil přesunut do vybrané skupiny profilů."
+
+msgid "options_profileGroupNameRequired"
+msgstr "Název skupiny je povinný."
+
+msgid "options_profileGroupNameReserved"
+msgstr "Default a Hidden jsou vyhrazené názvy skupin."
+
+msgid "options_profileGroupNameTaken"
+msgstr "Skupina profilů s tímto názvem již existuje."
+
+msgid "options_profileGroupUngrouped"
+msgstr "Bez skupiny"
+
+msgid "options_profileGroupName"
+msgstr "Název skupiny"
+
+msgid "options_profileGroupIcon"
+msgstr "Ikona"
+
+msgid "options_profileGroupColor"
+msgstr "Barva"
+
+msgid "options_profileGroupsGroupsSection"
+msgstr "Skupiny"
+
+msgid "options_profileGroupNew"
+msgstr "Nová skupina"
+
+msgid "options_profileGroupColumnGroup"
+msgstr "Skupina"
+
+msgid "options_profileGroupColumnProfiles"
+msgstr "Profily"
+
+msgid "options_profileGroupColumnActions"
+msgstr "Akce"
+
+msgid "options_profileGroupMoveProfiles"
+msgstr "Přesunout profily"
+
+msgid "options_profileGroupsEmpty"
+msgstr "Nebyly vytvořeny žádné skupiny profilů."
+
+msgid "options_profileGroupsMoveSection"
+msgstr "Přesunout profily"
+
+msgid "options_profileGroupFromGroup"
+msgstr "Ze skupiny"
+
+msgid "options_profileGroupColumnProfile"
+msgstr "Profil"
+
+msgid "options_profileGroupSelectProfile"
+msgstr "Vyberte profil"
+
+msgid "options_profileGroupNoProfiles"
+msgstr "Žádné profily"
+
+msgid "options_profileGroupMoveTargetGroup"
+msgstr "Přesunout do"
+
+msgid "options_profileGroupMove"
+msgstr "Přesunout"
+
+msgid "options_profileGroupHideAllAssignments"
+msgstr "Skrýt všechna přiřazení profilů"
+
+msgid "options_profileGroupShowAllAssignments"
+msgstr "Zobrazit všechna přiřazení profilů"
+
+msgid "options_profileGroupCurrentGroup"
+msgstr "Aktuální skupina"
+
+msgid "options_profileGroupsProfilesEmpty"
+msgstr "Nejsou dostupné žádné profily."
+
+msgid "options_profileGroupCreate"
+msgstr "Vytvořit"
+
+msgid "options_profileGroupCreateTitle"
+msgstr "Nová skupina profilů"
+
+msgid "options_profileGroupSave"
+msgstr "Uložit"
+
+msgid "options_profileGroupRenameTitle"
+msgstr "Přejmenovat skupinu profilů"
+
+msgid "options_profileGroupMoveProfilesTitle"
+msgstr "Přesunout profily ze skupiny \"$1:GROUP$\""
+
+msgid "options_profileGroupMoveAllProfiles"
+msgstr "Přesunout všechny profily"
+
+msgid "options_profileGroupMoveAllProfilesTo"
+msgstr "Přesunout všechny profily do"
+
+msgid "options_profileGroupMoveIndividualProfiles"
+msgstr "Přesunout jednotlivé profily"
+
+msgid "options_profileGroupColumnMove"
+msgstr "Přesunout"
+
+msgid "options_profileGroupMoveProfileToggle"
+msgstr "Přesunout $1:PROFILE$"
+
+msgid "options_profileGroupMoveProfilesEmpty"
+msgstr "Tato skupina nemá žádné profily k přesunutí."
+
+msgid "options_profileGroupCannotDeleteTitle"
+msgstr "Skupinu profilů nelze odstranit"
+
+msgid "options_profileGroupDeleteTitle"
+msgstr "Odstranit skupinu profilů"
+
+msgid "options_profileGroupCannotDeleteHelp"
+msgstr "Tuto skupinu profilů nelze odstranit, protože stále obsahuje profily."
+
+msgid "options_profileGroupMoveProfilesBeforeDelete"
+msgstr "Před odstraněním přesuňte všechny profily z této skupiny."
+
+msgid "options_profileGroupDeleteHelp"
+msgstr "Opravdu chcete odstranit tuto skupinu profilů?"

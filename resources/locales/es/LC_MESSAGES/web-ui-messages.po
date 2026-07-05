@@ -1910,3 +1910,168 @@ msgstr "Selecciona al menos una regla de ignorados."
 
 msgid "popup_routeInfoSwitchRuleTarget"
 msgstr "Regla de cambio"
+
+msgid "options_cancel"
+msgstr "Cancelar"
+
+msgid "options_delete"
+msgstr "Borrar"
+
+msgid "options_edit"
+msgstr "Editar"
+
+msgid "options_modalClose"
+msgstr "Cerrar"
+
+msgid "options_profileAutomaticColor"
+msgstr "Automático"
+
+msgid "options_enableProfileGroups"
+msgstr "Activar grupos de perfiles."
+
+msgid "options_showProfileGroupFlyout"
+msgstr "Mostrar todo"
+
+msgid "options_tab_profileGroups"
+msgstr "Grupos de perfiles"
+
+msgid "options_hiddenProfileOptionsDisabledByGroup"
+msgstr "Este perfil está controlado por su grupo de perfiles."
+
+msgid "options_useProfileGroup"
+msgstr "Agrupar este perfil"
+
+msgid "options_profileGroup"
+msgstr "Grupo de perfiles"
+
+msgid "options_profileGroupSelect"
+msgstr "Seleccionar un grupo"
+
+msgid "options_profileGroupNewInline"
+msgstr "Nuevo grupo..."
+
+msgid "options_useProfileGroupHelp"
+msgstr "Al activarlo, este perfil se mueve al grupo de perfiles seleccionado."
+
+msgid "options_profileGroupNameRequired"
+msgstr "El nombre del grupo es obligatorio."
+
+msgid "options_profileGroupNameReserved"
+msgstr "Default y Hidden son nombres de grupo reservados."
+
+msgid "options_profileGroupNameTaken"
+msgstr "Ya existe un grupo de perfiles con este nombre."
+
+msgid "options_profileGroupUngrouped"
+msgstr "Sin grupo"
+
+msgid "options_profileGroupName"
+msgstr "Nombre del grupo"
+
+msgid "options_profileGroupIcon"
+msgstr "Icono"
+
+msgid "options_profileGroupColor"
+msgstr "Color"
+
+msgid "options_profileGroupsGroupsSection"
+msgstr "Grupos"
+
+msgid "options_profileGroupNew"
+msgstr "Nuevo grupo"
+
+msgid "options_profileGroupColumnGroup"
+msgstr "Grupo"
+
+msgid "options_profileGroupColumnProfiles"
+msgstr "Perfiles"
+
+msgid "options_profileGroupColumnActions"
+msgstr "Acciones"
+
+msgid "options_profileGroupMoveProfiles"
+msgstr "Mover perfiles"
+
+msgid "options_profileGroupsEmpty"
+msgstr "No se han creado grupos de perfiles."
+
+msgid "options_profileGroupsMoveSection"
+msgstr "Mover perfiles"
+
+msgid "options_profileGroupFromGroup"
+msgstr "Grupo origen"
+
+msgid "options_profileGroupColumnProfile"
+msgstr "Perfil"
+
+msgid "options_profileGroupSelectProfile"
+msgstr "Seleccionar perfil"
+
+msgid "options_profileGroupNoProfiles"
+msgstr "Sin perfiles"
+
+msgid "options_profileGroupMoveTargetGroup"
+msgstr "Mover a"
+
+msgid "options_profileGroupMove"
+msgstr "Mover"
+
+msgid "options_profileGroupHideAllAssignments"
+msgstr "Ocultar todas las asignaciones de perfiles"
+
+msgid "options_profileGroupShowAllAssignments"
+msgstr "Mostrar todas las asignaciones de perfiles"
+
+msgid "options_profileGroupCurrentGroup"
+msgstr "Grupo actual"
+
+msgid "options_profileGroupsProfilesEmpty"
+msgstr "No hay perfiles disponibles."
+
+msgid "options_profileGroupCreate"
+msgstr "Crear"
+
+msgid "options_profileGroupCreateTitle"
+msgstr "Nuevo grupo de perfiles"
+
+msgid "options_profileGroupSave"
+msgstr "Guardar"
+
+msgid "options_profileGroupRenameTitle"
+msgstr "Renombrar grupo de perfiles"
+
+msgid "options_profileGroupMoveProfilesTitle"
+msgstr "Mover perfiles desde el grupo \"$1:GROUP$\""
+
+msgid "options_profileGroupMoveAllProfiles"
+msgstr "Mover todos los perfiles"
+
+msgid "options_profileGroupMoveAllProfilesTo"
+msgstr "Mover todos los perfiles a"
+
+msgid "options_profileGroupMoveIndividualProfiles"
+msgstr "Mover perfiles individuales"
+
+msgid "options_profileGroupColumnMove"
+msgstr "Mover"
+
+msgid "options_profileGroupMoveProfileToggle"
+msgstr "Mover $1:PROFILE$"
+
+msgid "options_profileGroupMoveProfilesEmpty"
+msgstr "Este grupo no tiene perfiles para mover."
+
+msgid "options_profileGroupCannotDeleteTitle"
+msgstr "No se puede eliminar el grupo de perfiles"
+
+msgid "options_profileGroupDeleteTitle"
+msgstr "Eliminar grupo de perfiles"
+
+msgid "options_profileGroupCannotDeleteHelp"
+msgstr "Este grupo de perfiles no se puede eliminar porque aún contiene perfiles."
+
+msgid "options_profileGroupMoveProfilesBeforeDelete"
+msgstr "Mueve todos los perfiles fuera de este grupo antes de eliminarlo."
+
+msgid "options_profileGroupDeleteHelp"
+msgstr "¿Seguro que quieres eliminar este grupo de perfiles?"

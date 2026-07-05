@@ -1844,3 +1844,168 @@ msgstr "Select at least one ignore rule."
 
 msgid "popup_routeInfoSwitchRuleTarget"
 msgstr "Switch rule"
+
+msgid "options_cancel"
+msgstr "Cancel"
+
+msgid "options_delete"
+msgstr "Delete"
+
+msgid "options_edit"
+msgstr "Edit"
+
+msgid "options_modalClose"
+msgstr "Close"
+
+msgid "options_profileAutomaticColor"
+msgstr "Automatic"
+
+msgid "options_enableProfileGroups"
+msgstr "Enable Profile Groups."
+
+msgid "options_showProfileGroupFlyout"
+msgstr "Show all"
+
+msgid "options_tab_profileGroups"
+msgstr "Profile Groups"
+
+msgid "options_hiddenProfileOptionsDisabledByGroup"
+msgstr "This profile is controlled by its profile group."
+
+msgid "options_useProfileGroup"
+msgstr "Group this profile"
+
+msgid "options_profileGroup"
+msgstr "Profile group"
+
+msgid "options_profileGroupSelect"
+msgstr "Select a group"
+
+msgid "options_profileGroupNewInline"
+msgstr "New group..."
+
+msgid "options_useProfileGroupHelp"
+msgstr "When enabled, this profile is moved into the selected profile group."
+
+msgid "options_profileGroupNameRequired"
+msgstr "Group name is required."
+
+msgid "options_profileGroupNameReserved"
+msgstr "Default and Hidden are reserved group names."
+
+msgid "options_profileGroupNameTaken"
+msgstr "A profile group with this name already exists."
+
+msgid "options_profileGroupUngrouped"
+msgstr "Ungrouped"
+
+msgid "options_profileGroupName"
+msgstr "Group name"
+
+msgid "options_profileGroupIcon"
+msgstr "Icon"
+
+msgid "options_profileGroupColor"
+msgstr "Color"
+
+msgid "options_profileGroupsGroupsSection"
+msgstr "Groups"
+
+msgid "options_profileGroupNew"
+msgstr "New Group"
+
+msgid "options_profileGroupColumnGroup"
+msgstr "Group"
+
+msgid "options_profileGroupColumnProfiles"
+msgstr "Profiles"
+
+msgid "options_profileGroupColumnActions"
+msgstr "Actions"
+
+msgid "options_profileGroupMoveProfiles"
+msgstr "Move Profiles"
+
+msgid "options_profileGroupsEmpty"
+msgstr "No profile groups have been created."
+
+msgid "options_profileGroupsMoveSection"
+msgstr "Move Profiles"
+
+msgid "options_profileGroupFromGroup"
+msgstr "From group"
+
+msgid "options_profileGroupColumnProfile"
+msgstr "Profile"
+
+msgid "options_profileGroupSelectProfile"
+msgstr "Select profile"
+
+msgid "options_profileGroupNoProfiles"
+msgstr "No profiles"
+
+msgid "options_profileGroupMoveTargetGroup"
+msgstr "Move to"
+
+msgid "options_profileGroupMove"
+msgstr "Move"
+
+msgid "options_profileGroupHideAllAssignments"
+msgstr "Hide All Profile Assignments"
+
+msgid "options_profileGroupShowAllAssignments"
+msgstr "Show All Profile Assignments"
+
+msgid "options_profileGroupCurrentGroup"
+msgstr "Current Group"
+
+msgid "options_profileGroupsProfilesEmpty"
+msgstr "No profiles are available."
+
+msgid "options_profileGroupCreate"
+msgstr "Create"
+
+msgid "options_profileGroupCreateTitle"
+msgstr "New Profile Group"
+
+msgid "options_profileGroupSave"
+msgstr "Save"
+
+msgid "options_profileGroupRenameTitle"
+msgstr "Rename Profile Group"
+
+msgid "options_profileGroupMoveProfilesTitle"
+msgstr "Move Profiles from Group \"$1:GROUP$\""
+
+msgid "options_profileGroupMoveAllProfiles"
+msgstr "Move All Profiles"
+
+msgid "options_profileGroupMoveAllProfilesTo"
+msgstr "Move all profiles to"
+
+msgid "options_profileGroupMoveIndividualProfiles"
+msgstr "Move Individual Profiles"
+
+msgid "options_profileGroupColumnMove"
+msgstr "Move"
+
+msgid "options_profileGroupMoveProfileToggle"
+msgstr "Move $1:PROFILE$"
+
+msgid "options_profileGroupMoveProfilesEmpty"
+msgstr "This group has no profiles to move."
+
+msgid "options_profileGroupCannotDeleteTitle"
+msgstr "Unable to Delete Profile Group"
+
+msgid "options_profileGroupDeleteTitle"
+msgstr "Delete Profile Group"
+
+msgid "options_profileGroupCannotDeleteHelp"
+msgstr "This profile group cannot be deleted because it still contains profiles."
+
+msgid "options_profileGroupMoveProfilesBeforeDelete"
+msgstr "Move all profiles out of this group before deleting it."
+
+msgid "options_profileGroupDeleteHelp"
+msgstr "Do you really want to delete this profile group?"

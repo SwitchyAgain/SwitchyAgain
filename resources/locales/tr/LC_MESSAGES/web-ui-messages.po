@@ -1701,3 +1701,168 @@ msgstr "Dil"
 
 msgid "options_interfaceLanguage"
 msgstr "Arayüz dili"
+
+msgid "options_cancel"
+msgstr "İptal"
+
+msgid "options_delete"
+msgstr "Sil"
+
+msgid "options_edit"
+msgstr "Düzenle"
+
+msgid "options_modalClose"
+msgstr "Kapat"
+
+msgid "options_profileAutomaticColor"
+msgstr "Otomatik"
+
+msgid "options_enableProfileGroups"
+msgstr "Profil gruplarını etkinleştir."
+
+msgid "options_showProfileGroupFlyout"
+msgstr "Tümünü göster"
+
+msgid "options_tab_profileGroups"
+msgstr "Profil Grupları"
+
+msgid "options_hiddenProfileOptionsDisabledByGroup"
+msgstr "Bu profil, profil grubu tarafından denetleniyor."
+
+msgid "options_useProfileGroup"
+msgstr "Bu profili grupla"
+
+msgid "options_profileGroup"
+msgstr "Profil grubu"
+
+msgid "options_profileGroupSelect"
+msgstr "Grup seç"
+
+msgid "options_profileGroupNewInline"
+msgstr "Yeni grup..."
+
+msgid "options_useProfileGroupHelp"
+msgstr "Etkinleştirildiğinde, bu profil seçili profil grubuna taşınır."
+
+msgid "options_profileGroupNameRequired"
+msgstr "Grup adı gerekli."
+
+msgid "options_profileGroupNameReserved"
+msgstr "Default ve Hidden ayrılmış grup adlarıdır."
+
+msgid "options_profileGroupNameTaken"
+msgstr "Bu ada sahip bir profil grubu zaten var."
+
+msgid "options_profileGroupUngrouped"
+msgstr "Gruplanmamış"
+
+msgid "options_profileGroupName"
+msgstr "Grup adı"
+
+msgid "options_profileGroupIcon"
+msgstr "Simge"
+
+msgid "options_profileGroupColor"
+msgstr "Renk"
+
+msgid "options_profileGroupsGroupsSection"
+msgstr "Gruplar"
+
+msgid "options_profileGroupNew"
+msgstr "Yeni Grup"
+
+msgid "options_profileGroupColumnGroup"
+msgstr "Grup"
+
+msgid "options_profileGroupColumnProfiles"
+msgstr "Profiller"
+
+msgid "options_profileGroupColumnActions"
+msgstr "Hareketler"
+
+msgid "options_profileGroupMoveProfiles"
+msgstr "Profilleri Taşı"
+
+msgid "options_profileGroupsEmpty"
+msgstr "Hiç profil grubu oluşturulmadı."
+
+msgid "options_profileGroupsMoveSection"
+msgstr "Profilleri Taşı"
+
+msgid "options_profileGroupFromGroup"
+msgstr "Kaynak grup"
+
+msgid "options_profileGroupColumnProfile"
+msgstr "Profil"
+
+msgid "options_profileGroupSelectProfile"
+msgstr "Profil seç"
+
+msgid "options_profileGroupNoProfiles"
+msgstr "Profil yok"
+
+msgid "options_profileGroupMoveTargetGroup"
+msgstr "Şuraya taşı"
+
+msgid "options_profileGroupMove"
+msgstr "Taşı"
+
+msgid "options_profileGroupHideAllAssignments"
+msgstr "Tüm profil atamalarını gizle"
+
+msgid "options_profileGroupShowAllAssignments"
+msgstr "Tüm profil atamalarını göster"
+
+msgid "options_profileGroupCurrentGroup"
+msgstr "Geçerli grup"
+
+msgid "options_profileGroupsProfilesEmpty"
+msgstr "Kullanılabilir profil yok."
+
+msgid "options_profileGroupCreate"
+msgstr "Oluştur"
+
+msgid "options_profileGroupCreateTitle"
+msgstr "Yeni Profil Grubu"
+
+msgid "options_profileGroupSave"
+msgstr "Kaydet"
+
+msgid "options_profileGroupRenameTitle"
+msgstr "Profil Grubunu Yeniden Adlandır"
+
+msgid "options_profileGroupMoveProfilesTitle"
+msgstr "\"$1:GROUP$\" Grubundan Profilleri Taşı"
+
+msgid "options_profileGroupMoveAllProfiles"
+msgstr "Tüm Profilleri Taşı"
+
+msgid "options_profileGroupMoveAllProfilesTo"
+msgstr "Tüm profilleri şuraya taşı"
+
+msgid "options_profileGroupMoveIndividualProfiles"
+msgstr "Profilleri Tek Tek Taşı"
+
+msgid "options_profileGroupColumnMove"
+msgstr "Taşı"
+
+msgid "options_profileGroupMoveProfileToggle"
+msgstr "$1:PROFILE$ profilini taşı"
+
+msgid "options_profileGroupMoveProfilesEmpty"
+msgstr "Bu grupta taşınacak profil yok."
+
+msgid "options_profileGroupCannotDeleteTitle"
+msgstr "Profil Grubu Silinemiyor"
+
+msgid "options_profileGroupDeleteTitle"
+msgstr "Profil Grubunu Sil"
+
+msgid "options_profileGroupCannotDeleteHelp"
+msgstr "Bu profil grubu hâlâ profiller içerdiği için silinemez."
+
+msgid "options_profileGroupMoveProfilesBeforeDelete"
+msgstr "Silmeden önce tüm profilleri bu grubun dışına taşıyın."
+
+msgid "options_profileGroupDeleteHelp"
+msgstr "Bu profil grubunu gerçekten silmek istiyor musunuz?"
