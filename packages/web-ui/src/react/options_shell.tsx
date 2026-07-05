@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import {useOutsidePointer} from './dom_event_hooks';
 import {message} from './i18n_client';
 import type {Options} from './options_client_types';
+import {profileGroupsEnabled, profileGroupsForOptions, splitProfilesByGroup} from './profile_groups';
 import {isEditableColor, normalizeColor, PROFILE_COLOR_SWATCHES} from './profile_content_logic';
 import type {ProfileActionMenuOptions} from './profile_types';
 import {isBuiltinProfile, isVirtualProfile, Profile, ProfileInline, profileName, profilesForFilter} from './profile_widgets';
@@ -27,9 +28,11 @@ export type OptionsShellProps = {
   options?: Options | null;
   optionsDirty?: boolean;
   profileActionMenuOptions?: ProfileActionMenuOptions | null;
+  profileGroupsHref?: string;
   profileScopeHref?: string;
   profileHref?: (profile: Profile) => string;
   requestLensHref?: string;
+  showProfileGroups?: boolean;
   showProfileScope?: boolean;
   showRequestLens?: boolean;
   uiHref?: string;
@@ -701,6 +704,7 @@ function ProfileBrowserModal({
   activeProfileName,
   currentState,
   hiddenProfiles,
+  profileGroups,
   onClose,
   onDeleteProfile,
   onExportPacProfile,
@@ -714,6 +718,7 @@ function ProfileBrowserModal({
   activeProfileName: string;
   currentState: string;
   hiddenProfiles: Profile[];
+  profileGroups: Array<{id: string; name: string; profiles: Profile[]}>;
   onClose: () => void;
   onDeleteProfile?: (profile: Profile) => void;
   onExportPacProfile?: (profile: Profile) => void;
@@ -736,7 +741,17 @@ function ProfileBrowserModal({
     () => hiddenProfiles.filter((profile) => profileMatchesQuery(profile, normalizedQuery)),
     [hiddenProfiles, normalizedQuery]
   );
-  const hasResults = filteredProfiles.length > 0 || filteredHiddenProfiles.length > 0;
+  const filteredProfileGroups = useMemo(
+    () =>
+      profileGroups
+        .map((group) => ({
+          ...group,
+          profiles: group.profiles.filter((profile) => profileMatchesQuery(profile, normalizedQuery))
+        }))
+        .filter((group) => group.profiles.length > 0),
+    [normalizedQuery, profileGroups]
+  );
+  const hasResults = filteredProfiles.length > 0 || filteredHiddenProfiles.length > 0 || filteredProfileGroups.length > 0;
 
   function navigateToProfile(profile: Profile) {
     onClose();
@@ -807,6 +822,22 @@ function ProfileBrowserModal({
                       profiles={filteredHiddenProfiles}
                     />
                   )}
+                  {filteredProfileGroups.map((group) => (
+                    <ProfileBrowserSection
+                      key={group.id}
+                      activeProfileName={activeProfileName}
+                      currentState={currentState}
+                      label={group.name}
+                      onDeleteProfile={onDeleteProfile}
+                      onExportPacProfile={onExportPacProfile}
+                      onExportRuleListProfile={onExportRuleListProfile}
+                      onNavigate={navigateToProfile}
+                      onProfileColorChange={onProfileColorChange}
+                      onRenameProfile={onRenameProfile}
+                      profileHref={profileHref}
+                      profiles={group.profiles}
+                    />
+                  ))}
                 </>
               ) : (
                 <p className="text-muted options-shell-profile-browser-empty">
@@ -941,23 +972,46 @@ export function OptionsShell({
   options,
   optionsDirty = false,
   profileActionMenuOptions,
+  profileGroupsHref = '#',
   profileScopeHref = '#',
   profileHref,
   requestLensHref = '#',
+  showProfileGroups = false,
   showProfileScope = false,
   showRequestLens = true,
   uiHref = '#'
 }: OptionsShellProps) {
   const [hiddenProfilesOpen, setHiddenProfilesOpen] = useState(false);
+  const [openProfileGroups, setOpenProfileGroups] = useState<Record<string, boolean>>({});
   const [profileBrowserOpen, setProfileBrowserOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(keepSettingsExpanded ?? true);
   const settingsPreferenceAppliedRef = useRef(keepSettingsExpanded != null);
   const settingsToggledRef = useRef(false);
   const profiles = profilesForFilter(options, 'sorted');
   const appliedProfiles = profilesForFilter(appliedOptions || options, 'sorted');
-  const hiddenProfileNames = new Set(appliedProfiles.filter((profile) => !!profile.hiddenInOptions).map((profile) => profile.name));
-  const visibleProfiles = profiles.filter((profile) => !hiddenProfileNames.has(profile.name));
+  const appliedProfileGroups = profileGroupsForOptions(appliedOptions || options);
+  const appliedGroupSplit = splitProfilesByGroup(
+    appliedProfiles,
+    appliedProfileGroups,
+    profileGroupsEnabled(appliedOptions || options),
+    'options'
+  );
+  const visibleProfileNames = new Set(appliedGroupSplit.visible.map((profile) => profile.name));
+  const hiddenProfileNames = new Set(appliedGroupSplit.hidden.map((profile) => profile.name));
+  const customGroupProfileNames = new Map(
+    appliedGroupSplit.groups.map((group) => [group.id, new Set(group.profiles.map((profile) => profile.name))])
+  );
+  const groupedProfileNames = new Set(appliedGroupSplit.groups.flatMap((group) => group.profiles.map((profile) => profile.name)));
+  const visibleProfiles = profiles.filter(
+    (profile) => visibleProfileNames.has(profile.name) || (!hiddenProfileNames.has(profile.name) && !groupedProfileNames.has(profile.name))
+  );
   const hiddenProfiles = profiles.filter((profile) => hiddenProfileNames.has(profile.name));
+  const customProfileGroups = appliedGroupSplit.groups
+    .map((group) => ({
+      ...group,
+      profiles: profiles.filter((profile) => customGroupProfileNames.get(group.id)?.has(profile.name))
+    }))
+    .filter((group) => group.profiles.length > 0);
   const actionMenuOptions = normalizedProfileActionMenuOptions(profileActionMenuOptions);
   const sidebarDeleteProfile = actionMenuOptions.sidebarMenu ? onDeleteProfile : undefined;
   const sidebarRenameProfile = actionMenuOptions.sidebarMenu ? onRenameProfile : undefined;
@@ -999,6 +1053,18 @@ export function OptionsShell({
             key: 'profileScope',
             label: message('options_tab_profileScope', 'Profile Scope'),
             onClick: () => onNavigate?.('profileScope')
+          }
+        ]
+      : []),
+    ...(showProfileGroups
+      ? [
+          {
+            active: currentState === 'profileGroups',
+            href: profileGroupsHref,
+            icon: 'glyphicon-folder-close',
+            key: 'profileGroups',
+            label: message('options_tab_profileGroups', 'Profile Groups'),
+            onClick: () => onNavigate?.('profileGroups')
           }
         ]
       : []),
@@ -1168,6 +1234,63 @@ export function OptionsShell({
             )}
           </>
         )}
+        {customProfileGroups.map((group) => {
+          const open = !!openProfileGroups[group.id];
+          return (
+            <React.Fragment key={group.id}>
+              <ul className="nav nav-pills nav-stacked options-shell-hidden-profile-header">
+                <li className="nav-header options-shell-section-header">
+                  <button
+                    type="button"
+                    className="options-shell-hidden-profile-toggle"
+                    aria-expanded={open}
+                    onClick={() =>
+                      setOpenProfileGroups({
+                        ...openProfileGroups,
+                        [group.id]: !open
+                      })
+                    }
+                  >
+                    <span className={`glyphicon ${open ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right'}`} />{' '}
+                    <span>{group.name}</span>
+                  </button>
+                  {actionMenuOptions.sectionMenu && (
+                    <ProfileSectionMenuButton
+                      activeProfileName={currentProfileName}
+                      ariaLabel={message('options_showProfileGroupFlyout', 'Show all')}
+                      currentState={currentState}
+                      label={group.name}
+                      onNavigate={onNavigate}
+                      profileHref={profileHref}
+                      profiles={group.profiles}
+                    />
+                  )}
+                </li>
+              </ul>
+              {open && (
+                <div className="options-shell-hidden-profile-list">
+                  <ul className="nav nav-pills nav-stacked">
+                    {group.profiles.map((profile) => (
+                      <ProfileNavItem
+                        key={profile.name}
+                        currentProfileName={currentProfileName}
+                        currentState={currentState}
+                        onDeleteProfile={sidebarDeleteProfile}
+                        onExportPacProfile={sidebarExportPacProfile}
+                        onExportRuleListProfile={sidebarExportRuleListProfile}
+                        onNavigate={onNavigate}
+                        onProfileColorChange={sidebarProfileColorChange}
+                        onRenameProfile={sidebarRenameProfile}
+                        profile={profile}
+                        profileHref={profileHref}
+                      />
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </React.Fragment>
+          );
+        })}
         <ul className="nav nav-pills nav-stacked options-shell-actions">
           <li className="nav-new-profile">
             <a href={newProfileHref} role="button" onClick={(event) => navClick(event, onNewProfile)}>
@@ -1198,6 +1321,7 @@ export function OptionsShell({
           activeProfileName={currentProfileName}
           currentState={currentState}
           hiddenProfiles={hiddenProfiles}
+          profileGroups={customProfileGroups}
           onClose={() => setProfileBrowserOpen(false)}
           onDeleteProfile={browserDeleteProfile}
           onExportPacProfile={browserExportPacProfile}

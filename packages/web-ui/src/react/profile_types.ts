@@ -28,6 +28,8 @@ export type Profile = {
   hiddenInOptions?: boolean;
   hiddenInPopup?: boolean;
   name?: string;
+  profileGroupEnabled?: boolean;
+  profileGroupId?: string;
   profileType?: ProfileType;
   syncError?: ProfileSyncError;
   syncOptions?: string;
@@ -64,6 +66,14 @@ export type ProfileActionMenuOptions = {
   sidebarMenu?: boolean;
 };
 
+export type ProfileGroup = {
+  color?: string;
+  icon?: string;
+  id: string;
+  name: string;
+  order?: number;
+};
+
 export type OptionsData = {
   [key: string]: unknown;
   '-addConditionsToBottom'?: boolean;
@@ -86,6 +96,8 @@ export type OptionsData = {
   '-networkRequestIgnoreListEnabled'?: boolean;
   '-networkRequestIgnoreList'?: string[];
   '-profileActionMenuOptions'?: ProfileActionMenuOptions;
+  '-profileGroups'?: ProfileGroup[];
+  '-profileGroupsEnabled'?: boolean;
   '-profileScopeAssignments'?: {
     containers?: Record<string, string>;
     normalDefaultProfileName?: string;

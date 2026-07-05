@@ -1,5 +1,7 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {useOutsidePointer} from './dom_event_hooks';
 import {message} from './i18n_client';
+import {PROFILE_COLOR_SWATCHES} from './profile_content_logic';
 import {PROFILE_ICONS, Profile, ProfileSelect} from './profile_widgets';
 import {profileNameErrors, profileNameValid} from './profile_modals_logic';
 import type {ProfileType} from './profile_types';
@@ -25,10 +27,12 @@ export type NewProfileProps = {
 
 export type NewProfileSpec =
   | {
+      color?: string;
       name: string;
       profileType: ProfileType;
     }
   | {
+      color?: string;
       duplicateProfileName: string;
       name: string;
     };
@@ -51,6 +55,7 @@ function ProfileNameField({
   label,
   name,
   onChange,
+  trailingControl,
   profileByName
 }: {
   fromName?: string;
@@ -59,6 +64,7 @@ function ProfileNameField({
   label: string;
   name: string;
   onChange: (name: string) => void;
+  trailingControl?: React.ReactNode;
   profileByName?: (name: string) => Profile | null;
 }) {
   const errors = useMemo(
@@ -71,15 +77,30 @@ function ProfileNameField({
   return (
     <div className={`form-group ${valid ? '' : 'has-error'}`}>
       <label htmlFor="profile-new-name">{label}</label>
-      <input
-        id="profile-new-name"
-        className="form-control"
-        type="text"
-        name="profileNewName"
-        required
-        value={name}
-        onChange={(event) => onChange(event.currentTarget.value)}
-      />
+      {trailingControl ? (
+        <div className="input-group profile-name-input-group">
+          <input
+            id="profile-new-name"
+            className="form-control"
+            type="text"
+            name="profileNewName"
+            required
+            value={name}
+            onChange={(event) => onChange(event.currentTarget.value)}
+          />
+          <span className="input-group-btn">{trailingControl}</span>
+        </div>
+      ) : (
+        <input
+          id="profile-new-name"
+          className="form-control"
+          type="text"
+          name="profileNewName"
+          required
+          value={name}
+          onChange={(event) => onChange(event.currentTarget.value)}
+        />
+      )}
       {errors.required && (
         <div className="help-block">{message('options_profileNameEmpty', 'The name of the profile must not be empty.')}</div>
       )}
@@ -210,6 +231,62 @@ function ProfileTypeOption({
   );
 }
 
+function NewProfileColorControl({color, onChange}: {color: string; onChange: (color: string) => void}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLSpanElement>(null);
+  useOutsidePointer(rootRef, () => setOpen(false), open);
+
+  function choose(nextColor: string) {
+    onChange(nextColor);
+    setOpen(false);
+  }
+
+  return (
+    <span ref={rootRef} className={`profile-new-color-control ${open ? 'open' : ''}`}>
+      <button
+        type="button"
+        className="btn btn-default profile-new-color-button"
+        title={message('options_profileColor', 'Profile color')}
+        aria-label={message('options_profileColor', 'Profile color')}
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        onClick={() => setOpen(!open)}
+      >
+        <span
+          className={`profile-new-color-swatch ${color ? '' : 'profile-new-color-swatch-auto'}`}
+          style={color ? {backgroundColor: color} : undefined}
+        />
+      </button>
+      {open && (
+        <div className="profile-new-color-popover" role="dialog" aria-label={message('options_profileColor', 'Profile color')}>
+          <button
+            type="button"
+            className={`profile-new-color-auto-option${color ? '' : ' active'}`}
+            title={message('options_profileAutomaticColor', 'Automatic')}
+            aria-label={message('options_profileAutomaticColor', 'Automatic')}
+            onClick={() => choose('')}
+          >
+            <span className="profile-new-color-auto-swatch" />
+          </button>
+          <div className="profile-new-color-swatch-grid">
+            {PROFILE_COLOR_SWATCHES.map((choice) => (
+              <button
+                key={choice}
+                type="button"
+                className={`profile-color-swatch-option${choice === color ? ' active' : ''}`}
+                style={{backgroundColor: choice}}
+                title={choice}
+                aria-label={message('options_profileUseColor', `Use ${choice}`, choice)}
+                onClick={() => choose(choice)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </span>
+  );
+}
+
 export function NewProfileModal({
   duplicatableProfiles = [],
   isProfileNameHidden,
@@ -222,6 +299,7 @@ export function NewProfileModal({
   const [name, setName] = useState('');
   const [createMode, setCreateMode] = useState<'profile' | 'duplicate'>('profile');
   const [duplicateProfileName, setDuplicateProfileName] = useState('');
+  const [profileColor, setProfileColor] = useState('');
   const [profileType, setProfileType] = useState<ProfileType>('FixedProfile');
   const errors = useMemo(
     () => profileNameErrors(name, '', isProfileNameReserved, profileByName),
@@ -250,12 +328,17 @@ export function NewProfileModal({
     if (valid) {
       if (duplicateSelected) {
         onClose?.({
+          ...(profileColor ? {color: profileColor} : {}),
           duplicateProfileName,
           name
         });
         return;
       }
-      onClose?.({name, profileType});
+      onClose?.({
+        ...(profileColor ? {color: profileColor} : {}),
+        name,
+        profileType
+      });
     }
   }
 
@@ -276,6 +359,7 @@ export function NewProfileModal({
           name={name}
           onChange={setName}
           profileByName={profileByName}
+          trailingControl={<NewProfileColorControl color={profileColor} onChange={setProfileColor} />}
         />
         <label>{message('options_profileType', 'Profile type')}</label>
         <ProfileTypeOption
@@ -362,6 +446,7 @@ export function NewProfileModal({
               <span className="profile-duplicate-source-label">{duplicateSourceLabel}</span>{' '}
               <ProfileSelect
                 ariaLabel={duplicateSourceLabel}
+                autoDropup
                 defaultIcon="glyphicon-question-sign"
                 defaultText={duplicateSourcePlaceholder}
                 inline

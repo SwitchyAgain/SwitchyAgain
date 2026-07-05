@@ -72,7 +72,18 @@ type BadgeOptions = {
 
 type Profile = ProxyProfile;
 type ContextMenuProfile = Profile & {name: string};
+type ProfileGroup = {
+  color?: string;
+  icon?: string;
+  id: string;
+  name: string;
+  order?: number;
+};
+type ContextMenuProfileGroup = ProfileGroup & {
+  profiles: ContextMenuProfile[];
+};
 type ContextMenuProfileGroups = {
+  groups: ContextMenuProfileGroup[];
   hidden: ContextMenuProfile[];
   visible: ContextMenuProfile[];
 };
@@ -85,6 +96,7 @@ type ContextMenuProfileItemOptions = {
   profile: ContextMenuProfile;
   radio?: boolean;
   targetUrlPatterns?: string[];
+  title?: string;
   useIcons: boolean;
 };
 type LinkProfileContextMenuTarget = 'tab' | 'window' | 'privateWindow';
@@ -1051,6 +1063,15 @@ class ChromeOptions extends ExtensionRuntime.Options {
     return label ? `${label} ${title}` : title;
   }
 
+  private contextMenuGroupedProfileTitle(group: ProfileGroup, profile: ContextMenuProfile, useIcons: boolean) {
+    const title = `[${group.name}] ${this.localizedProfileName(profile)}`;
+    if (useIcons) {
+      return title;
+    }
+    const label = PROFILE_CONTEXT_MENU_TYPE_LABELS[profile.profileType || ''];
+    return label ? `${label} ${title}` : title;
+  }
+
   private profileIconColor(profile: ContextMenuProfile) {
     const color = typeof profile.color === 'string' ? profile.color.trim() : '';
     return /^#[0-9a-fA-F]{3,8}$/.test(color) ? color : '#777777';
@@ -1100,7 +1121,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
     const baseItem: Record<string, unknown> = {
       id: options.id,
       parentId: options.parentId,
-      title: this.contextMenuProfileTitle(options.profile, options.useIcons),
+      title: options.title || this.contextMenuProfileTitle(options.profile, options.useIcons),
       contexts: options.contexts
     };
     if (options.documentUrlPatterns) {
@@ -1154,17 +1175,73 @@ class ChromeOptions extends ExtensionRuntime.Options {
     return this.contextMenuProfilesMatching((name) => this.isVisibleResultProfileName(name));
   }
 
+  private profileGroupsEnabled(): boolean {
+    return this._options['-profileGroupsEnabled'] === true;
+  }
+
+  private profileGroups(): ProfileGroup[] {
+    const rawGroups = this._options['-profileGroups'];
+    if (!Array.isArray(rawGroups)) {
+      return [];
+    }
+    const seen: Record<string, boolean> = {};
+    const groups: ProfileGroup[] = [];
+    rawGroups.forEach((rawGroup, index) => {
+      if (!rawGroup || typeof rawGroup !== 'object') {
+        return;
+      }
+      const group = rawGroup as Record<string, unknown>;
+      const id = typeof group.id === 'string' ? group.id.trim() : '';
+      const name = typeof group.name === 'string' ? group.name.trim() : '';
+      if (!id || !name || seen[id]) {
+        return;
+      }
+      seen[id] = true;
+      groups.push({
+        color: typeof group.color === 'string' ? group.color : undefined,
+        icon: typeof group.icon === 'string' ? group.icon : undefined,
+        id,
+        name,
+        order: typeof group.order === 'number' ? group.order : index
+      });
+    });
+    return groups.sort((a, b) => {
+      return a.name.localeCompare(b.name);
+    });
+  }
+
   private splitContextMenuProfiles(profiles: ContextMenuProfile[], activeProfileName?: string): ContextMenuProfileGroups {
     const visible: ContextMenuProfile[] = [];
     const hidden: ContextMenuProfile[] = [];
+    const groupProfiles: Record<string, ContextMenuProfile[]> = {};
+    const groups = this.profileGroups();
+    const groupIds: Record<string, boolean> = {};
+    groups.forEach((group) => {
+      groupIds[group.id] = true;
+    });
+    const groupsEnabled = this.profileGroupsEnabled();
     for (const profile of profiles) {
+      const groupId = typeof profile.profileGroupId === 'string' ? profile.profileGroupId : '';
+      if (groupsEnabled && profile.profileGroupEnabled === true && groupIds[groupId]) {
+        (groupProfiles[groupId] ||= []).push(profile);
+        continue;
+      }
       if (profile.hiddenInContextMenu === true && profile.name !== activeProfileName) {
         hidden.push(profile);
       } else {
         visible.push(profile);
       }
     }
-    return {hidden, visible};
+    return {
+      groups: groups
+        .filter((group) => groupProfiles[group.id]?.length)
+        .map((group) => ({
+          ...group,
+          profiles: groupProfiles[group.id]
+        })),
+      hidden,
+      visible
+    };
   }
 
   private removeContextMenuItems(ids: string[], callback: () => void) {
@@ -1308,6 +1385,34 @@ class ChromeOptions extends ExtensionRuntime.Options {
             useIcons
           });
         });
+        profileGroups.groups.forEach((group, groupIndex) => {
+          const groupRootId = `${root.id}:group:${groupIndex}`;
+          const groupItemPrefix = `${root.itemPrefix}group:${groupIndex}:`;
+          nextIds.push(groupRootId);
+          this.createContextMenuItem({
+            id: groupRootId,
+            parentId: root.id,
+            title: group.name,
+            contexts: ['link'],
+            targetUrlPatterns: WEB_LINK_PATTERNS
+          });
+          group.profiles.forEach((profile, index) => {
+            const id = `${groupItemPrefix}${index}`;
+            nextIds.push(id);
+            nextSelections[id] = {
+              profileName: profile.name,
+              target: root.target
+            };
+            this.createContextMenuProfileItem({
+              id,
+              parentId: groupRootId,
+              profile,
+              contexts: ['link'],
+              targetUrlPatterns: WEB_LINK_PATTERNS,
+              useIcons
+            });
+          });
+        });
         if (profileGroups.hidden.length > 0) {
           const hiddenRootId = `${root.id}:hidden`;
           const hiddenItemPrefix = `${root.itemPrefix}hidden:`;
@@ -1381,6 +1486,51 @@ class ChromeOptions extends ExtensionRuntime.Options {
           documentUrlPatterns: WEB_LINK_PATTERNS,
           radio: true,
           useIcons
+        });
+      });
+      const activeGroup = profileGroups.groups.find((group) => group.profiles.some((profile) => profile.name === this._currentProfileName));
+      const activeGroupedProfile = activeGroup?.profiles.find((profile) => profile.name === this._currentProfileName);
+      if (activeGroup && activeGroupedProfile) {
+        const id = `${SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID}:groupedCurrent`;
+        nextIds.push(id);
+        nextProfiles[id] = activeGroupedProfile.name;
+        this.createContextMenuProfileItem({
+          id,
+          parentId: SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID,
+          profile: activeGroupedProfile,
+          checked: true,
+          contexts: ['page'],
+          documentUrlPatterns: WEB_LINK_PATTERNS,
+          radio: true,
+          title: this.contextMenuGroupedProfileTitle(activeGroup, activeGroupedProfile, useIcons),
+          useIcons
+        });
+      }
+      profileGroups.groups.forEach((group, groupIndex) => {
+        const groupRootId = `${SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID}:group:${groupIndex}`;
+        const groupItemPrefix = `${SWITCH_PROFILE_CONTEXT_MENU_ITEM_PREFIX}group:${groupIndex}:`;
+        nextIds.push(groupRootId);
+        this.createContextMenuItem({
+          id: groupRootId,
+          parentId: SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID,
+          title: group.name,
+          contexts: ['page'],
+          documentUrlPatterns: WEB_LINK_PATTERNS
+        });
+        group.profiles.forEach((profile, index) => {
+          const id = `${groupItemPrefix}${index}`;
+          nextIds.push(id);
+          nextProfiles[id] = profile.name;
+          this.createContextMenuProfileItem({
+            id,
+            parentId: groupRootId,
+            profile,
+            checked: profile.name === this._currentProfileName,
+            contexts: ['page'],
+            documentUrlPatterns: WEB_LINK_PATTERNS,
+            radio: true,
+            useIcons
+          });
         });
       });
       if (profileGroups.hidden.length > 0) {
@@ -1563,6 +1713,36 @@ class ChromeOptions extends ExtensionRuntime.Options {
         useIcons
       });
     });
+    profileGroups.groups.forEach((group, groupIndex) => {
+      const groupRootId = `${target.rootId}:group:${groupIndex}`;
+      const groupItemPrefix = `${target.itemPrefix}group:${groupIndex}:`;
+      nextIds.push(groupRootId);
+      this.createContextMenuItem({
+        id: groupRootId,
+        parentId: target.rootId,
+        title: group.name,
+        contexts: ['page'],
+        documentUrlPatterns: WEB_LINK_PATTERNS
+      });
+      group.profiles.forEach((profile, index) => {
+        const id = `${groupItemPrefix}${index}`;
+        nextIds.push(id);
+        nextSelections[id] = {
+          ...target.setArgs,
+          profileName: profile.name
+        };
+        this.createContextMenuProfileItem({
+          id,
+          parentId: groupRootId,
+          profile,
+          checked: profile.name === target.activeProfileName,
+          contexts: ['page'],
+          documentUrlPatterns: WEB_LINK_PATTERNS,
+          radio: true,
+          useIcons
+        });
+      });
+    });
     if (profileGroups.hidden.length > 0) {
       const hiddenRootId = `${target.rootId}:hidden`;
       const hiddenItemPrefix = `${target.itemPrefix}hidden:`;
@@ -1602,7 +1782,14 @@ class ChromeOptions extends ExtensionRuntime.Options {
 
   private staticWindowProfileContextMenuSignature(profiles: ContextMenuProfile[], targets: ProfileScopeContextMenuTarget[]) {
     return JSON.stringify({
-      profiles: profiles.map((profile) => [profile.name, profile.hiddenInContextMenu === true]),
+      profileGroups: this.profileGroups(),
+      profileGroupsEnabled: this.profileGroupsEnabled(),
+      profiles: profiles.map((profile) => [
+        profile.name,
+        profile.hiddenInContextMenu === true,
+        profile.profileGroupEnabled === true,
+        typeof profile.profileGroupId === 'string' ? profile.profileGroupId : ''
+      ]),
       targets: targets.map((target) => [target.rootId, target.activeProfileName || ''])
     });
   }

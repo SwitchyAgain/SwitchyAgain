@@ -282,6 +282,8 @@ type AvailableProfile = {
   hiddenInOptions?: boolean;
   hiddenInPopup?: boolean;
   name?: unknown;
+  profileGroupEnabled?: boolean;
+  profileGroupId?: string;
   profileType?: unknown;
   validResultProfiles?: Array<string | undefined>;
 };
@@ -1028,6 +1030,13 @@ class Options {
           uiTheme: this._options['-uiTheme']
         });
       }
+      if (changes['-profileGroupsEnabled'] != null || changes['-profileGroups'] != null || changes === this._options) {
+        this._state.set({
+          profileGroupsEnabled: this._options['-profileGroupsEnabled'] === true,
+          profileGroups: Array.isArray(this._options['-profileGroups']) ? this._options['-profileGroups'] : []
+        });
+        this._setAvailableProfiles();
+      }
       if (hasProp.call(changes, '-showPopupAddCondition') || changes === this._options) {
         this._state.set({
           showPopupAddCondition: defaultEnabledOption(this._options['-showPopupAddCondition'])
@@ -1227,6 +1236,8 @@ class Options {
         hiddenInContextMenu: p.hiddenInContextMenu ? true : void 0,
         hiddenInOptions: p.hiddenInOptions ? true : void 0,
         hiddenInPopup: p.hiddenInPopup ? true : void 0,
+        profileGroupEnabled: p.profileGroupEnabled ? true : void 0,
+        profileGroupId: typeof p.profileGroupId === 'string' ? p.profileGroupId : void 0,
         builtin: p.builtin ? true : void 0
       };
       if (p.profileType === 'VirtualProfile') {

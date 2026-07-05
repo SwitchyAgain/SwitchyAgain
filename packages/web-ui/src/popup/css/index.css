@@ -389,6 +389,36 @@ body {
 .glyphicon-new-window:before {
   content: "\e164";
 }
+.glyphicon-folder-close:before {
+  content: "\e117";
+}
+.glyphicon-glass:before {
+  content: "\e001";
+}
+.glyphicon-music:before {
+  content: "\e002";
+}
+.glyphicon-film:before {
+  content: "\e009";
+}
+.glyphicon-home:before {
+  content: "\e021";
+}
+.glyphicon-headphones:before {
+  content: "\e035";
+}
+.glyphicon-facetime-video:before {
+  content: "\e059";
+}
+.glyphicon-phone:before {
+  content: "\e145";
+}
+.glyphicon-cutlery:before {
+  content: "\e179";
+}
+.glyphicon-bishop:before {
+  content: "\e214";
+}
 
 /* React popup forms: keep the legacy popup form visual language. */
 

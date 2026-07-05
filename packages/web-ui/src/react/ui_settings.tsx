@@ -722,6 +722,16 @@ export function UiSettings({
           <label>
             <input
               type="checkbox"
+              checked={Boolean(draftOptions['-profileGroupsEnabled'])}
+              onChange={(event) => updateOption('-profileGroupsEnabled', event.currentTarget.checked)}
+            />
+            <span> {message('options_enableProfileGroups', 'Enable Profile Groups.')}</span>
+          </label>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
               checked={draftOptions['-showRequestLens'] !== false}
               onChange={(event) => updateOption('-showRequestLens', event.currentTarget.checked)}
             />

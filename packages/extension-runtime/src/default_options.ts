@@ -14,6 +14,8 @@ export default function defaultOptions() {
     '-profileScopeAssignments': {
       containers: {}
     },
+    '-profileGroupsEnabled': false,
+    '-profileGroups': [] as Array<{color?: string; icon?: string; id: string; name: string; order?: number}>,
     '-contextMenuOptions': {
       switchProfile: true,
       tabProfile: false,

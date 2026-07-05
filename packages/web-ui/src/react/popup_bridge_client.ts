@@ -11,6 +11,8 @@ export type Profile = NamedProfile & {
   desc?: string;
   hiddenInContextMenu?: boolean;
   hiddenInPopup?: boolean;
+  profileGroupEnabled?: boolean;
+  profileGroupId?: string;
   role?: string;
   validResultProfiles?: string[];
 };
@@ -92,6 +94,8 @@ export type PopupState = {
   externalProfile?: Profile;
   isSystemProfile?: boolean;
   lastProfileNameForCondition?: string;
+  profileGroups?: Array<{color?: string; icon?: string; id: string; name: string; order?: number}>;
+  profileGroupsEnabled?: boolean;
   proxyNotControllable?: string;
   refreshOnProfileChange?: boolean;
   scopeAssignableProfiles?: string[];

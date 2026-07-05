@@ -67,6 +67,27 @@ describe('profile modal components', () => {
     });
   });
 
+  it('adds a selected color when creating a new profile', () => {
+    const onClose = vi.fn();
+
+    render(<NewProfileModal onClose={onClose} />);
+
+    fireEvent.change(screen.getByLabelText('Profile name'), {
+      target: {
+        value: 'proxy'
+      }
+    });
+    fireEvent.click(screen.getByRole('button', {name: 'Profile color'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Use #99dd99'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Create'}));
+
+    expect(onClose).toHaveBeenCalledWith({
+      color: '#99dd99',
+      name: 'proxy',
+      profileType: 'FixedProfile'
+    });
+  });
+
   it('shows duplicate as a disabled final option when no profiles can be copied', () => {
     render(<NewProfileModal duplicatableProfiles={[]} />);
 
@@ -120,6 +141,41 @@ describe('profile modal components', () => {
     fireEvent.click(createButton);
 
     expect(onClose).toHaveBeenCalledWith({
+      duplicateProfileName: 'proxy',
+      name: 'proxy-copy'
+    });
+  });
+
+  it('can override the color when duplicating a profile', () => {
+    const onClose = vi.fn();
+
+    render(
+      <NewProfileModal
+        duplicatableProfiles={[
+          {
+            color: '#99ccee',
+            name: 'proxy',
+            profileType: 'FixedProfile'
+          }
+        ]}
+        onClose={onClose}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText('Profile name'), {
+      target: {
+        value: 'proxy-copy'
+      }
+    });
+    fireEvent.click(screen.getByRole('radio', {name: /Duplicate/}));
+    fireEvent.click(screen.getByRole('button', {name: 'Profile color'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Use #99dd99'}));
+    fireEvent.click(screen.getByRole('listbox', {name: 'Profile'}));
+    fireEvent.click(screen.getByRole('option', {name: /proxy/}).querySelector('a') as HTMLAnchorElement);
+    fireEvent.click(screen.getByRole('button', {name: 'Create'}));
+
+    expect(onClose).toHaveBeenCalledWith({
+      color: '#99dd99',
       duplicateProfileName: 'proxy',
       name: 'proxy-copy'
     });

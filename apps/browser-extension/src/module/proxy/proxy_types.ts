@@ -50,6 +50,8 @@ export type ProxyProfile = Record<string, unknown> & {
   name?: string;
   pacScript?: string;
   pacUrl?: string;
+  profileGroupEnabled?: boolean;
+  profileGroupId?: string;
   profileType?: string;
   proxyForHttp?: ProxyServer;
   proxyForHttps?: ProxyServer;

@@ -1,5 +1,6 @@
 import type {RequestExplanation, RequestExplainProfile} from './options_client_types';
 import type {PageInfo, PopupConditionType, PopupMode, PopupState, Profile, ProfileKey, ProfileMap} from './popup_bridge_client';
+import {profileGroupsForOptions, splitProfilesByGroup} from './profile_groups';
 
 export const defaultConditionType: PopupConditionType = 'HostWildcardCondition';
 
@@ -96,6 +97,21 @@ export function hiddenMenuProfiles(state?: PopupState) {
       return !!profile.hiddenInPopup && profile.name !== state?.currentProfileName;
     })
     .sort(compareProfile);
+}
+
+export function groupedMenuProfiles(state?: PopupState) {
+  const profiles = Object.values(state?.availableProfiles || {})
+    .filter((profile): profile is Profile => {
+      return !!profile && !profile.builtin && profile.name.charAt(0) !== '_';
+    })
+    .sort(compareProfile);
+  return splitProfilesByGroup(
+    profiles,
+    profileGroupsForOptions({'-profileGroups': state?.profileGroups || []}),
+    state?.profileGroupsEnabled === true,
+    'popup',
+    state?.currentProfileName
+  );
 }
 
 export function isVisibleResultProfileName(name: string) {

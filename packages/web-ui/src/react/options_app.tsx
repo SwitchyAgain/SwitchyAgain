@@ -87,6 +87,14 @@ import {
   type ProfileScopeContainerInfo
 } from './profile_scope_settings';
 import {
+  ProfileGroupModal,
+  ProfileGroupsPage,
+  addProfileGroup,
+  profileGroupsEnabled,
+  profileGroupsForOptions,
+  type ProfileGroupDraft
+} from './profile_groups';
+import {
   NamedSwitchProfileModel,
   SwitchProfileModel,
   SwitchRuleSourceState,
@@ -188,6 +196,10 @@ type ModalState =
       fromName: string;
       kind: 'replaceProfile';
       toName: string;
+    }
+  | {
+      kind: 'createProfileGroupForProfile';
+      profileName: string;
     }
   | {
       kind: 'welcome';
@@ -648,6 +660,7 @@ export function OptionsApp() {
     [savedOptions, profileScopeCapabilities]
   );
   const showRequestLens = savedOptions?.['-showRequestLens'] !== false;
+  const showProfileGroups = profileGroupsEnabled(savedOptions);
   const appliedVisibleProfileScopes = useMemo(
     () => visibleProfileScopes(savedOptions, profileScopeCapabilities),
     [savedOptions, profileScopeCapabilities]
@@ -672,6 +685,13 @@ export function OptionsApp() {
     }
     navigate('ui');
   }, [navigate, route.name, showRequestLens, status]);
+
+  useEffect(() => {
+    if (status !== 'ready' || route.name !== 'profileGroups' || showProfileGroups) {
+      return;
+    }
+    navigate('ui');
+  }, [navigate, route.name, showProfileGroups, status]);
 
   useEffect(() => {
     if (status !== 'ready' || !appliedVisibleProfileScopes.container) {
@@ -895,6 +915,18 @@ export function OptionsApp() {
       setProfileOption(nextOptions, profileName, profile);
       return nextOptions;
     });
+  }
+
+  function createProfileGroupForProfile(profileName: string, groupDraft: ProfileGroupDraft) {
+    updateOptionsDraft((nextOptions) => {
+      const group = addProfileGroup(nextOptions, groupDraft);
+      const profile = profileDraft<ProfileModel>(nextOptions, profileName);
+      profile.profileGroupId = group.id;
+      profile.profileGroupEnabled = true;
+      updateProfileRevision(profile);
+      setProfileOption(nextOptions, profileName, profile);
+    });
+    setModal(null);
   }
 
   function updateProfileField<TProfile extends ProfileModel, TField extends keyof TProfile>(
@@ -1207,7 +1239,12 @@ export function OptionsApp() {
   function createProfile(profileSpec: NewProfileSpec) {
     if ('duplicateProfileName' in profileSpec) {
       updateOptionsDraft((nextOptions) => {
-        duplicateProfileOption(nextOptions, profileSpec.duplicateProfileName, profileSpec.name);
+        const profile = duplicateProfileOption(nextOptions, profileSpec.duplicateProfileName, profileSpec.name);
+        if (profile && profileSpec.color) {
+          profile.color = profileSpec.color;
+          updateProfileRevision(profile);
+          setProfileOption(nextOptions, profileSpec.name, profile);
+        }
       });
       setModal(null);
       navigate('profile', {
@@ -1218,6 +1255,9 @@ export function OptionsApp() {
 
     updateOptionsDraft((nextOptions) => {
       const profile = ProxyEngine.Profiles.create(profileSpec);
+      if (profileSpec.color) {
+        profile.color = profileSpec.color;
+      }
       const choice = Math.floor(Math.random() * PROFILE_COLORS.length);
       if (profile.color == null) {
         profile.color = PROFILE_COLORS[choice];
@@ -1669,6 +1709,13 @@ export function OptionsApp() {
         </div>
       );
     }
+    if (route.name === 'profileGroups') {
+      return (
+        <div className="react-settings-host-profile-groups">
+          <ProfileGroupsPage options={options} onOptionsChange={updateOptions} />
+        </div>
+      );
+    }
     if (route.name === 'profile') {
       const profile = route.profileName ? profileByName(options, route.profileName) : null;
       if (!profile) {
@@ -1780,6 +1827,8 @@ export function OptionsApp() {
               exportRuleListWarning={ruleListOptions.warning}
               profile={profile}
               profileColor={profile.color}
+              profileGroups={profileGroupsForOptions(options)}
+              profileGroupsEnabled={profileGroupsEnabled(options)}
               scriptable={!isBuiltinProfile(profile)}
               showProfileOptions={options['-showProfileOptions'] === true}
               onColorChange={(color) =>
@@ -1799,6 +1848,12 @@ export function OptionsApp() {
                   }
                 })
               }
+              onCreateProfileGroup={() =>
+                setModal({
+                  kind: 'createProfileGroupForProfile',
+                  profileName: profile.name
+                })
+              }
               onOptionsSidebarHiddenChange={(hidden) =>
                 updateProfile(profile.name, (nextProfile) => {
                   if (hidden) {
@@ -1815,6 +1870,16 @@ export function OptionsApp() {
                   } else {
                     delete nextProfile.hiddenInPopup;
                   }
+                })
+              }
+              onProfileGroupChange={(groupId) =>
+                updateProfile(profile.name, (nextProfile) => {
+                  nextProfile.profileGroupId = groupId || nextProfile.profileGroupId;
+                })
+              }
+              onProfileGroupEnabledChange={(enabled) =>
+                updateProfile(profile.name, (nextProfile) => {
+                  nextProfile.profileGroupEnabled = enabled;
                 })
               }
               onRename={() => requestRenameProfile(profile)}
@@ -1857,8 +1922,10 @@ export function OptionsApp() {
             optionsDirty={dirty || pendingSourceDraftDirty || status === 'saving'}
             profileActionMenuOptions={options?.['-profileActionMenuOptions'] || null}
             profileHref={(profile) => routeHref('profile', {name: profile.name})}
+            profileGroupsHref={routeHref('profileGroups')}
             profileScopeHref={routeHref('profileScope')}
             requestLensHref={routeHref('requestLens')}
+            showProfileGroups={showProfileGroups}
             showProfileScope={showProfileScope}
             showRequestLens={showRequestLens}
             isExperimental={isExperimental}
@@ -1956,6 +2023,15 @@ export function OptionsApp() {
             profile={modal.profile}
           />
         </ModalFrame>
+      )}
+      {modal?.kind === 'createProfileGroupForProfile' && (
+        <ProfileGroupModal
+          action={message('options_profileGroupCreate', 'Create')}
+          groups={profileGroupsForOptions(options)}
+          title={message('options_profileGroupCreateTitle', 'New Profile Group')}
+          onCancel={() => setModal(null)}
+          onSubmit={(groupDraft) => createProfileGroupForProfile(modal.profileName, groupDraft)}
+        />
       )}
       {modal?.kind === 'resetOptions' && options && (
         <ModalFrame onDismiss={() => setModal(null)}>

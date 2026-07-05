@@ -96,6 +96,8 @@ export type ProfileLike = Record<string, unknown> & {
   hiddenInOptions?: boolean;
   hiddenInPopup?: boolean;
   name?: string;
+  profileGroupEnabled?: boolean;
+  profileGroupId?: string;
   profileType?: string;
   revision?: string;
   rules?: Array<Record<string, unknown>>;

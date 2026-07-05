@@ -1,4 +1,4 @@
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {useOutsidePointer} from './dom_event_hooks';
 import {message} from './i18n_client';
 import type {Options} from './options_client_types';
@@ -95,6 +95,7 @@ export function resultProfilesFor(options: Options | null | undefined, filter?: 
 
 export function ProfileSelect({
   ariaLabel,
+  autoDropup = false,
   defaultIcon = 'glyphicon-time',
   defaultText,
   disabled = false,
@@ -106,6 +107,7 @@ export function ProfileSelect({
   profiles
 }: {
   ariaLabel?: string;
+  autoDropup?: boolean;
   defaultIcon?: string;
   defaultText?: string;
   disabled?: boolean;
@@ -117,6 +119,7 @@ export function ProfileSelect({
   profiles?: Profile[];
 }) {
   const [open, setOpen] = useState(false);
+  const [openUp, setOpenUp] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const profileList = useMemo(() => profiles || profilesFromOptions(options), [options, profiles]);
   const selectedProfile = profileList.find((profile) => profile.name === name) || null;
@@ -125,8 +128,25 @@ export function ProfileSelect({
 
   useOutsidePointer(rootRef, () => setOpen(false), open);
 
+  useLayoutEffect(() => {
+    if (!open || !autoDropup) {
+      setOpenUp(false);
+      return;
+    }
+    const root = rootRef.current;
+    const menu = root?.querySelector('.dropdown-menu');
+    if (!(root instanceof HTMLElement) || !(menu instanceof HTMLElement)) {
+      return;
+    }
+    const rootRect = root.getBoundingClientRect();
+    const menuHeight = menu.getBoundingClientRect().height || menu.scrollHeight;
+    const spaceBelow = window.innerHeight - rootRect.bottom;
+    const spaceAbove = rootRect.top;
+    setOpenUp(spaceBelow < menuHeight && spaceAbove > spaceBelow);
+  }, [autoDropup, defaultText, open, profileList.length]);
+
   return (
-    <div ref={rootRef} className={`btn-group profile-select ${open ? 'open' : ''}`} style={selectStyle}>
+    <div ref={rootRef} className={`btn-group profile-select ${open ? 'open' : ''} ${openUp ? 'dropup' : ''}`} style={selectStyle}>
       <button
         type="button"
         className="btn btn-default dropdown-toggle"

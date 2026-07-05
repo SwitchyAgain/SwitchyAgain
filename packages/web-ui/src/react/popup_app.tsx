@@ -23,7 +23,7 @@ import {
   compareProfile,
   conditionTypes,
   defaultConditionType,
-  hiddenMenuProfiles,
+  groupedMenuProfiles,
   iconForProfileType,
   ignoredRouteInfoRules,
   isPopupConditionType,
@@ -38,11 +38,12 @@ import {
   requestDomains,
   suggestCondition,
   splitPopupHiddenProfiles,
-  visibleMenuProfiles,
   visibleResultProfiles,
   visibleScopeAssignableProfiles
 } from './popup_logic';
+import {ProfileGroupIcon} from './profile_groups';
 import type {RouteInfoGroup} from './popup_logic';
+import type {ProfileDisplayGroup} from './profile_groups';
 import {applyUiTheme} from './ui_theme';
 import {
   NETWORK_REQUEST_IGNORE_LIST_KEY,
@@ -491,6 +492,7 @@ export function PopupApp() {
   const [error, setError] = useState('');
   const [defaultMenuOpen, setDefaultMenuOpen] = useState('');
   const [hiddenMenuOpen, setHiddenMenuOpen] = useState(false);
+  const [profileGroupMenuOpen, setProfileGroupMenuOpen] = useState('');
   const [profileScopeMenuOpen, setProfileScopeMenuOpen] = useState('');
   const [tempMenuOpen, setTempMenuOpen] = useState(false);
   const [keyboardHelp, setKeyboardHelp] = useState(false);
@@ -508,6 +510,8 @@ export function PopupApp() {
             'externalProfile',
             'isSystemProfile',
             'lastProfileNameForCondition',
+            'profileGroups',
+            'profileGroupsEnabled',
             'proxyNotControllable',
             'refreshOnProfileChange',
             'scopeAssignableProfiles',
@@ -540,8 +544,9 @@ export function PopupApp() {
 
   useWindowEvent('hashchange', () => setMode(modeFromHash()));
 
-  const customProfiles = useMemo(() => visibleMenuProfiles(state), [state]);
-  const hiddenProfiles = useMemo(() => hiddenMenuProfiles(state), [state]);
+  const menuProfiles = useMemo(() => groupedMenuProfiles(state), [state]);
+  const customProfiles = menuProfiles.visible;
+  const hiddenProfiles = menuProfiles.hidden;
   const resultProfiles = useMemo(() => visibleResultProfiles(state), [state]);
   const scopeAssignableProfiles = useMemo(() => visibleScopeAssignableProfiles(state), [state]);
   const hasResultProfiles = resultProfiles.length > 0;
@@ -568,6 +573,7 @@ export function PopupApp() {
     setMode(nextMode);
     setDefaultMenuOpen('');
     setHiddenMenuOpen(false);
+    setProfileGroupMenuOpen('');
     setProfileScopeMenuOpen('');
     setTempMenuOpen(false);
   }
@@ -634,9 +640,10 @@ export function PopupApp() {
   }
 
   function closeDropdown() {
-    if (defaultMenuOpen || hiddenMenuOpen || profileScopeMenuOpen || tempMenuOpen) {
+    if (defaultMenuOpen || hiddenMenuOpen || profileGroupMenuOpen || profileScopeMenuOpen || tempMenuOpen) {
       setDefaultMenuOpen('');
       setHiddenMenuOpen(false);
+      setProfileGroupMenuOpen('');
       setProfileScopeMenuOpen('');
       setTempMenuOpen(false);
     }
@@ -650,6 +657,8 @@ export function PopupApp() {
       setDefaultMenuOpen(profileName);
     } else if (item?.classList.contains('sa-popup-nav-hidden-profiles')) {
       setHiddenMenuOpen(true);
+    } else if (item?.dataset.profileGroup) {
+      setProfileGroupMenuOpen(item.dataset.profileGroup);
     } else if (item?.dataset.profileScope) {
       setProfileScopeMenuOpen(item.dataset.profileScope);
     } else if (item?.classList.contains('sa-popup-nav-temp-rule')) {
@@ -795,6 +804,10 @@ export function PopupApp() {
   const windowScope = profileScope?.incognito ? 'private' : 'normal';
   const showWindowScope = !!(profileScope?.enabled?.window && hasScopeAssignableProfiles);
   const showProfileScopes = showTabScope || showGroupScope || showContainerScope || showWindowScope;
+  const activeProfileGroup = menuProfiles.groups.find((group) =>
+    group.profiles.some((profile) => profile.name === state.currentProfileName)
+  );
+  const activeGroupedProfile = activeProfileGroup?.profiles.find((profile) => profile.name === state.currentProfileName);
 
   return (
     <ul className="sa-popup-nav">
@@ -843,6 +856,21 @@ export function PopupApp() {
           onDefaultProfileChange={(defaultProfileName) => setDefaultProfile(profile.name, defaultProfileName)}
         />
       ))}
+      {activeProfileGroup && activeGroupedProfile && (
+        <MenuProfileItem
+          id="js-profile-group-current"
+          active={!state.isSystemProfile && activeGroupedProfile.name === state.currentProfileName}
+          effective={state.isSystemProfile && activeGroupedProfile.name === state.currentProfileName}
+          profile={activeGroupedProfile}
+          state={state}
+          currentProfileClass={currentProfileClass}
+          defaultMenuOpen={defaultMenuOpen === activeGroupedProfile.name}
+          label={`[${activeProfileGroup.name}] ${displayProfileName(activeGroupedProfile)}`}
+          onClick={() => applyProfile(activeGroupedProfile.name)}
+          onDefaultMenuToggle={() => setDefaultMenuOpen(defaultMenuOpen === activeGroupedProfile.name ? '' : activeGroupedProfile.name)}
+          onDefaultProfileChange={(defaultProfileName) => setDefaultProfile(activeGroupedProfile.name, defaultProfileName)}
+        />
+      )}
       {hiddenProfiles.length > 0 && (
         <li
           ref={hiddenDropdown.anchorRef}
@@ -889,6 +917,20 @@ export function PopupApp() {
           )}
         </li>
       )}
+      {menuProfiles.groups.map((group) => (
+        <ProfileGroupMenuItem
+          key={group.id}
+          group={group}
+          open={profileGroupMenuOpen === group.id}
+          state={state}
+          currentProfileClass={currentProfileClass}
+          defaultMenuOpen={defaultMenuOpen}
+          onClick={applyProfile}
+          onDefaultMenuToggle={(profileName) => setDefaultMenuOpen(defaultMenuOpen === profileName ? '' : profileName)}
+          onDefaultProfileChange={setDefaultProfile}
+          onToggle={() => setProfileGroupMenuOpen(profileGroupMenuOpen === group.id ? '' : group.id)}
+        />
+      ))}
       {showProfileScopes && (
         <>
           <li className="sa-popup-divider" />
@@ -1141,6 +1183,72 @@ function MenuProfileItem({
                 <ProfileInline legacySpacing profile={resultProfile} availableProfiles={state.availableProfiles} />
               </a>
             </li>
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+}
+
+function ProfileGroupMenuItem({
+  currentProfileClass,
+  defaultMenuOpen,
+  group,
+  onClick,
+  onDefaultMenuToggle,
+  onDefaultProfileChange,
+  onToggle,
+  open,
+  state
+}: {
+  currentProfileClass: string;
+  defaultMenuOpen: string;
+  group: ProfileDisplayGroup<Profile>;
+  onClick: (profileName: string) => void;
+  onDefaultMenuToggle: (profileName: string) => void;
+  onDefaultProfileChange: (profileName: string, defaultProfileName: string) => void;
+  onToggle: () => void;
+  open: boolean;
+  state: PopupState;
+}) {
+  const dropdown = useFloatingDropdown<HTMLLIElement>(open);
+  return (
+    <li
+      ref={dropdown.anchorRef}
+      className={`sa-popup-nav-item sa-popup-nav-profile-group sa-popup-has-dropdown ${open ? 'sa-popup-open' : ''}`}
+      data-profile-group={group.id}
+    >
+      <a
+        aria-expanded={open}
+        href="#"
+        role="button"
+        onClick={(event) => {
+          event.preventDefault();
+          onToggle();
+        }}
+      >
+        <ProfileGroupIcon group={group} />
+        <span>
+          <span>{group.name}</span>
+          <span className="sa-popup-caret" />
+        </span>
+      </a>
+      {open && (
+        <ul ref={dropdown.dropdownRef} className="sa-popup-dropdown sa-popup-floating-dropdown" style={dropdown.dropdownStyle}>
+          {group.profiles.map((profile, index) => (
+            <MenuProfileItem
+              id={`js-profile-group-${group.id}-${index + 1}`}
+              key={profile.name}
+              active={!state.isSystemProfile && profile.name === state.currentProfileName}
+              effective={state.isSystemProfile && profile.name === state.currentProfileName}
+              profile={profile}
+              state={state}
+              currentProfileClass={currentProfileClass}
+              defaultMenuOpen={defaultMenuOpen === profile.name}
+              onClick={() => onClick(profile.name)}
+              onDefaultMenuToggle={() => onDefaultMenuToggle(profile.name)}
+              onDefaultProfileChange={(defaultProfileName) => onDefaultProfileChange(profile.name, defaultProfileName)}
+            />
           ))}
         </ul>
       )}

@@ -2,6 +2,7 @@ import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {ConfirmModal} from './confirm_modals';
 import {message} from './i18n_client';
 import type {Options, ProxyFeature} from './options_client_types';
+import type {ProfileGroup} from './profile_groups';
 import {richMessage} from './rich_message';
 import {Profile, ProfileInline, ProfileSelect, PROFILE_ICONS, isVirtualProfile, profileByName, resultProfilesFor} from './profile_widgets';
 import {
@@ -449,19 +450,26 @@ export type ProfileShellProps = {
   onExportRuleList?: () => void;
   onExportScript?: () => void;
   onContextMenuHiddenChange?: (hidden: boolean) => void;
+  onCreateProfileGroup?: () => void;
   onOptionsSidebarHiddenChange?: (hidden: boolean) => void;
   onPopupHiddenChange?: (hidden: boolean) => void;
+  onProfileGroupChange?: (groupId: string) => void;
+  onProfileGroupEnabledChange?: (enabled: boolean) => void;
   onRename?: () => void;
   profile: Profile & {
     hiddenInContextMenu?: boolean;
     hiddenInOptions?: boolean;
     hiddenInPopup?: boolean;
+    profileGroupEnabled?: boolean;
+    profileGroupId?: string;
     syncError?: {
       reason?: string;
     };
     syncOptions?: string;
   };
   profileColor?: string;
+  profileGroups?: ProfileGroup[];
+  profileGroupsEnabled?: boolean;
   scriptable?: boolean;
   showProfileOptions?: boolean;
 };
@@ -470,20 +478,31 @@ export function ProfileShell({
   exportRuleListAvailable = false,
   exportRuleListWarning = false,
   onColorChange,
+  onCreateProfileGroup,
   onDelete,
   onExportRuleList,
   onExportScript,
   onContextMenuHiddenChange,
   onOptionsSidebarHiddenChange,
   onPopupHiddenChange,
+  onProfileGroupChange,
+  onProfileGroupEnabledChange,
   onRename,
   profile,
   profileColor,
+  profileGroups = [],
+  profileGroupsEnabled = false,
   scriptable = false,
   showProfileOptions = false
 }: ProfileShellProps) {
   const color = normalizeColor(profileColor || profile.color);
   const isVirtual = isVirtualProfile(profile);
+  const currentGroup = profileGroups.find((group) => group.id === profile.profileGroupId) || null;
+  const groupSelectValue = profile.profileGroupEnabled && currentGroup ? currentGroup.id : '';
+  const profileGroupActive = profileGroupsEnabled && !!profile.profileGroupEnabled && !!currentGroup;
+  const hiddenOptionsDisabledTitle = profileGroupActive
+    ? message('options_hiddenProfileOptionsDisabledByGroup', 'This profile is controlled by its profile group.')
+    : undefined;
 
   return (
     <>
@@ -531,17 +550,83 @@ export function ProfileShell({
       {showProfileOptions && !profile.builtin && (
         <section className="settings-group profile-options">
           <h3>{message('options_group_profileOptions', 'Profile Options')}</h3>
-          <label className="profile-switch-label">
+          {profileGroupsEnabled && (
+            <>
+              <div className="profile-group-control-row">
+                <label className="profile-switch-label">
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    checked={!!profile.profileGroupEnabled && !!currentGroup}
+                    onChange={(event) => {
+                      if (event.currentTarget.checked) {
+                        if (currentGroup) {
+                          onProfileGroupEnabledChange?.(true);
+                        } else if (profileGroups.length > 0) {
+                          onProfileGroupChange?.(profile.profileGroupId || profileGroups[0].id);
+                          onProfileGroupEnabledChange?.(true);
+                        } else {
+                          onCreateProfileGroup?.();
+                        }
+                      } else {
+                        onProfileGroupEnabledChange?.(false);
+                      }
+                    }}
+                  />
+                  <span className="profile-switch" aria-hidden="true">
+                    <span className="profile-switch-knob" />
+                  </span>
+                  <span>{message('options_useProfileGroup', 'Group this profile')}</span>
+                </label>
+                <select
+                  className="form-control profile-group-select"
+                  disabled={!profile.profileGroupEnabled || profileGroups.length === 0}
+                  aria-label={message('options_profileGroup', 'Profile group')}
+                  value={groupSelectValue}
+                  onChange={(event) => {
+                    if (event.currentTarget.value === '__new__') {
+                      onCreateProfileGroup?.();
+                      return;
+                    }
+                    onProfileGroupChange?.(event.currentTarget.value);
+                    onProfileGroupEnabledChange?.(true);
+                  }}
+                >
+                  {!currentGroup && <option value="">{message('options_profileGroupSelect', 'Select a group')}</option>}
+                  {profileGroups.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                    </option>
+                  ))}
+                  <option value="__new__">{message('options_profileGroupNewInline', 'New group...')}</option>
+                </select>
+              </div>
+              <p className="help-block profile-switch-help">
+                {message('options_useProfileGroupHelp', 'When enabled, this profile is moved into the selected profile group.')}
+              </p>
+              {!profile.profileGroupEnabled && currentGroup && (
+                <p className="help-block profile-switch-help">
+                  {message('options_profileGroupRetainedGroup', 'Previous group is retained: {0}', currentGroup.name)}
+                </p>
+              )}
+            </>
+          )}
+          <label
+            className={`profile-switch-label ${profileGroupActive ? 'profile-switch-label-disabled' : ''}`}
+            title={hiddenOptionsDisabledTitle}
+          >
             <input
               type="checkbox"
               role="switch"
               checked={!!profile.hiddenInPopup}
+              disabled={profileGroupActive}
+              title={hiddenOptionsDisabledTitle}
               onChange={(event) => onPopupHiddenChange?.(event.currentTarget.checked)}
             />
             <span className="profile-switch" aria-hidden="true">
               <span className="profile-switch-knob" />
             </span>
-            <span>{message('options_hideFromPopupMenu', 'Hide from popup menu')}</span>
+            <span title={hiddenOptionsDisabledTitle}>{message('options_hideFromPopupMenu', 'Hide from popup menu')}</span>
           </label>
           <p className="help-block profile-switch-help">
             {message(
@@ -549,17 +634,22 @@ export function ProfileShell({
               'When enabled, this profile is moved to the hidden profiles section in the popup menu.'
             )}
           </p>
-          <label className="profile-switch-label">
+          <label
+            className={`profile-switch-label ${profileGroupActive ? 'profile-switch-label-disabled' : ''}`}
+            title={hiddenOptionsDisabledTitle}
+          >
             <input
               type="checkbox"
               role="switch"
               checked={!!profile.hiddenInContextMenu}
+              disabled={profileGroupActive}
+              title={hiddenOptionsDisabledTitle}
               onChange={(event) => onContextMenuHiddenChange?.(event.currentTarget.checked)}
             />
             <span className="profile-switch" aria-hidden="true">
               <span className="profile-switch-knob" />
             </span>
-            <span>{message('options_hideFromContextMenu', 'Hide from context menu')}</span>
+            <span title={hiddenOptionsDisabledTitle}>{message('options_hideFromContextMenu', 'Hide from context menu')}</span>
           </label>
           <p className="help-block profile-switch-help">
             {message(
@@ -567,17 +657,22 @@ export function ProfileShell({
               'When enabled, this profile is moved to the hidden profiles section in profile context menus.'
             )}
           </p>
-          <label className="profile-switch-label">
+          <label
+            className={`profile-switch-label ${profileGroupActive ? 'profile-switch-label-disabled' : ''}`}
+            title={hiddenOptionsDisabledTitle}
+          >
             <input
               type="checkbox"
               role="switch"
               checked={!!profile.hiddenInOptions}
+              disabled={profileGroupActive}
+              title={hiddenOptionsDisabledTitle}
               onChange={(event) => onOptionsSidebarHiddenChange?.(event.currentTarget.checked)}
             />
             <span className="profile-switch" aria-hidden="true">
               <span className="profile-switch-knob" />
             </span>
-            <span>{message('options_hideFromOptionsSidebar', 'Hide from options sidebar')}</span>
+            <span title={hiddenOptionsDisabledTitle}>{message('options_hideFromOptionsSidebar', 'Hide from options sidebar')}</span>
           </label>
           <p className="help-block profile-switch-help">
             {message(
