@@ -253,18 +253,6 @@ function ProfileGroupInline({group}: {group?: ProfileGroup | null}) {
   );
 }
 
-function profileGroupForProfile(profile: ProfileGroupProfile, groups: ProfileGroup[]) {
-  if (profile.profileGroupEnabled !== true || typeof profile.profileGroupId !== 'string') {
-    return null;
-  }
-  return profileGroupMap(groups)[profile.profileGroupId] || null;
-}
-
-function groupAssignmentLabel(profile: ProfileGroupProfile, groups: ProfileGroup[]) {
-  const group = profileGroupForProfile(profile, groups);
-  return group ? group.name : message('options_profileGroupUngrouped', 'Ungrouped');
-}
-
 function ProfileGroupSelect({
   ariaLabel,
   disabled = false,
@@ -393,6 +381,7 @@ export function ProfileGroupModal({
                 <input
                   autoFocus
                   className="form-control"
+                  spellCheck={false}
                   type="text"
                   value={name}
                   onChange={(event) => setName(event.currentTarget.value)}
@@ -453,11 +442,8 @@ export function ProfileGroupModal({
 }
 
 type DeleteState = {
-  advancedOpen: boolean;
   group: ProfileGroup;
   members: Profile[];
-  profileTargetGroupIds: Record<string, string>;
-  targetGroupId: string;
 } | null;
 
 type MoveGroupState = {
@@ -687,62 +673,24 @@ export function ProfileGroupsPage({onOptionsChange, options}: {onOptionsChange: 
   }
 
   function requestDeleteGroup(group: ProfileGroup) {
-    const members = groupMembers(group.id);
     setDeleteState({
-      advancedOpen: false,
       group,
-      members,
-      profileTargetGroupIds: {},
-      targetGroupId: ''
-    });
-  }
-
-  function deleteTargetGroupId(profileName: string) {
-    if (!deleteState) {
-      return '';
-    }
-    return Object.prototype.hasOwnProperty.call(deleteState.profileTargetGroupIds, profileName)
-      ? deleteState.profileTargetGroupIds[profileName]
-      : deleteState.targetGroupId;
-  }
-
-  function updateDeleteProfileTargetGroup(profileName: string, targetGroupId: string) {
-    if (!deleteState) {
-      return;
-    }
-    setDeleteState({
-      ...deleteState,
-      profileTargetGroupIds: {
-        ...deleteState.profileTargetGroupIds,
-        [profileName]: targetGroupId
-      }
+      members: groupMembers(group.id)
     });
   }
 
   function confirmDeleteGroup() {
-    if (!deleteState) {
+    if (!deleteState || deleteState.members.length > 0) {
       return;
     }
-    const memberNames = new Set(deleteState.members.map((profile) => profile.name));
     updateOptions((nextOptions) => {
       nextOptions['-profileGroups'] = profileGroupsForOptions(nextOptions).filter((group) => group.id !== deleteState.group.id);
       profilesForFilter(nextOptions).forEach((profile) => {
         if (profile.profileGroupId !== deleteState.group.id) {
           return;
         }
-        if (!memberNames.has(profile.name)) {
-          delete profile.profileGroupId;
-          profile.profileGroupEnabled = false;
-          return;
-        }
-        const targetGroupId = deleteState.advancedOpen ? deleteTargetGroupId(profile.name) : deleteState.targetGroupId;
-        if (targetGroupId) {
-          profile.profileGroupId = targetGroupId;
-          profile.profileGroupEnabled = true;
-        } else {
-          delete profile.profileGroupId;
-          profile.profileGroupEnabled = false;
-        }
+        delete profile.profileGroupId;
+        profile.profileGroupEnabled = false;
       });
     });
     setDeleteState(null);
@@ -898,21 +846,6 @@ export function ProfileGroupsPage({onOptionsChange, options}: {onOptionsChange: 
                         </td>
                         <td className="profile-groups-current-group-cell">
                           <ProfileGroupInline group={groupLookup[currentGroupId] || null} />
-                          {!profile.profileGroupEnabled && profile.profileGroupId && (
-                            <p className="help-block profile-groups-retained-group">
-                              {message(
-                                'options_profileGroupRetainedGroup',
-                                'Previous group is retained: {0}',
-                                groupAssignmentLabel(
-                                  {
-                                    ...profile,
-                                    profileGroupEnabled: true
-                                  },
-                                  groups
-                                )
-                              )}
-                            </p>
-                          )}
                         </td>
                         <td className="profile-groups-move-to-cell">
                           <ProfileGroupSelect
@@ -983,78 +916,92 @@ export function ProfileGroupsPage({onOptionsChange, options}: {onOptionsChange: 
                     <span aria-hidden="true">{'\u00d7'}</span>
                   </button>
                   <h4 className="modal-title">
-                    {message('options_profileGroupMoveProfilesTitle', 'Move Profiles from "{0}"', moveGroupState.group.name)}
+                    {message(
+                      'options_profileGroupMoveProfilesTitle',
+                      `Move Profiles from Group "${moveGroupState.group.name}"`,
+                      moveGroupState.group.name
+                    )}
                   </h4>
                 </div>
                 <div className="modal-body">
                   {moveGroupState.members.length > 0 ? (
                     <>
-                      <p>{message('options_profileGroupMoveProfilesHelp', 'Select profiles to move from this group.')}</p>
-                      <div className="profile-groups-group-move-bulk">
-                        <label className="profile-groups-group-move-bulk-label">
-                          <input
-                            type="checkbox"
-                            checked={moveGroupState.bulkEnabled}
-                            onChange={(event) => updateMoveGroupBulkEnabled(event.currentTarget.checked)}
-                          />
-                          <span>{message('options_profileGroupMoveAllProfilesTo', 'Move all profiles to')}</span>
-                        </label>
-                        <div className="profile-groups-group-move-bulk-target">
-                          <ProfileGroupSelect
-                            ariaLabel={message('options_profileGroupMoveAllProfilesTo', 'Move all profiles to')}
-                            disabled={!moveGroupState.bulkEnabled}
-                            groups={moveGroupTargetGroups}
-                            inline
-                            value={effectiveMoveGroupTargetId}
-                            onChange={updateMoveGroupTargetGroup}
-                          />
+                      <fieldset className={`profile-groups-group-move-section ${moveGroupState.bulkEnabled ? 'active' : ''}`}>
+                        <legend className="profile-groups-group-move-section-title">
+                          {message('options_profileGroupMoveAllProfiles', 'Move All Profiles')}
+                        </legend>
+                        <div className="profile-groups-group-move-bulk">
+                          <div className="profile-groups-group-move-bulk-check">
+                            <input
+                              id="profile-groups-group-move-bulk-enabled"
+                              type="checkbox"
+                              checked={moveGroupState.bulkEnabled}
+                              aria-label={message('options_profileGroupMoveAllProfiles', 'Move All Profiles')}
+                              onChange={(event) => updateMoveGroupBulkEnabled(event.currentTarget.checked)}
+                            />
+                          </div>
+                          <label className="profile-groups-group-move-bulk-label" htmlFor="profile-groups-group-move-bulk-enabled">
+                            <span>{message('options_profileGroupMoveAllProfilesTo', 'Move all profiles to')}</span>
+                          </label>
+                          <div className="profile-groups-group-move-bulk-target">
+                            <ProfileGroupSelect
+                              ariaLabel={message('options_profileGroupMoveAllProfilesTo', 'Move all profiles to')}
+                              disabled={!moveGroupState.bulkEnabled}
+                              groups={moveGroupTargetGroups}
+                              inline
+                              value={effectiveMoveGroupTargetId}
+                              onChange={updateMoveGroupTargetGroup}
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <h5 className="profile-groups-group-move-section-title">
-                        {message('options_profileGroupMoveIndividualProfiles', 'Move individual profiles')}
-                      </h5>
-                      <div className="profile-groups-group-move-targets">
-                        <table className="table table-striped profile-groups-group-move-table">
-                          <thead>
-                            <tr>
-                              <th>{message('options_profileGroupColumnMove', 'Move')}</th>
-                              <th>{message('options_profileGroupColumnProfile', 'Profile')}</th>
-                              <th>{message('options_profileGroupMoveTargetGroup', 'Move to')}</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {moveGroupState.members.map((profile) => {
-                              const selected = moveGroupProfileSelected(profile.name);
-                              return (
-                                <tr key={profile.name}>
-                                  <td className="profile-groups-group-move-check-cell">
-                                    <input
-                                      type="checkbox"
-                                      checked={selected}
-                                      disabled={moveGroupState.bulkEnabled}
-                                      aria-label={message('options_profileGroupMoveProfileToggle', 'Move {0}', profile.name)}
-                                      onChange={(event) => updateMoveGroupProfileSelected(profile.name, event.currentTarget.checked)}
-                                    />
-                                  </td>
-                                  <td>
-                                    <ProfileInline profile={profile} />
-                                  </td>
-                                  <td className="profile-groups-group-move-target-cell">
-                                    <ProfileGroupSelect
-                                      ariaLabel={message('options_profileGroupMoveTargetGroup', 'Move to')}
-                                      disabled={moveGroupState.bulkEnabled || !selected}
-                                      groups={moveGroupTargetGroups}
-                                      inline
-                                      value={moveGroupProfileTargetId(profile.name)}
-                                      onChange={(targetGroupId) => updateMoveGroupProfileTargetGroup(profile.name, targetGroupId)}
-                                    />
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
+                      </fieldset>
+                      <fieldset className={`profile-groups-group-move-section ${moveGroupState.bulkEnabled ? 'muted' : 'active'}`}>
+                        <legend className="profile-groups-group-move-section-title">
+                          {message('options_profileGroupMoveIndividualProfiles', 'Move Individual Profiles')}
+                        </legend>
+                        <div className="profile-groups-group-move-targets">
+                          <table className="table table-striped profile-groups-group-move-table">
+                            <thead>
+                              <tr>
+                                <th>{message('options_profileGroupColumnMove', 'Move')}</th>
+                                <th>{message('options_profileGroupColumnProfile', 'Profile')}</th>
+                                <th>{message('options_profileGroupMoveTargetGroup', 'Move to')}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {moveGroupState.members.map((profile) => {
+                                const selected = moveGroupProfileSelected(profile.name);
+                                return (
+                                  <tr key={profile.name}>
+                                    <td className="profile-groups-group-move-check-cell">
+                                      <input
+                                        type="checkbox"
+                                        checked={selected}
+                                        disabled={moveGroupState.bulkEnabled}
+                                        aria-label={message('options_profileGroupMoveProfileToggle', `Move ${profile.name}`, profile.name)}
+                                        onChange={(event) => updateMoveGroupProfileSelected(profile.name, event.currentTarget.checked)}
+                                      />
+                                    </td>
+                                    <td>
+                                      <ProfileInline profile={profile} />
+                                    </td>
+                                    <td className="profile-groups-group-move-target-cell">
+                                      <ProfileGroupSelect
+                                        ariaLabel={message('options_profileGroupMoveTargetGroup', 'Move to')}
+                                        disabled={moveGroupState.bulkEnabled || !selected}
+                                        groups={moveGroupTargetGroups}
+                                        inline
+                                        value={moveGroupProfileTargetId(profile.name)}
+                                        onChange={(targetGroupId) => updateMoveGroupProfileTargetGroup(profile.name, targetGroupId)}
+                                      />
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </fieldset>
                     </>
                   ) : (
                     <p className="text-muted">{message('options_profileGroupMoveProfilesEmpty', 'This group has no profiles to move.')}</p>
@@ -1105,80 +1052,52 @@ export function ProfileGroupsPage({onOptionsChange, options}: {onOptionsChange: 
                   >
                     <span aria-hidden="true">{'\u00d7'}</span>
                   </button>
-                  <h4 className="modal-title">{message('options_profileGroupDeleteTitle', 'Delete Profile Group')}</h4>
+                  <h4 className="modal-title">
+                    {deleteState.members.length
+                      ? message('options_profileGroupCannotDeleteTitle', 'Unable to Delete Profile Group')
+                      : message('options_profileGroupDeleteTitle', 'Delete Profile Group')}
+                  </h4>
                 </div>
                 <div className="modal-body">
-                  <p>
-                    {deleteState.members.length
-                      ? message(
-                          'options_profileGroupDeleteMoveHelp',
-                          'This group contains {0} profiles. Move them before deleting the group.',
-                          String(deleteState.members.length)
-                        )
-                      : message('options_profileGroupDeleteHelp', 'Delete this empty profile group?')}
-                  </p>
-                  {deleteState.members.length > 0 && (
+                  {deleteState.members.length ? (
                     <>
-                      <div className="form-group">
-                        <label>{message('options_profileGroupMoveTo', 'Move profiles to')}</label>
-                        <ProfileGroupSelect
-                          groups={groups.filter((group) => group.id !== deleteState.group.id)}
-                          inline
-                          value={deleteState.targetGroupId}
-                          onChange={(targetGroupId) =>
-                            setDeleteState({
-                              ...deleteState,
-                              targetGroupId
-                            })
-                          }
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        className="btn btn-link profile-groups-advanced-toggle"
-                        aria-expanded={deleteState.advancedOpen}
-                        onClick={() =>
-                          setDeleteState({
-                            ...deleteState,
-                            advancedOpen: !deleteState.advancedOpen
-                          })
-                        }
-                      >
-                        <span
-                          className={`glyphicon ${deleteState.advancedOpen ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right'}`}
-                          aria-hidden="true"
-                        />{' '}
-                        {message('options_advanced', 'Advanced')}
-                      </button>
-                      {deleteState.advancedOpen && (
-                        <div className="profile-groups-delete-profile-targets">
+                      <p>
+                        {message(
+                          'options_profileGroupCannotDeleteHelp',
+                          'This profile group cannot be deleted because it still contains profiles.'
+                        )}
+                      </p>
+                      <div className="well">
+                        <ul className="list-style-none">
                           {deleteState.members.map((profile) => (
-                            <div key={profile.name} className="profile-groups-delete-profile-target">
-                              <div className="profile-groups-delete-profile">
-                                <ProfileInline profile={profile} />
-                              </div>
-                              <ProfileGroupSelect
-                                groups={groups.filter((group) => group.id !== deleteState.group.id)}
-                                inline
-                                value={deleteTargetGroupId(profile.name)}
-                                onChange={(targetGroupId) => updateDeleteProfileTargetGroup(profile.name, targetGroupId)}
-                              />
-                            </div>
+                            <li key={profile.name}>
+                              <ProfileInline profile={profile} />
+                            </li>
                           ))}
-                        </div>
-                      )}
+                        </ul>
+                      </div>
+                      <p>
+                        {message('options_profileGroupMoveProfilesBeforeDelete', 'Move all profiles out of this group before deleting it.')}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p>{message('options_profileGroupDeleteHelp', 'Do you really want to delete this profile group?')}</p>
+                      <div className="well">
+                        <ProfileGroupInline group={deleteState.group} />
+                      </div>
                     </>
                   )}
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-default" onClick={() => setDeleteState(null)}>
-                    {message('options_cancel', 'Cancel')}
+                    {deleteState.members.length ? message('options_modalClose', 'Close') : message('options_cancel', 'Cancel')}
                   </button>
-                  <button type="button" className="btn btn-danger" onClick={confirmDeleteGroup}>
-                    {deleteState.members.length
-                      ? message('options_profileGroupMoveAndDelete', 'Move and Delete')
-                      : message('options_delete', 'Delete')}
-                  </button>
+                  {!deleteState.members.length && (
+                    <button type="button" className="btn btn-danger" onClick={confirmDeleteGroup}>
+                      {message('options_delete', 'Delete')}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

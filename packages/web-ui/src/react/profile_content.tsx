@@ -604,11 +604,6 @@ export function ProfileShell({
               <p className="help-block profile-switch-help">
                 {message('options_useProfileGroupHelp', 'When enabled, this profile is moved into the selected profile group.')}
               </p>
-              {!profile.profileGroupEnabled && currentGroup && (
-                <p className="help-block profile-switch-help">
-                  {message('options_profileGroupRetainedGroup', 'Previous group is retained: {0}', currentGroup.name)}
-                </p>
-              )}
             </>
           )}
           <label
