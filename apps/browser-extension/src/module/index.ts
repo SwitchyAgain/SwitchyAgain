@@ -4,6 +4,7 @@ import Options from './options';
 import * as proxy from './proxy';
 import Storage from './storage';
 import ChromeTabs from './tabs';
+import WebDavStorage from './webdav_storage';
 import WebRequestMonitor from './web_request_monitor';
 
 const Url = {
@@ -25,6 +26,7 @@ const Url = {
 
 const browserExtensionRuntime: Record<string, unknown> = {
   Storage,
+  WebDavStorage,
   Options,
   ChromeTabs,
   ExternalApi,
@@ -39,6 +41,6 @@ for (const name of Object.keys(extensionRuntime)) {
   }
 }
 
-export {ChromeTabs, ExternalApi, Options, Storage, Url, WebRequestMonitor, proxy};
+export {ChromeTabs, ExternalApi, Options, Storage, Url, WebDavStorage, WebRequestMonitor, proxy};
 
 export default browserExtensionRuntime;

@@ -43,6 +43,30 @@
   display: none;
 }
 
+.sync-provider {
+  margin-bottom: 18px;
+}
+
+.sync-provider-heading {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  min-height: 24px;
+}
+
+.sync-provider-title {
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.sync-provider-body {
+  margin-top: 6px;
+}
+
+.sync-provider-form {
+  margin-top: 12px;
+}
+
 .react-conflict-badge {
   background: #da4f49;
   box-shadow: #ccc 1px 1px 1px 1px;

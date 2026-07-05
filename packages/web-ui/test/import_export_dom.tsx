@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import React from 'react';
-import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import {ImportExport} from '../src/react/import_export';
 import {RESTORE_URL_STATE} from '../src/react/import_export_logic';
 import type {Options} from '../src/react/options_client_types';
@@ -15,6 +15,8 @@ const optionsClientMock = vi.hoisted(() => ({
   confirmDialog: vi.fn((messageText: string) => window.confirm(messageText)),
   downloadBlob: vi.fn(),
   getLocalState: vi.fn(),
+  getState: vi.fn(),
+  getWebDavSyncConfig: vi.fn(),
   loadOptions: vi.fn(),
   message: vi.fn((_key: string, fallback = '') => fallback),
   patchOptions: vi.fn(),
@@ -24,7 +26,10 @@ const optionsClientMock = vi.hoisted(() => ({
   setLocalState: vi.fn(),
   setWindowTimeout: vi.fn((callback: () => void, delay = 0) => setTimeout(callback, delay)),
   setOptionsSync: vi.fn(),
-  shouldAutoMount: vi.fn(() => false)
+  setWebDavOptionsSync: vi.fn(),
+  setWebDavSyncConfig: vi.fn(),
+  shouldAutoMount: vi.fn(() => false),
+  testWebDavSync: vi.fn()
 }));
 
 vi.mock('../src/react/navigation_client', () => ({
@@ -41,15 +46,20 @@ vi.mock('../src/react/browser_env', () => ({
 
 vi.mock('../src/react/state_client', () => ({
   getLocalState: optionsClientMock.getLocalState,
+  getState: optionsClientMock.getState,
   setLocalState: optionsClientMock.setLocalState
 }));
 
 vi.mock('../src/react/options_api_client', () => ({
+  getWebDavSyncConfig: optionsClientMock.getWebDavSyncConfig,
   loadOptions: optionsClientMock.loadOptions,
   patchOptions: optionsClientMock.patchOptions,
   resetOptions: optionsClientMock.resetOptions,
   resetOptionsSync: optionsClientMock.resetOptionsSync,
-  setOptionsSync: optionsClientMock.setOptionsSync
+  setOptionsSync: optionsClientMock.setOptionsSync,
+  setWebDavOptionsSync: optionsClientMock.setWebDavOptionsSync,
+  setWebDavSyncConfig: optionsClientMock.setWebDavSyncConfig,
+  testWebDavSync: optionsClientMock.testWebDavSync
 }));
 
 vi.mock('../src/react/i18n_client', () => ({
@@ -81,6 +91,8 @@ beforeEach(() => {
   optionsClientMock.clearWindowTimeout.mockClear();
   optionsClientMock.confirmDialog.mockClear();
   optionsClientMock.getLocalState.mockReset();
+  optionsClientMock.getState.mockReset();
+  optionsClientMock.getWebDavSyncConfig.mockReset();
   optionsClientMock.loadOptions.mockReset();
   optionsClientMock.message.mockClear();
   optionsClientMock.patchOptions.mockReset();
@@ -90,8 +102,15 @@ beforeEach(() => {
   optionsClientMock.setLocalState.mockReset();
   optionsClientMock.setWindowTimeout.mockClear();
   optionsClientMock.setOptionsSync.mockReset();
+  optionsClientMock.setWebDavOptionsSync.mockReset();
+  optionsClientMock.setWebDavSyncConfig.mockReset();
   optionsClientMock.shouldAutoMount.mockClear();
+  optionsClientMock.testWebDavSync.mockReset();
   optionsClientMock.getLocalState.mockImplementation((key: string) => (key === 'syncOptions' ? 'disabled' : ''));
+  optionsClientMock.getState.mockResolvedValue('');
+  optionsClientMock.getWebDavSyncConfig.mockResolvedValue(null);
+  optionsClientMock.setWebDavSyncConfig.mockResolvedValue({});
+  optionsClientMock.testWebDavSync.mockResolvedValue({exists: false, ok: true});
 });
 
 describe('import export component', () => {
@@ -201,13 +220,37 @@ describe('import export component', () => {
 
     render(<ImportExport embedded onApplyOptions={onApplyOptions} options={optionsFixture()} optionsDirty />);
 
-    fireEvent.click(screen.getByRole('button', {name: 'Enable sync'}));
+    const browserSyncProvider = screen.getByLabelText('Browser Sync').closest('.sync-provider') as HTMLElement;
+    const enableBrowserSync = within(browserSyncProvider).getByRole('button', {name: 'Enable Browser Sync'}) as HTMLButtonElement;
+    expect(enableBrowserSync.disabled).toBe(true);
+
+    fireEvent.click(screen.getByLabelText('Browser Sync'));
+    expect(enableBrowserSync.disabled).toBe(false);
+
+    fireEvent.click(enableBrowserSync);
 
     await waitFor(() => expect(optionsClientMock.setOptionsSync).toHaveBeenCalledWith(true, undefined));
     expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('Your changes to the options must be applied before you proceed.'));
     expect(onApplyOptions).toHaveBeenCalled();
     expect(onApplyOptions.mock.invocationCallOrder[0]).toBeLessThan(optionsClientMock.setOptionsSync.mock.invocationCallOrder[0]);
     await waitFor(() => expect(optionsClientMock.reloadLocation).toHaveBeenCalled());
+  });
+
+  it('opens WebDAV settings only after choosing WebDAV sync', async () => {
+    render(<ImportExport embedded options={optionsFixture()} />);
+
+    expect(screen.queryByLabelText('Server URL')).toBeNull();
+
+    const webDavProvider = screen.getByLabelText('WebDAV Sync').closest('.sync-provider') as HTMLElement;
+    const enableWebDavSync = within(webDavProvider).getByRole('button', {name: 'Enable WebDAV Sync'}) as HTMLButtonElement;
+    expect(enableWebDavSync.disabled).toBe(true);
+
+    fireEvent.click(screen.getByLabelText('WebDAV Sync'));
+    expect(enableWebDavSync.disabled).toBe(false);
+
+    fireEvent.click(enableWebDavSync);
+
+    expect(screen.getByLabelText('Server URL')).toBeTruthy();
   });
 
   it('resets conflicted synced options and reloads after confirming current options', async () => {

@@ -10,6 +10,7 @@ type BackgroundMethodArgs = {
   getOptionsPageState: [tabId: number];
   getPageInfo: [args: PageInfoArgs];
   getState: [name: string | string[]];
+  getWebDavSyncConfig: [];
   patch: [patch: Record<string, unknown>];
   renameProfile: [fromName: string, toName: string];
   replaceRef: [fromName: string, toName: string];
@@ -19,9 +20,42 @@ type BackgroundMethodArgs = {
   resolveOptionsHandoff: [handoffId: string, action: OptionsHandoffAction];
   setDefaultProfile: [profileName: string, defaultProfileName: string];
   setOptionsSync: [enabled: boolean, args?: unknown];
+  setWebDavOptionsSync: [enabled: boolean, args?: WebDavSyncActionArgs];
+  setWebDavSyncConfig: [config: WebDavSyncConfigInput];
   setProfileScope: [args: ProfileScopeSetArgs];
   setState: [items: Record<string, unknown>] | [name: string, value: unknown];
+  testWebDavSync: [config?: WebDavSyncConfigInput];
   updateProfile: [name?: string | string[] | null, bypassCache?: boolean | string];
+};
+
+type SyncProvider = '' | 'browser' | 'webdav';
+
+type WebDavSyncActionArgs = {
+  config?: WebDavSyncConfigInput;
+  mode?: 'download' | 'upload';
+};
+
+type WebDavSyncConfigInput = {
+  intervalMinutes?: number;
+  password?: string;
+  remotePath?: string;
+  serverUrl?: string;
+  username?: string;
+};
+
+type WebDavSyncConfig = Required<Pick<WebDavSyncConfigInput, 'intervalMinutes' | 'remotePath' | 'serverUrl'>> &
+  Omit<WebDavSyncConfigInput, 'intervalMinutes' | 'remotePath' | 'serverUrl'> & {
+    deviceId: string;
+  };
+
+type WebDavSyncPublicConfig = Omit<WebDavSyncConfig, 'password'> & {
+  hasPassword: boolean;
+};
+
+type WebDavSyncTestResult = {
+  exists: boolean;
+  ok: boolean;
+  schemaVersion?: unknown;
 };
 
 type PageInfoArgs = {
@@ -93,7 +127,13 @@ type BackgroundRespond = (response: BackgroundRuntimeResponse) => void;
 
 type BackgroundSync = {
   enabled: boolean;
+  storage?: {
+    get(keys: unknown): RuntimePromise<Record<string, unknown>>;
+    remove(keys?: unknown): RuntimePromise<unknown>;
+  };
   transformValue?: unknown;
+  _pending?: Record<string, unknown>;
+  _timeout?: ReturnType<typeof setTimeout> | null;
   [key: string]: unknown;
 };
 
@@ -137,6 +177,7 @@ type BackgroundProxyImpl = {
 };
 
 type BackgroundOptions = BackgroundOptionMethods & {
+  sync?: BackgroundSync;
   currentProfileChanged: (reason?: string) => unknown;
   clearBadge(): unknown;
   currentProfile(): BackgroundProfile | null | undefined;
@@ -153,8 +194,10 @@ type BackgroundOptions = BackgroundOptionMethods & {
   proxyNotControllable(): string | null;
   queryTempRule(domain: string): unknown;
   ready: RuntimePromise<unknown>;
+  resetOptionsSync(): RuntimePromise<unknown>;
   setBadge(): unknown;
   setExternalProfile(profile: BackgroundProfile, args?: {internal?: boolean; noRevert?: boolean}): Promise<unknown> | void;
+  setOptionsSync(enabled: boolean, args?: unknown): RuntimePromise<unknown>;
   setProxyNotControllable(reason: string | null): unknown;
   _options: OmegaOptionsData;
 };
@@ -241,7 +284,7 @@ type BackgroundExtensionRuntime = {
     sync: BackgroundSync | undefined,
     proxyImpl: BackgroundProxyImpl
   ) => BackgroundOptions) & {
-    transformValueForSync: unknown;
+    transformValueForSync(value: unknown, key: string): unknown;
   };
   OptionsSync: new (storage: unknown) => BackgroundSync;
   Promise: BackgroundPromiseStatic;
@@ -250,6 +293,7 @@ type BackgroundExtensionRuntime = {
   proxy: {
     getProxyImpl(log: BackgroundLog): BackgroundProxyImpl;
   };
+  WebDavStorage: new (config: WebDavSyncConfig) => unknown;
 };
 
 (function () {
@@ -466,10 +510,90 @@ type BackgroundExtensionRuntime = {
     return value !== null && typeof value === 'object';
   }
 
+  const SYNC_PROVIDER_STATE = 'syncProvider';
+  const WEBDAV_SYNC_CONFIG_STATE = 'webDavSyncConfig';
+  const DEFAULT_WEBDAV_REMOTE_PATH = 'SwitchyAgain/options-sync.json';
+  const DEFAULT_WEBDAV_INTERVAL_MINUTES = 5;
+
+  function stateStorageKey(name: string) {
+    return `omega.local.${name}`;
+  }
+
+  function getLocalState<T = unknown>(name: string): T | undefined {
+    try {
+      const raw = localStorage[stateStorageKey(name)];
+      return raw == null ? undefined : (JSON.parse(raw) as T);
+    } catch (_) {
+      return undefined;
+    }
+  }
+
+  function setLocalState(name: string, value: unknown) {
+    localStorage[stateStorageKey(name)] = JSON.stringify(value);
+  }
+
+  function randomId() {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+  }
+
+  function normalizeWebDavInterval(value: unknown) {
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      return DEFAULT_WEBDAV_INTERVAL_MINUTES;
+    }
+    return Math.max(0, Math.floor(value));
+  }
+
+  function normalizeWebDavConfig(input?: WebDavSyncConfigInput, previous?: WebDavSyncConfig): WebDavSyncConfig {
+    const serverUrl = String(input?.serverUrl || previous?.serverUrl || '').trim();
+    if (!serverUrl) {
+      throw new Error('WebDAV server URL is required.');
+    }
+    const password =
+      typeof input?.password === 'string' && input.password.length > 0
+        ? input.password
+        : typeof input?.password === 'string'
+          ? undefined
+          : previous?.password;
+    return {
+      deviceId: previous?.deviceId || randomId(),
+      intervalMinutes: normalizeWebDavInterval(input?.intervalMinutes ?? previous?.intervalMinutes),
+      password,
+      remotePath: String(input?.remotePath || previous?.remotePath || DEFAULT_WEBDAV_REMOTE_PATH)
+        .trim()
+        .replace(/^\/+/, ''),
+      serverUrl,
+      username: String(input?.username ?? previous?.username ?? '').trim() || undefined
+    };
+  }
+
+  function savedWebDavConfig() {
+    const config = getLocalState<WebDavSyncConfig>(WEBDAV_SYNC_CONFIG_STATE);
+    if (!config?.serverUrl) {
+      return undefined;
+    }
+    return normalizeWebDavConfig(config, config);
+  }
+
+  function publicWebDavConfig(config?: WebDavSyncConfig): WebDavSyncPublicConfig | undefined {
+    if (!config) {
+      return undefined;
+    }
+    const {password, ...publicConfig} = config;
+    return {
+      ...publicConfig,
+      hasPassword: Boolean(password)
+    };
+  }
+
   let options: BackgroundOptions;
   let state: BackgroundState;
   let tabs: BackgroundTabs;
   let proxyImpl: BackgroundProxyImpl;
+  let activeSyncProvider: SyncProvider = '';
+  let browserSync: BackgroundSync | undefined;
 
   function actionForUrl(tab: ChromeTab, url: string) {
     return options.ready
@@ -607,17 +731,36 @@ type BackgroundExtensionRuntime = {
 
   state = new ExtensionRuntimeCurrent.BrowserStorage(localStorage, 'omega.local.');
 
+  function createOptionsSync(syncStorage: unknown) {
+    const sync = new ExtensionRuntimeCurrent.OptionsSync(syncStorage) as BackgroundSync;
+    sync.transformValue = ExtensionRuntimeCurrent.Options.transformValueForSync;
+    return sync;
+  }
+
+  function createWebDavOptionsSync(config: WebDavSyncConfig) {
+    return createOptionsSync(new ExtensionRuntimeCurrent.WebDavStorage(config));
+  }
+
   let sync: BackgroundSync | undefined;
   if (
     (typeof chrome !== 'undefined' && chrome !== null && chrome.storage?.sync) ||
     (typeof browser !== 'undefined' && browser !== null && browser.storage?.sync)
   ) {
     const syncStorage = new ExtensionRuntimeCurrent.Storage('sync');
-    sync = new ExtensionRuntimeCurrent.OptionsSync(syncStorage) as BackgroundSync;
-    if (localStorage['omega.local.syncOptions'] !== '"sync"') {
-      sync.enabled = false;
-    }
-    sync.transformValue = ExtensionRuntimeCurrent.Options.transformValueForSync;
+    browserSync = createOptionsSync(syncStorage);
+  }
+
+  const savedProvider = getLocalState<SyncProvider>(SYNC_PROVIDER_STATE);
+  const webDavConfig = savedWebDavConfig();
+  if (savedProvider === 'webdav' && webDavConfig) {
+    sync = createWebDavOptionsSync(webDavConfig);
+    activeSyncProvider = 'webdav';
+  } else {
+    sync = browserSync;
+    activeSyncProvider = sync ? 'browser' : '';
+  }
+  if (sync && localStorage['omega.local.syncOptions'] !== '"sync"') {
+    sync.enabled = false;
   }
 
   proxyImpl = ExtensionRuntimeCurrent.proxy.getProxyImpl(Log);
@@ -631,6 +774,197 @@ type BackgroundExtensionRuntime = {
   options.externalApi = new ExtensionRuntimeCurrent.ExternalApi(options);
 
   options.externalApi.listen();
+
+  function setActiveSyncProvider(provider: SyncProvider, syncInstance?: BackgroundSync) {
+    activeSyncProvider = provider;
+    options.sync = syncInstance;
+    setLocalState(SYNC_PROVIDER_STATE, provider);
+    return state.set({
+      [SYNC_PROVIDER_STATE]: provider
+    });
+  }
+
+  function ensureNoActiveOtherSyncProvider(provider: SyncProvider) {
+    return state
+      .get({
+        syncOptions: ''
+      })
+      .then((items) => {
+        if (items.syncOptions === 'sync' && activeSyncProvider && activeSyncProvider !== provider) {
+          const activeName = activeSyncProvider === 'webdav' ? 'WebDAV sync' : 'Browser sync';
+          const nextName = provider === 'webdav' ? 'WebDAV sync' : 'Browser sync';
+          return Promise.reject(new Error(`Disable ${activeName} before enabling ${nextName}.`));
+        }
+      });
+  }
+
+  function normalizeSyncCompareValue(value: unknown): unknown {
+    if (Array.isArray(value)) {
+      return value.map(normalizeSyncCompareValue);
+    }
+    if (value && typeof value === 'object') {
+      const result: Record<string, unknown> = {};
+      for (const key of Object.keys(value as Record<string, unknown>).sort()) {
+        const normalized = normalizeSyncCompareValue((value as Record<string, unknown>)[key]);
+        if (typeof normalized !== 'undefined') {
+          result[key] = normalized;
+        }
+      }
+      return result;
+    }
+    return value;
+  }
+
+  function syncPayloadForOptions(optionsData: OmegaOptionsData) {
+    const payload: Record<string, unknown> = {};
+    for (const key of Object.keys(optionsData)) {
+      const value = optionsData[key];
+      if (typeof value === 'undefined') {
+        continue;
+      }
+      const transformed = ExtensionRuntimeCurrent.Options.transformValueForSync(value, key);
+      if (typeof transformed !== 'undefined') {
+        payload[key] = transformed;
+      }
+    }
+    return payload;
+  }
+
+  function isSameSyncPayload(left: Record<string, unknown>, right: Record<string, unknown>) {
+    return JSON.stringify(normalizeSyncCompareValue(left)) === JSON.stringify(normalizeSyncCompareValue(right));
+  }
+
+  function cancelPendingBrowserSyncPush() {
+    if (!browserSync) {
+      return;
+    }
+    if (browserSync._timeout != null) {
+      clearTimeout(browserSync._timeout);
+      browserSync._timeout = null;
+    }
+    browserSync._pending = {};
+  }
+
+  function disableBrowserOptionsSync() {
+    if (!browserSync?.storage) {
+      return Promise.reject(new Error('Browser sync is unsupported.'));
+    }
+    const localPayload = syncPayloadForOptions(options._options);
+    cancelPendingBrowserSyncPush();
+    return Promise.resolve(browserSync.storage.get(null))
+      .then((syncPayload) => {
+        const canClearSyncStorage = Object.keys(syncPayload).length === 0 || isSameSyncPayload(syncPayload, localPayload);
+        return Promise.resolve(options.setOptionsSync(false)).then(() => {
+          if (!canClearSyncStorage) {
+            return;
+          }
+          return browserSync!.storage!.remove().then(() =>
+            state.set({
+              syncOptions: 'pristine'
+            })
+          );
+        });
+      })
+      .then(() => setActiveSyncProvider('', undefined));
+  }
+
+  function setBrowserOptionsSync(enabled: boolean, args?: unknown) {
+    if (enabled) {
+      if (!browserSync) {
+        return Promise.reject(new Error('Browser sync is unsupported.'));
+      }
+      return ensureNoActiveOtherSyncProvider('browser')
+        .then(() => setActiveSyncProvider('browser', browserSync))
+        .then(() => options.setOptionsSync(true, args));
+    }
+    if (activeSyncProvider !== 'browser') {
+      return Promise.resolve();
+    }
+    return disableBrowserOptionsSync();
+  }
+
+  function resetBrowserOptionsSync() {
+    if (!browserSync) {
+      return Promise.reject(new Error('Browser sync is unsupported.'));
+    }
+    return ensureNoActiveOtherSyncProvider('browser')
+      .then(() => setActiveSyncProvider('browser', browserSync))
+      .then(() => options.resetOptionsSync());
+  }
+
+  function getWebDavSyncConfig() {
+    return Promise.resolve(publicWebDavConfig(savedWebDavConfig()) || null);
+  }
+
+  function setWebDavSyncConfig(configInput: WebDavSyncConfigInput) {
+    const config = normalizeWebDavConfig(configInput, savedWebDavConfig());
+    setLocalState(WEBDAV_SYNC_CONFIG_STATE, config);
+    return state
+      .set({
+        [WEBDAV_SYNC_CONFIG_STATE]: config
+      })
+      .then(() => publicWebDavConfig(config));
+  }
+
+  function testWebDavSync(configInput?: WebDavSyncConfigInput) {
+    const config = normalizeWebDavConfig(configInput, savedWebDavConfig());
+    const storage = new ExtensionRuntimeCurrent.WebDavStorage(config) as {
+      get(keys: unknown): RuntimePromise<Record<string, unknown>>;
+      remoteExists(): Promise<boolean>;
+    };
+    return Promise.resolve(storage.remoteExists()).then((exists): Promise<WebDavSyncTestResult> => {
+      if (!exists) {
+        return Promise.resolve({
+          exists: false,
+          ok: true
+        });
+      }
+      return storage.get('schemaVersion').then((items) => ({
+        exists: true,
+        ok: true,
+        schemaVersion: items.schemaVersion
+      }));
+    });
+  }
+
+  function setWebDavOptionsSync(enabled: boolean, args?: WebDavSyncActionArgs) {
+    if (!enabled) {
+      if (activeSyncProvider !== 'webdav') {
+        return Promise.resolve();
+      }
+      return Promise.resolve(options.setOptionsSync(false)).then(() => setActiveSyncProvider('', undefined));
+    }
+    const config = normalizeWebDavConfig(args?.config, savedWebDavConfig());
+    const webDavSync = createWebDavOptionsSync(config);
+    setLocalState(WEBDAV_SYNC_CONFIG_STATE, config);
+    return ensureNoActiveOtherSyncProvider('webdav')
+      .then(() =>
+        state.set({
+          [WEBDAV_SYNC_CONFIG_STATE]: config
+        })
+      )
+      .then(() => setActiveSyncProvider('webdav', webDavSync))
+      .then(() => {
+        if (args?.mode === 'download') {
+          return state.set({
+            syncOptions: 'conflict'
+          });
+        }
+        return state.set({
+          syncOptions: 'pristine'
+        });
+      })
+      .then(() => options.setOptionsSync(true, args?.mode === 'download' ? {force: true} : undefined));
+  }
+
+  const syncApi = {
+    getWebDavSyncConfig,
+    resetOptionsSync: resetBrowserOptionsSync,
+    setOptionsSync: setBrowserOptionsSync,
+    setWebDavOptionsSync,
+    setWebDavSyncConfig,
+    testWebDavSync
+  };
 
   tabs = new ExtensionRuntimeCurrent.ChromeTabs(actionForUrl);
 
@@ -935,6 +1269,7 @@ type BackgroundExtensionRuntime = {
       case 'getOptionsPageState':
       case 'getPageInfo':
       case 'getState':
+      case 'getWebDavSyncConfig':
       case 'patch':
       case 'renameProfile':
       case 'replaceRef':
@@ -944,8 +1279,11 @@ type BackgroundExtensionRuntime = {
       case 'resolveOptionsHandoff':
       case 'setDefaultProfile':
       case 'setOptionsSync':
+      case 'setWebDavOptionsSync':
+      case 'setWebDavSyncConfig':
       case 'setProfileScope':
       case 'setState':
+      case 'testWebDavSync':
       case 'updateProfile':
         return true;
       default:
@@ -980,6 +1318,16 @@ type BackgroundExtensionRuntime = {
     ) {
       target = optionsHandoffApi;
       method = optionsHandoffApi[request.method];
+    } else if (
+      request.method === 'getWebDavSyncConfig' ||
+      request.method === 'resetOptionsSync' ||
+      request.method === 'setOptionsSync' ||
+      request.method === 'setWebDavOptionsSync' ||
+      request.method === 'setWebDavSyncConfig' ||
+      request.method === 'testWebDavSync'
+    ) {
+      target = syncApi;
+      method = syncApi[request.method];
     } else {
       target = options;
       method = options[request.method];

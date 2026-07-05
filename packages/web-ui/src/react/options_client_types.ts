@@ -84,12 +84,33 @@ export type RequestExplainArgs = {
   url?: string;
 };
 
+export type WebDavSyncConfig = {
+  hasPassword?: boolean;
+  intervalMinutes?: number;
+  password?: string;
+  remotePath?: string;
+  serverUrl?: string;
+  username?: string;
+};
+
+export type WebDavSyncActionArgs = {
+  config?: WebDavSyncConfig;
+  mode?: 'download' | 'upload';
+};
+
+export type WebDavSyncTestResult = {
+  exists: boolean;
+  ok: boolean;
+  schemaVersion?: unknown;
+};
+
 export type BackgroundMethodArgs = {
   applyProfile: [name: string];
   cancelOptionsHandoff: [handoffId: string];
   explainRequest: [args: RequestExplainArgs | string];
   getAll: [];
   getState: [name: string | string[]];
+  getWebDavSyncConfig: [];
   patch: [patch: OptionsPatch];
   renameProfile: [fromName: string, toName: string];
   replaceRef: [fromName: string, toName: string];
@@ -98,7 +119,10 @@ export type BackgroundMethodArgs = {
   refreshProfileScopeContainerNames: [];
   resolveOptionsHandoff: [handoffId: string, action: 'apply' | 'discard'];
   setOptionsSync: [enabled: boolean, args?: unknown];
+  setWebDavOptionsSync: [enabled: boolean, args?: WebDavSyncActionArgs];
+  setWebDavSyncConfig: [config: WebDavSyncConfig];
   setState: [items: Record<string, unknown>];
+  testWebDavSync: [config?: WebDavSyncConfig];
   updateProfile: [name?: string | string[] | null, bypassCache?: boolean | string];
 };
 
@@ -108,6 +132,7 @@ export type BackgroundMethodResult = {
   explainRequest: RequestExplanation;
   getAll: Options;
   getState: Record<string, unknown>;
+  getWebDavSyncConfig: WebDavSyncConfig | null;
   patch: Options;
   renameProfile: Options;
   replaceRef: Options;
@@ -116,7 +141,10 @@ export type BackgroundMethodResult = {
   refreshProfileScopeContainerNames: ProfileScopeContainerInfo[];
   resolveOptionsHandoff: void;
   setOptionsSync: void;
+  setWebDavOptionsSync: void;
+  setWebDavSyncConfig: WebDavSyncConfig;
   setState: Record<string, unknown>;
+  testWebDavSync: WebDavSyncTestResult;
   updateProfile: Record<string, unknown>;
 };
 

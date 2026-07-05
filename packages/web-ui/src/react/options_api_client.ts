@@ -1,7 +1,14 @@
 import {applyUiTheme, uiThemeForOptions} from './ui_theme';
 import {callBackground, callBackgroundWithRefresh, decodeBackgroundError} from './background_client';
 import {setUiLocale, uiLocaleForOptions} from './i18n_client';
-import type {Options, OptionsPatch, ProfileUpdateResults, RequestExplainArgs} from './options_client_types';
+import type {
+  Options,
+  OptionsPatch,
+  ProfileUpdateResults,
+  RequestExplainArgs,
+  WebDavSyncActionArgs,
+  WebDavSyncConfig
+} from './options_client_types';
 
 async function applyOptionsUi(options: Options) {
   applyUiTheme(uiThemeForOptions(options));
@@ -35,6 +42,22 @@ export function setOptionsSync(enabled: boolean, args?: unknown) {
 
 export function resetOptionsSync() {
   return callBackground('resetOptionsSync');
+}
+
+export function getWebDavSyncConfig() {
+  return callBackground('getWebDavSyncConfig');
+}
+
+export function setWebDavSyncConfig(config: WebDavSyncConfig) {
+  return callBackground('setWebDavSyncConfig', config);
+}
+
+export function testWebDavSync(config?: WebDavSyncConfig) {
+  return callBackground('testWebDavSync', config);
+}
+
+export function setWebDavOptionsSync(enabled: boolean, args?: WebDavSyncActionArgs) {
+  return callBackground('setWebDavOptionsSync', enabled, args);
 }
 
 export function explainRequest(args: RequestExplainArgs | string) {

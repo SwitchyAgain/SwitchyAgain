@@ -12,7 +12,10 @@ export type {
   RequestExplainArgs,
   RequestExplainProfile,
   RequestExplainStep,
-  RequestExplanation
+  RequestExplanation,
+  WebDavSyncActionArgs,
+  WebDavSyncConfig,
+  WebDavSyncTestResult
 } from './options_client_types';
 
 export {UI_LOCALES, browserUiLocale, message, normalizeUiLocale, setUiLocale, uiLocaleForOptions} from './i18n_client';
@@ -28,6 +31,7 @@ export {
 export {
   applyProfile,
   explainRequest,
+  getWebDavSyncConfig,
   loadOptions,
   patchAndLoadOptions,
   patchOptions,
@@ -36,6 +40,9 @@ export {
   resetOptions,
   resetOptionsSync,
   setOptionsSync,
+  setWebDavOptionsSync,
+  setWebDavSyncConfig,
+  testWebDavSync,
   updateProfile
 } from './options_api_client';
 
