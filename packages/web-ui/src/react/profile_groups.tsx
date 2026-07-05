@@ -3,7 +3,7 @@ import {useOutsidePointer} from './dom_event_hooks';
 import {message} from './i18n_client';
 import type {Options} from './options_client_types';
 import {cloneOptions} from './options_logic';
-import {PROFILE_COLOR_SWATCHES} from './profile_content_logic';
+import {normalizeColor, PROFILE_COLOR_SWATCHES} from './profile_content_logic';
 import {ProfileInline, ProfileSelect, profilesForFilter, type Profile} from './profile_widgets';
 
 export type ProfileGroup = {
@@ -338,11 +338,25 @@ export function ProfileGroupModal({
   onSubmit: (group: ProfileGroupDraft) => void;
   title: string;
 }) {
-  const [color, setColor] = useState(cleanProfileGroupColor(initialColor) || DEFAULT_PROFILE_GROUP_COLOR);
+  const initialCleanColor = cleanProfileGroupColor(initialColor) || DEFAULT_PROFILE_GROUP_COLOR;
+  const initialCustomColor = PROFILE_GROUP_COLOR_CHOICES.includes(initialCleanColor) ? '' : initialCleanColor;
+  const [color, setColor] = useState(initialCleanColor);
+  const [customColor, setCustomColor] = useState(initialCustomColor);
   const [icon, setIcon] = useState(cleanProfileGroupIcon(initialIcon));
   const [name, setName] = useState(initialName);
+  const customColorInputRef = useRef<HTMLInputElement>(null);
   const trimmed = name.trim();
   const error = profileGroupNameError(trimmed, groups, currentGroupId);
+  const customColorActive = !PROFILE_GROUP_COLOR_CHOICES.includes(color);
+  const customColorInputValue = normalizeColor(customColor || color).toLowerCase();
+  const chooseCustomColor = (nextColor: string) => {
+    const cleanColor = cleanProfileGroupColor(nextColor);
+    if (!cleanColor) {
+      return;
+    }
+    setColor(cleanColor);
+    setCustomColor(cleanColor);
+  };
   const submit = () => {
     if (!trimmed || error) {
       return;
@@ -423,6 +437,23 @@ export function ProfileGroupModal({
                       onClick={() => setColor(choice)}
                     />
                   ))}
+                  <label
+                    className={`profile-color-swatch-option profile-group-color-custom-option${customColorActive ? ' active' : ''}`}
+                    title={message('options_profileCustomColor', 'Custom')}
+                  >
+                    <span
+                      className={`profile-group-color-custom-swatch ${customColor ? '' : 'profile-group-color-custom-swatch-rainbow'}`}
+                      style={customColor ? {backgroundColor: customColor} : undefined}
+                    />
+                    <input
+                      ref={customColorInputRef}
+                      className="profile-group-color-custom-input"
+                      type="color"
+                      value={customColorInputValue}
+                      aria-label={message('options_profileCustomColor', 'Custom')}
+                      onChange={(event) => chooseCustomColor(event.currentTarget.value)}
+                    />
+                  </label>
                 </div>
               </div>
             </div>
