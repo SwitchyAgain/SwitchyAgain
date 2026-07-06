@@ -12,7 +12,6 @@ import {
   resetOptionsSync,
   setOptionsSync,
   setWebDavOptionsSync,
-  setWebDavSyncConfig,
   testWebDavSync
 } from './options_api_client';
 import type {Options, WebDavSyncConfig} from './options_client_types';
@@ -307,6 +306,7 @@ export function ImportExport({
     webDavStatus === 'downloading' ||
     webDavStatus === 'disabling';
   const webDavConfigured = Boolean(webDavConfig.serverUrl?.trim());
+  const webDavConnectionTested = webDavRemoteExists !== null;
 
   useEffect(() => {
     if (browserSyncActive || (syncOptions === 'conflict' && syncProvider !== 'webdav')) {
@@ -332,26 +332,6 @@ export function ImportExport({
     setWebDavRemoteExists(null);
     setWebDavMessage('');
     setWebDavStatus('ready');
-  }
-
-  function saveWebDavConfig() {
-    setWebDavStatus('saving');
-    return setWebDavSyncConfig(webDavConfig)
-      .then((savedConfig) => {
-        setWebDavConfig({
-          intervalMinutes: savedConfig.intervalMinutes ?? 5,
-          remotePath: savedConfig.remotePath || 'SwitchyAgain/options-sync.json',
-          serverUrl: savedConfig.serverUrl || '',
-          username: savedConfig.username || '',
-          hasPassword: savedConfig.hasPassword
-        });
-        setWebDavStatus('success');
-        setWebDavMessage(message('options_webDavSyncSaved', 'WebDAV sync settings saved.'));
-      })
-      .catch((err) => {
-        setWebDavStatus('error');
-        setWebDavMessage(importExportErrorMessage(err));
-      });
   }
 
   function testWebDavConnection() {
@@ -399,19 +379,6 @@ export function ImportExport({
       .then(() => setWebDavOptionsSync(false))
       .then(() => {
         reloadOptionsPage();
-      })
-      .catch((err) => {
-        setWebDavStatus('error');
-        setWebDavMessage(importExportErrorMessage(err));
-      });
-  }
-
-  function syncWebDavNow() {
-    setWebDavStatus('testing');
-    testWebDavSync(webDavConfig)
-      .then((result) => {
-        setWebDavRemoteExists(result.exists);
-        enableWebDavSync(result.exists ? 'download' : 'upload');
       })
       .catch((err) => {
         setWebDavStatus('error');
@@ -551,7 +518,6 @@ export function ImportExport({
             />{' '}
             <span>{message('options_group_browserSync', 'Browser Sync')}</span>
           </label>
-          {browserSyncActive && <span className="label label-success">{message('options_syncProviderOn', 'On')}</span>}
         </div>
         <div className="sync-provider-body">
           {(syncOptions === 'pristine' || syncOptions === 'disabled' || (syncOptions === 'sync' && syncProvider === 'webdav')) && (
@@ -596,7 +562,7 @@ export function ImportExport({
                   disabled={syncActionBusy}
                   onClick={() => runSyncAction('disabling', disableOptionsSync)}
                 >
-                  <span className="glyphicon glyphicon-remove-sign" /> {message('options_syncDisable', 'Disable sync')}
+                  <span className="glyphicon glyphicon-remove-sign" /> {message('options_syncDisable', 'Disable Browser Sync')}
                 </button>
               </p>
             </>
@@ -645,7 +611,6 @@ export function ImportExport({
             />{' '}
             <span>{message('options_group_webDavSync', 'WebDAV Sync')}</span>
           </label>
-          {webDavSyncActive && <span className="label label-success">{message('options_syncProviderOn', 'On')}</span>}
         </div>
         <div className="sync-provider-body">
           <p className="help-block">
@@ -761,42 +726,32 @@ export function ImportExport({
                     disabled={!webDavConfigured || webDavActionBusy || webDavSyncBlocked}
                     onClick={testWebDavConnection}
                   >
-                    <span className="glyphicon glyphicon-transfer" /> {message('options_webDavTest', 'Test connection')}
+                    <span className="glyphicon glyphicon-transfer" /> {message('options_webDavTest', 'Test')}
                   </button>{' '}
-                  <button
-                    type="button"
-                    className="btn btn-default"
-                    disabled={!webDavConfigured || webDavActionBusy || webDavSyncBlocked}
-                    onClick={saveWebDavConfig}
-                  >
-                    <span className="glyphicon glyphicon-floppy-disk" /> {message('options_webDavSave', 'Save')}
-                  </button>{' '}
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    disabled={!webDavConfigured || webDavActionBusy || webDavSyncBlocked}
-                    onClick={() => enableWebDavSync('upload')}
-                  >
-                    <span className="glyphicon glyphicon-cloud-upload" /> {message('options_webDavUploadEnable', 'Upload local copy')}
-                  </button>{' '}
-                  <button
-                    type="button"
-                    className="btn btn-danger"
-                    disabled={!webDavConfigured || webDavActionBusy || webDavRemoteExists !== true || webDavSyncBlocked}
-                    onClick={() => enableWebDavSync('download')}
-                  >
-                    <span className="glyphicon glyphicon-cloud-download" />{' '}
-                    {message('options_webDavDownloadEnable', 'Download remote copy')}
-                  </button>{' '}
-                  {webDavSyncActive && (
+                  {!webDavSyncActive && (
                     <>
-                      <button type="button" className="btn btn-default" disabled={webDavActionBusy} onClick={syncWebDavNow}>
-                        <span className="glyphicon glyphicon-refresh" /> {message('options_webDavSyncNow', 'Sync now')}
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        disabled={!webDavConfigured || !webDavConnectionTested || webDavActionBusy || webDavSyncBlocked}
+                        onClick={() => enableWebDavSync('upload')}
+                      >
+                        <span className="glyphicon glyphicon-cloud-upload" /> {message('options_webDavUploadEnable', 'Upload')}
                       </button>{' '}
-                      <button type="button" className="btn btn-warning" disabled={webDavActionBusy} onClick={disableWebDavSync}>
-                        <span className="glyphicon glyphicon-remove-sign" /> {message('options_webDavDisable', 'Disable WebDAV sync')}
-                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        disabled={!webDavConfigured || webDavActionBusy || webDavRemoteExists !== true || webDavSyncBlocked}
+                        onClick={() => enableWebDavSync('download')}
+                      >
+                        <span className="glyphicon glyphicon-cloud-download" /> {message('options_webDavDownloadEnable', 'Download')}
+                      </button>{' '}
                     </>
+                  )}
+                  {webDavSyncActive && (
+                    <button type="button" className="btn btn-warning" disabled={webDavActionBusy} onClick={disableWebDavSync}>
+                      <span className="glyphicon glyphicon-remove-sign" /> {message('options_webDavDisable', 'Disable WebDAV Sync')}
+                    </button>
                   )}
                 </p>
               </div>

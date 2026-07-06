@@ -834,15 +834,19 @@ type BackgroundExtensionRuntime = {
     return JSON.stringify(normalizeSyncCompareValue(left)) === JSON.stringify(normalizeSyncCompareValue(right));
   }
 
-  function cancelPendingBrowserSyncPush() {
-    if (!browserSync) {
+  function cancelPendingSyncPush(syncInstance?: BackgroundSync) {
+    if (!syncInstance) {
       return;
     }
-    if (browserSync._timeout != null) {
-      clearTimeout(browserSync._timeout);
-      browserSync._timeout = null;
+    if (syncInstance._timeout != null) {
+      clearTimeout(syncInstance._timeout);
+      syncInstance._timeout = null;
     }
-    browserSync._pending = {};
+    syncInstance._pending = {};
+  }
+
+  function cancelPendingBrowserSyncPush() {
+    cancelPendingSyncPush(browserSync);
   }
 
   function disableBrowserOptionsSync() {
@@ -930,9 +934,29 @@ type BackgroundExtensionRuntime = {
   function setWebDavOptionsSync(enabled: boolean, args?: WebDavSyncActionArgs) {
     if (!enabled) {
       if (activeSyncProvider !== 'webdav') {
-        return Promise.resolve();
+        return state
+          .get({
+            syncProvider: ''
+          })
+          .then((items) => {
+            if (items.syncProvider !== 'webdav') {
+              return;
+            }
+            return state
+              .set({
+                syncOptions: 'pristine'
+              })
+              .then(() => setActiveSyncProvider('', undefined));
+          });
       }
-      return Promise.resolve(options.setOptionsSync(false)).then(() => setActiveSyncProvider('', undefined));
+      cancelPendingSyncPush(options.sync);
+      return Promise.resolve(options.setOptionsSync(false))
+        .then(() =>
+          state.set({
+            syncOptions: 'pristine'
+          })
+        )
+        .then(() => setActiveSyncProvider('', undefined));
     }
     const config = normalizeWebDavConfig(args?.config, savedWebDavConfig());
     const webDavSync = createWebDavOptionsSync(config);

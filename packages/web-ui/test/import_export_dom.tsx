@@ -253,6 +253,94 @@ describe('import export component', () => {
     expect(screen.getByLabelText('Server URL')).toBeTruthy();
   });
 
+  it('requires a successful WebDAV test before enabling upload', async () => {
+    render(<ImportExport embedded options={optionsFixture()} />);
+
+    fireEvent.click(screen.getByLabelText('WebDAV Sync'));
+    fireEvent.click(screen.getByRole('button', {name: 'Enable WebDAV Sync'}));
+    fireEvent.change(screen.getByLabelText('Server URL'), {
+      target: {
+        value: 'https://example.com/dav/'
+      }
+    });
+
+    const testButton = screen.getByRole('button', {name: 'Test'}) as HTMLButtonElement;
+    const uploadButton = screen.getByRole('button', {name: 'Upload'}) as HTMLButtonElement;
+    const downloadButton = screen.getByRole('button', {name: 'Download'}) as HTMLButtonElement;
+
+    expect(testButton.disabled).toBe(false);
+    expect(uploadButton.disabled).toBe(true);
+    expect(downloadButton.disabled).toBe(true);
+
+    fireEvent.click(testButton);
+
+    await waitFor(() => expect(optionsClientMock.testWebDavSync).toHaveBeenCalled());
+    await waitFor(() => expect(uploadButton.disabled).toBe(false));
+    expect(downloadButton.disabled).toBe(true);
+  });
+
+  it('enables WebDAV download after testing an existing remote sync file', async () => {
+    optionsClientMock.testWebDavSync.mockResolvedValue({exists: true, ok: true});
+
+    render(<ImportExport embedded options={optionsFixture()} />);
+
+    fireEvent.click(screen.getByLabelText('WebDAV Sync'));
+    fireEvent.click(screen.getByRole('button', {name: 'Enable WebDAV Sync'}));
+    fireEvent.change(screen.getByLabelText('Server URL'), {
+      target: {
+        value: 'https://example.com/dav/'
+      }
+    });
+
+    fireEvent.click(screen.getByRole('button', {name: 'Test'}));
+
+    const uploadButton = screen.getByRole('button', {name: 'Upload'}) as HTMLButtonElement;
+    const downloadButton = screen.getByRole('button', {name: 'Download'}) as HTMLButtonElement;
+
+    await waitFor(() => expect(uploadButton.disabled).toBe(false));
+    expect(downloadButton.disabled).toBe(false);
+  });
+
+  it('disables active WebDAV sync and reloads', async () => {
+    optionsClientMock.getLocalState.mockImplementation((key: string) => {
+      if (key === 'syncOptions') {
+        return 'sync';
+      }
+      if (key === 'syncProvider') {
+        return 'webdav';
+      }
+      return '';
+    });
+    optionsClientMock.getState.mockImplementation((key: string) => {
+      if (key === 'syncOptions') {
+        return Promise.resolve('sync');
+      }
+      if (key === 'syncProvider') {
+        return Promise.resolve('webdav');
+      }
+      return Promise.resolve('');
+    });
+    optionsClientMock.setWebDavOptionsSync.mockResolvedValue(undefined);
+    optionsClientMock.getWebDavSyncConfig.mockResolvedValue({
+      intervalMinutes: 5,
+      remotePath: 'SwitchyAgain/options-sync.json',
+      serverUrl: 'https://example.com/dav/'
+    });
+
+    render(<ImportExport embedded options={optionsFixture()} />);
+
+    expect(screen.getByText('WebDAV sync is enabled.')).toBeTruthy();
+    await waitFor(() => expect((screen.getByRole('button', {name: 'Test'}) as HTMLButtonElement).disabled).toBe(false));
+    expect(screen.queryByRole('button', {name: 'Upload'})).toBeNull();
+    expect(screen.queryByRole('button', {name: 'Download'})).toBeNull();
+    expect(screen.queryByRole('button', {name: 'Sync'})).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', {name: 'Disable WebDAV Sync'}));
+
+    await waitFor(() => expect(optionsClientMock.setWebDavOptionsSync).toHaveBeenCalledWith(false));
+    await waitFor(() => expect(optionsClientMock.reloadLocation).toHaveBeenCalled());
+  });
+
   it('resets conflicted synced options and reloads after confirming current options', async () => {
     const onApplyOptions = vi.fn().mockResolvedValue(undefined);
     vi.spyOn(window, 'confirm').mockReturnValue(true);
