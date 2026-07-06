@@ -36,13 +36,13 @@ describe('BrowserStorage', function () {
       ready = new Promise(function (resolve: () => void) {
         resolveReady = resolve;
       });
-      storage = new BrowserStorage(createStorage(data, ready), 'omega.local.');
+      storage = new BrowserStorage(createStorage(data, ready), 'state.');
       getResult = storage.get({
         currentProfileName: 'system'
       });
       return Promise.delay(0)
         .then(function () {
-          data['omega.local.currentProfileName'] = '"proxy"';
+          data['state.currentProfileName'] = '"proxy"';
           resolveReady();
           return getResult;
         })

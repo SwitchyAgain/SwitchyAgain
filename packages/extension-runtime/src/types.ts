@@ -159,6 +159,7 @@ export type OptionsSyncLike = {
   copyTo(storage: StorageLike): RuntimePromise<unknown>;
   enabled: boolean;
   onPushError?: (error: unknown) => unknown;
+  preserveSyncEnabledState?: boolean;
   pushRetryDelay?: number;
   requestPush(changes: StorageChanges): unknown;
   storage: StorageLike;

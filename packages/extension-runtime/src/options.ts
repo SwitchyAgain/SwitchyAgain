@@ -447,6 +447,7 @@ class Options {
   loadOptions(arg?: LoadOptionsArgs): RuntimePromise<unknown> {
     let loadRaw;
     let retry = (arg != null ? arg : {}).retry;
+    const preserveSyncEnabledState = () => this.sync?.preserveSyncEnabledState === true;
     if (retry == null) {
       retry = 3;
     }
@@ -530,6 +531,11 @@ class Options {
             return sync.storage.get('schemaVersion').then((arg2) => {
               const schemaVersion = arg2.schemaVersion;
               if (!schemaVersion) {
+                if (preserveSyncEnabledState()) {
+                  return this._state.set({
+                    syncOptions: 'sync'
+                  });
+                }
                 return this._state.set({
                   syncOptions: 'pristine'
                 });
@@ -569,6 +575,12 @@ class Options {
                   .get(null)
                   .then((options) => {
                     if (!options['schemaVersion']) {
+                      if (preserveSyncEnabledState()) {
+                        this._state.set({
+                          syncOptions: 'sync'
+                        });
+                        return null;
+                      }
                       this._state.set({
                         syncOptions: 'pristine'
                       });
@@ -588,7 +600,13 @@ class Options {
               });
           } else {
             this.log.error(e instanceof Error ? e.stack : e);
-            this._state.remove(['syncOptions']);
+            if (preserveSyncEnabledState()) {
+              this._state.set({
+                syncOptions: 'sync'
+              });
+            } else {
+              this._state.remove(['syncOptions']);
+            }
             return null;
           }
         });

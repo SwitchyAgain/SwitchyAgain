@@ -601,7 +601,7 @@ describe('options app', () => {
 
     await screen.findByRole('heading', {name: /Profile :: proxy/});
     expect(window.location.hash).toBe('#/profile/proxy');
-    expect(localStorage.getItem('omega.local.web.last_url')).toBe(JSON.stringify('/profile/proxy'));
+    expect(localStorage.getItem('state.web.last_url')).toBe(JSON.stringify('/profile/proxy'));
     expect(requests).not.toContainEqual({
       args: [
         {
@@ -2667,7 +2667,7 @@ describe('options app', () => {
   });
 
   it('applies dirty embedded options before resetting synced options', async () => {
-    localStorage.setItem('omega.local.syncOptions', JSON.stringify('conflict'));
+    localStorage.setItem('state.syncOptions', JSON.stringify('conflict'));
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     const loadedOptions = optionsFixture();
     const {requests} = installBackground({

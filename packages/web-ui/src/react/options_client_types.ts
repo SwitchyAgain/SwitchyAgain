@@ -98,7 +98,7 @@ export type WebDavSyncActionArgs = {
   mode?: 'download' | 'upload';
 };
 
-export type WebDavSyncManualAction = 'disableAndDeleteRemote' | 'downloadNow' | 'uploadNow';
+export type WebDavSyncManualAction = 'downloadNow' | 'uploadNow';
 
 export type WebDavSyncTestResult = {
   exists: boolean;
@@ -107,12 +107,16 @@ export type WebDavSyncTestResult = {
 };
 
 export type WebDavSyncStatus = {
+  backoffIndex?: number;
   failureCount?: number;
   lastAttemptAt?: string;
   lastErrorAt?: string;
   lastSuccessAt?: string;
   message?: string;
-  operation?: 'delete' | 'download' | 'poll' | 'upload';
+  needsDirection?: boolean;
+  nextRetryAt?: string;
+  operation?: 'download' | 'poll' | 'upload';
+  pendingUpload?: boolean;
   state: 'success' | 'retrying' | 'error';
 };
 

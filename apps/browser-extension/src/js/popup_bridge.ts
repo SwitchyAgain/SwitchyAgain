@@ -147,7 +147,7 @@ function callBackgroundWithRefresh<M extends PopupBackgroundMethod>(
 }
 
 const isManifestV3 = chrome.runtime.getManifest && (chrome.runtime.getManifest().manifest_version ?? 2) >= 3;
-const localStatePrefix = 'omega.local.';
+const localStatePrefix = 'state.';
 
 function cacheActivePageInfo(info?: PopupApiPageInfo | null) {
   if (!info || !info.url || typeof localStorage === 'undefined') return;
@@ -218,7 +218,7 @@ function removeOptionsTab(tabId: number | undefined, callback: () => void) {
     keys.forEach((key: PopupApiStateKey) => {
       try {
         Object.assign(results, {
-          [key]: JSON.parse(localStorage['omega.local.' + key])
+          [key]: JSON.parse(localStorage[localStatePrefix + key])
         });
       } catch (_) {
         return null;

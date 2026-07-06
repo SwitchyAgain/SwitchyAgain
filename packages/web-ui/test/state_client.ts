@@ -50,7 +50,7 @@ describe('state client', () => {
       open: true
     });
 
-    expect(localStorage.getItem('omega.local.web.sidebar')).toBe(JSON.stringify({open: true}));
+    expect(localStorage.getItem('state.web.sidebar')).toBe(JSON.stringify({open: true}));
     expect(getLocalState('web.sidebar')).toEqual({
       open: true
     });

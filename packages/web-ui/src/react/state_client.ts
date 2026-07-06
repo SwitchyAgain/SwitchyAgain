@@ -7,7 +7,7 @@ function isManifestV3() {
 }
 
 function stateKey(name: string) {
-  return `omega.local.${name}`;
+  return `state.${name}`;
 }
 
 export function getLocalState<T = unknown>(name: string) {

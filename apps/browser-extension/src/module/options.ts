@@ -2888,7 +2888,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
   }
 
   schedule(name: string, periodInMinutes: number, callback: () => void) {
-    name = `omega.${name}`;
+    name = `task.${name}`;
     const root = globalThis as typeof globalThis & {_alarms?: unknown};
     if (typeof root._alarms === 'undefined' || root._alarms === null) {
       this._alarms = {};

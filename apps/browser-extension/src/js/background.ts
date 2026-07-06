@@ -36,7 +36,7 @@ type WebDavSyncActionArgs = {
   mode?: 'download' | 'upload';
 };
 
-type WebDavSyncManualAction = 'disableAndDeleteRemote' | 'downloadNow' | 'uploadNow';
+type WebDavSyncManualAction = 'downloadNow' | 'uploadNow';
 
 type WebDavSyncConfigInput = {
   intervalMinutes?: number;
@@ -63,15 +63,19 @@ type WebDavSyncTestResult = {
 
 type WebDavSyncStatusState = 'success' | 'retrying' | 'error';
 
-type WebDavSyncStatusOperation = 'delete' | 'download' | 'poll' | 'upload';
+type WebDavSyncStatusOperation = 'download' | 'poll' | 'upload';
 
 type WebDavSyncStatus = {
+  backoffIndex?: number;
   failureCount?: number;
   lastAttemptAt?: string;
   lastErrorAt?: string;
   lastSuccessAt?: string;
   message?: string;
+  needsDirection?: boolean;
+  nextRetryAt?: string;
   operation?: WebDavSyncStatusOperation;
+  pendingUpload?: boolean;
   state: WebDavSyncStatusState;
 };
 
@@ -144,8 +148,11 @@ type BackgroundRespond = (response: BackgroundRuntimeResponse) => void;
 
 type BackgroundSync = {
   enabled: boolean;
+  copyTo(local: unknown): RuntimePromise<unknown>;
   onPushError?: (error: unknown) => unknown;
+  preserveSyncEnabledState?: boolean;
   pushRetryDelay?: number;
+  requestPush(changes: Record<string, unknown>): unknown;
   storage?: {
     get(keys: unknown): RuntimePromise<Record<string, unknown>>;
     poll?(callback: (changes: Record<string, unknown | undefined>) => unknown): Promise<unknown>;
@@ -153,6 +160,7 @@ type BackgroundSync = {
     watchCallback?: (changes: Record<string, unknown | undefined>) => unknown;
   };
   transformValue?: unknown;
+  watchAndPull(local: unknown): () => unknown;
   _pending?: Record<string, unknown>;
   _retryTimeout?: ReturnType<typeof setTimeout> | null;
   _timeout?: ReturnType<typeof setTimeout> | null;
@@ -177,6 +185,7 @@ type BackgroundExternalApi = {
 
 type BackgroundState = {
   get(keys: unknown): RuntimePromise<Record<string, unknown>>;
+  remove?(keys?: unknown): RuntimePromise<unknown>;
   set(items: Record<string, unknown>): RuntimePromise<unknown>;
 };
 
@@ -210,6 +219,7 @@ type BackgroundOptions = BackgroundOptionMethods & {
   matchProfileFromProfileName(profileName: string, request: unknown): RuntimePromise<BackgroundMatchResult>;
   matchProfile(request: unknown): RuntimePromise<BackgroundMatchResult>;
   getMonitoredTabUrl(tabId: number, url?: string): string | undefined;
+  init(): RuntimePromise<unknown>;
   optionsLoaded: RuntimePromise<unknown> | null;
   printProfile(profile?: BackgroundProfile | null): unknown;
   profile(name?: unknown): BackgroundProfile;
@@ -221,6 +231,8 @@ type BackgroundOptions = BackgroundOptionMethods & {
   setExternalProfile(profile: BackgroundProfile, args?: {internal?: boolean; noRevert?: boolean}): Promise<unknown> | void;
   setOptionsSync(enabled: boolean, args?: unknown): RuntimePromise<unknown>;
   setProxyNotControllable(reason: string | null): unknown;
+  _storage: unknown;
+  _syncWatchStop: (() => unknown) | null;
   _options: OmegaOptionsData;
 };
 
@@ -421,7 +433,7 @@ type BackgroundExtensionRuntime = {
   }
 
   function drawIcon(resultColor?: string, profileColor?: string, scopeMarker?: ProfileScopeMarker): BackgroundIcon | null {
-    const cacheKey = `omega+${resultColor != null ? resultColor : ''}+${profileColor || ''}+${scopeMarker || ''}`;
+    const cacheKey = `icon+${resultColor != null ? resultColor : ''}+${profileColor || ''}+${scopeMarker || ''}`;
     const cachedIcon = iconCache[cacheKey];
     if (cachedIcon) {
       return cachedIcon;
@@ -542,14 +554,15 @@ type BackgroundExtensionRuntime = {
   const SYNC_PROVIDER_STATE = 'syncProvider';
   const WEBDAV_SYNC_CONFIG_STATE = 'webDavSyncConfig';
   const WEBDAV_SYNC_STATUS_STATE = 'webDavSyncStatus';
-  const WEBDAV_SYNC_ALARM = 'omega.webDavSync';
+  const WEBDAV_SYNC_ALARM = 'task.webDavSync';
   const DEFAULT_WEBDAV_REMOTE_PATH = 'SwitchyAgain/options-sync.json';
   const DEFAULT_WEBDAV_INTERVAL_MINUTES = 5;
   const WEBDAV_SYNC_FAILURE_LIMIT = 3;
+  const WEBDAV_SYNC_BACKOFF_HOURS = [1, 3, 6, 12, 24];
   const WEBDAV_PUSH_RETRY_DELAY_MS = 60000;
 
   function stateStorageKey(name: string) {
-    return `omega.local.${name}`;
+    return `state.${name}`;
   }
 
   function getLocalState<T = unknown>(name: string): T | undefined {
@@ -603,11 +616,43 @@ type BackgroundExtensionRuntime = {
   }
 
   function savedWebDavConfig() {
-    const config = getLocalState<WebDavSyncConfig>(WEBDAV_SYNC_CONFIG_STATE);
-    if (!config?.serverUrl) {
+    return normalizeSavedWebDavConfig(getLocalState<WebDavSyncConfig>(WEBDAV_SYNC_CONFIG_STATE));
+  }
+
+  function normalizeSavedWebDavConfig(value: unknown) {
+    if (!isRecord(value) || !value.serverUrl) {
       return undefined;
     }
-    return normalizeWebDavConfig(config, config);
+    return normalizeWebDavConfig(value as WebDavSyncConfigInput, value as WebDavSyncConfig);
+  }
+
+  function comparableWebDavConnectionConfig(config?: WebDavSyncConfig) {
+    return {
+      password: config?.password || '',
+      remotePath: config?.remotePath || DEFAULT_WEBDAV_REMOTE_PATH,
+      serverUrl: config?.serverUrl || '',
+      username: config?.username || ''
+    };
+  }
+
+  function sameWebDavConnectionConfig(left?: WebDavSyncConfig, right?: WebDavSyncConfig) {
+    return (
+      Boolean(left && right) &&
+      JSON.stringify(comparableWebDavConnectionConfig(left)) === JSON.stringify(comparableWebDavConnectionConfig(right))
+    );
+  }
+
+  function comparableWebDavTargetConfig(config?: WebDavSyncConfig) {
+    return {
+      remotePath: config?.remotePath || DEFAULT_WEBDAV_REMOTE_PATH,
+      serverUrl: config?.serverUrl || ''
+    };
+  }
+
+  function sameWebDavTargetConfig(left?: WebDavSyncConfig, right?: WebDavSyncConfig) {
+    return (
+      Boolean(left && right) && JSON.stringify(comparableWebDavTargetConfig(left)) === JSON.stringify(comparableWebDavTargetConfig(right))
+    );
   }
 
   function publicWebDavConfig(config?: WebDavSyncConfig): WebDavSyncPublicConfig | undefined {
@@ -629,6 +674,7 @@ type BackgroundExtensionRuntime = {
   let browserSync: BackgroundSync | undefined;
   let webDavSyncFailureCount = getLocalState<WebDavSyncStatus>(WEBDAV_SYNC_STATUS_STATE)?.failureCount || 0;
   let webDavSyncAlarmListenerInstalled = false;
+  let webDavSyncRestorePromise: Promise<unknown> | null = null;
 
   function statusCodeForError(error: unknown) {
     const candidate = error as
@@ -663,6 +709,39 @@ type BackgroundExtensionRuntime = {
     return statusCode ? `${text} (${statusCode})` : String(text);
   }
 
+  function currentWebDavSyncStatus() {
+    return getLocalState<WebDavSyncStatus>(WEBDAV_SYNC_STATUS_STATE) || null;
+  }
+
+  function parseDateMs(value: unknown) {
+    if (typeof value !== 'string') {
+      return 0;
+    }
+    const time = Date.parse(value);
+    return Number.isFinite(time) ? time : 0;
+  }
+
+  function webDavBackoffDelayMs(backoffIndex: number) {
+    const index = Math.max(0, Math.min(backoffIndex, WEBDAV_SYNC_BACKOFF_HOURS.length - 1));
+    return WEBDAV_SYNC_BACKOFF_HOURS[index] * 60 * 60 * 1000;
+  }
+
+  function webDavSyncRetryDue(status = currentWebDavSyncStatus(), now = Date.now()) {
+    if (status?.state !== 'error') {
+      return true;
+    }
+    const nextRetryAt = parseDateMs(status.nextRetryAt);
+    return nextRetryAt <= now;
+  }
+
+  function webDavSyncBackoffPending(status = currentWebDavSyncStatus(), now = Date.now()) {
+    return status?.state === 'error' && !webDavSyncRetryDue(status, now);
+  }
+
+  function webDavSyncDirectionPending(status = currentWebDavSyncStatus()) {
+    return Boolean(status?.needsDirection);
+  }
+
   function publishWebDavSyncStatus(status: WebDavSyncStatus) {
     setLocalState(WEBDAV_SYNC_STATUS_STATE, status);
     if (state) {
@@ -672,7 +751,17 @@ type BackgroundExtensionRuntime = {
     }
   }
 
-  function recordWebDavSyncSuccess(operation: WebDavSyncStatusOperation) {
+  function clearWebDavSyncStatus() {
+    webDavSyncFailureCount = 0;
+    localStorage.removeItem(stateStorageKey(WEBDAV_SYNC_STATUS_STATE));
+    state?.remove?.(WEBDAV_SYNC_STATUS_STATE);
+  }
+
+  function preserveEnabledWebDavSyncState(config = savedWebDavConfig()) {
+    return preserveActiveWebDavSyncState(config).catch(() => undefined);
+  }
+
+  function recordWebDavSyncSuccess(operation: WebDavSyncStatusOperation, preserveEnabled = false) {
     const now = new Date().toISOString();
     webDavSyncFailureCount = 0;
     publishWebDavSyncStatus({
@@ -680,21 +769,47 @@ type BackgroundExtensionRuntime = {
       lastAttemptAt: now,
       lastSuccessAt: now,
       operation,
+      pendingUpload: false,
       state: 'success'
     });
+    if (preserveEnabled) {
+      preserveEnabledWebDavSyncState();
+    }
   }
 
-  function recordWebDavSyncFailure(operation: WebDavSyncStatusOperation, error: unknown) {
+  function recordWebDavSyncFailure(operation: WebDavSyncStatusOperation, error: unknown, preserveEnabled = false) {
     const now = new Date().toISOString();
+    const previous = currentWebDavSyncStatus();
     webDavSyncFailureCount += 1;
-    publishWebDavSyncStatus({
+    const errorState = webDavSyncFailureCount >= WEBDAV_SYNC_FAILURE_LIMIT;
+    const backoffIndex = errorState
+      ? previous?.state === 'error'
+        ? Math.min((previous.backoffIndex ?? 0) + 1, WEBDAV_SYNC_BACKOFF_HOURS.length - 1)
+        : 0
+      : undefined;
+    const nextRetryAt =
+      typeof backoffIndex === 'number' ? new Date(Date.now() + webDavBackoffDelayMs(backoffIndex)).toISOString() : undefined;
+    const pendingUpload = Boolean(previous?.pendingUpload || operation === 'upload');
+    const status: WebDavSyncStatus = {
+      ...(typeof backoffIndex === 'number' ? {backoffIndex} : {}),
       failureCount: webDavSyncFailureCount,
       lastAttemptAt: now,
       lastErrorAt: now,
       message: messageForSyncError(error),
+      ...(previous?.needsDirection ? {needsDirection: true} : {}),
+      ...(nextRetryAt ? {nextRetryAt} : {}),
       operation,
-      state: webDavSyncFailureCount >= WEBDAV_SYNC_FAILURE_LIMIT ? 'error' : 'retrying'
-    });
+      pendingUpload,
+      state: errorState ? 'error' : 'retrying'
+    };
+    publishWebDavSyncStatus(status);
+    if (preserveEnabled) {
+      preserveEnabledWebDavSyncState();
+    }
+    if (status.state === 'error') {
+      pauseActiveWebDavSync();
+      scheduleWebDavSyncAlarm(savedWebDavConfig());
+    }
   }
 
   function clearWebDavSyncAlarm() {
@@ -704,8 +819,83 @@ type BackgroundExtensionRuntime = {
     chrome.alarms.clear(WEBDAV_SYNC_ALARM);
   }
 
+  function pauseActiveWebDavSync() {
+    const syncInstance = activeSyncProvider === 'webdav' ? options?.sync : undefined;
+    if (!syncInstance) {
+      return;
+    }
+    cancelPendingSyncPush(syncInstance);
+    syncInstance.enabled = false;
+  }
+
+  function stopOptionsSyncWatch() {
+    if (typeof options?._syncWatchStop === 'function') {
+      options._syncWatchStop();
+    }
+    if (options) {
+      options._syncWatchStop = null;
+    }
+  }
+
+  function startWebDavSyncWatch(syncInstance: BackgroundSync) {
+    stopOptionsSyncWatch();
+    options._syncWatchStop = syncInstance.watchAndPull(options._storage);
+  }
+
+  function reloadOptionsFromLocalWithoutRemoteSync(syncInstance: BackgroundSync, config: WebDavSyncConfig) {
+    syncInstance.enabled = false;
+    return Promise.resolve(options.init()).then(
+      () =>
+        preserveActiveWebDavSyncState(config).then(() => {
+          syncInstance.enabled = true;
+        }),
+      (error: unknown) =>
+        preserveActiveWebDavSyncState(config).then(() => {
+          syncInstance.enabled = true;
+          return Promise.reject(error);
+        })
+    );
+  }
+
+  function restoreWebDavSyncWithoutStartupRetry(syncInstance: BackgroundSync, config: WebDavSyncConfig) {
+    return Promise.resolve(options.optionsLoaded || options.ready)
+      .catch(() => undefined)
+      .then(() => preserveActiveWebDavSyncState(config))
+      .then(() => {
+        syncInstance.enabled = true;
+        return syncInstance.copyTo(options._storage);
+      })
+      .then(() => {
+        recordWebDavSyncSuccess('poll', true);
+        return reloadOptionsFromLocalWithoutRemoteSync(syncInstance, config);
+      })
+      .then(() => {
+        startWebDavSyncWatch(syncInstance);
+        syncInstance.requestPush(options._options);
+        return preserveActiveWebDavSyncState(config);
+      })
+      .catch((error: unknown) => {
+        pauseActiveWebDavSync();
+        recordWebDavSyncFailure('poll', error, true);
+      });
+  }
+
   function scheduleWebDavSyncAlarm(config?: WebDavSyncConfig) {
     if (typeof chrome === 'undefined' || !chrome.alarms) {
+      return;
+    }
+    const status = currentWebDavSyncStatus();
+    if (status?.needsDirection) {
+      clearWebDavSyncAlarm();
+      return;
+    }
+    if (status?.state === 'error') {
+      const nextRetryAt = parseDateMs(status.nextRetryAt);
+      chrome.alarms.clear(WEBDAV_SYNC_ALARM, () => {
+        chrome.alarms.create(WEBDAV_SYNC_ALARM, {
+          when: Math.max(Date.now() + 1000, nextRetryAt || Date.now() + 1000)
+        });
+      });
       return;
     }
     const interval = normalizeWebDavInterval(config?.intervalMinutes);
@@ -718,27 +908,138 @@ type BackgroundExtensionRuntime = {
     });
   }
 
+  function preserveActiveWebDavSyncState(config?: WebDavSyncConfig) {
+    if (config) {
+      setLocalState(WEBDAV_SYNC_CONFIG_STATE, config);
+    }
+    setLocalState(SYNC_PROVIDER_STATE, 'webdav');
+    setLocalState('syncOptions', 'sync');
+    return state.set({
+      ...(config ? {[WEBDAV_SYNC_CONFIG_STATE]: config} : {}),
+      [SYNC_PROVIDER_STATE]: 'webdav',
+      syncOptions: 'sync'
+    });
+  }
+
+  function getSavedWebDavConfigFromState() {
+    return state
+      .get({
+        [WEBDAV_SYNC_CONFIG_STATE]: null
+      })
+      .then((items) => normalizeSavedWebDavConfig(items[WEBDAV_SYNC_CONFIG_STATE]) || savedWebDavConfig());
+  }
+
+  function resolveWebDavConfig(configInput?: WebDavSyncConfigInput) {
+    return getSavedWebDavConfigFromState().then((previous) => normalizeWebDavConfig(configInput, previous));
+  }
+
+  function restoreActiveWebDavSyncFromState(force = false): Promise<unknown> {
+    if (webDavSyncRestorePromise && !force) {
+      return webDavSyncRestorePromise;
+    }
+    const restore = state
+      .get({
+        [SYNC_PROVIDER_STATE]: '',
+        [WEBDAV_SYNC_CONFIG_STATE]: null,
+        [WEBDAV_SYNC_STATUS_STATE]: null,
+        syncOptions: ''
+      })
+      .then((items) => {
+        const status = items[WEBDAV_SYNC_STATUS_STATE] as WebDavSyncStatus | null | undefined;
+        webDavSyncFailureCount = status?.failureCount || 0;
+        const provider = (items[SYNC_PROVIDER_STATE] || '') as SyncProvider;
+        const config = normalizeSavedWebDavConfig(items[WEBDAV_SYNC_CONFIG_STATE]);
+        if (provider !== 'webdav' || !config) {
+          return;
+        }
+        if (webDavSyncDirectionPending(status)) {
+          if (activeSyncProvider !== 'webdav' || !options.sync?.storage) {
+            const pausedWebDavSync = createWebDavOptionsSync(config);
+            pausedWebDavSync.enabled = false;
+            activeSyncProvider = 'webdav';
+            options.sync = pausedWebDavSync;
+          }
+          pauseActiveWebDavSync();
+          return preserveActiveWebDavSyncState(config).then(() => {
+            clearWebDavSyncAlarm();
+            return Promise.resolve(options.optionsLoaded || options.ready).catch(() => undefined);
+          });
+        }
+        if (!force && webDavSyncBackoffPending(status)) {
+          if (activeSyncProvider !== 'webdav' || !options.sync?.storage) {
+            const pausedWebDavSync = createWebDavOptionsSync(config);
+            pausedWebDavSync.enabled = false;
+            activeSyncProvider = 'webdav';
+            options.sync = pausedWebDavSync;
+          }
+          pauseActiveWebDavSync();
+          return preserveActiveWebDavSyncState(config).then(() => {
+            scheduleWebDavSyncAlarm(config);
+            return Promise.resolve(options.optionsLoaded || options.ready).catch(() => undefined);
+          });
+        }
+        if (!force && activeSyncProvider === 'webdav' && options.sync?.enabled && options.sync.storage) {
+          return preserveActiveWebDavSyncState(config).then(() => {
+            scheduleWebDavSyncAlarm(config);
+            return Promise.resolve(options.optionsLoaded || options.ready).catch(() => undefined);
+          });
+        }
+        if (activeSyncProvider === 'webdav') {
+          cancelPendingSyncPush(options.sync);
+        }
+        const webDavSync = createWebDavOptionsSync(config);
+        webDavSync.enabled = false;
+        activeSyncProvider = 'webdav';
+        options.sync = webDavSync;
+        return preserveActiveWebDavSyncState(config)
+          .then(() => restoreWebDavSyncWithoutStartupRetry(webDavSync, config))
+          .then(() => {
+            scheduleWebDavSyncAlarm(config);
+          });
+      });
+    const pending = Promise.resolve(restore).then(
+      (result: unknown) => {
+        webDavSyncRestorePromise = null;
+        return result;
+      },
+      (error: unknown) => {
+        webDavSyncRestorePromise = null;
+        return Promise.reject(error);
+      }
+    );
+    webDavSyncRestorePromise = pending;
+    return pending;
+  }
+
+  function pollCurrentWebDavStorage() {
+    const storage = options.sync?.storage;
+    if (!storage?.poll || !storage.watchCallback) {
+      return Promise.reject(new Error('WebDAV sync is not ready.'));
+    }
+    return storage.poll(storage.watchCallback).then(
+      () => recordWebDavSyncSuccess('poll', true),
+      (error: unknown) => recordWebDavSyncFailure('poll', error, true)
+    );
+  }
+
   function pollActiveWebDavSync() {
     if (typeof options === 'undefined') {
       return;
     }
-    if (activeSyncProvider !== 'webdav' || !options.sync?.enabled) {
-      clearWebDavSyncAlarm();
-      return;
-    }
-    return Promise.resolve(options.optionsLoaded || options.ready).then(() => {
+    return restoreActiveWebDavSyncFromState().then(() => {
       if (activeSyncProvider !== 'webdav' || !options.sync?.enabled) {
-        clearWebDavSyncAlarm();
         return;
       }
-      const storage = options.sync.storage;
-      if (!storage?.poll || !storage.watchCallback) {
-        return;
-      }
-      return storage.poll(storage.watchCallback).then(
-        () => recordWebDavSyncSuccess('poll'),
-        (error: unknown) => recordWebDavSyncFailure('poll', error)
-      );
+      return Promise.resolve(options.optionsLoaded || options.ready)
+        .catch(() => undefined)
+        .then(() =>
+          pollCurrentWebDavStorage().catch((error: unknown) => {
+            if (messageForSyncError(error) !== 'WebDAV sync is not ready.') {
+              return Promise.reject(error);
+            }
+            return restoreActiveWebDavSyncFromState(true).then(() => pollCurrentWebDavStorage());
+          })
+        );
     });
   }
 
@@ -752,7 +1053,7 @@ type BackgroundExtensionRuntime = {
         return;
       }
       Promise.resolve(pollActiveWebDavSync()).catch((error: unknown) => {
-        recordWebDavSyncFailure('poll', error);
+        recordWebDavSyncFailure('poll', error, true);
       });
     });
   }
@@ -891,7 +1192,7 @@ type BackgroundExtensionRuntime = {
 
   const storage = new ExtensionRuntimeCurrent.Storage('local');
 
-  state = new ExtensionRuntimeCurrent.BrowserStorage(localStorage, 'omega.local.');
+  state = new ExtensionRuntimeCurrent.BrowserStorage(localStorage, 'state.');
 
   function createOptionsSync(syncStorage: unknown) {
     const sync = new ExtensionRuntimeCurrent.OptionsSync(syncStorage) as BackgroundSync;
@@ -902,16 +1203,17 @@ type BackgroundExtensionRuntime = {
   function createWebDavOptionsSync(config: WebDavSyncConfig) {
     let sync: BackgroundSync;
     const storage = new ExtensionRuntimeCurrent.WebDavStorage(config, {
-      onPollError: (error: unknown) => recordWebDavSyncFailure('poll', error),
+      onPollError: (error: unknown) => recordWebDavSyncFailure('poll', error, true),
       onPollSuccess: () => {
         if (!sync?._pending || Object.keys(sync._pending).length === 0) {
-          recordWebDavSyncSuccess('poll');
+          recordWebDavSyncSuccess('poll', true);
         }
       },
-      onWriteSuccess: () => recordWebDavSyncSuccess('upload')
+      onWriteSuccess: () => recordWebDavSyncSuccess('upload', true)
     });
     sync = createOptionsSync(storage);
-    sync.onPushError = (error: unknown) => recordWebDavSyncFailure('upload', error);
+    sync.onPushError = (error: unknown) => recordWebDavSyncFailure('upload', error, true);
+    sync.preserveSyncEnabledState = true;
     sync.pushRetryDelay = WEBDAV_PUSH_RETRY_DELAY_MS;
     return sync;
   }
@@ -932,9 +1234,9 @@ type BackgroundExtensionRuntime = {
     activeSyncProvider = 'webdav';
   } else {
     sync = browserSync;
-    activeSyncProvider = sync ? 'browser' : '';
+    activeSyncProvider = savedProvider === 'webdav' ? '' : sync ? 'browser' : '';
   }
-  if (sync && localStorage['omega.local.syncOptions'] !== '"sync"') {
+  if (sync && (savedProvider === 'webdav' || localStorage[stateStorageKey('syncOptions')] !== '"sync"')) {
     sync.enabled = false;
   }
 
@@ -946,11 +1248,9 @@ type BackgroundExtensionRuntime = {
 
   options = new ExtensionRuntimeCurrent.Options(null, storage, state, Log, sync, proxyImpl);
   ensureWebDavSyncAlarmListener();
-  if (activeSyncProvider === 'webdav' && sync?.enabled && webDavConfig) {
-    scheduleWebDavSyncAlarm(webDavConfig);
-  } else {
-    clearWebDavSyncAlarm();
-  }
+  restoreActiveWebDavSyncFromState().catch((error: unknown) => {
+    Log.error('Restore WebDAV sync failed:', error);
+  });
 
   options.externalApi = new ExtensionRuntimeCurrent.ExternalApi(options);
 
@@ -968,11 +1268,14 @@ type BackgroundExtensionRuntime = {
   function ensureNoActiveOtherSyncProvider(provider: SyncProvider) {
     return state
       .get({
+        syncProvider: '',
         syncOptions: ''
       })
       .then((items) => {
-        if (items.syncOptions === 'sync' && activeSyncProvider && activeSyncProvider !== provider) {
-          const activeName = activeSyncProvider === 'webdav' ? 'WebDAV sync' : 'Browser sync';
+        const persistedProvider = (items.syncProvider || '') as SyncProvider;
+        const activeProvider = persistedProvider || activeSyncProvider;
+        if (items.syncOptions === 'sync' && activeProvider && activeProvider !== provider) {
+          const activeName = activeProvider === 'webdav' ? 'WebDAV sync' : 'Browser sync';
           const nextName = provider === 'webdav' ? 'WebDAV sync' : 'Browser sync';
           return Promise.reject(new Error(`Disable ${activeName} before enabling ${nextName}.`));
         }
@@ -1081,52 +1384,126 @@ type BackgroundExtensionRuntime = {
       .then(() => options.resetOptionsSync());
   }
 
+  function methodChangesSyncedOptions(method: unknown) {
+    switch (method) {
+      case 'addCondition':
+      case 'addProfile':
+      case 'patch':
+      case 'renameProfile':
+      case 'replaceRef':
+      case 'reset':
+      case 'setDefaultProfile':
+      case 'updateProfile':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  function markWebDavSyncPendingUploadIfPaused(method: unknown) {
+    if (!methodChangesSyncedOptions(method)) {
+      return;
+    }
+    const provider = getLocalState<SyncProvider>(SYNC_PROVIDER_STATE) || activeSyncProvider;
+    const syncOptions = getLocalState<string>('syncOptions');
+    if (provider !== 'webdav' || syncOptions !== 'sync' || options.sync?.enabled) {
+      return;
+    }
+    const status = currentWebDavSyncStatus() || {
+      failureCount: webDavSyncFailureCount,
+      state: 'error'
+    };
+    publishWebDavSyncStatus({
+      ...status,
+      pendingUpload: true
+    });
+  }
+
+  function markWebDavSyncNeedsDirection() {
+    const now = new Date().toISOString();
+    const previous = currentWebDavSyncStatus();
+    webDavSyncFailureCount = 0;
+    publishWebDavSyncStatus({
+      failureCount: webDavSyncFailureCount,
+      lastAttemptAt: now,
+      message: 'WebDAV sync location changed. Choose Upload Now or Download Now to apply it.',
+      needsDirection: true,
+      ...(previous?.lastSuccessAt ? {lastSuccessAt: previous.lastSuccessAt} : {}),
+      ...(previous?.operation ? {operation: previous.operation} : {}),
+      pendingUpload: Boolean(previous?.pendingUpload),
+      state: 'success'
+    });
+    pauseActiveWebDavSync();
+    clearWebDavSyncAlarm();
+  }
+
   function getWebDavSyncConfig() {
-    return Promise.resolve(publicWebDavConfig(savedWebDavConfig()) || null);
+    return state
+      .get({
+        [WEBDAV_SYNC_CONFIG_STATE]: null
+      })
+      .then((items) => publicWebDavConfig(normalizeSavedWebDavConfig(items[WEBDAV_SYNC_CONFIG_STATE])) || null);
   }
 
   function setWebDavSyncConfig(configInput: WebDavSyncConfigInput) {
-    const config = normalizeWebDavConfig(configInput, savedWebDavConfig());
-    setLocalState(WEBDAV_SYNC_CONFIG_STATE, config);
     return state
-      .set({
-        [WEBDAV_SYNC_CONFIG_STATE]: config
+      .get({
+        [SYNC_PROVIDER_STATE]: '',
+        [WEBDAV_SYNC_CONFIG_STATE]: null
       })
-      .then(() => {
-        if (activeSyncProvider === 'webdav' && options.sync?.enabled) {
-          cancelPendingSyncPush(options.sync);
-          clearWebDavSyncAlarm();
-          return Promise.resolve(options.setOptionsSync(false))
-            .then(() => {
-              const webDavSync = createWebDavOptionsSync(config);
-              return setActiveSyncProvider('webdav', webDavSync);
-            })
-            .then(() => options.setOptionsSync(true))
-            .then(() => scheduleWebDavSyncAlarm(config))
-            .then(() => publicWebDavConfig(config));
-        }
-        return publicWebDavConfig(config);
+      .then((items) => {
+        const previous = normalizeSavedWebDavConfig(items[WEBDAV_SYNC_CONFIG_STATE]) || savedWebDavConfig();
+        const config = normalizeWebDavConfig(configInput, previous);
+        const provider = (items[SYNC_PROVIDER_STATE] || activeSyncProvider || '') as SyncProvider;
+        const connectionConfigChanged = !sameWebDavConnectionConfig(previous, config);
+        const targetConfigChanged = !sameWebDavTargetConfig(previous, config);
+        setLocalState(WEBDAV_SYNC_CONFIG_STATE, config);
+        return state
+          .set({
+            [WEBDAV_SYNC_CONFIG_STATE]: config
+          })
+          .then(() => {
+            if (provider === 'webdav') {
+              return preserveActiveWebDavSyncState(config);
+            }
+          })
+          .then(() => {
+            if (provider === 'webdav' && targetConfigChanged) {
+              markWebDavSyncNeedsDirection();
+              return;
+            }
+            if (provider === 'webdav' && connectionConfigChanged) {
+              return restoreActiveWebDavSyncFromState(true);
+            }
+          })
+          .then(() => {
+            if (provider === 'webdav') {
+              scheduleWebDavSyncAlarm(config);
+            }
+            return publicWebDavConfig(config);
+          });
       });
   }
 
   function testWebDavSync(configInput?: WebDavSyncConfigInput) {
-    const config = normalizeWebDavConfig(configInput, savedWebDavConfig());
-    const storage = new ExtensionRuntimeCurrent.WebDavStorage(config) as {
-      get(keys: unknown): RuntimePromise<Record<string, unknown>>;
-      remoteExists(): Promise<boolean>;
-    };
-    return Promise.resolve(storage.remoteExists()).then((exists): Promise<WebDavSyncTestResult> => {
-      if (!exists) {
-        return Promise.resolve({
-          exists: false,
-          ok: true
-        });
-      }
-      return storage.get('schemaVersion').then((items) => ({
-        exists: true,
-        ok: true,
-        schemaVersion: items.schemaVersion
-      }));
+    return resolveWebDavConfig(configInput).then((config) => {
+      const storage = new ExtensionRuntimeCurrent.WebDavStorage(config) as {
+        get(keys: unknown): RuntimePromise<Record<string, unknown>>;
+        remoteExists(): Promise<boolean>;
+      };
+      return Promise.resolve(storage.remoteExists()).then((exists): Promise<WebDavSyncTestResult> => {
+        if (!exists) {
+          return Promise.resolve({
+            exists: false,
+            ok: true
+          });
+        }
+        return storage.get('schemaVersion').then((items) => ({
+          exists: true,
+          ok: true,
+          schemaVersion: items.schemaVersion
+        }));
+      });
     });
   }
 
@@ -1137,13 +1514,23 @@ type BackgroundExtensionRuntime = {
         syncProvider: ''
       })
       .then((items) => {
-        const provider = activeSyncProvider || items.syncProvider;
-        if (items.syncOptions !== 'sync' || provider !== 'webdav') {
+        const provider = items.syncProvider || activeSyncProvider;
+        if (provider !== 'webdav') {
           return Promise.reject(new Error('WebDAV sync is not enabled.'));
         }
-        const config = savedWebDavConfig();
+        const config = normalizeSavedWebDavConfig(getLocalState<WebDavSyncConfig>(WEBDAV_SYNC_CONFIG_STATE));
         if (!config) {
-          return Promise.reject(new Error('WebDAV sync is not configured.'));
+          return state
+            .get({
+              [WEBDAV_SYNC_CONFIG_STATE]: null
+            })
+            .then((configItems) => {
+              const stateConfig = normalizeSavedWebDavConfig(configItems[WEBDAV_SYNC_CONFIG_STATE]);
+              if (!stateConfig) {
+                return Promise.reject(new Error('WebDAV sync is not configured.'));
+              }
+              return stateConfig;
+            });
         }
         return config;
       });
@@ -1159,10 +1546,11 @@ type BackgroundExtensionRuntime = {
         return Promise.resolve(storage.writeRemote(syncPayloadForOptions(options._options)));
       })
       .then(() => {
-        recordWebDavSyncSuccess('upload');
+        recordWebDavSyncSuccess('upload', true);
+        return restoreActiveWebDavSyncFromState(true);
       })
       .catch((error: unknown) => {
-        recordWebDavSyncFailure('upload', error);
+        recordWebDavSyncFailure('upload', error, true);
         return Promise.reject(error);
       });
   }
@@ -1176,31 +1564,12 @@ type BackgroundExtensionRuntime = {
     );
   }
 
-  function disableWebDavSyncAndDeleteRemote() {
-    return getActiveWebDavConfig()
-      .then((config) => {
-        cancelPendingSyncPush(options.sync);
-        clearWebDavSyncAlarm();
-        const storage = new ExtensionRuntimeCurrent.WebDavStorage(config) as {
-          remove(keys?: unknown): RuntimePromise<unknown>;
-        };
-        return Promise.resolve(storage.remove());
-      })
-      .then(() => setWebDavOptionsSync(false))
-      .catch((error: unknown) => {
-        recordWebDavSyncFailure('delete', error);
-        return Promise.reject(error);
-      });
-  }
-
   function runWebDavSyncAction(action: WebDavSyncManualAction) {
     switch (action) {
       case 'uploadNow':
         return uploadWebDavNow();
       case 'downloadNow':
         return downloadWebDavNow();
-      case 'disableAndDeleteRemote':
-        return disableWebDavSyncAndDeleteRemote();
       default:
         return Promise.reject(new Error('Unknown WebDAV sync action.'));
     }
@@ -1209,6 +1578,7 @@ type BackgroundExtensionRuntime = {
   function setWebDavOptionsSync(enabled: boolean, args?: WebDavSyncActionArgs) {
     if (!enabled) {
       clearWebDavSyncAlarm();
+      clearWebDavSyncStatus();
       if (activeSyncProvider !== 'webdav') {
         return state
           .get({
@@ -1234,41 +1604,49 @@ type BackgroundExtensionRuntime = {
         )
         .then(() => setActiveSyncProvider('', undefined));
     }
-    const config = normalizeWebDavConfig(args?.config, savedWebDavConfig());
-    if (activeSyncProvider === 'webdav') {
-      cancelPendingSyncPush(options.sync);
-    }
-    const webDavSync = createWebDavOptionsSync(config);
-    webDavSyncFailureCount = 0;
-    setLocalState(WEBDAV_SYNC_CONFIG_STATE, config);
-    return ensureNoActiveOtherSyncProvider('webdav')
-      .then(() =>
-        state.set({
-          [WEBDAV_SYNC_CONFIG_STATE]: config
-        })
-      )
-      .then(() => setActiveSyncProvider('webdav', webDavSync))
-      .then(() => {
-        if (args?.mode === 'download') {
+    return resolveWebDavConfig(args?.config).then((config) => {
+      const previousStatus = currentWebDavSyncStatus();
+      const wasWebDavSyncEnabled =
+        (getLocalState<SyncProvider>(SYNC_PROVIDER_STATE) || activeSyncProvider) === 'webdav' &&
+        getLocalState<string>('syncOptions') === 'sync';
+      if (activeSyncProvider === 'webdav') {
+        cancelPendingSyncPush(options.sync);
+      }
+      const webDavSync = createWebDavOptionsSync(config);
+      if (!previousStatus?.needsDirection) {
+        clearWebDavSyncStatus();
+      }
+      setLocalState(WEBDAV_SYNC_CONFIG_STATE, config);
+      return ensureNoActiveOtherSyncProvider('webdav')
+        .then(() =>
+          state.set({
+            [WEBDAV_SYNC_CONFIG_STATE]: config
+          })
+        )
+        .then(() => setActiveSyncProvider('webdav', webDavSync))
+        .then(() => {
+          if (args?.mode === 'download') {
+            return state.set({
+              syncOptions: 'conflict'
+            });
+          }
           return state.set({
-            syncOptions: 'conflict'
+            syncOptions: 'pristine'
           });
-        }
-        return state.set({
-          syncOptions: 'pristine'
+        })
+        .then(() => options.setOptionsSync(true, args?.mode === 'download' ? {force: true} : undefined))
+        .then(() => preserveActiveWebDavSyncState(config))
+        .then(() => {
+          scheduleWebDavSyncAlarm(config);
+          if (args?.mode === 'download') {
+            recordWebDavSyncSuccess('download', true);
+          }
+        })
+        .catch((error: unknown) => {
+          recordWebDavSyncFailure(args?.mode === 'download' ? 'download' : 'upload', error, wasWebDavSyncEnabled);
+          return Promise.reject(error);
         });
-      })
-      .then(() => options.setOptionsSync(true, args?.mode === 'download' ? {force: true} : undefined))
-      .then(() => {
-        scheduleWebDavSyncAlarm(config);
-        if (args?.mode === 'download') {
-          recordWebDavSyncSuccess('download');
-        }
-      })
-      .catch((error: unknown) => {
-        recordWebDavSyncFailure(args?.mode === 'download' ? 'download' : 'upload', error);
-        return Promise.reject(error);
-      });
+    });
   }
 
   const syncApi = {
@@ -1663,7 +2041,13 @@ type BackgroundExtensionRuntime = {
       case 'getAll':
       case 'getPageInfo':
       case 'getState':
-        return options.optionsLoaded || options.ready;
+        return Promise.resolve(options.optionsLoaded || options.ready)
+          .catch(() => undefined)
+          .then(() => Promise.resolve(restoreActiveWebDavSyncFromState())) as RuntimePromise<unknown>;
+      case 'getWebDavSyncConfig':
+        return Promise.resolve(options.optionsLoaded || options.ready)
+          .catch(() => undefined)
+          .then(() => Promise.resolve(restoreActiveWebDavSyncFromState())) as RuntimePromise<unknown>;
       default:
         return options.ready;
     }
@@ -1778,6 +2162,7 @@ type BackgroundExtensionRuntime = {
         if (backgroundRequest.noReply) {
           return promise.then(
             () => {
+              markWebDavSyncPendingUploadIfPaused(backgroundRequest.method);
               if (backgroundRequest.refreshActivePage) {
                 return refreshActivePageIfEnabled();
               }
@@ -1789,6 +2174,7 @@ type BackgroundExtensionRuntime = {
         }
         return promise.then(
           (result: unknown) => {
+            markWebDavSyncPendingUploadIfPaused(backgroundRequest.method);
             if (backgroundRequest.refreshActivePage) {
               refreshActivePageIfEnabled();
             }
