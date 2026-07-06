@@ -98,10 +98,22 @@ export type WebDavSyncActionArgs = {
   mode?: 'download' | 'upload';
 };
 
+export type WebDavSyncManualAction = 'disableAndDeleteRemote' | 'downloadNow' | 'uploadNow';
+
 export type WebDavSyncTestResult = {
   exists: boolean;
   ok: boolean;
   schemaVersion?: unknown;
+};
+
+export type WebDavSyncStatus = {
+  failureCount?: number;
+  lastAttemptAt?: string;
+  lastErrorAt?: string;
+  lastSuccessAt?: string;
+  message?: string;
+  operation?: 'delete' | 'download' | 'poll' | 'upload';
+  state: 'success' | 'retrying' | 'error';
 };
 
 export type BackgroundMethodArgs = {
@@ -118,6 +130,7 @@ export type BackgroundMethodArgs = {
   resetOptionsSync: [];
   refreshProfileScopeContainerNames: [];
   resolveOptionsHandoff: [handoffId: string, action: 'apply' | 'discard'];
+  runWebDavSyncAction: [action: WebDavSyncManualAction];
   setOptionsSync: [enabled: boolean, args?: unknown];
   setWebDavOptionsSync: [enabled: boolean, args?: WebDavSyncActionArgs];
   setWebDavSyncConfig: [config: WebDavSyncConfig];
@@ -140,6 +153,7 @@ export type BackgroundMethodResult = {
   resetOptionsSync: void;
   refreshProfileScopeContainerNames: ProfileScopeContainerInfo[];
   resolveOptionsHandoff: void;
+  runWebDavSyncAction: void;
   setOptionsSync: void;
   setWebDavOptionsSync: void;
   setWebDavSyncConfig: WebDavSyncConfig;

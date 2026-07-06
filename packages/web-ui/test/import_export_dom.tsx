@@ -4,7 +4,7 @@ import React from 'react';
 import {cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import {ImportExport} from '../src/react/import_export';
 import {RESTORE_URL_STATE} from '../src/react/import_export_logic';
-import type {Options} from '../src/react/options_client_types';
+import type {Options, WebDavSyncStatus} from '../src/react/options_client_types';
 
 const optionsClientMock = vi.hoisted(() => ({
   clearWindowTimeout: vi.fn((timeout: ReturnType<typeof globalThis.setTimeout> | undefined) => {
@@ -23,6 +23,7 @@ const optionsClientMock = vi.hoisted(() => ({
   reloadLocation: vi.fn(),
   resetOptions: vi.fn(),
   resetOptionsSync: vi.fn(),
+  runWebDavSyncAction: vi.fn(),
   setLocalState: vi.fn(),
   setWindowTimeout: vi.fn((callback: () => void, delay = 0) => setTimeout(callback, delay)),
   setOptionsSync: vi.fn(),
@@ -56,6 +57,7 @@ vi.mock('../src/react/options_api_client', () => ({
   patchOptions: optionsClientMock.patchOptions,
   resetOptions: optionsClientMock.resetOptions,
   resetOptionsSync: optionsClientMock.resetOptionsSync,
+  runWebDavSyncAction: optionsClientMock.runWebDavSyncAction,
   setOptionsSync: optionsClientMock.setOptionsSync,
   setWebDavOptionsSync: optionsClientMock.setWebDavOptionsSync,
   setWebDavSyncConfig: optionsClientMock.setWebDavSyncConfig,
@@ -74,6 +76,38 @@ function optionsFixture(): Options {
     },
     '-exportLegacyRuleList': false
   };
+}
+
+function mockActiveWebDavSync(webDavSyncStatus?: WebDavSyncStatus) {
+  optionsClientMock.getLocalState.mockImplementation((key: string) => {
+    if (key === 'syncOptions') {
+      return 'sync';
+    }
+    if (key === 'syncProvider') {
+      return 'webdav';
+    }
+    if (key === 'webDavSyncStatus') {
+      return webDavSyncStatus || null;
+    }
+    return '';
+  });
+  optionsClientMock.getState.mockImplementation((key: string) => {
+    if (key === 'syncOptions') {
+      return Promise.resolve('sync');
+    }
+    if (key === 'syncProvider') {
+      return Promise.resolve('webdav');
+    }
+    if (key === 'webDavSyncStatus') {
+      return Promise.resolve(webDavSyncStatus || null);
+    }
+    return Promise.resolve('');
+  });
+  optionsClientMock.getWebDavSyncConfig.mockResolvedValue({
+    intervalMinutes: 5,
+    remotePath: 'SwitchyAgain/options-sync.json',
+    serverUrl: 'https://example.com/dav/'
+  });
 }
 
 async function downloadedOptions() {
@@ -99,6 +133,7 @@ beforeEach(() => {
   optionsClientMock.reloadLocation.mockReset();
   optionsClientMock.resetOptions.mockReset();
   optionsClientMock.resetOptionsSync.mockReset();
+  optionsClientMock.runWebDavSyncAction.mockReset();
   optionsClientMock.setLocalState.mockReset();
   optionsClientMock.setWindowTimeout.mockClear();
   optionsClientMock.setOptionsSync.mockReset();
@@ -110,6 +145,7 @@ beforeEach(() => {
   optionsClientMock.getState.mockResolvedValue('');
   optionsClientMock.getWebDavSyncConfig.mockResolvedValue(null);
   optionsClientMock.setWebDavSyncConfig.mockResolvedValue({});
+  optionsClientMock.runWebDavSyncAction.mockResolvedValue(undefined);
   optionsClientMock.testWebDavSync.mockResolvedValue({exists: false, ok: true});
 });
 
@@ -302,43 +338,147 @@ describe('import export component', () => {
   });
 
   it('disables active WebDAV sync and reloads', async () => {
-    optionsClientMock.getLocalState.mockImplementation((key: string) => {
-      if (key === 'syncOptions') {
-        return 'sync';
-      }
-      if (key === 'syncProvider') {
-        return 'webdav';
-      }
-      return '';
-    });
-    optionsClientMock.getState.mockImplementation((key: string) => {
-      if (key === 'syncOptions') {
-        return Promise.resolve('sync');
-      }
-      if (key === 'syncProvider') {
-        return Promise.resolve('webdav');
-      }
-      return Promise.resolve('');
-    });
+    mockActiveWebDavSync();
     optionsClientMock.setWebDavOptionsSync.mockResolvedValue(undefined);
-    optionsClientMock.getWebDavSyncConfig.mockResolvedValue({
-      intervalMinutes: 5,
-      remotePath: 'SwitchyAgain/options-sync.json',
-      serverUrl: 'https://example.com/dav/'
-    });
 
     render(<ImportExport embedded options={optionsFixture()} />);
 
-    expect(screen.getByText('WebDAV sync is enabled.')).toBeTruthy();
+    expect(screen.getByText('WebDAV Sync is enabled.')).toBeTruthy();
     await waitFor(() => expect((screen.getByRole('button', {name: 'Test'}) as HTMLButtonElement).disabled).toBe(false));
     expect(screen.queryByRole('button', {name: 'Upload'})).toBeNull();
     expect(screen.queryByRole('button', {name: 'Download'})).toBeNull();
     expect(screen.queryByRole('button', {name: 'Sync'})).toBeNull();
+    expect(screen.queryByRole('button', {name: 'Upload Now'})).toBeNull();
+    expect(screen.queryByRole('button', {name: 'Download Now'})).toBeNull();
+    expect(screen.getByRole('button', {name: 'More...'})).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', {name: 'Disable WebDAV Sync'}));
 
     await waitFor(() => expect(optionsClientMock.setWebDavOptionsSync).toHaveBeenCalledWith(false));
     await waitFor(() => expect(optionsClientMock.reloadLocation).toHaveBeenCalled());
+  });
+
+  it('shows active WebDAV advanced actions behind More', async () => {
+    mockActiveWebDavSync();
+
+    render(<ImportExport embedded options={optionsFixture()} />);
+
+    expect(screen.queryByRole('button', {name: 'Upload Now'})).toBeNull();
+
+    const moreButton = screen.getByRole('button', {name: 'More...'});
+    expect(moreButton.querySelector('.glyphicon-pencil')).toBeTruthy();
+    const actionRow = moreButton.closest('p') as HTMLElement;
+    fireEvent.click(moreButton);
+
+    expect(screen.queryByRole('button', {name: 'More...'})).toBeNull();
+    expect(within(actionRow).getByRole('button', {name: 'Upload Now'}).classList.contains('btn-primary')).toBe(true);
+    expect(within(actionRow).getByRole('button', {name: 'Download Now'}).classList.contains('btn-primary')).toBe(true);
+    expect(within(actionRow).getByRole('button', {name: 'Disable Sync & Delete Remote'}).classList.contains('btn-danger')).toBe(true);
+  });
+
+  it('runs active WebDAV upload now after modal confirmation', async () => {
+    mockActiveWebDavSync();
+
+    render(<ImportExport embedded options={optionsFixture()} />);
+
+    fireEvent.click(screen.getByRole('button', {name: 'More...'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Upload Now'}));
+
+    expect(optionsClientMock.runWebDavSyncAction).not.toHaveBeenCalled();
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByText('Upload local options to WebDAV now? This will overwrite the remote sync config.')).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Upload Now'}));
+
+    await waitFor(() => expect(optionsClientMock.runWebDavSyncAction).toHaveBeenCalledWith('uploadNow'));
+    expect(optionsClientMock.confirmDialog).not.toHaveBeenCalled();
+    expect(optionsClientMock.reloadLocation).not.toHaveBeenCalled();
+    expect(await screen.findByText('Upload complete.')).toBeTruthy();
+  });
+
+  it('runs active WebDAV download now after modal confirmation and reloads', async () => {
+    mockActiveWebDavSync();
+
+    render(<ImportExport embedded options={optionsFixture()} />);
+
+    fireEvent.click(screen.getByRole('button', {name: 'More...'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Download Now'}));
+
+    expect(optionsClientMock.runWebDavSyncAction).not.toHaveBeenCalled();
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByText('Download remote WebDAV options now? This will overwrite your local options.')).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Download Now'}));
+
+    await waitFor(() => expect(optionsClientMock.runWebDavSyncAction).toHaveBeenCalledWith('downloadNow'));
+    expect(optionsClientMock.confirmDialog).not.toHaveBeenCalled();
+    await waitFor(() => expect(optionsClientMock.reloadLocation).toHaveBeenCalled());
+  });
+
+  it('runs active WebDAV disable and delete remote config after modal confirmation', async () => {
+    mockActiveWebDavSync();
+
+    render(<ImportExport embedded options={optionsFixture()} />);
+
+    fireEvent.click(screen.getByRole('button', {name: 'More...'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Disable Sync & Delete Remote'}));
+
+    expect(optionsClientMock.runWebDavSyncAction).not.toHaveBeenCalled();
+    const dialog = screen.getByRole('dialog');
+    expect(
+      within(dialog).getByText('Disable WebDAV Sync and delete the remote sync file? Other devices may sync this deletion.')
+    ).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Disable Sync & Delete Remote'}));
+
+    await waitFor(() => expect(optionsClientMock.runWebDavSyncAction).toHaveBeenCalledWith('disableAndDeleteRemote'));
+    expect(optionsClientMock.confirmDialog).not.toHaveBeenCalled();
+    await waitFor(() => expect(optionsClientMock.reloadLocation).toHaveBeenCalled());
+  });
+
+  it('shows active WebDAV sync success status with the last synced time', async () => {
+    mockActiveWebDavSync({
+      lastSuccessAt: '2026-01-02T03:04:05Z',
+      state: 'success'
+    });
+
+    render(<ImportExport embedded options={optionsFixture()} />);
+
+    const alertText = await screen.findByText(/WebDAV Sync is enabled\. Last synced:/);
+    const alert = alertText.closest('.alert');
+
+    expect(alert?.classList.contains('alert-success')).toBe(true);
+    expect(alert?.textContent).toContain('2026');
+  });
+
+  it('shows active WebDAV sync retry status with the last attempt time', async () => {
+    mockActiveWebDavSync({
+      failureCount: 2,
+      lastAttemptAt: '2026-01-02T03:04:05Z',
+      state: 'retrying'
+    });
+
+    render(<ImportExport embedded options={optionsFixture()} />);
+
+    const alertText = await screen.findByText(/WebDAV sync is retrying\. Last attempt:/);
+    const alert = alertText.closest('.alert');
+
+    expect(alert?.classList.contains('alert-info')).toBe(true);
+    expect(alert?.textContent).toContain('2026');
+  });
+
+  it('shows active WebDAV sync failure status with the error message', async () => {
+    mockActiveWebDavSync({
+      failureCount: 3,
+      lastErrorAt: '2026-01-02T03:04:05Z',
+      message: 'Service unavailable (503)',
+      state: 'error'
+    });
+
+    render(<ImportExport embedded options={optionsFixture()} />);
+
+    const alertText = await screen.findByText(/WebDAV sync failed\. Last failed:/);
+    const alert = alertText.closest('.alert');
+
+    expect(alert?.classList.contains('alert-danger')).toBe(true);
+    expect(alert?.textContent).toContain('Service unavailable (503)');
   });
 
   it('resets conflicted synced options and reloads after confirming current options', async () => {

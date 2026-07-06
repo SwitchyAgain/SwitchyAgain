@@ -595,7 +595,7 @@ msgid "options_syncEnableForce"
 msgstr "Download from Syncing"
 
 msgid "options_syncDisable"
-msgstr "Disable syncing"
+msgstr "Disable Browser Sync"
 
 msgid "options_syncReset"
 msgstr "Clear remote copy"

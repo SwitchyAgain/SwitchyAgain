@@ -158,6 +158,8 @@ export type ProxyEngineModule = {
 export type OptionsSyncLike = {
   copyTo(storage: StorageLike): RuntimePromise<unknown>;
   enabled: boolean;
+  onPushError?: (error: unknown) => unknown;
+  pushRetryDelay?: number;
   requestPush(changes: StorageChanges): unknown;
   storage: StorageLike;
   transformValue?: (value: StorageValue, key?: string) => StorageValue;

@@ -7,7 +7,8 @@ import type {
   ProfileUpdateResults,
   RequestExplainArgs,
   WebDavSyncActionArgs,
-  WebDavSyncConfig
+  WebDavSyncConfig,
+  WebDavSyncManualAction
 } from './options_client_types';
 
 async function applyOptionsUi(options: Options) {
@@ -58,6 +59,10 @@ export function testWebDavSync(config?: WebDavSyncConfig) {
 
 export function setWebDavOptionsSync(enabled: boolean, args?: WebDavSyncActionArgs) {
   return callBackground('setWebDavOptionsSync', enabled, args);
+}
+
+export function runWebDavSyncAction(action: WebDavSyncManualAction) {
+  return callBackground('runWebDavSyncAction', action);
 }
 
 export function explainRequest(args: RequestExplainArgs | string) {

@@ -18,6 +18,7 @@ type BackgroundMethodArgs = {
   resetOptionsSync: [];
   refreshProfileScopeContainerNames: [];
   resolveOptionsHandoff: [handoffId: string, action: OptionsHandoffAction];
+  runWebDavSyncAction: [action: WebDavSyncManualAction];
   setDefaultProfile: [profileName: string, defaultProfileName: string];
   setOptionsSync: [enabled: boolean, args?: unknown];
   setWebDavOptionsSync: [enabled: boolean, args?: WebDavSyncActionArgs];
@@ -34,6 +35,8 @@ type WebDavSyncActionArgs = {
   config?: WebDavSyncConfigInput;
   mode?: 'download' | 'upload';
 };
+
+type WebDavSyncManualAction = 'disableAndDeleteRemote' | 'downloadNow' | 'uploadNow';
 
 type WebDavSyncConfigInput = {
   intervalMinutes?: number;
@@ -56,6 +59,20 @@ type WebDavSyncTestResult = {
   exists: boolean;
   ok: boolean;
   schemaVersion?: unknown;
+};
+
+type WebDavSyncStatusState = 'success' | 'retrying' | 'error';
+
+type WebDavSyncStatusOperation = 'delete' | 'download' | 'poll' | 'upload';
+
+type WebDavSyncStatus = {
+  failureCount?: number;
+  lastAttemptAt?: string;
+  lastErrorAt?: string;
+  lastSuccessAt?: string;
+  message?: string;
+  operation?: WebDavSyncStatusOperation;
+  state: WebDavSyncStatusState;
 };
 
 type PageInfoArgs = {
@@ -127,12 +144,15 @@ type BackgroundRespond = (response: BackgroundRuntimeResponse) => void;
 
 type BackgroundSync = {
   enabled: boolean;
+  onPushError?: (error: unknown) => unknown;
+  pushRetryDelay?: number;
   storage?: {
     get(keys: unknown): RuntimePromise<Record<string, unknown>>;
     remove(keys?: unknown): RuntimePromise<unknown>;
   };
   transformValue?: unknown;
   _pending?: Record<string, unknown>;
+  _retryTimeout?: ReturnType<typeof setTimeout> | null;
   _timeout?: ReturnType<typeof setTimeout> | null;
   [key: string]: unknown;
 };
@@ -293,7 +313,14 @@ type BackgroundExtensionRuntime = {
   proxy: {
     getProxyImpl(log: BackgroundLog): BackgroundProxyImpl;
   };
-  WebDavStorage: new (config: WebDavSyncConfig) => unknown;
+  WebDavStorage: new (
+    config: WebDavSyncConfig,
+    observer?: {
+      onPollError?: (error: unknown) => unknown;
+      onPollSuccess?: () => unknown;
+      onWriteSuccess?: () => unknown;
+    }
+  ) => unknown;
 };
 
 (function () {
@@ -512,8 +539,11 @@ type BackgroundExtensionRuntime = {
 
   const SYNC_PROVIDER_STATE = 'syncProvider';
   const WEBDAV_SYNC_CONFIG_STATE = 'webDavSyncConfig';
+  const WEBDAV_SYNC_STATUS_STATE = 'webDavSyncStatus';
   const DEFAULT_WEBDAV_REMOTE_PATH = 'SwitchyAgain/options-sync.json';
   const DEFAULT_WEBDAV_INTERVAL_MINUTES = 5;
+  const WEBDAV_SYNC_FAILURE_LIMIT = 3;
+  const WEBDAV_PUSH_RETRY_DELAY_MS = 60000;
 
   function stateStorageKey(name: string) {
     return `omega.local.${name}`;
@@ -594,6 +624,74 @@ type BackgroundExtensionRuntime = {
   let proxyImpl: BackgroundProxyImpl;
   let activeSyncProvider: SyncProvider = '';
   let browserSync: BackgroundSync | undefined;
+  let webDavSyncFailureCount = getLocalState<WebDavSyncStatus>(WEBDAV_SYNC_STATUS_STATE)?.failureCount || 0;
+
+  function statusCodeForError(error: unknown) {
+    const candidate = error as
+      | {
+          cause?: {statusCode?: unknown};
+          statusCode?: unknown;
+        }
+      | null
+      | undefined;
+    const statusCode = candidate?.statusCode ?? candidate?.cause?.statusCode;
+    return typeof statusCode === 'number' || typeof statusCode === 'string' ? statusCode : undefined;
+  }
+
+  function messageForSyncError(error: unknown) {
+    const candidate = error as
+      | {
+          cause?: {message?: unknown; reason?: unknown};
+          message?: unknown;
+          name?: unknown;
+          reason?: unknown;
+        }
+      | null
+      | undefined;
+    const text =
+      candidate?.message ||
+      candidate?.reason ||
+      candidate?.cause?.message ||
+      candidate?.cause?.reason ||
+      candidate?.name ||
+      String(error || 'Sync failed.');
+    const statusCode = statusCodeForError(error);
+    return statusCode ? `${text} (${statusCode})` : String(text);
+  }
+
+  function publishWebDavSyncStatus(status: WebDavSyncStatus) {
+    setLocalState(WEBDAV_SYNC_STATUS_STATE, status);
+    if (state) {
+      state.set({
+        [WEBDAV_SYNC_STATUS_STATE]: status
+      });
+    }
+  }
+
+  function recordWebDavSyncSuccess(operation: WebDavSyncStatusOperation) {
+    const now = new Date().toISOString();
+    webDavSyncFailureCount = 0;
+    publishWebDavSyncStatus({
+      failureCount: webDavSyncFailureCount,
+      lastAttemptAt: now,
+      lastSuccessAt: now,
+      operation,
+      state: 'success'
+    });
+  }
+
+  function recordWebDavSyncFailure(operation: WebDavSyncStatusOperation, error: unknown) {
+    const now = new Date().toISOString();
+    webDavSyncFailureCount += 1;
+    publishWebDavSyncStatus({
+      failureCount: webDavSyncFailureCount,
+      lastAttemptAt: now,
+      lastErrorAt: now,
+      message: messageForSyncError(error),
+      operation,
+      state: webDavSyncFailureCount >= WEBDAV_SYNC_FAILURE_LIMIT ? 'error' : 'retrying'
+    });
+  }
 
   function actionForUrl(tab: ChromeTab, url: string) {
     return options.ready
@@ -738,7 +836,20 @@ type BackgroundExtensionRuntime = {
   }
 
   function createWebDavOptionsSync(config: WebDavSyncConfig) {
-    return createOptionsSync(new ExtensionRuntimeCurrent.WebDavStorage(config));
+    let sync: BackgroundSync;
+    const storage = new ExtensionRuntimeCurrent.WebDavStorage(config, {
+      onPollError: (error: unknown) => recordWebDavSyncFailure('poll', error),
+      onPollSuccess: () => {
+        if (!sync?._pending || Object.keys(sync._pending).length === 0) {
+          recordWebDavSyncSuccess('poll');
+        }
+      },
+      onWriteSuccess: () => recordWebDavSyncSuccess('upload')
+    });
+    sync = createOptionsSync(storage);
+    sync.onPushError = (error: unknown) => recordWebDavSyncFailure('upload', error);
+    sync.pushRetryDelay = WEBDAV_PUSH_RETRY_DELAY_MS;
+    return sync;
   }
 
   let sync: BackgroundSync | undefined;
@@ -842,6 +953,10 @@ type BackgroundExtensionRuntime = {
       clearTimeout(syncInstance._timeout);
       syncInstance._timeout = null;
     }
+    if (syncInstance._retryTimeout != null) {
+      clearTimeout(syncInstance._retryTimeout);
+      syncInstance._retryTimeout = null;
+    }
     syncInstance._pending = {};
   }
 
@@ -931,6 +1046,81 @@ type BackgroundExtensionRuntime = {
     });
   }
 
+  function getActiveWebDavConfig() {
+    return state
+      .get({
+        syncOptions: '',
+        syncProvider: ''
+      })
+      .then((items) => {
+        const provider = activeSyncProvider || items.syncProvider;
+        if (items.syncOptions !== 'sync' || provider !== 'webdav') {
+          return Promise.reject(new Error('WebDAV sync is not enabled.'));
+        }
+        const config = savedWebDavConfig();
+        if (!config) {
+          return Promise.reject(new Error('WebDAV sync is not configured.'));
+        }
+        return config;
+      });
+  }
+
+  function uploadWebDavNow() {
+    return getActiveWebDavConfig()
+      .then((config) => {
+        cancelPendingSyncPush(options.sync);
+        const storage = new ExtensionRuntimeCurrent.WebDavStorage(config) as {
+          writeRemote(items: Record<string, unknown>): RuntimePromise<unknown>;
+        };
+        return Promise.resolve(storage.writeRemote(syncPayloadForOptions(options._options)));
+      })
+      .then(() => {
+        recordWebDavSyncSuccess('upload');
+      })
+      .catch((error: unknown) => {
+        recordWebDavSyncFailure('upload', error);
+        return Promise.reject(error);
+      });
+  }
+
+  function downloadWebDavNow() {
+    return getActiveWebDavConfig().then((config) =>
+      setWebDavOptionsSync(true, {
+        config,
+        mode: 'download'
+      })
+    );
+  }
+
+  function disableWebDavSyncAndDeleteRemote() {
+    return getActiveWebDavConfig()
+      .then((config) => {
+        cancelPendingSyncPush(options.sync);
+        const storage = new ExtensionRuntimeCurrent.WebDavStorage(config) as {
+          remove(keys?: unknown): RuntimePromise<unknown>;
+        };
+        return Promise.resolve(storage.remove());
+      })
+      .then(() => setWebDavOptionsSync(false))
+      .catch((error: unknown) => {
+        recordWebDavSyncFailure('delete', error);
+        return Promise.reject(error);
+      });
+  }
+
+  function runWebDavSyncAction(action: WebDavSyncManualAction) {
+    switch (action) {
+      case 'uploadNow':
+        return uploadWebDavNow();
+      case 'downloadNow':
+        return downloadWebDavNow();
+      case 'disableAndDeleteRemote':
+        return disableWebDavSyncAndDeleteRemote();
+      default:
+        return Promise.reject(new Error('Unknown WebDAV sync action.'));
+    }
+  }
+
   function setWebDavOptionsSync(enabled: boolean, args?: WebDavSyncActionArgs) {
     if (!enabled) {
       if (activeSyncProvider !== 'webdav') {
@@ -959,7 +1149,11 @@ type BackgroundExtensionRuntime = {
         .then(() => setActiveSyncProvider('', undefined));
     }
     const config = normalizeWebDavConfig(args?.config, savedWebDavConfig());
+    if (activeSyncProvider === 'webdav') {
+      cancelPendingSyncPush(options.sync);
+    }
     const webDavSync = createWebDavOptionsSync(config);
+    webDavSyncFailureCount = 0;
     setLocalState(WEBDAV_SYNC_CONFIG_STATE, config);
     return ensureNoActiveOtherSyncProvider('webdav')
       .then(() =>
@@ -978,12 +1172,22 @@ type BackgroundExtensionRuntime = {
           syncOptions: 'pristine'
         });
       })
-      .then(() => options.setOptionsSync(true, args?.mode === 'download' ? {force: true} : undefined));
+      .then(() => options.setOptionsSync(true, args?.mode === 'download' ? {force: true} : undefined))
+      .then(() => {
+        if (args?.mode === 'download') {
+          recordWebDavSyncSuccess('download');
+        }
+      })
+      .catch((error: unknown) => {
+        recordWebDavSyncFailure(args?.mode === 'download' ? 'download' : 'upload', error);
+        return Promise.reject(error);
+      });
   }
 
   const syncApi = {
     getWebDavSyncConfig,
     resetOptionsSync: resetBrowserOptionsSync,
+    runWebDavSyncAction,
     setOptionsSync: setBrowserOptionsSync,
     setWebDavOptionsSync,
     setWebDavSyncConfig,
@@ -1301,6 +1505,7 @@ type BackgroundExtensionRuntime = {
       case 'resetOptionsSync':
       case 'refreshProfileScopeContainerNames':
       case 'resolveOptionsHandoff':
+      case 'runWebDavSyncAction':
       case 'setDefaultProfile':
       case 'setOptionsSync':
       case 'setWebDavOptionsSync':
@@ -1345,6 +1550,7 @@ type BackgroundExtensionRuntime = {
     } else if (
       request.method === 'getWebDavSyncConfig' ||
       request.method === 'resetOptionsSync' ||
+      request.method === 'runWebDavSyncAction' ||
       request.method === 'setOptionsSync' ||
       request.method === 'setWebDavOptionsSync' ||
       request.method === 'setWebDavSyncConfig' ||

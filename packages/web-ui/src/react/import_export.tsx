@@ -10,11 +10,12 @@ import {
   patchOptions,
   resetOptions,
   resetOptionsSync,
+  runWebDavSyncAction,
   setOptionsSync,
   setWebDavOptionsSync,
   testWebDavSync
 } from './options_api_client';
-import type {Options, WebDavSyncConfig} from './options_client_types';
+import type {Options, WebDavSyncConfig, WebDavSyncManualAction, WebDavSyncStatus} from './options_client_types';
 import {getLocalState, getState, setLocalState} from './state_client';
 import {
   RESTORE_URL_STATE,
@@ -25,6 +26,7 @@ import {
   syncBusy
 } from './import_export_logic';
 import type {ImportExportStatus, SyncStatus} from './import_export_logic';
+import {formatMediumDate} from './profile_content_logic';
 import {richMessage} from './rich_message';
 
 export type ImportExportProps = {
@@ -49,6 +51,91 @@ function storedRestoreUrl() {
   return getLocalState<string>(RESTORE_URL_STATE) || '';
 }
 
+type WebDavConfirmModalProps = {
+  action: WebDavSyncManualAction;
+  onConfirm: (action: WebDavSyncManualAction) => void;
+  onDismiss: () => void;
+};
+
+function webDavConfirmModalSpec(action: WebDavSyncManualAction) {
+  switch (action) {
+    case 'uploadNow':
+      return {
+        body: message('options_webDavUploadNowConfirm', 'Upload local options to WebDAV now? This will overwrite the remote sync config.'),
+        buttonClassName: 'btn-primary',
+        confirmLabel: message('options_webDavUploadNow', 'Upload Now'),
+        title: message('options_webDavUploadNowTitle', 'Upload Now')
+      };
+    case 'downloadNow':
+      return {
+        body: message('options_webDavDownloadNowConfirm', 'Download remote WebDAV options now? This will overwrite your local options.'),
+        buttonClassName: 'btn-primary',
+        confirmLabel: message('options_webDavDownloadNow', 'Download Now'),
+        title: message('options_webDavDownloadNowTitle', 'Download Now')
+      };
+    case 'disableAndDeleteRemote':
+      return {
+        body: message(
+          'options_webDavDisableDeleteRemoteConfirm',
+          'Disable WebDAV Sync and delete the remote sync file? Other devices may sync this deletion.'
+        ),
+        buttonClassName: 'btn-danger',
+        confirmLabel: message('options_webDavDisableDeleteRemote', 'Disable Sync & Delete Remote'),
+        title: message('options_webDavDisableDeleteRemoteTitle', 'Disable Sync & Delete Remote')
+      };
+    default:
+      return {
+        body: '',
+        buttonClassName: 'btn-primary',
+        confirmLabel: '',
+        title: ''
+      };
+  }
+}
+
+function WebDavConfirmModal({action, onConfirm, onDismiss}: WebDavConfirmModalProps) {
+  const spec = webDavConfirmModalSpec(action);
+  return (
+    <>
+      <div className="modal-backdrop fade in" />
+      <div
+        className="modal fade in options-modal"
+        role="dialog"
+        style={{display: 'flex'}}
+        tabIndex={-1}
+        onMouseDown={(event) => {
+          if (event.target === event.currentTarget) {
+            onDismiss();
+          }
+        }}
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <button type="button" className="close" onClick={onDismiss}>
+                <span aria-hidden="true">{'\u00d7'}</span>
+                <span className="sr-only">{message('dialog_close', 'Close')}</span>
+              </button>
+              <h4 className="modal-title">{spec.title}</h4>
+            </div>
+            <div className="modal-body">
+              <p>{spec.body}</p>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-default" onClick={onDismiss}>
+                {message('dialog_cancel', 'Cancel')}
+              </button>
+              <button type="button" className={`btn ${spec.buttonClassName}`} onClick={() => onConfirm(action)}>
+                {spec.confirmLabel}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export function ImportExport({
   embedded = false,
   onApplyOptions,
@@ -71,11 +158,16 @@ export function ImportExport({
     serverUrl: ''
   });
   const [webDavStatus, setWebDavStatus] = useState<
-    'ready' | 'testing' | 'saving' | 'enabling' | 'downloading' | 'disabling' | 'success' | 'error'
+    'ready' | 'testing' | 'saving' | 'enabling' | 'uploading' | 'downloading' | 'deleting' | 'disabling' | 'success' | 'error'
   >('ready');
   const [webDavMessage, setWebDavMessage] = useState('');
   const [webDavRemoteExists, setWebDavRemoteExists] = useState<boolean | null>(null);
   const [webDavSetupOpen, setWebDavSetupOpen] = useState(false);
+  const [webDavAdvancedOpen, setWebDavAdvancedOpen] = useState(false);
+  const [webDavConfirmAction, setWebDavConfirmAction] = useState<WebDavSyncManualAction | null>(null);
+  const [webDavSyncStatus, setWebDavSyncStatus] = useState<WebDavSyncStatus | null>(
+    () => getLocalState<WebDavSyncStatus>('webDavSyncStatus') || null
+  );
   const [syncProviderChoice, setSyncProviderChoice] = useState<'' | 'browser' | 'webdav'>(() => {
     const initialSyncOptions = getLocalState('syncOptions');
     const initialSyncProvider = getLocalState('syncProvider') || '';
@@ -101,6 +193,11 @@ export function ImportExport({
     getState<string>('syncProvider')
       .then((provider) => {
         setSyncProvider(provider || '');
+      })
+      .catch(() => {});
+    getState<WebDavSyncStatus>('webDavSyncStatus')
+      .then((status) => {
+        setWebDavSyncStatus(status || null);
       })
       .catch(() => {});
     getWebDavSyncConfig()
@@ -303,7 +400,9 @@ export function ImportExport({
     webDavStatus === 'testing' ||
     webDavStatus === 'saving' ||
     webDavStatus === 'enabling' ||
+    webDavStatus === 'uploading' ||
     webDavStatus === 'downloading' ||
+    webDavStatus === 'deleting' ||
     webDavStatus === 'disabling';
   const webDavConfigured = Boolean(webDavConfig.serverUrl?.trim());
   const webDavConnectionTested = webDavRemoteExists !== null;
@@ -373,6 +472,15 @@ export function ImportExport({
       });
   }
 
+  function handleWebDavActionError(err: unknown) {
+    if (err instanceof Error && err.message === 'cancelled') {
+      setWebDavStatus('ready');
+      return;
+    }
+    setWebDavStatus('error');
+    setWebDavMessage(importExportErrorMessage(err));
+  }
+
   function disableWebDavSync() {
     setWebDavStatus('disabling');
     confirmCurrentOptions()
@@ -380,10 +488,108 @@ export function ImportExport({
       .then(() => {
         reloadOptionsPage();
       })
-      .catch((err) => {
-        setWebDavStatus('error');
-        setWebDavMessage(importExportErrorMessage(err));
-      });
+      .catch(handleWebDavActionError);
+  }
+
+  function refreshWebDavSyncStatus() {
+    return getState<WebDavSyncStatus>('webDavSyncStatus')
+      .then((statusData) => {
+        setWebDavSyncStatus(statusData || getLocalState<WebDavSyncStatus>('webDavSyncStatus') || null);
+      })
+      .catch(() => {});
+  }
+
+  function uploadWebDavNow() {
+    setWebDavStatus('uploading');
+    setWebDavMessage('');
+    confirmCurrentOptions()
+      .then(() => runWebDavSyncAction('uploadNow'))
+      .then(() => refreshWebDavSyncStatus())
+      .then(() => {
+        setWebDavStatus('success');
+        setWebDavMessage(message('options_webDavUploadNowSuccess', 'Upload complete.'));
+      })
+      .catch(handleWebDavActionError);
+  }
+
+  function downloadWebDavNow() {
+    setWebDavStatus('downloading');
+    setWebDavMessage('');
+    runWebDavSyncAction('downloadNow')
+      .then(() => {
+        reloadOptionsPage();
+      })
+      .catch(handleWebDavActionError);
+  }
+
+  function disableWebDavSyncAndDeleteRemote() {
+    setWebDavStatus('deleting');
+    setWebDavMessage('');
+    confirmCurrentOptions()
+      .then(() => runWebDavSyncAction('disableAndDeleteRemote'))
+      .then(() => {
+        reloadOptionsPage();
+      })
+      .catch(handleWebDavActionError);
+  }
+
+  function runConfirmedWebDavAction(action: WebDavSyncManualAction) {
+    setWebDavConfirmAction(null);
+    switch (action) {
+      case 'uploadNow':
+        uploadWebDavNow();
+        break;
+      case 'downloadNow':
+        downloadWebDavNow();
+        break;
+      case 'disableAndDeleteRemote':
+        disableWebDavSyncAndDeleteRemote();
+        break;
+    }
+  }
+
+  function webDavSyncStatusTime(statusData: WebDavSyncStatus) {
+    return formatMediumDate(statusData.lastSuccessAt || statusData.lastErrorAt || statusData.lastAttemptAt);
+  }
+
+  function webDavSyncStatusBanner(statusData: WebDavSyncStatus | null) {
+    if (!statusData) {
+      return (
+        <p className="alert alert-success width-limit">
+          <span className="glyphicon glyphicon-ok" /> {message('options_webDavSyncEnabled', 'WebDAV Sync is enabled.')}
+        </p>
+      );
+    }
+    const formattedTime = webDavSyncStatusTime(statusData);
+    if (statusData.state === 'success') {
+      return (
+        <p className="alert alert-success width-limit">
+          <span className="glyphicon glyphicon-ok" />{' '}
+          {formattedTime
+            ? `${message('options_webDavSyncStatusSuccess', 'WebDAV Sync is enabled. Last synced:')} ${formattedTime}`
+            : message('options_webDavSyncEnabled', 'WebDAV Sync is enabled.')}
+        </p>
+      );
+    }
+    if (statusData.state === 'retrying') {
+      return (
+        <p className="alert alert-info width-limit">
+          <span className="glyphicon glyphicon-info-sign" />{' '}
+          {formattedTime
+            ? `${message('options_webDavSyncStatusRetrying', 'WebDAV sync is retrying. Last attempt:')} ${formattedTime}`
+            : message('options_webDavSyncStatusRetryingNoTime', 'WebDAV sync is retrying.')}
+        </p>
+      );
+    }
+    return (
+      <p className="alert alert-danger width-limit">
+        <span className="glyphicon glyphicon-remove" />{' '}
+        {formattedTime
+          ? `${message('options_webDavSyncStatusFailed', 'WebDAV sync failed. Last failed:')} ${formattedTime}`
+          : message('options_webDavSyncStatusFailedNoTime', 'WebDAV sync failed.')}
+        {statusData.message ? ` ${statusData.message}` : ''}
+      </p>
+    );
   }
 
   function saveExportLegacyRuleList(checked: boolean) {
@@ -533,7 +739,7 @@ export function ImportExport({
                   <span className="glyphicon glyphicon-info-sign" />{' '}
                   {message(
                     'options_browserSyncBlockedByWebDav',
-                    'WebDAV sync is enabled. Disable WebDAV sync before enabling Browser Sync.'
+                    'WebDAV Sync is enabled. Disable WebDAV Sync before enabling Browser Sync.'
                   )}
                 </p>
               )}
@@ -622,7 +828,7 @@ export function ImportExport({
           {webDavSyncBlocked && (
             <p className="alert alert-info width-limit">
               <span className="glyphicon glyphicon-info-sign" />{' '}
-              {message('options_webDavSyncBlockedByBrowser', 'Browser Sync is enabled. Disable Browser Sync before enabling WebDAV sync.')}
+              {message('options_webDavSyncBlockedByBrowser', 'Browser Sync is enabled. Disable Browser Sync before enabling WebDAV Sync.')}
             </p>
           )}
           {!showWebDavSetup && (
@@ -639,11 +845,7 @@ export function ImportExport({
           )}
           {showWebDavSetup && (
             <>
-              {webDavSyncActive && (
-                <p className="alert alert-success width-limit">
-                  <span className="glyphicon glyphicon-ok" /> {message('options_webDavSyncEnabled', 'WebDAV sync is enabled.')}
-                </p>
-              )}
+              {webDavSyncActive && webDavSyncStatusBanner(webDavSyncStatus)}
               {webDavStatus === 'error' && webDavMessage && (
                 <p className="alert alert-danger width-limit">
                   <span className="glyphicon glyphicon-remove" /> {webDavMessage}
@@ -749,9 +951,53 @@ export function ImportExport({
                     </>
                   )}
                   {webDavSyncActive && (
-                    <button type="button" className="btn btn-warning" disabled={webDavActionBusy} onClick={disableWebDavSync}>
-                      <span className="glyphicon glyphicon-remove-sign" /> {message('options_webDavDisable', 'Disable WebDAV Sync')}
-                    </button>
+                    <>
+                      <button type="button" className="btn btn-warning" disabled={webDavActionBusy} onClick={disableWebDavSync}>
+                        <span className="glyphicon glyphicon-remove-sign" /> {message('options_webDavDisable', 'Disable WebDAV Sync')}
+                      </button>{' '}
+                      {!webDavAdvancedOpen && (
+                        <>
+                          <button
+                            type="button"
+                            className="btn btn-default"
+                            aria-expanded={webDavAdvancedOpen}
+                            disabled={webDavActionBusy}
+                            onClick={() => setWebDavAdvancedOpen(true)}
+                          >
+                            <span className="glyphicon glyphicon-pencil" /> {message('options_webDavMore', 'More...')}
+                          </button>{' '}
+                        </>
+                      )}
+                      {webDavAdvancedOpen && (
+                        <>
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            disabled={webDavActionBusy}
+                            onClick={() => setWebDavConfirmAction('uploadNow')}
+                          >
+                            <span className="glyphicon glyphicon-cloud-upload" /> {message('options_webDavUploadNow', 'Upload Now')}
+                          </button>{' '}
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            disabled={webDavActionBusy}
+                            onClick={() => setWebDavConfirmAction('downloadNow')}
+                          >
+                            <span className="glyphicon glyphicon-cloud-download" /> {message('options_webDavDownloadNow', 'Download Now')}
+                          </button>{' '}
+                          <button
+                            type="button"
+                            className="btn btn-danger"
+                            disabled={webDavActionBusy}
+                            onClick={() => setWebDavConfirmAction('disableAndDeleteRemote')}
+                          >
+                            <span className="glyphicon glyphicon-trash" />{' '}
+                            {message('options_webDavDisableDeleteRemote', 'Disable Sync & Delete Remote')}
+                          </button>
+                        </>
+                      )}
+                    </>
                   )}
                 </p>
               </div>
@@ -760,6 +1006,10 @@ export function ImportExport({
         </div>
       </div>
     </section>
+  );
+
+  const webDavConfirmModal = webDavConfirmAction && (
+    <WebDavConfirmModal action={webDavConfirmAction} onConfirm={runConfirmedWebDavAction} onDismiss={() => setWebDavConfirmAction(null)} />
   );
 
   if (embedded) {
@@ -771,6 +1021,7 @@ export function ImportExport({
         {profileSection}
         {settingsSection}
         {syncSection}
+        {webDavConfirmModal}
       </>
     );
   }
@@ -784,6 +1035,7 @@ export function ImportExport({
       {profileSection}
       {settingsSection}
       {syncSection}
+      {webDavConfirmModal}
     </main>
   );
 }

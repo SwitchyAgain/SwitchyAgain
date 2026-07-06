@@ -3,7 +3,7 @@ import Promise from '../src/promise';
 import LogClass from '../src/log';
 import OptionsSyncClass from '../src/options_sync';
 import StorageClass from '../src/storage';
-import {assertCalledOnce, assertCalledTwice, assertCalledWith, spyOn, stubOn} from './helpers/test_helpers';
+import {assertCalledOnce, assertCalledTwice, assertCalledWith, createSpy, spyOn, stubOn} from './helpers/test_helpers';
 
 const slice = [].slice;
 
@@ -268,6 +268,53 @@ describe('OptionsSync', function () {
         sync.debounce = 0;
         sync.requestPush(options);
       });
+    });
+    it('should keep pending changes and retry when storage writes fail', async function () {
+      vi.useFakeTimers();
+      let sync: any;
+      try {
+        let writeCount = 0;
+        const error = new Error('Network unavailable');
+        const storage = new Storage();
+        storage.set = function (changes: Record<string, any>) {
+          writeCount++;
+          assert.deepStrictEqual(changes, {
+            a: 1
+          });
+          return Promise.reject(error);
+        };
+        sync = new OptionsSync(storage, unlimited);
+        sync.debounce = 0;
+        sync.pushRetryDelay = 100;
+        sync.onPushError = createSpy();
+
+        sync.requestPush({
+          a: 1
+        });
+
+        await vi.advanceTimersByTimeAsync(0);
+        assert.strictEqual(writeCount, 1);
+        assert.deepStrictEqual(sync.pendingChanges(), {
+          a: 1
+        });
+        assertCalledOnce(sync.onPushError);
+        assertCalledWith(sync.onPushError, error);
+
+        await vi.advanceTimersByTimeAsync(100);
+        assert.strictEqual(writeCount, 2);
+        assertCalledTwice(sync.onPushError);
+      } finally {
+        if (sync) {
+          sync.enabled = false;
+          if (sync._timeout != null) {
+            clearTimeout(sync._timeout);
+          }
+          if (sync._retryTimeout != null) {
+            clearTimeout(sync._retryTimeout);
+          }
+        }
+        vi.useRealTimers();
+      }
     });
   });
   describe('#copyTo', function () {

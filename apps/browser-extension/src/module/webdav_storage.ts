@@ -7,6 +7,12 @@ type StorageChanges = Record<string, unknown | undefined>;
 type WatchCallback = (changes: StorageChanges) => unknown;
 type StopWatching = () => unknown;
 
+type WebDavStorageObserver = {
+  onPollError?: (error: unknown) => unknown;
+  onPollSuccess?: () => unknown;
+  onWriteSuccess?: () => unknown;
+};
+
 export type WebDavStorageConfig = {
   deviceId?: string;
   intervalMinutes?: number;
@@ -81,9 +87,11 @@ class WebDavStorage extends ExtensionRuntime.Storage {
   lastEtag?: string;
   lastModified?: string;
   lastItems: StorageItems | null = null;
+  observer?: WebDavStorageObserver;
 
-  constructor(config: WebDavStorageConfig) {
+  constructor(config: WebDavStorageConfig, observer?: WebDavStorageObserver) {
     super();
+    this.observer = observer;
     this.config = {
       ...config,
       intervalMinutes: normalizedIntervalMinutes(config.intervalMinutes),
@@ -218,6 +226,7 @@ class WebDavStorage extends ExtensionRuntime.Storage {
     this.lastEtag = headerValue(response.headers, 'etag');
     this.lastModified = headerValue(response.headers, 'last-modified');
     this.lastItems = {...items};
+    this.observer?.onWriteSuccess?.();
     return items;
   }
 
@@ -332,7 +341,18 @@ class WebDavStorage extends ExtensionRuntime.Storage {
 
   watch(_keys: StorageRemoveKeys, callback: WatchCallback): StopWatching {
     let stopped = false;
-    this.readRemote(true).catch(() => {});
+    this.readRemote(true).then(
+      () => {
+        if (!stopped) {
+          this.observer?.onPollSuccess?.();
+        }
+      },
+      (error: unknown) => {
+        if (!stopped) {
+          this.observer?.onPollError?.(error);
+        }
+      }
+    );
     const interval = normalizedIntervalMinutes(this.config.intervalMinutes) * 60 * 1000;
     if (interval === 0) {
       return () => {
@@ -341,7 +361,18 @@ class WebDavStorage extends ExtensionRuntime.Storage {
     }
     const timer = setInterval(() => {
       if (!stopped) {
-        this.poll(callback).catch(() => {});
+        this.poll(callback).then(
+          () => {
+            if (!stopped) {
+              this.observer?.onPollSuccess?.();
+            }
+          },
+          (error: unknown) => {
+            if (!stopped) {
+              this.observer?.onPollError?.(error);
+            }
+          }
+        );
       }
     }, interval);
     return () => {
