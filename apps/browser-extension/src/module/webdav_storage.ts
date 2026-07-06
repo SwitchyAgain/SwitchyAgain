@@ -88,6 +88,7 @@ class WebDavStorage extends ExtensionRuntime.Storage {
   lastModified?: string;
   lastItems: StorageItems | null = null;
   observer?: WebDavStorageObserver;
+  watchCallback?: WatchCallback;
 
   constructor(config: WebDavStorageConfig, observer?: WebDavStorageObserver) {
     super();
@@ -341,6 +342,7 @@ class WebDavStorage extends ExtensionRuntime.Storage {
 
   watch(_keys: StorageRemoveKeys, callback: WatchCallback): StopWatching {
     let stopped = false;
+    this.watchCallback = callback;
     this.readRemote(true).then(
       () => {
         if (!stopped) {
@@ -353,31 +355,11 @@ class WebDavStorage extends ExtensionRuntime.Storage {
         }
       }
     );
-    const interval = normalizedIntervalMinutes(this.config.intervalMinutes) * 60 * 1000;
-    if (interval === 0) {
-      return () => {
-        stopped = true;
-      };
-    }
-    const timer = setInterval(() => {
-      if (!stopped) {
-        this.poll(callback).then(
-          () => {
-            if (!stopped) {
-              this.observer?.onPollSuccess?.();
-            }
-          },
-          (error: unknown) => {
-            if (!stopped) {
-              this.observer?.onPollError?.(error);
-            }
-          }
-        );
-      }
-    }, interval);
     return () => {
       stopped = true;
-      clearInterval(timer);
+      if (this.watchCallback === callback) {
+        this.watchCallback = undefined;
+      }
     };
   }
 }

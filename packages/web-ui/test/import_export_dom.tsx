@@ -358,6 +358,37 @@ describe('import export component', () => {
     await waitFor(() => expect(optionsClientMock.reloadLocation).toHaveBeenCalled());
   });
 
+  it('saves active WebDAV config changes without using Test', async () => {
+    mockActiveWebDavSync();
+    optionsClientMock.setWebDavSyncConfig.mockResolvedValue({
+      intervalMinutes: 15,
+      remotePath: 'SwitchyAgain/options-sync.json',
+      serverUrl: 'https://example.com/dav/'
+    });
+
+    render(<ImportExport embedded options={optionsFixture()} />);
+
+    const saveButton = await screen.findByRole('button', {name: 'Save'});
+    expect((saveButton as HTMLButtonElement).disabled).toBe(true);
+
+    fireEvent.change(screen.getByLabelText('Sync interval'), {
+      target: {
+        value: '15'
+      }
+    });
+
+    expect((saveButton as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(screen.getByRole('button', {name: 'Test'}));
+
+    await waitFor(() => expect(optionsClientMock.testWebDavSync).toHaveBeenCalledWith(expect.objectContaining({intervalMinutes: 15})));
+    expect(optionsClientMock.setWebDavSyncConfig).not.toHaveBeenCalled();
+
+    fireEvent.click(saveButton);
+
+    await waitFor(() => expect(optionsClientMock.setWebDavSyncConfig).toHaveBeenCalledWith(expect.objectContaining({intervalMinutes: 15})));
+    expect(await screen.findByText('WebDAV Sync settings saved.')).toBeTruthy();
+  });
+
   it('shows active WebDAV advanced actions behind More', async () => {
     mockActiveWebDavSync();
 

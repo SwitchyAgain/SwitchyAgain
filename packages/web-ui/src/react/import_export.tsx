@@ -13,6 +13,7 @@ import {
   runWebDavSyncAction,
   setOptionsSync,
   setWebDavOptionsSync,
+  setWebDavSyncConfig,
   testWebDavSync
 } from './options_api_client';
 import type {Options, WebDavSyncConfig, WebDavSyncManualAction, WebDavSyncStatus} from './options_client_types';
@@ -93,6 +94,20 @@ function webDavConfirmModalSpec(action: WebDavSyncManualAction) {
   }
 }
 
+function comparableWebDavConfig(config: WebDavSyncConfig | null | undefined) {
+  return {
+    hasPassword: Boolean(config?.hasPassword || config?.password),
+    intervalMinutes: Number(config?.intervalMinutes ?? 5),
+    remotePath: String(config?.remotePath || 'SwitchyAgain/options-sync.json'),
+    serverUrl: String(config?.serverUrl || ''),
+    username: String(config?.username || '')
+  };
+}
+
+function sameWebDavConfig(left: WebDavSyncConfig | null | undefined, right: WebDavSyncConfig | null | undefined) {
+  return JSON.stringify(comparableWebDavConfig(left)) === JSON.stringify(comparableWebDavConfig(right));
+}
+
 function WebDavConfirmModal({action, onConfirm, onDismiss}: WebDavConfirmModalProps) {
   const spec = webDavConfirmModalSpec(action);
   return (
@@ -157,6 +172,7 @@ export function ImportExport({
     remotePath: 'SwitchyAgain/options-sync.json',
     serverUrl: ''
   });
+  const [savedWebDavConfig, setSavedWebDavConfig] = useState<WebDavSyncConfig | null>(null);
   const [webDavStatus, setWebDavStatus] = useState<
     'ready' | 'testing' | 'saving' | 'enabling' | 'uploading' | 'downloading' | 'deleting' | 'disabling' | 'success' | 'error'
   >('ready');
@@ -203,13 +219,15 @@ export function ImportExport({
     getWebDavSyncConfig()
       .then((config) => {
         if (config) {
-          setWebDavConfig({
+          const nextConfig = {
             intervalMinutes: config.intervalMinutes ?? 5,
             remotePath: config.remotePath || 'SwitchyAgain/options-sync.json',
             serverUrl: config.serverUrl || '',
             username: config.username || '',
             hasPassword: config.hasPassword
-          });
+          };
+          setWebDavConfig(nextConfig);
+          setSavedWebDavConfig(nextConfig);
         }
       })
       .catch(() => {});
@@ -406,6 +424,7 @@ export function ImportExport({
     webDavStatus === 'disabling';
   const webDavConfigured = Boolean(webDavConfig.serverUrl?.trim());
   const webDavConnectionTested = webDavRemoteExists !== null;
+  const webDavConfigDirty = !sameWebDavConfig(savedWebDavConfig, webDavConfig);
 
   useEffect(() => {
     if (browserSyncActive || (syncOptions === 'conflict' && syncProvider !== 'webdav')) {
@@ -448,6 +467,30 @@ export function ImportExport({
       })
       .catch((err) => {
         setWebDavRemoteExists(null);
+        setWebDavStatus('error');
+        setWebDavMessage(importExportErrorMessage(err));
+      });
+  }
+
+  function saveWebDavConfig() {
+    setWebDavStatus('saving');
+    setWebDavMessage('');
+    setWebDavSyncConfig(webDavConfig)
+      .then((config) => {
+        const nextConfig = {
+          intervalMinutes: config.intervalMinutes ?? 5,
+          remotePath: config.remotePath || 'SwitchyAgain/options-sync.json',
+          serverUrl: config.serverUrl || '',
+          username: config.username || '',
+          hasPassword: config.hasPassword
+        };
+        setWebDavConfig(nextConfig);
+        setSavedWebDavConfig(nextConfig);
+        setWebDavRemoteExists(null);
+        setWebDavStatus('success');
+        setWebDavMessage(message('options_webDavConfigSaved', 'WebDAV Sync settings saved.'));
+      })
+      .catch((err) => {
         setWebDavStatus('error');
         setWebDavMessage(importExportErrorMessage(err));
       });
@@ -930,6 +973,18 @@ export function ImportExport({
                   >
                     <span className="glyphicon glyphicon-transfer" /> {message('options_webDavTest', 'Test')}
                   </button>{' '}
+                  {webDavSyncActive && (
+                    <>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        disabled={!webDavConfigured || !webDavConfigDirty || webDavActionBusy}
+                        onClick={saveWebDavConfig}
+                      >
+                        <span className="glyphicon glyphicon-floppy-disk" /> {message('dialog_save', 'Save')}
+                      </button>{' '}
+                    </>
+                  )}
                   {!webDavSyncActive && (
                     <>
                       <button
