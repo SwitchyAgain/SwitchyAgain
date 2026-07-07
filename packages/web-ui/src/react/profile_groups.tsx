@@ -2,7 +2,7 @@ import React, {useMemo, useRef, useState} from 'react';
 import {useOutsidePointer} from './dom_event_hooks';
 import {message} from './i18n_client';
 import type {Options} from './options_client_types';
-import {cloneOptions} from './options_logic';
+import {cloneOptions, updateProfileRevision} from './options_logic';
 import {normalizeColor, PROFILE_COLOR_SWATCHES} from './profile_content_logic';
 import {ProfileInline, ProfileSelect, profilesForFilter, type Profile} from './profile_widgets';
 
@@ -517,6 +517,7 @@ export function ProfileGroupsPage({onOptionsChange, options}: {onOptionsChange: 
       } else {
         profile.profileGroupEnabled = false;
       }
+      updateProfileRevision(profile);
     });
   }
 
@@ -698,6 +699,7 @@ export function ProfileGroupsPage({onOptionsChange, options}: {onOptionsChange: 
         } else {
           profile.profileGroupEnabled = false;
         }
+        updateProfileRevision(profile);
       });
     });
     setMoveGroupState(null);
@@ -722,6 +724,7 @@ export function ProfileGroupsPage({onOptionsChange, options}: {onOptionsChange: 
         }
         delete profile.profileGroupId;
         profile.profileGroupEnabled = false;
+        updateProfileRevision(profile);
       });
     });
     setDeleteState(null);
@@ -837,7 +840,7 @@ export function ProfileGroupsPage({onOptionsChange, options}: {onOptionsChange: 
                 />
               </div>
               <div className="form-group profile-groups-move-action">
-                <button className="btn btn-default" type="button" disabled={!canMoveProfile} onClick={moveSelectedProfile}>
+                <button className="btn btn-primary" type="button" disabled={!canMoveProfile} onClick={moveSelectedProfile}>
                   <span className="glyphicon glyphicon-arrow-right" aria-hidden="true" /> {message('options_profileGroupMove', 'Move')}
                 </button>
               </div>
