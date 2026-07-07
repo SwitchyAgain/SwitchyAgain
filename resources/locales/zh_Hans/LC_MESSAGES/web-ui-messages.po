@@ -230,6 +230,12 @@ msgstr "折叠设置"
 msgid "options_expandSettings"
 msgstr "展开设置"
 
+msgid "options_collapseProfiles"
+msgstr "折叠情景模式"
+
+msgid "options_expandProfiles"
+msgstr "展开情景模式"
+
 msgid "options_navHeader_profiles"
 msgstr "情景模式"
 
@@ -548,6 +554,9 @@ msgstr "启用浏览器同步"
 msgid "options_group_webDavSync"
 msgstr "WebDAV 同步"
 
+msgid "options_webDavSyncHelp"
+msgstr "通过您自己的 WebDAV 服务器同步设置和情景模式。如果服务商支持，请使用应用密码或令牌。"
+
 msgid "options_webDavSyncBlockedByBrowser"
 msgstr "浏览器同步已启用。请先禁用浏览器同步，再启用 WebDAV 同步。"
 
@@ -693,7 +702,7 @@ msgid "options_syncConflictHelp"
 msgstr "您可以将云端的选项下载到此设备使用。<br>一旦选择下载，<b>此设备上的设置和情景模式将会被覆盖</b>。"
 
 msgid "options_syncUnsupportedHelp"
-msgstr "选项同步暂不支持您的平台或浏览器。"
+msgstr "当前平台或浏览器不支持浏览器同步。"
 
 msgid "options_profileSyncDisabled"
 msgstr "此情景模式已经禁用同步。"
@@ -1749,6 +1758,9 @@ msgstr "在“请求”区域加载捕获的请求和路由结果。资源较多
 
 msgid "options_showRequestLens"
 msgstr "在设置侧边栏中显示请求诊断。"
+
+msgid "options_showProfilesCollapseToggle"
+msgstr "在侧边栏中显示“情景模式”折叠开关。"
 
 msgid "options_tab_requestLens"
 msgstr "请求诊断"

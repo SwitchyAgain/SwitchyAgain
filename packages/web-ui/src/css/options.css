@@ -775,6 +775,13 @@ h1 {
   gap: 6px;
 }
 
+.options-shell-profile-section-heading {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+  min-width: 0;
+}
+
 .options-shell-hidden-profile-toggle,
 .options-shell-settings-toggle,
 .options-shell-profile-menu-button,
@@ -807,10 +814,16 @@ h1 {
   opacity: 0.9;
 }
 
+.options-shell-profile-section-header:hover .options-shell-profile-section-toggle,
+.options-shell-profile-section-header:focus-within .options-shell-profile-section-toggle {
+  opacity: 0.9;
+}
+
 .options-shell-settings-toggle:hover,
 .options-shell-settings-toggle:focus,
 .options-shell-settings-menu-button:hover,
 .options-shell-settings-menu-button:focus {
+  color: var(--sa-link);
   opacity: 1;
   outline: none;
 }
@@ -860,8 +873,13 @@ h1 {
 
 .options-shell-profile-menu-button:hover,
 .options-shell-profile-menu-button:focus {
+  color: var(--sa-link);
   opacity: 1;
   outline: none;
+}
+
+.options-shell-profile-menu.open .options-shell-profile-menu-button {
+  color: var(--sa-link);
 }
 
 .options-shell-profile-menu-panel,
@@ -984,9 +1002,13 @@ h1 {
 
 .options-shell-profile-nav-actions-button:hover,
 .options-shell-profile-nav-actions-button:focus {
-  color: var(--sa-text);
+  color: var(--sa-link);
   opacity: 1;
   outline: none;
+}
+
+.options-shell-profile-nav-actions-button[aria-expanded='true'] {
+  color: var(--sa-link);
 }
 
 .side-nav .nav-pills > li.active .options-shell-profile-nav-actions-button {
@@ -995,7 +1017,7 @@ h1 {
 
 .options-shell-hidden-profile-toggle:hover,
 .options-shell-hidden-profile-toggle:focus {
-  color: inherit;
+  color: var(--sa-link);
   outline: none;
 }
 

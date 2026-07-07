@@ -246,7 +246,7 @@ function ProfileGroupInline({group}: {group?: ProfileGroup | null}) {
   return (
     <span className="profile-groups-group-cell">
       <span className="profile-groups-group-icon" aria-hidden="true">
-        {group ? <ProfileGroupIcon group={group} /> : <span className="glyphicon glyphicon-share-alt" />}
+        {group ? <ProfileGroupIcon group={group} /> : <span className="glyphicon glyphicon-user" />}
       </span>
       <span className="profile-groups-group-name">{group ? group.name : message('options_profileGroupUngrouped', 'Ungrouped')}</span>
     </span>

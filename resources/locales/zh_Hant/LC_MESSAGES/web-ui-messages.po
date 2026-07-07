@@ -225,6 +225,12 @@ msgstr "摺疊設定"
 msgid "options_expandSettings"
 msgstr "展開設定"
 
+msgid "options_collapseProfiles"
+msgstr "摺疊情境模式"
+
+msgid "options_expandProfiles"
+msgstr "展開情境模式"
+
 msgid "options_navHeader_profiles"
 msgstr "情境模式"
 
@@ -537,6 +543,9 @@ msgstr "啟用瀏覽器同步"
 msgid "options_group_webDavSync"
 msgstr "WebDAV 同步"
 
+msgid "options_webDavSyncHelp"
+msgstr "透過您自己的 WebDAV 伺服器同步設定和情境模式。如果服務商支援，請使用應用程式密碼或權杖。"
+
 msgid "options_webDavSyncBlockedByBrowser"
 msgstr "瀏覽器同步已啟用。請先停用瀏覽器同步，再啟用 WebDAV 同步。"
 
@@ -682,7 +691,7 @@ msgid "options_syncConflictHelp"
 msgstr "您可以將雲端的選項下載到此裝置使用。<br>一旦選擇下載，<b>此裝置上的設定和情境模式將會被覆蓋</b>。"
 
 msgid "options_syncUnsupportedHelp"
-msgstr "選項同步暫不支援您的平台或瀏覽器。"
+msgstr "目前平台或瀏覽器不支援瀏覽器同步。"
 
 msgid "options_profileSyncDisabled"
 msgstr "此情境模式已經停用同步。"
@@ -1736,6 +1745,9 @@ msgstr "在「請求」區域載入擷取的請求和路由結果。資源較多
 
 msgid "options_showRequestLens"
 msgstr "在設定側邊欄中顯示請求診斷。"
+
+msgid "options_showProfilesCollapseToggle"
+msgstr "在側邊欄中顯示「情境模式」摺疊開關。"
 
 msgid "options_tab_requestLens"
 msgstr "請求診斷"

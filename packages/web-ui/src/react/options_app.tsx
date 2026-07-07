@@ -660,6 +660,7 @@ export function OptionsApp() {
     [savedOptions, profileScopeCapabilities]
   );
   const showRequestLens = savedOptions?.['-showRequestLens'] !== false;
+  const showProfilesCollapseToggle = savedOptions?.['-showProfilesCollapseToggle'] === true;
   const showProfileGroups = profileGroupsEnabled(savedOptions);
   const appliedVisibleProfileScopes = useMemo(
     () => visibleProfileScopes(savedOptions, profileScopeCapabilities),
@@ -1926,6 +1927,7 @@ export function OptionsApp() {
             profileScopeHref={routeHref('profileScope')}
             requestLensHref={routeHref('requestLens')}
             showProfileGroups={showProfileGroups}
+            showProfilesCollapseToggle={showProfilesCollapseToggle}
             showProfileScope={showProfileScope}
             showRequestLens={showRequestLens}
             isExperimental={isExperimental}

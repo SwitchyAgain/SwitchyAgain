@@ -213,6 +213,12 @@ msgstr "Skjul innstillinger"
 msgid "options_expandSettings"
 msgstr "Utvid innstillinger"
 
+msgid "options_collapseProfiles"
+msgstr "Skjul profiler"
+
+msgid "options_expandProfiles"
+msgstr "Utvid profiler"
+
 msgid "options_navHeader_profiles"
 msgstr "Profiler"
 
@@ -541,6 +547,9 @@ msgstr "Aktiver nettlesersynkronisering"
 
 msgid "options_group_webDavSync"
 msgstr "WebDAV-synkronisering"
+
+msgid "options_webDavSyncHelp"
+msgstr "Synkroniser innstillinger og profiler via en WebDAV-server du kontrollerer. Bruk et app-passord eller token når leverandøren støtter det."
 
 msgid "options_webDavSyncBlockedByBrowser"
 msgstr "Nettlesersynkronisering er aktivert. Slå av nettlesersynkronisering før du aktiverer WebDAV-synkronisering."
@@ -1754,6 +1763,9 @@ msgstr "Last inn fangede forespørsler og ruteresultater i Forespørsler-delen. 
 
 msgid "options_showRequestLens"
 msgstr "Vis forespørselsdiagnostikk i sidepanelet for innstillinger."
+
+msgid "options_showProfilesCollapseToggle"
+msgstr "Vis bryteren for å skjule Profiler i sidepanelet."
 
 msgid "options_tab_requestLens"
 msgstr "Forespørselsdiagnostikk"

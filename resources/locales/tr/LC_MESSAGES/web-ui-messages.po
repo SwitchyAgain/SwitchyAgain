@@ -224,6 +224,12 @@ msgstr "Ayarları daralt"
 msgid "options_expandSettings"
 msgstr "Ayarları genişlet"
 
+msgid "options_collapseProfiles"
+msgstr "Profilleri daralt"
+
+msgid "options_expandProfiles"
+msgstr "Profilleri genişlet"
+
 msgid "options_navHeader_profiles"
 msgstr "Profiller"
 
@@ -536,6 +542,9 @@ msgstr "Tarayıcı Eşitlemesini etkinleştir"
 
 msgid "options_group_webDavSync"
 msgstr "WebDAV Eşitlemesi"
+
+msgid "options_webDavSyncHelp"
+msgstr "Ayarları ve profilleri denetiminizdeki bir WebDAV sunucusu üzerinden eşitleyin. Sağlayıcınız destekliyorsa uygulama parolası veya belirteç kullanın."
 
 msgid "options_webDavSyncBlockedByBrowser"
 msgstr "Tarayıcı Eşitlemesi etkin. WebDAV Eşitlemesini etkinleştirmeden önce Tarayıcı Eşitlemesini devre dışı bırakın."
@@ -1749,6 +1758,9 @@ msgstr "Yakalanan istekleri ve rota sonuçlarını İstekler bölümünde yükle
 
 msgid "options_showRequestLens"
 msgstr "Ayarlar kenar çubuğunda istek tanılamayı göster."
+
+msgid "options_showProfilesCollapseToggle"
+msgstr "Kenar çubuğunda Profiller daraltma düğmesini göster."
 
 msgid "options_tab_requestLens"
 msgstr "İstek Tanılama"

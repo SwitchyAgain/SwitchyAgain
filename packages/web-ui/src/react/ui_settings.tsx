@@ -742,6 +742,16 @@ export function UiSettings({
           <label>
             <input
               type="checkbox"
+              checked={Boolean(draftOptions['-showProfilesCollapseToggle'])}
+              onChange={(event) => updateOption('-showProfilesCollapseToggle', event.currentTarget.checked)}
+            />
+            <span> {message('options_showProfilesCollapseToggle', 'Show Profiles collapse toggle in the sidebar.')}</span>
+          </label>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
               checked={Boolean(draftOptions['-addConditionsToBottom'])}
               onChange={(event) => updateOption('-addConditionsToBottom', event.currentTarget.checked)}
             />

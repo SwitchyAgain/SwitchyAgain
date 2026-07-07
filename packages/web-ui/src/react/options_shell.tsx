@@ -33,6 +33,7 @@ export type OptionsShellProps = {
   profileHref?: (profile: Profile) => string;
   requestLensHref?: string;
   showProfileGroups?: boolean;
+  showProfilesCollapseToggle?: boolean;
   showProfileScope?: boolean;
   showRequestLens?: boolean;
   uiHref?: string;
@@ -977,6 +978,7 @@ export function OptionsShell({
   profileHref,
   requestLensHref = '#',
   showProfileGroups = false,
+  showProfilesCollapseToggle = false,
   showProfileScope = false,
   showRequestLens = true,
   uiHref = '#'
@@ -984,9 +986,11 @@ export function OptionsShell({
   const [hiddenProfilesOpen, setHiddenProfilesOpen] = useState(false);
   const [openProfileGroups, setOpenProfileGroups] = useState<Record<string, boolean>>({});
   const [profileBrowserOpen, setProfileBrowserOpen] = useState(false);
+  const [profilesOpen, setProfilesOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(keepSettingsExpanded ?? true);
   const settingsPreferenceAppliedRef = useRef(keepSettingsExpanded != null);
   const settingsToggledRef = useRef(false);
+  const profilesVisible = !showProfilesCollapseToggle || profilesOpen;
   const profiles = profilesForFilter(options, 'sorted');
   const appliedProfiles = profilesForFilter(appliedOptions || options, 'sorted');
   const appliedProfileGroups = profileGroupsForOptions(appliedOptions || options);
@@ -1073,7 +1077,7 @@ export function OptionsShell({
           {
             active: currentState === 'requestLens',
             href: requestLensHref,
-            icon: 'glyphicon-object-align-bottom',
+            icon: 'glyphicon-camera',
             key: 'requestLens',
             label: message('options_tab_requestLens', 'Request Lens'),
             onClick: () => onNavigate?.('requestLens')
@@ -1097,6 +1101,12 @@ export function OptionsShell({
     settingsPreferenceAppliedRef.current = true;
     setSettingsOpen(keepSettingsExpanded);
   }, [keepSettingsExpanded]);
+
+  useEffect(() => {
+    if (!showProfilesCollapseToggle && !profilesOpen) {
+      setProfilesOpen(true);
+    }
+  }, [profilesOpen, showProfilesCollapseToggle]);
 
   function toggleSettings() {
     settingsToggledRef.current = true;
@@ -1149,8 +1159,25 @@ export function OptionsShell({
           <li className="divider" />
         </ul>
         <ul className="nav nav-pills nav-stacked options-shell-profile-header">
-          <li className="nav-header options-shell-section-header">
-            <span>{profilesLabel}</span>
+          <li className="nav-header options-shell-section-header options-shell-profile-section-header">
+            <span className="options-shell-profile-section-heading">
+              <span>{profilesLabel}</span>
+              {showProfilesCollapseToggle && (
+                <button
+                  type="button"
+                  className="options-shell-settings-toggle options-shell-profile-section-toggle"
+                  aria-expanded={profilesOpen}
+                  aria-label={
+                    profilesOpen
+                      ? message('options_collapseProfiles', 'Collapse profiles')
+                      : message('options_expandProfiles', 'Expand profiles')
+                  }
+                  onClick={() => setProfilesOpen(!profilesOpen)}
+                >
+                  <span className={`glyphicon ${profilesOpen ? 'glyphicon-chevron-up' : 'glyphicon-chevron-down'}`} />
+                </button>
+              )}
+            </span>
             {actionMenuOptions.sectionMenu && (
               <ProfileSectionMenuButton
                 activeProfileName={currentProfileName}
@@ -1166,25 +1193,27 @@ export function OptionsShell({
             )}
           </li>
         </ul>
-        <div className="options-shell-profile-list">
-          <ul className="nav nav-pills nav-stacked">
-            {visibleProfiles.map((profile) => (
-              <ProfileNavItem
-                key={profile.name}
-                currentProfileName={currentProfileName}
-                currentState={currentState}
-                onDeleteProfile={sidebarDeleteProfile}
-                onExportPacProfile={sidebarExportPacProfile}
-                onExportRuleListProfile={sidebarExportRuleListProfile}
-                onNavigate={onNavigate}
-                onProfileColorChange={sidebarProfileColorChange}
-                onRenameProfile={sidebarRenameProfile}
-                profile={profile}
-                profileHref={profileHref}
-              />
-            ))}
-          </ul>
-        </div>
+        {profilesVisible && (
+          <div className="options-shell-profile-list">
+            <ul className="nav nav-pills nav-stacked">
+              {visibleProfiles.map((profile) => (
+                <ProfileNavItem
+                  key={profile.name}
+                  currentProfileName={currentProfileName}
+                  currentState={currentState}
+                  onDeleteProfile={sidebarDeleteProfile}
+                  onExportPacProfile={sidebarExportPacProfile}
+                  onExportRuleListProfile={sidebarExportRuleListProfile}
+                  onNavigate={onNavigate}
+                  onProfileColorChange={sidebarProfileColorChange}
+                  onRenameProfile={sidebarRenameProfile}
+                  profile={profile}
+                  profileHref={profileHref}
+                />
+              ))}
+            </ul>
+          </div>
+        )}
         {hiddenProfiles.length > 0 && (
           <>
             <ul className="nav nav-pills nav-stacked options-shell-hidden-profile-header">

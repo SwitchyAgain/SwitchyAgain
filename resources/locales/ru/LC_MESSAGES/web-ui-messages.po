@@ -258,6 +258,12 @@ msgstr "Свернуть настройки"
 msgid "options_expandSettings"
 msgstr "Развернуть настройки"
 
+msgid "options_collapseProfiles"
+msgstr "Свернуть профили"
+
+msgid "options_expandProfiles"
+msgstr "Развернуть профили"
+
 msgid "options_navHeader_profiles"
 msgstr "Профили"
 
@@ -614,6 +620,9 @@ msgstr "Включить синхронизацию браузера"
 
 msgid "options_group_webDavSync"
 msgstr "Синхронизация WebDAV"
+
+msgid "options_webDavSyncHelp"
+msgstr "Синхронизируйте настройки и профили через сервер WebDAV под вашим управлением. Используйте пароль приложения или токен, если ваш провайдер это поддерживает."
 
 msgid "options_webDavSyncBlockedByBrowser"
 msgstr "Синхронизация браузера включена. Отключите синхронизацию браузера перед включением синхронизации WebDAV."
@@ -1942,6 +1951,9 @@ msgstr "Загружает перехваченные запросы и резу
 
 msgid "options_showRequestLens"
 msgstr "Показывать диагностику запросов на боковой панели настроек."
+
+msgid "options_showProfilesCollapseToggle"
+msgstr "Показывать переключатель сворачивания профилей на боковой панели."
 
 msgid "options_tab_requestLens"
 msgstr "Диагностика запросов"

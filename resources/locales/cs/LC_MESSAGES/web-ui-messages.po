@@ -256,6 +256,12 @@ msgstr "Sbalit nastavení"
 msgid "options_expandSettings"
 msgstr "Rozbalit nastavení"
 
+msgid "options_collapseProfiles"
+msgstr "Sbalit profily"
+
+msgid "options_expandProfiles"
+msgstr "Rozbalit profily"
+
 msgid "options_navHeader_profiles"
 msgstr "Profily"
 
@@ -599,6 +605,9 @@ msgstr "Zapnout synchronizaci prohlížeče"
 
 msgid "options_group_webDavSync"
 msgstr "Synchronizace WebDAV"
+
+msgid "options_webDavSyncHelp"
+msgstr "Synchronizujte nastavení a profily přes server WebDAV, který máte pod kontrolou. Pokud to váš poskytovatel podporuje, použijte heslo aplikace nebo token."
 
 msgid "options_webDavSyncBlockedByBrowser"
 msgstr "Synchronizace prohlížeče je zapnutá. Před zapnutím synchronizace WebDAV vypněte synchronizaci prohlížeče."
@@ -1904,6 +1913,9 @@ msgstr "Načte zachycené požadavky a výsledky trasování v oddílu Požadavk
 
 msgid "options_showRequestLens"
 msgstr "Zobrazit diagnostiku požadavků v postranním panelu nastavení."
+
+msgid "options_showProfilesCollapseToggle"
+msgstr "Zobrazit přepínač sbalení profilů v postranním panelu."
 
 msgid "options_tab_requestLens"
 msgstr "Diagnostika požadavků"

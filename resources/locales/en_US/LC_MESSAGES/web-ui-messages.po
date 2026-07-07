@@ -253,6 +253,12 @@ msgstr "Collapse settings"
 msgid "options_expandSettings"
 msgstr "Expand settings"
 
+msgid "options_collapseProfiles"
+msgstr "Collapse profiles"
+
+msgid "options_expandProfiles"
+msgstr "Expand profiles"
+
 msgid "options_navHeader_profiles"
 msgstr "Profiles"
 
@@ -628,6 +634,9 @@ msgstr "Options syncing is not supported on your platform or browser."
 
 msgid "options_group_webDavSync"
 msgstr "WebDAV Sync"
+
+msgid "options_webDavSyncHelp"
+msgstr "Synchronize settings and profiles through a WebDAV server you control. Use an app password or token when your provider supports one."
 
 msgid "options_webDavSyncBlockedByBrowser"
 msgstr "Browser Sync is enabled. Disable Browser Sync before enabling WebDAV Sync."
@@ -1906,6 +1915,9 @@ msgstr "Load captured requests and routing results in the Requests section. This
 
 msgid "options_showRequestLens"
 msgstr "Show Request Lens in the settings sidebar."
+
+msgid "options_showProfilesCollapseToggle"
+msgstr "Show Profiles collapse toggle in the sidebar."
 
 msgid "options_tab_requestLens"
 msgstr "Request Lens"

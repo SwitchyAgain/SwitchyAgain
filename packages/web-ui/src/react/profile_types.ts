@@ -115,6 +115,7 @@ export type OptionsData = {
   '-routeInfoRequestDetailsEnabled'?: boolean;
   '-showConditionTypes'?: number;
   '-showExternalProfile'?: boolean;
+  '-showProfilesCollapseToggle'?: boolean;
   '-showRequestLens'?: boolean;
   '-showBypassListGroups'?: boolean;
   '-showHttpProxyOverrideRows'?: boolean;

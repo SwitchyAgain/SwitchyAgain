@@ -256,6 +256,12 @@ msgstr "جمع کردن تنظیمات"
 msgid "options_expandSettings"
 msgstr "باز کردن تنظیمات"
 
+msgid "options_collapseProfiles"
+msgstr "جمع کردن نمایه‌ها"
+
+msgid "options_expandProfiles"
+msgstr "باز کردن نمایه‌ها"
+
 msgid "options_navHeader_profiles"
 msgstr "نمایه‌ها"
 
@@ -602,6 +608,9 @@ msgstr "فعال‌سازی همگام‌سازی مرورگر"
 
 msgid "options_group_webDavSync"
 msgstr "همگام‌سازی WebDAV"
+
+msgid "options_webDavSyncHelp"
+msgstr "تنظیمات و نمایه‌ها را از طریق یک سرور WebDAV که در اختیار شماست همگام‌سازی کنید. اگر ارائه‌دهنده پشتیبانی می‌کند، از گذرواژه برنامه یا توکن استفاده کنید."
 
 msgid "options_webDavSyncBlockedByBrowser"
 msgstr "همگام‌سازی مرورگر فعال است. پیش از فعال‌سازی همگام‌سازی WebDAV، همگام‌سازی مرورگر را غیرفعال کنید."
@@ -1917,6 +1926,9 @@ msgstr "درخواست‌های ثبت‌شده و نتایج مسیر را در
 
 msgid "options_showRequestLens"
 msgstr "نمایش عیب‌یابی درخواست‌ها در نوار کناری تنظیمات."
+
+msgid "options_showProfilesCollapseToggle"
+msgstr "نمایش کلید جمع کردن نمایه‌ها در نوار کناری."
 
 msgid "options_tab_requestLens"
 msgstr "عیب‌یابی درخواست‌ها"

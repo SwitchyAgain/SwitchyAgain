@@ -17,6 +17,7 @@ export const UI_KEYS = [
   '-profileGroupsEnabled',
   '-profileGroups',
   '-showRequestLens',
+  '-showProfilesCollapseToggle',
   '-showBypassListGroups',
   '-showSocks5LocalDnsOption',
   '-showHttpProxyOverrideRows',

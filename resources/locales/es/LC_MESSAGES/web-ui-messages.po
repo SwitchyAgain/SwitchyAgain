@@ -262,6 +262,12 @@ msgstr "Contraer ajustes"
 msgid "options_expandSettings"
 msgstr "Expandir ajustes"
 
+msgid "options_collapseProfiles"
+msgstr "Contraer perfiles"
+
+msgid "options_expandProfiles"
+msgstr "Expandir perfiles"
+
 msgid "options_navHeader_profiles"
 msgstr "Perfiles"
 
@@ -619,6 +625,9 @@ msgstr "Habilitar sincronización del navegador"
 
 msgid "options_group_webDavSync"
 msgstr "Sincronización WebDAV"
+
+msgid "options_webDavSyncHelp"
+msgstr "Sincronice ajustes y perfiles mediante un servidor WebDAV que usted controle. Use una contraseña de aplicación o un token cuando su proveedor lo admita."
 
 msgid "options_webDavSyncBlockedByBrowser"
 msgstr "La sincronización del navegador está habilitada. Deshabilite la sincronización del navegador antes de habilitar la sincronización WebDAV."
@@ -1961,6 +1970,9 @@ msgstr "Carga las solicitudes capturadas y los resultados de enrutamiento en la 
 
 msgid "options_showRequestLens"
 msgstr "Mostrar Diagnóstico de solicitudes en la barra lateral de ajustes."
+
+msgid "options_showProfilesCollapseToggle"
+msgstr "Mostrar el control para contraer Perfiles en la barra lateral."
 
 msgid "options_tab_requestLens"
 msgstr "Diagnóstico de solicitudes"
