@@ -319,6 +319,15 @@ msgstr "Opciones por defecto"
 msgid "options_group_miscOptions"
 msgstr "Opciones adicionales"
 
+msgid "options_group_sidebar"
+msgstr "Barra lateral"
+
+msgid "options_group_profilePages"
+msgstr "Páginas de perfil"
+
+msgid "options_group_popupMenu"
+msgstr "Menú emergente"
+
 msgid "options_confirmDeletion"
 msgstr "Confirmar al borrar condición."
 
@@ -344,12 +353,10 @@ msgstr ""
 "Agregue nuevas condiciones usando el menú emergente al final de la lista."
 
 msgid "options_showProfileOptions"
-msgstr ""
-"Mostrar Opciones de perfil en las páginas de perfil para ocultar perfiles "
-"del menú emergente, del menú contextual y de la barra lateral de ajustes."
+msgstr "Mostrar Opciones de perfil para agrupar perfiles y controlar la visibilidad."
 
 msgid "options_showSocks5LocalDnsOption"
-msgstr "Mostrar la opción de DNS local SOCKS5. Solo Firefox."
+msgstr "Mostrar la opción de DNS local SOCKS5 en perfiles proxy. Solo Firefox."
 
 msgid "options_showHttpProxyOverrideRows"
 msgstr "Mostrar configuraciones de proxy independientes para HTTP/HTTPS en perfiles proxy."
@@ -390,14 +397,23 @@ msgstr "Mostrar Abrir enlace en nueva ventana privada con perfil"
 msgid "options_group_profileActionMenuOptions"
 msgstr "Menú de acciones"
 
+msgid "options_profileActionMenuSectionMenu"
+msgstr "Mostrar menús de acciones para los encabezados de secciones de perfiles."
+
+msgid "options_profileActionMenuSidebarMenu"
+msgstr "Mostrar menús de acciones para los perfiles de la barra lateral."
+
 msgid "options_profileActionMenuSidebarColor"
 msgstr "Mostrar el color del perfil en los menús de acciones de perfiles de la barra lateral."
 
-msgid "options_profileActionMenuBrowserColor"
-msgstr "Mostrar el color del perfil en los menús de acciones del explorador de perfiles."
-
 msgid "options_profileActionMenuSidebarExport"
 msgstr "Mostrar acciones de exportación en los menús de acciones de perfiles de la barra lateral."
+
+msgid "options_profileActionMenuBrowserMenu"
+msgstr "Mostrar menús de acciones para los perfiles del explorador de perfiles."
+
+msgid "options_profileActionMenuBrowserColor"
+msgstr "Mostrar el color del perfil en los menús de acciones del explorador de perfiles."
 
 msgid "options_profileActionMenuBrowserExport"
 msgstr "Mostrar acciones de exportación en los menús de acciones del explorador de perfiles."
@@ -1946,15 +1962,6 @@ msgstr "Cuando está activada, las solicitudes fallidas coincidentes se muestran
 
 msgid "options_networkRequestIgnoreListHelp"
 msgstr "Usa un patrón comodín por línea."
-
-msgid "options_profileActionMenuBrowserMenu"
-msgstr "Mostrar menús de acciones para los perfiles del explorador de perfiles."
-
-msgid "options_profileActionMenuSectionMenu"
-msgstr "Mostrar menús de acciones para los encabezados de secciones de perfiles."
-
-msgid "options_profileActionMenuSidebarMenu"
-msgstr "Mostrar menús de acciones para los perfiles de la barra lateral."
 
 msgid "options_routeInfoEnabled"
 msgstr "Activar Información de ruta"

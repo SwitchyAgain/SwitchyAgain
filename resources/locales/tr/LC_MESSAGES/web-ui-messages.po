@@ -281,6 +281,15 @@ msgstr "Seçenekleri sıfırla"
 msgid "options_group_miscOptions"
 msgstr "Diğer Seçenekler"
 
+msgid "options_group_sidebar"
+msgstr "Kenar Çubuğu"
+
+msgid "options_group_profilePages"
+msgstr "Profil Sayfaları"
+
+msgid "options_group_popupMenu"
+msgstr "Açılır Menü"
+
 msgid "options_confirmDeletion"
 msgstr "Koşula bağlı silinmeyi onayla."
 
@@ -303,10 +312,10 @@ msgid "options_addConditionsToBottom"
 msgstr ""
 
 msgid "options_showProfileOptions"
-msgstr "Açılır menüden, bağlam menüsünden ve ayarlar kenar çubuğundan profilleri gizlemek için profil sayfalarında Profil Seçenekleri'ni göster."
+msgstr "Profil gruplama ve görünürlük denetimleri için Profil Seçenekleri'ni göster."
 
 msgid "options_showSocks5LocalDnsOption"
-msgstr "SOCKS5 yerel DNS seçeneğini göster. Yalnızca Firefox."
+msgstr "Proxy profillerinde SOCKS5 yerel DNS seçeneğini göster. Yalnızca Firefox."
 
 msgid "options_showHttpProxyOverrideRows"
 msgstr "Proxy profillerinde HTTP/HTTPS için ayrı proxy ayarlarını göster."
@@ -347,14 +356,23 @@ msgstr "Profille Yeni Gizli Pencerede Bağlantı Aç'ı göster"
 msgid "options_group_profileActionMenuOptions"
 msgstr "Hareket Menüsü"
 
+msgid "options_profileActionMenuSectionMenu"
+msgstr "Profil bölüm başlıkları için eylem menülerini göster."
+
+msgid "options_profileActionMenuSidebarMenu"
+msgstr "Kenar çubuğu profilleri için eylem menülerini göster."
+
 msgid "options_profileActionMenuSidebarColor"
 msgstr "Kenar çubuğundaki profil hareket menülerinde profil rengini göster."
 
-msgid "options_profileActionMenuBrowserColor"
-msgstr "Profil tarayıcısı hareket menülerinde profil rengini göster."
-
 msgid "options_profileActionMenuSidebarExport"
 msgstr "Kenar çubuğundaki profil hareket menülerinde dışa aktarma işlemlerini göster."
+
+msgid "options_profileActionMenuBrowserMenu"
+msgstr "Profil tarayıcısındaki profiller için eylem menülerini göster."
+
+msgid "options_profileActionMenuBrowserColor"
+msgstr "Profil tarayıcısı hareket menülerinde profil rengini göster."
 
 msgid "options_profileActionMenuBrowserExport"
 msgstr "Profil tarayıcısı hareket menülerinde dışa aktarma işlemlerini göster."
@@ -1734,15 +1752,6 @@ msgstr "Etkinleştirildiğinde, eşleşen başarısız istekler Rota bilgisinde 
 
 msgid "options_networkRequestIgnoreListHelp"
 msgstr "Her satıra bir joker karakter deseni yazın."
-
-msgid "options_profileActionMenuBrowserMenu"
-msgstr "Profil tarayıcısındaki profiller için eylem menülerini göster."
-
-msgid "options_profileActionMenuSectionMenu"
-msgstr "Profil bölüm başlıkları için eylem menülerini göster."
-
-msgid "options_profileActionMenuSidebarMenu"
-msgstr "Kenar çubuğu profilleri için eylem menülerini göster."
 
 msgid "options_routeInfoEnabled"
 msgstr "Rota bilgisini etkinleştir"

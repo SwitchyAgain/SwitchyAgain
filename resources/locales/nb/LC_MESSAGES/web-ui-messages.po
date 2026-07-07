@@ -270,6 +270,15 @@ msgstr "Tilbakestill valg"
 msgid "options_group_miscOptions"
 msgstr "Ymse valg"
 
+msgid "options_group_sidebar"
+msgstr "Sidepanel"
+
+msgid "options_group_profilePages"
+msgstr "Profilsider"
+
+msgid "options_group_popupMenu"
+msgstr "Oppsprettsmeny"
+
 msgid "options_confirmDeletion"
 msgstr ""
 
@@ -292,10 +301,10 @@ msgid "options_addConditionsToBottom"
 msgstr "Put new conditions added using the popup menu to the bottom of the list."
 
 msgid "options_showProfileOptions"
-msgstr "Vis profilalternativer på profilsider for å skjule profiler fra sprettoppmenyen, kontekstmenyen og sidepanelet for innstillinger."
+msgstr "Vis profilalternativer for profilgruppering og synlighetskontroller."
 
 msgid "options_showSocks5LocalDnsOption"
-msgstr "Vis alternativet for lokal DNS med SOCKS5. Bare Firefox."
+msgstr "Vis alternativet for lokal DNS med SOCKS5 i proxyprofiler. Bare Firefox."
 
 msgid "options_showHttpProxyOverrideRows"
 msgstr "Vis egne proxyinnstillinger for HTTP/HTTPS i proxyprofiler."
@@ -336,14 +345,23 @@ msgstr "Vis Åpne lenke i nytt privat vindu med profil"
 msgid "options_group_profileActionMenuOptions"
 msgstr "Handlingsmeny"
 
+msgid "options_profileActionMenuSectionMenu"
+msgstr "Vis handlingsmenyer for profilseksjonsoverskrifter."
+
+msgid "options_profileActionMenuSidebarMenu"
+msgstr "Vis handlingsmenyer for profiler i sidepanelet."
+
 msgid "options_profileActionMenuSidebarColor"
 msgstr "Vis profilfarge i handlingsmenyer for profiler i sidepanelet."
 
-msgid "options_profileActionMenuBrowserColor"
-msgstr "Vis profilfarge i profiloversiktens handlingsmenyer."
-
 msgid "options_profileActionMenuSidebarExport"
 msgstr "Vis eksporthandlinger i handlingsmenyer for profiler i sidepanelet."
+
+msgid "options_profileActionMenuBrowserMenu"
+msgstr "Vis handlingsmenyer for profiler i profilutforskeren."
+
+msgid "options_profileActionMenuBrowserColor"
+msgstr "Vis profilfarge i profiloversiktens handlingsmenyer."
 
 msgid "options_profileActionMenuBrowserExport"
 msgstr "Vis eksporthandlinger i profiloversiktens handlingsmenyer."
@@ -1739,15 +1757,6 @@ msgstr "Når aktivert vises samsvarende feilede forespørsler som ignorert i rut
 
 msgid "options_networkRequestIgnoreListHelp"
 msgstr "Bruk ett jokertegnmønster per linje."
-
-msgid "options_profileActionMenuBrowserMenu"
-msgstr "Vis handlingsmenyer for profiler i profilutforskeren."
-
-msgid "options_profileActionMenuSectionMenu"
-msgstr "Vis handlingsmenyer for profilseksjonsoverskrifter."
-
-msgid "options_profileActionMenuSidebarMenu"
-msgstr "Vis handlingsmenyer for profiler i sidepanelet."
 
 msgid "options_routeInfoEnabled"
 msgstr "Aktiver ruteinfo"

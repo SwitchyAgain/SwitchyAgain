@@ -310,6 +310,15 @@ msgstr "Reset options"
 msgid "options_group_miscOptions"
 msgstr "Misc Options"
 
+msgid "options_group_sidebar"
+msgstr "Sidebar"
+
+msgid "options_group_profilePages"
+msgstr "Profile Pages"
+
+msgid "options_group_popupMenu"
+msgstr "Popup Menu"
+
 msgid "options_confirmDeletion"
 msgstr "Confirm on condition deletion."
 
@@ -332,12 +341,10 @@ msgid "options_addConditionsToBottom"
 msgstr "Put new conditions added using the popup menu to the bottom of the list."
 
 msgid "options_showProfileOptions"
-msgstr ""
-"Show Profile Options on profile pages for hiding profiles from the popup "
-"menu, context menu, and options sidebar."
+msgstr "Show Profile Options for profile grouping and visibility controls."
 
 msgid "options_showSocks5LocalDnsOption"
-msgstr "Show SOCKS5 local DNS option. Firefox only."
+msgstr "Show SOCKS5 local DNS option in proxy profiles. Firefox only."
 
 msgid "options_showHttpProxyOverrideRows"
 msgstr "Show HTTP/HTTPS proxy overrides in proxy profiles."
@@ -378,14 +385,23 @@ msgstr "Show Open Link in New Private Window with Profile"
 msgid "options_group_profileActionMenuOptions"
 msgstr "Action Menu"
 
+msgid "options_profileActionMenuSectionMenu"
+msgstr "Show action menus on profile section headers."
+
+msgid "options_profileActionMenuSidebarMenu"
+msgstr "Show action menus on sidebar profiles."
+
 msgid "options_profileActionMenuSidebarColor"
 msgstr "Show profile color in sidebar profile action menus."
 
-msgid "options_profileActionMenuBrowserColor"
-msgstr "Show profile color in profile browser action menus."
-
 msgid "options_profileActionMenuSidebarExport"
 msgstr "Show export actions in sidebar profile action menus."
+
+msgid "options_profileActionMenuBrowserMenu"
+msgstr "Show action menus on profile browser profiles."
+
+msgid "options_profileActionMenuBrowserColor"
+msgstr "Show profile color in profile browser action menus."
 
 msgid "options_profileActionMenuBrowserExport"
 msgstr "Show export actions in profile browser action menus."
@@ -1891,15 +1907,6 @@ msgstr "When enabled, matching failed requests are shown as ignored in Route Inf
 
 msgid "options_networkRequestIgnoreListHelp"
 msgstr "Use one wildcard pattern per line."
-
-msgid "options_profileActionMenuBrowserMenu"
-msgstr "Show action menus for profile browser profiles."
-
-msgid "options_profileActionMenuSectionMenu"
-msgstr "Show action menus for profile section headers."
-
-msgid "options_profileActionMenuSidebarMenu"
-msgstr "Show action menus for sidebar profiles."
 
 msgid "options_routeInfoEnabled"
 msgstr "Enable Route Info"

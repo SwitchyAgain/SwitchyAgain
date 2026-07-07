@@ -282,6 +282,15 @@ msgstr "重設選項"
 msgid "options_group_miscOptions"
 msgstr "其他設定"
 
+msgid "options_group_sidebar"
+msgstr "側欄"
+
+msgid "options_group_profilePages"
+msgstr "情境模式頁面"
+
+msgid "options_group_popupMenu"
+msgstr "彈出選單"
+
 msgid "options_confirmDeletion"
 msgstr "刪除切換條件時需要確認。"
 
@@ -304,10 +313,10 @@ msgid "options_addConditionsToBottom"
 msgstr "把以彈出式選單建立的規則加入到清單末尾。"
 
 msgid "options_showProfileOptions"
-msgstr "在情境模式頁面顯示「情境模式選項」，用於從彈出選單、右鍵選單和設定側欄隱藏情境模式。"
+msgstr "顯示用於情境模式分組和可見性控制的「情境模式選項」。"
 
 msgid "options_showSocks5LocalDnsOption"
-msgstr "顯示 SOCKS5 本機 DNS 選項。僅 Firefox 支援。"
+msgstr "在代理情境模式中顯示 SOCKS5 本機 DNS 選項。僅 Firefox 支援。"
 
 msgid "options_showHttpProxyOverrideRows"
 msgstr "在代理情境模式中顯示 HTTP/HTTPS 單獨代理設定。"
@@ -348,14 +357,23 @@ msgstr "顯示「以情境模式在新隱私視窗開啟連結」"
 msgid "options_group_profileActionMenuOptions"
 msgstr "操作選單"
 
+msgid "options_profileActionMenuSectionMenu"
+msgstr "在情境模式清單標題上顯示操作選單。"
+
+msgid "options_profileActionMenuSidebarMenu"
+msgstr "在側欄情境模式項目上顯示操作選單。"
+
 msgid "options_profileActionMenuSidebarColor"
 msgstr "在側欄情境模式操作選單中顯示情境模式顏色。"
 
-msgid "options_profileActionMenuBrowserColor"
-msgstr "在情境模式瀏覽視窗的操作選單中顯示情境模式顏色。"
-
 msgid "options_profileActionMenuSidebarExport"
 msgstr "在側欄情境模式操作選單中顯示匯出操作。"
+
+msgid "options_profileActionMenuBrowserMenu"
+msgstr "在情境模式瀏覽視窗的情境模式上顯示操作選單。"
+
+msgid "options_profileActionMenuBrowserColor"
+msgstr "在情境模式瀏覽視窗的操作選單中顯示情境模式顏色。"
 
 msgid "options_profileActionMenuBrowserExport"
 msgstr "在情境模式瀏覽視窗的操作選單中顯示匯出操作。"
@@ -1722,15 +1740,6 @@ msgstr "啟用後，符合的失敗請求會在路由資訊中顯示為已忽略
 msgid "options_networkRequestIgnoreListHelp"
 msgstr "每行使用一個萬用字元模式。"
 
-msgid "options_profileActionMenuBrowserMenu"
-msgstr "為情境模式瀏覽器中的情境模式顯示操作選單。"
-
-msgid "options_profileActionMenuSectionMenu"
-msgstr "為情境模式區段標題顯示操作選單。"
-
-msgid "options_profileActionMenuSidebarMenu"
-msgstr "為側邊欄中的情境模式顯示操作選單。"
-
 msgid "options_routeInfoEnabled"
 msgstr "啟用路由資訊"
 
@@ -1744,10 +1753,10 @@ msgid "options_routeInfoRequestDetailsEnabledHelp"
 msgstr "在「請求」區域載入擷取的請求和路由結果。資源較多的頁面可能會比較慢。"
 
 msgid "options_showRequestLens"
-msgstr "在設定側邊欄中顯示請求診斷。"
+msgstr "在側欄中顯示「請求診斷」。"
 
 msgid "options_showProfilesCollapseToggle"
-msgstr "在側邊欄中顯示「情境模式」摺疊開關。"
+msgstr "在側欄中顯示「情境模式」摺疊開關。"
 
 msgid "options_tab_requestLens"
 msgstr "請求診斷"

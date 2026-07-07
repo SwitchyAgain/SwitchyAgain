@@ -313,6 +313,15 @@ msgstr "Obnovit nastavení"
 msgid "options_group_miscOptions"
 msgstr "Ostatní nastavení"
 
+msgid "options_group_sidebar"
+msgstr "Postranní panel"
+
+msgid "options_group_profilePages"
+msgstr "Stránky profilů"
+
+msgid "options_group_popupMenu"
+msgstr "Vyskakovací menu"
+
 msgid "options_confirmDeletion"
 msgstr "Potvrdit smazání podmínky."
 
@@ -335,10 +344,10 @@ msgid "options_addConditionsToBottom"
 msgstr "Put new conditions added using the popup menu to the bottom of the list."
 
 msgid "options_showProfileOptions"
-msgstr "Zobrazit možnosti profilu na stránkách profilů pro skrytí profilů ve vyskakovacím menu, kontextovém menu a postranním panelu nastavení."
+msgstr "Zobrazit možnosti profilu pro seskupování profilů a ovládání viditelnosti."
 
 msgid "options_showSocks5LocalDnsOption"
-msgstr "Zobrazit volbu místního DNS pro SOCKS5. Pouze Firefox."
+msgstr "Zobrazit volbu místního DNS pro SOCKS5 v proxy profilech. Pouze Firefox."
 
 msgid "options_showHttpProxyOverrideRows"
 msgstr "Zobrazit samostatná nastavení proxy pro HTTP/HTTPS v proxy profilech."
@@ -379,14 +388,23 @@ msgstr "Zobrazit Otevřít odkaz v novém soukromém okně s profilem"
 msgid "options_group_profileActionMenuOptions"
 msgstr "Nabídka akcí"
 
+msgid "options_profileActionMenuSectionMenu"
+msgstr "Zobrazovat nabídky akcí pro záhlaví oddílů profilů."
+
+msgid "options_profileActionMenuSidebarMenu"
+msgstr "Zobrazovat nabídky akcí pro profily v postranním panelu."
+
 msgid "options_profileActionMenuSidebarColor"
 msgstr "Zobrazit barvu profilu v nabídkách akcí profilů v postranním panelu."
 
-msgid "options_profileActionMenuBrowserColor"
-msgstr "Zobrazit barvu profilu v nabídkách akcí v prohlížeči profilů."
-
 msgid "options_profileActionMenuSidebarExport"
 msgstr "Zobrazit akce exportu v nabídkách akcí profilů v postranním panelu."
+
+msgid "options_profileActionMenuBrowserMenu"
+msgstr "Zobrazovat nabídky akcí pro profily v prohlížeči profilů."
+
+msgid "options_profileActionMenuBrowserColor"
+msgstr "Zobrazit barvu profilu v nabídkách akcí v prohlížeči profilů."
 
 msgid "options_profileActionMenuBrowserExport"
 msgstr "Zobrazit akce exportu v nabídkách akcí v prohlížeči profilů."
@@ -1889,15 +1907,6 @@ msgstr "Když je povolen, odpovídající neúspěšné požadavky se v informac
 
 msgid "options_networkRequestIgnoreListHelp"
 msgstr "Na každý řádek zadejte jeden zástupný vzor."
-
-msgid "options_profileActionMenuBrowserMenu"
-msgstr "Zobrazovat nabídky akcí pro profily v prohlížeči profilů."
-
-msgid "options_profileActionMenuSectionMenu"
-msgstr "Zobrazovat nabídky akcí pro záhlaví oddílů profilů."
-
-msgid "options_profileActionMenuSidebarMenu"
-msgstr "Zobrazovat nabídky akcí pro profily v postranním panelu."
 
 msgid "options_routeInfoEnabled"
 msgstr "Povolit informace o trase"

@@ -702,16 +702,6 @@ export function UiSettings({
           <label>
             <input
               type="checkbox"
-              checked={draftOptions['-keepSettingsExpanded'] !== false}
-              onChange={(event) => updateOption('-keepSettingsExpanded', event.currentTarget.checked)}
-            />
-            <span> {message('options_keepSettingsExpanded', 'Keep Settings expanded in the sidebar.')}</span>
-          </label>
-        </div>
-        <div className="checkbox">
-          <label>
-            <input
-              type="checkbox"
               checked={Boolean(draftOptions['-showCurrentProfileInGeneral'])}
               onChange={(event) => updateOption('-showCurrentProfileInGeneral', event.currentTarget.checked)}
             />
@@ -726,6 +716,20 @@ export function UiSettings({
               onChange={(event) => updateOption('-profileGroupsEnabled', event.currentTarget.checked)}
             />
             <span> {message('options_enableProfileGroups', 'Enable Profile Groups.')}</span>
+          </label>
+        </div>
+      </section>
+
+      <section className="settings-group">
+        <h3>{message('options_group_sidebar', 'Sidebar')}</h3>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={draftOptions['-keepSettingsExpanded'] !== false}
+              onChange={(event) => updateOption('-keepSettingsExpanded', event.currentTarget.checked)}
+            />
+            <span> {message('options_keepSettingsExpanded', 'Keep Settings expanded in the sidebar.')}</span>
           </label>
         </div>
         <div className="checkbox">
@@ -748,19 +752,10 @@ export function UiSettings({
             <span> {message('options_showProfilesCollapseToggle', 'Show Profiles collapse toggle in the sidebar.')}</span>
           </label>
         </div>
-        <div className="checkbox">
-          <label>
-            <input
-              type="checkbox"
-              checked={Boolean(draftOptions['-addConditionsToBottom'])}
-              onChange={(event) => updateOption('-addConditionsToBottom', event.currentTarget.checked)}
-            />
-            <span>
-              {' '}
-              {message('options_addConditionsToBottom', 'Put new conditions added using the popup menu to the bottom of the list.')}
-            </span>
-          </label>
-        </div>
+      </section>
+
+      <section className="settings-group">
+        <h3>{message('options_group_profilePages', 'Profile Pages')}</h3>
         <div className="checkbox">
           <label>
             <input
@@ -768,33 +763,7 @@ export function UiSettings({
               checked={Boolean(draftOptions['-showProfileOptions'])}
               onChange={(event) => updateOption('-showProfileOptions', event.currentTarget.checked)}
             />
-            <span>
-              {' '}
-              {message(
-                'options_showProfileOptions',
-                'Show Profile Options on profile pages for hiding profiles from the popup menu, context menu, and options sidebar.'
-              )}
-            </span>
-          </label>
-        </div>
-        <div className="checkbox">
-          <label>
-            <input
-              type="checkbox"
-              checked={draftOptions['-showPopupAddCondition'] !== false}
-              onChange={(event) => updateOption('-showPopupAddCondition', event.currentTarget.checked)}
-            />
-            <span> {message('options_showPopupAddCondition', 'Show Add Condition in the popup menu.')}</span>
-          </label>
-        </div>
-        <div className="checkbox">
-          <label>
-            <input
-              type="checkbox"
-              checked={draftOptions['-showPopupAddTempRule'] !== false}
-              onChange={(event) => updateOption('-showPopupAddTempRule', event.currentTarget.checked)}
-            />
-            <span> {message('options_showPopupAddTempRule', 'Show Add Temporary Rule in the popup menu.')}</span>
+            <span> {message('options_showProfileOptions', 'Show Profile Options for profile grouping and visibility controls.')}</span>
           </label>
         </div>
         <div className={`checkbox ${socks5LocalDnsSupported ? '' : 'disabled'}`}>
@@ -805,7 +774,7 @@ export function UiSettings({
               disabled={!socks5LocalDnsSupported}
               onChange={(event) => updateOption('-showSocks5LocalDnsOption', event.currentTarget.checked)}
             />
-            <span> {message('options_showSocks5LocalDnsOption', 'Show SOCKS5 local DNS option. Firefox only.')}</span>
+            <span>{message('options_showSocks5LocalDnsOption', 'Show SOCKS5 local DNS option in proxy profiles. Firefox only.')}</span>
           </label>
         </div>
         <div className="checkbox">
@@ -836,6 +805,43 @@ export function UiSettings({
               onChange={(event) => updateOption('-showBypassListGroups', event.currentTarget.checked)}
             />
             <span> {message('options_showBypassListGroups', 'Show bypass list groups in proxy profiles.')}</span>
+          </label>
+        </div>
+      </section>
+
+      <section className="settings-group">
+        <h3>{message('options_group_popupMenu', 'Popup Menu')}</h3>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={Boolean(draftOptions['-addConditionsToBottom'])}
+              onChange={(event) => updateOption('-addConditionsToBottom', event.currentTarget.checked)}
+            />
+            <span>
+              {' '}
+              {message('options_addConditionsToBottom', 'Put new conditions added using the popup menu to the bottom of the list.')}
+            </span>
+          </label>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={draftOptions['-showPopupAddCondition'] !== false}
+              onChange={(event) => updateOption('-showPopupAddCondition', event.currentTarget.checked)}
+            />
+            <span> {message('options_showPopupAddCondition', 'Show Add Condition in the popup menu.')}</span>
+          </label>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={draftOptions['-showPopupAddTempRule'] !== false}
+              onChange={(event) => updateOption('-showPopupAddTempRule', event.currentTarget.checked)}
+            />
+            <span> {message('options_showPopupAddTempRule', 'Show Add Temporary Rule in the popup menu.')}</span>
           </label>
         </div>
       </section>
@@ -885,7 +891,7 @@ export function UiSettings({
               checked={profileActionMenuOptions.sectionMenu}
               onChange={(event) => updateProfileActionMenuOption('sectionMenu', event.currentTarget.checked)}
             />
-            <span> {message('options_profileActionMenuSectionMenu', 'Show action menus for profile section headers.')}</span>
+            <span> {message('options_profileActionMenuSectionMenu', 'Show action menus on profile section headers.')}</span>
           </label>
         </div>
         <div className="checkbox">
@@ -895,17 +901,7 @@ export function UiSettings({
               checked={profileActionMenuOptions.sidebarMenu}
               onChange={(event) => updateProfileActionMenuOption('sidebarMenu', event.currentTarget.checked)}
             />
-            <span> {message('options_profileActionMenuSidebarMenu', 'Show action menus for sidebar profiles.')}</span>
-          </label>
-        </div>
-        <div className="checkbox">
-          <label>
-            <input
-              type="checkbox"
-              checked={profileActionMenuOptions.browserMenu}
-              onChange={(event) => updateProfileActionMenuOption('browserMenu', event.currentTarget.checked)}
-            />
-            <span> {message('options_profileActionMenuBrowserMenu', 'Show action menus for profile browser profiles.')}</span>
+            <span> {message('options_profileActionMenuSidebarMenu', 'Show action menus on sidebar profiles.')}</span>
           </label>
         </div>
         <div className="checkbox">
@@ -922,20 +918,30 @@ export function UiSettings({
           <label>
             <input
               type="checkbox"
-              checked={profileActionMenuOptions.browserColor}
-              onChange={(event) => updateProfileActionMenuOption('browserColor', event.currentTarget.checked)}
+              checked={profileActionMenuOptions.sidebarExport}
+              onChange={(event) => updateProfileActionMenuOption('sidebarExport', event.currentTarget.checked)}
             />
-            <span> {message('options_profileActionMenuBrowserColor', 'Show profile color in profile browser action menus.')}</span>
+            <span> {message('options_profileActionMenuSidebarExport', 'Show export actions in sidebar profile action menus.')}</span>
           </label>
         </div>
         <div className="checkbox">
           <label>
             <input
               type="checkbox"
-              checked={profileActionMenuOptions.sidebarExport}
-              onChange={(event) => updateProfileActionMenuOption('sidebarExport', event.currentTarget.checked)}
+              checked={profileActionMenuOptions.browserMenu}
+              onChange={(event) => updateProfileActionMenuOption('browserMenu', event.currentTarget.checked)}
             />
-            <span> {message('options_profileActionMenuSidebarExport', 'Show export actions in sidebar profile action menus.')}</span>
+            <span> {message('options_profileActionMenuBrowserMenu', 'Show action menus on profile browser profiles.')}</span>
+          </label>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={profileActionMenuOptions.browserColor}
+              onChange={(event) => updateProfileActionMenuOption('browserColor', event.currentTarget.checked)}
+            />
+            <span> {message('options_profileActionMenuBrowserColor', 'Show profile color in profile browser action menus.')}</span>
           </label>
         </div>
         <div className="checkbox">

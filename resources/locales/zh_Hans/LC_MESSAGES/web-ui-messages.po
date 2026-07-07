@@ -287,6 +287,15 @@ msgstr "重置选项"
 msgid "options_group_miscOptions"
 msgstr "其他设置"
 
+msgid "options_group_sidebar"
+msgstr "侧栏"
+
+msgid "options_group_profilePages"
+msgstr "情景模式页面"
+
+msgid "options_group_popupMenu"
+msgstr "弹出菜单"
+
 msgid "options_confirmDeletion"
 msgstr "删除切换条件时需要确认。"
 
@@ -294,13 +303,13 @@ msgid "options_refreshOnProfileChange"
 msgstr "当更改情景模式时刷新当前标签。"
 
 msgid "options_keepSettingsExpanded"
-msgstr "在侧栏中保持“设置”展开。"
+msgstr "在侧栏中保持「设置」展开。"
 
 msgid "options_showPopupAddCondition"
-msgstr "在弹出菜单中显示“添加条件”入口。"
+msgstr "在弹出菜单中显示「添加条件」入口。"
 
 msgid "options_showPopupAddTempRule"
-msgstr "在弹出菜单中显示“添加临时规则”入口。"
+msgstr "在弹出菜单中显示「添加临时规则」入口。"
 
 msgid "options_showCurrentProfileInGeneral"
 msgstr "在通用设置页面显示当前情景模式。"
@@ -309,10 +318,10 @@ msgid "options_addConditionsToBottom"
 msgstr "把以弹出菜单方式创建的规则添加到列表末尾。"
 
 msgid "options_showProfileOptions"
-msgstr "在情景模式页面显示“情景模式选项”，用于从弹出菜单、右键菜单和设置侧栏隐藏情景模式。"
+msgstr "显示用于情景模式分组和可见性控制的「情景模式选项」。"
 
 msgid "options_showSocks5LocalDnsOption"
-msgstr "显示 SOCKS5 本地 DNS 选项。仅 Firefox 支持。"
+msgstr "在代理情景模式中显示 SOCKS5 本地 DNS 选项。仅 Firefox 支持。"
 
 msgid "options_showHttpProxyOverrideRows"
 msgstr "在代理情景模式中显示 HTTP/HTTPS 单独代理配置。"
@@ -327,7 +336,7 @@ msgid "options_group_contextMenuOptions"
 msgstr "右键菜单"
 
 msgid "options_contextMenuSwitchProfile"
-msgstr "显示“切换情景模式”"
+msgstr "显示「切换情景模式」"
 
 msgid "options_contextMenuTabProfile"
 msgstr "显示标签页情景模式切换"
@@ -342,25 +351,34 @@ msgid "options_contextMenuWindowProfile"
 msgstr "显示普通/隐私窗口默认情景模式切换"
 
 msgid "options_contextMenuOpenLinkInNewTabWithProfile"
-msgstr "显示“在新标签页中以情景模式打开链接”"
+msgstr "显示「在新标签页中以情景模式打开链接」"
 
 msgid "options_contextMenuOpenLinkInNewWindowWithProfile"
-msgstr "显示“在新窗口中以情景模式打开链接”"
+msgstr "显示「在新窗口中以情景模式打开链接」"
 
 msgid "options_contextMenuOpenLinkInNewPrivateWindowWithProfile"
-msgstr "显示“在新隐私窗口中以情景模式打开链接”"
+msgstr "显示「在新隐私窗口中以情景模式打开链接」"
 
 msgid "options_group_profileActionMenuOptions"
 msgstr "操作菜单"
 
+msgid "options_profileActionMenuSectionMenu"
+msgstr "在情景模式列表标题上显示操作菜单。"
+
+msgid "options_profileActionMenuSidebarMenu"
+msgstr "在侧栏情景模式条目上显示操作菜单。"
+
 msgid "options_profileActionMenuSidebarColor"
 msgstr "在侧栏情景模式操作菜单中显示情景模式颜色。"
 
-msgid "options_profileActionMenuBrowserColor"
-msgstr "在情景模式浏览窗口的操作菜单中显示情景模式颜色。"
-
 msgid "options_profileActionMenuSidebarExport"
 msgstr "在侧栏情景模式操作菜单中显示导出操作。"
+
+msgid "options_profileActionMenuBrowserMenu"
+msgstr "在情景模式浏览窗口的情景模式上显示操作菜单。"
+
+msgid "options_profileActionMenuBrowserColor"
+msgstr "在情景模式浏览窗口的操作菜单中显示情景模式颜色。"
 
 msgid "options_profileActionMenuBrowserExport"
 msgstr "在情景模式浏览窗口的操作菜单中显示导出操作。"
@@ -1735,15 +1753,6 @@ msgstr "启用后，匹配的失败请求会在路由信息中显示为已忽略
 msgid "options_networkRequestIgnoreListHelp"
 msgstr "每行使用一个通配符模式。"
 
-msgid "options_profileActionMenuBrowserMenu"
-msgstr "为情景模式浏览器中的情景模式显示操作菜单。"
-
-msgid "options_profileActionMenuSectionMenu"
-msgstr "为情景模式分区标题显示操作菜单。"
-
-msgid "options_profileActionMenuSidebarMenu"
-msgstr "为侧边栏中的情景模式显示操作菜单。"
-
 msgid "options_routeInfoEnabled"
 msgstr "启用路由信息"
 
@@ -1754,13 +1763,13 @@ msgid "options_routeInfoRequestDetailsEnabled"
 msgstr "在路由信息中显示请求详情"
 
 msgid "options_routeInfoRequestDetailsEnabledHelp"
-msgstr "在“请求”区域加载捕获的请求和路由结果。资源较多的页面可能会比较慢。"
+msgstr "在「请求」区域加载捕获的请求和路由结果。资源较多的页面可能会比较慢。"
 
 msgid "options_showRequestLens"
-msgstr "在设置侧边栏中显示请求诊断。"
+msgstr "在侧栏中显示「请求诊断」。"
 
 msgid "options_showProfilesCollapseToggle"
-msgstr "在侧边栏中显示“情景模式”折叠开关。"
+msgstr "在侧栏中显示「情景模式」折叠开关。"
 
 msgid "options_tab_requestLens"
 msgstr "请求诊断"
@@ -1937,7 +1946,7 @@ msgid "options_profileGroupRenameTitle"
 msgstr "重命名情景模式分组"
 
 msgid "options_profileGroupMoveProfilesTitle"
-msgstr "从分组“$1:GROUP$”移动情景模式"
+msgstr "移动「$1:GROUP$」分组中的情景模式"
 
 msgid "options_profileGroupMoveAllProfiles"
 msgstr "移动全部情景模式"
