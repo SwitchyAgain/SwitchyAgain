@@ -28,9 +28,6 @@ msgstr ""
 msgid "manifest_icon_default_title"
 msgstr "Cargando…"
 
-msgid "upgrade_profile_auto"
-msgstr "Cambio automático"
-
 msgid "profile_direct"
 msgstr "[Directo]"
 
@@ -217,9 +214,6 @@ msgstr "Cerrar"
 msgid "dialog_save"
 msgstr "Guardar cambios"
 
-msgid "dialog_ok"
-msgstr "OK"
-
 msgid "dialog_cancel"
 msgstr "Cancelar"
 
@@ -338,9 +332,6 @@ msgstr "Mostrar «Añadir regla temporal» en el menú emergente."
 
 msgid "options_showCurrentProfileInGeneral"
 msgstr "Mostrar Perfil actual en la página de configuración General."
-
-msgid "options_showRouteTrace"
-msgstr "Mostrar Traza de ruta en la barra lateral de ajustes."
 
 msgid "options_addConditionsToBottom"
 msgstr ""
@@ -611,11 +602,143 @@ msgstr "URL del archivo de opciones (p.e. 'http://example.com/switchy.bak')"
 msgid "options_restoreOnlineSubmit"
 msgstr "Restaurar"
 
-msgid "options_group_syncing"
-msgstr "Sincronizando (Experimental)"
+msgid "options_group_sync"
+msgstr "Sincronización"
 
-msgid "options_syncEnable"
-msgstr "Habilitar sincronización"
+msgid "options_syncProviderHelp"
+msgstr "Elija Sincronización del navegador o Sincronización WebDAV. Solo puede habilitarse un método de sincronización a la vez."
+
+msgid "options_group_browserSync"
+msgstr "Sincronización del navegador"
+
+msgid "options_browserSyncBlockedByWebDav"
+msgstr "La sincronización WebDAV está habilitada. Deshabilite la sincronización WebDAV antes de habilitar la sincronización del navegador."
+
+msgid "options_browserSyncEnable"
+msgstr "Habilitar sincronización del navegador"
+
+msgid "options_group_webDavSync"
+msgstr "Sincronización WebDAV"
+
+msgid "options_webDavSyncBlockedByBrowser"
+msgstr "La sincronización del navegador está habilitada. Deshabilite la sincronización del navegador antes de habilitar la sincronización WebDAV."
+
+msgid "options_webDavSyncEnable"
+msgstr "Habilitar sincronización WebDAV"
+
+msgid "options_webDavSyncEnabled"
+msgstr "La sincronización WebDAV está habilitada."
+
+msgid "options_webDavSyncNeedsDirection"
+msgstr "La sincronización WebDAV está esperando. Elija Subir ahora o Descargar ahora para aplicar la ubicación WebDAV guardada."
+
+msgid "options_webDavSyncPendingUpload"
+msgstr "Hay cambios locales esperando para sincronizarse."
+
+msgid "options_webDavSyncStatusSuccess"
+msgstr "La sincronización WebDAV está habilitada. Última sincronización:"
+
+msgid "options_webDavSyncStatusRetrying"
+msgstr "La sincronización WebDAV está reintentando. Último intento:"
+
+msgid "options_webDavSyncStatusRetryingNoTime"
+msgstr "La sincronización WebDAV está reintentando."
+
+msgid "options_webDavSyncStatusFailed"
+msgstr "La sincronización WebDAV falló. Último fallo:"
+
+msgid "options_webDavSyncStatusFailedNoTime"
+msgstr "La sincronización WebDAV falló."
+
+msgid "options_webDavSyncNextRetry"
+msgstr "Siguiente reintento automático:"
+
+msgid "options_webDavConfigSaved"
+msgstr "Configuración de sincronización WebDAV guardada."
+
+msgid "options_webDavSyncTestEnableExists"
+msgstr "Conexión correcta. Se encontró un archivo de sincronización remoto. Elija Subir y habilitar o Descargar y habilitar para habilitar la sincronización WebDAV."
+
+msgid "options_webDavSyncTestEnableMissing"
+msgstr "Conexión correcta. No se encontró ningún archivo de sincronización remoto. Use Subir y habilitar para habilitar la sincronización WebDAV."
+
+msgid "options_webDavSyncTestRebindExists"
+msgstr "Conexión correcta. Se encontró un archivo de sincronización remoto. Elija Subir ahora o Descargar ahora para aplicar la sincronización WebDAV a esta ubicación."
+
+msgid "options_webDavSyncTestRebindMissing"
+msgstr "Conexión correcta. No se encontró ningún archivo de sincronización remoto. Use Subir ahora para aplicar la sincronización WebDAV a esta ubicación."
+
+msgid "options_webDavSyncTestSuccess"
+msgstr "Conexión correcta."
+
+msgid "options_webDavServerUrl"
+msgstr "URL del servidor"
+
+msgid "options_webDavRemotePath"
+msgstr "Ruta remota"
+
+msgid "options_webDavUsername"
+msgstr "Nombre de usuario"
+
+msgid "options_webDavPassword"
+msgstr "Contraseña o token de aplicación"
+
+msgid "options_webDavPasswordSaved"
+msgstr "Se reutilizará la contraseña guardada"
+
+msgid "options_webDavInterval"
+msgstr "Intervalo de sincronización"
+
+msgid "options_webDavInterval1"
+msgstr "1 minuto"
+
+msgid "options_webDavInterval5"
+msgstr "5 minutos"
+
+msgid "options_webDavInterval15"
+msgstr "15 minutos"
+
+msgid "options_webDavInterval30"
+msgstr "30 minutos"
+
+msgid "options_webDavInterval60"
+msgstr "60 minutos"
+
+msgid "options_webDavIntervalManual"
+msgstr "Solo manual"
+
+msgid "options_webDavTestSave"
+msgstr "Probar y guardar"
+
+msgid "options_webDavUploadEnable"
+msgstr "Subir y habilitar"
+
+msgid "options_webDavDownloadEnable"
+msgstr "Descargar y habilitar"
+
+msgid "options_webDavUploadNow"
+msgstr "Subir ahora"
+
+msgid "options_webDavUploadNowConfirm"
+msgstr "¿Subir las opciones locales a WebDAV ahora? Esto sobrescribirá la configuración de sincronización remota."
+
+msgid "options_webDavUploadNowSuccess"
+msgstr "Subida completada."
+
+msgid "options_webDavUploadNowTitle"
+msgstr "Subir ahora"
+
+msgid "options_webDavDownloadNow"
+msgstr "Descargar ahora"
+
+msgid "options_webDavDownloadNowConfirm"
+msgstr "¿Descargar las opciones WebDAV remotas ahora? Esto sobrescribirá sus opciones locales."
+
+msgid "options_webDavDownloadNowTitle"
+msgstr "Descargar ahora"
+
+msgid "options_webDavDisable"
+msgstr "Deshabilitar sincronización WebDAV"
 
 msgid "options_syncEnableForce"
 msgstr "Descargar desde la sincronización"
@@ -1303,9 +1426,6 @@ msgstr ""
 "¿Realmente quieres reestablecer las opciones? ¡Todos los perfiles y "
 "configuración se PERDERÁN!"
 
-msgid "options_formInvalid"
-msgstr "Por favor corrige los errores de esta página."
-
 msgid "options_profileNotFound"
 msgstr "¡El perfil $PROFILE$ no existe! Las opciones pueden estar corruptas."
 
@@ -1464,29 +1584,8 @@ msgstr "Añadir condición"
 msgid "popup_showOptions"
 msgstr "Opciones"
 
-msgid "popup_reportIssues"
-msgstr "Reportar problemas"
-
 msgid "popup_errorLog"
 msgstr "Guardar registro de errores"
-
-msgid "popup_requestErrorWarning"
-msgstr "Algunos recursos no se pudieron cargar."
-
-msgid "popup_requestErrorWarningHelp"
-msgstr ""
-"SwitchyAgain es solo el informador de estos problemas, no la causa de ellos."
-
-msgid "popup_requestErrorAddCondition"
-msgstr "Revisa los dominios siguientes y añade reglas de proxy si es necesario."
-
-msgid "popup_requestErrorCannotAddCondition"
-msgstr ""
-"Puedes agregar condiciones de conmutación solo cuando se usa un Perfil "
-"Conmutador."
-
-msgid "popup_configureMonitorWebRequests"
-msgstr "Configurar el Monitor de Red"
 
 msgid "options_resultProfileForSelectedDomains"
 msgstr "Usar este perfil para todos los dominios seleccionados"
@@ -1565,9 +1664,6 @@ msgid "about_experimental_warning_moz"
 msgstr ""
 "¡El soporte de Mozilla Firefox es altamente experimental! Si tienes "
 "problemas, informa utilizando los botones a continuación."
-
-msgid "options_tab_routeTrace"
-msgstr "Traza de ruta"
 
 msgid "options_profileDownloadStatusDownloading"
 msgstr "Cargando..."

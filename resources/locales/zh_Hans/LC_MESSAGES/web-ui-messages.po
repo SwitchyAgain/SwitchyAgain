@@ -26,9 +26,6 @@ msgstr "在现代浏览器上轻松快捷地管理和切换多个代理设置。
 msgid "manifest_icon_default_title"
 msgstr "正在加载……"
 
-msgid "upgrade_profile_auto"
-msgstr "自动切换"
-
 msgid "profile_direct"
 msgstr "[直接连接]"
 
@@ -185,9 +182,6 @@ msgstr "关闭"
 msgid "dialog_save"
 msgstr "保存更改"
 
-msgid "dialog_ok"
-msgstr "确定"
-
 msgid "dialog_cancel"
 msgstr "取消"
 
@@ -304,9 +298,6 @@ msgstr "在弹出菜单中显示“添加临时规则”入口。"
 
 msgid "options_showCurrentProfileInGeneral"
 msgstr "在通用设置页面显示当前情景模式。"
-
-msgid "options_showRouteTrace"
-msgstr "在设置侧栏显示路由追踪。"
 
 msgid "options_addConditionsToBottom"
 msgstr "把以弹出菜单方式创建的规则添加到列表末尾。"
@@ -539,11 +530,143 @@ msgstr "备份文件地址 (如：http://example.com/switchy.bak)"
 msgid "options_restoreOnlineSubmit"
 msgstr "恢复"
 
-msgid "options_group_syncing"
-msgstr "选项同步 (测试中)"
+msgid "options_group_sync"
+msgstr "同步"
 
-msgid "options_syncEnable"
-msgstr "启用同步"
+msgid "options_syncProviderHelp"
+msgstr "请选择使用浏览器同步或使用 WebDAV 同步。不能同时启用两种同步方式。"
+
+msgid "options_group_browserSync"
+msgstr "浏览器同步"
+
+msgid "options_browserSyncBlockedByWebDav"
+msgstr "WebDAV 同步已启用。请先禁用 WebDAV 同步，再启用浏览器同步。"
+
+msgid "options_browserSyncEnable"
+msgstr "启用浏览器同步"
+
+msgid "options_group_webDavSync"
+msgstr "WebDAV 同步"
+
+msgid "options_webDavSyncBlockedByBrowser"
+msgstr "浏览器同步已启用。请先禁用浏览器同步，再启用 WebDAV 同步。"
+
+msgid "options_webDavSyncEnable"
+msgstr "启用 WebDAV 同步"
+
+msgid "options_webDavSyncEnabled"
+msgstr "WebDAV 同步已启用。"
+
+msgid "options_webDavSyncNeedsDirection"
+msgstr "WebDAV 配置已保存。请点击「立即上传」或「立即下载」，以完成 WebDAV 配置切换。"
+
+msgid "options_webDavSyncPendingUpload"
+msgstr "本地更改正在等待同步。"
+
+msgid "options_webDavSyncStatusSuccess"
+msgstr "WebDAV 同步已启用。上次同步时间："
+
+msgid "options_webDavSyncStatusRetrying"
+msgstr "WebDAV 同步正在重试。上次尝试时间："
+
+msgid "options_webDavSyncStatusRetryingNoTime"
+msgstr "WebDAV 同步正在重试。"
+
+msgid "options_webDavSyncStatusFailed"
+msgstr "WebDAV 同步失败。上次失败时间："
+
+msgid "options_webDavSyncStatusFailedNoTime"
+msgstr "WebDAV 同步失败。"
+
+msgid "options_webDavSyncNextRetry"
+msgstr "下次自动重试时间："
+
+msgid "options_webDavConfigSaved"
+msgstr "WebDAV 同步设置已保存。"
+
+msgid "options_webDavSyncTestEnableExists"
+msgstr "连接成功。已找到远程同步文件。请点击「上传并启用」或「下载并启用」来启用 WebDAV 同步。"
+
+msgid "options_webDavSyncTestEnableMissing"
+msgstr "连接成功。未找到远程同步文件。请点击「上传并启用」来启用 WebDAV 同步。"
+
+msgid "options_webDavSyncTestRebindExists"
+msgstr "连接成功。已找到远程同步文件。请点击「立即上传」或「立即下载」，以完成 WebDAV 同步切换。"
+
+msgid "options_webDavSyncTestRebindMissing"
+msgstr "连接成功。未找到远程同步文件。请点击「立即上传」，以完成 WebDAV 同步切换。"
+
+msgid "options_webDavSyncTestSuccess"
+msgstr "连接成功。"
+
+msgid "options_webDavServerUrl"
+msgstr "服务器 URL"
+
+msgid "options_webDavRemotePath"
+msgstr "远程路径"
+
+msgid "options_webDavUsername"
+msgstr "用户名"
+
+msgid "options_webDavPassword"
+msgstr "密码或应用令牌"
+
+msgid "options_webDavPasswordSaved"
+msgstr "将继续使用已保存的密码"
+
+msgid "options_webDavInterval"
+msgstr "同步间隔"
+
+msgid "options_webDavInterval1"
+msgstr "1 分钟"
+
+msgid "options_webDavInterval5"
+msgstr "5 分钟"
+
+msgid "options_webDavInterval15"
+msgstr "15 分钟"
+
+msgid "options_webDavInterval30"
+msgstr "30 分钟"
+
+msgid "options_webDavInterval60"
+msgstr "60 分钟"
+
+msgid "options_webDavIntervalManual"
+msgstr "仅手动"
+
+msgid "options_webDavTestSave"
+msgstr "测试并保存"
+
+msgid "options_webDavUploadEnable"
+msgstr "上传并启用"
+
+msgid "options_webDavDownloadEnable"
+msgstr "下载并启用"
+
+msgid "options_webDavUploadNow"
+msgstr "立即上传"
+
+msgid "options_webDavUploadNowConfirm"
+msgstr "要立即将当前设置上传到 WebDAV 吗？这会覆盖 WebDAV 上已有的同步数据。"
+
+msgid "options_webDavUploadNowSuccess"
+msgstr "上传完成。"
+
+msgid "options_webDavUploadNowTitle"
+msgstr "立即上传"
+
+msgid "options_webDavDownloadNow"
+msgstr "立即下载"
+
+msgid "options_webDavDownloadNowConfirm"
+msgstr "要立即从 WebDAV 下载同步数据吗？这会覆盖当前的本地设置。"
+
+msgid "options_webDavDownloadNowTitle"
+msgstr "立即下载"
+
+msgid "options_webDavDisable"
+msgstr "禁用 WebDAV 同步"
 
 msgid "options_syncEnableForce"
 msgstr "下载云端版本"
@@ -1135,9 +1258,6 @@ msgstr "重置选项"
 msgid "options_resetOptionsConfirm"
 msgstr "真的确定要重置选项吗？如果继续，现有的所有情景模式和选项将会丢失！"
 
-msgid "options_formInvalid"
-msgstr "请更正这个页面中的错误。"
-
 msgid "options_profileNotFound"
 msgstr "情景模式 $PROFILE$ 不存在！选项可能已经损坏。"
 
@@ -1259,26 +1379,8 @@ msgstr "添加条件"
 msgid "popup_showOptions"
 msgstr "选项"
 
-msgid "popup_reportIssues"
-msgstr "反馈问题"
-
 msgid "popup_errorLog"
 msgstr "保存错误日志"
-
-msgid "popup_requestErrorWarning"
-msgstr "部分资源加载失败。"
-
-msgid "popup_requestErrorWarningHelp"
-msgstr "这些问题并非由 SwitchyAgain 自身导致，它只不过检测并报告了错误而已。"
-
-msgid "popup_requestErrorAddCondition"
-msgstr "查看以下域名，并根据需要添加代理规则。"
-
-msgid "popup_requestErrorCannotAddCondition"
-msgstr "在使用自动切换情景时，才可以将这些资源添加为切换条件。"
-
-msgid "popup_configureMonitorWebRequests"
-msgstr "设置网络检测选项"
 
 msgid "options_resultProfileForSelectedDomains"
 msgstr "对所有选中域名使用此情景模式"
@@ -1350,9 +1452,6 @@ msgstr "使用 __GPL_LICENSE__ 版本 3 或更高版本授权。"
 
 msgid "about_experimental_warning_moz"
 msgstr "Mozilla Firefox 浏览器支持目前仍处于早期实验阶段！如果您遇到任何问题，请使用下方的按钮进行反馈。"
-
-msgid "options_tab_routeTrace"
-msgstr "路由追踪"
 
 msgid "options_profileDownloadStatusDownloading"
 msgstr "正在加载..."

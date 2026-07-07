@@ -973,7 +973,7 @@ export function ImportExport({
                     className="form-control width-limit"
                     type="url"
                     value={webDavConfig.serverUrl || ''}
-                    placeholder={message('options_webDavServerUrlPlaceholder', 'https://example.com/remote.php/dav/files/user/')}
+                    placeholder="https://example.com/remote.php/dav/files/user/"
                     spellCheck={false}
                     disabled={webDavSyncBlocked}
                     onChange={(event) => updateWebDavConnectionConfig({serverUrl: event.currentTarget.value})}

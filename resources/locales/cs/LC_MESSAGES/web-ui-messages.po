@@ -26,9 +26,6 @@ msgstr "Spravujte a přepínejte mezi více proxy servery rychle a snadno v mode
 msgid "manifest_icon_default_title"
 msgstr "Načítám…"
 
-msgid "upgrade_profile_auto"
-msgstr "Automatický přepínač"
-
 msgid "profile_direct"
 msgstr "[Přímé připojení]"
 
@@ -211,9 +208,6 @@ msgstr "Zavřít"
 msgid "dialog_save"
 msgstr "Uložit změny"
 
-msgid "dialog_ok"
-msgstr "OK"
-
 msgid "dialog_cancel"
 msgstr "Storno"
 
@@ -330,9 +324,6 @@ msgstr "Zobrazit „Přidat dočasné pravidlo“ ve vyskakovacím menu."
 
 msgid "options_showCurrentProfileInGeneral"
 msgstr "Zobrazit Aktuální profil na stránce Obecné."
-
-msgid "options_showRouteTrace"
-msgstr "Zobrazit trasování trasy v postranním panelu nastavení."
 
 msgid "options_addConditionsToBottom"
 msgstr "Put new conditions added using the popup menu to the bottom of the list."
@@ -591,11 +582,143 @@ msgstr "URL souboru nastavení (e.g. 'http://example.com/switchy.bak')"
 msgid "options_restoreOnlineSubmit"
 msgstr "Obnovit"
 
-msgid "options_group_syncing"
-msgstr "Synchronizace (Experimentální)"
+msgid "options_group_sync"
+msgstr "Synchronizace"
 
-msgid "options_syncEnable"
-msgstr "Povolit synchronizaci"
+msgid "options_syncProviderHelp"
+msgstr "Zvolte synchronizaci prohlížeče nebo synchronizaci WebDAV. Vždy může být povolena pouze jedna metoda synchronizace."
+
+msgid "options_group_browserSync"
+msgstr "Synchronizace prohlížeče"
+
+msgid "options_browserSyncBlockedByWebDav"
+msgstr "Synchronizace WebDAV je zapnutá. Před zapnutím synchronizace prohlížeče vypněte synchronizaci WebDAV."
+
+msgid "options_browserSyncEnable"
+msgstr "Zapnout synchronizaci prohlížeče"
+
+msgid "options_group_webDavSync"
+msgstr "Synchronizace WebDAV"
+
+msgid "options_webDavSyncBlockedByBrowser"
+msgstr "Synchronizace prohlížeče je zapnutá. Před zapnutím synchronizace WebDAV vypněte synchronizaci prohlížeče."
+
+msgid "options_webDavSyncEnable"
+msgstr "Zapnout synchronizaci WebDAV"
+
+msgid "options_webDavSyncEnabled"
+msgstr "Synchronizace WebDAV je zapnutá."
+
+msgid "options_webDavSyncNeedsDirection"
+msgstr "Synchronizace WebDAV čeká. Zvolte Nahrát nyní nebo Stáhnout nyní, aby se použilo uložené umístění WebDAV."
+
+msgid "options_webDavSyncPendingUpload"
+msgstr "Místní změny čekají na synchronizaci."
+
+msgid "options_webDavSyncStatusSuccess"
+msgstr "Synchronizace WebDAV je zapnutá. Poslední synchronizace:"
+
+msgid "options_webDavSyncStatusRetrying"
+msgstr "Synchronizace WebDAV se opakuje. Poslední pokus:"
+
+msgid "options_webDavSyncStatusRetryingNoTime"
+msgstr "Synchronizace WebDAV se opakuje."
+
+msgid "options_webDavSyncStatusFailed"
+msgstr "Synchronizace WebDAV selhala. Poslední selhání:"
+
+msgid "options_webDavSyncStatusFailedNoTime"
+msgstr "Synchronizace WebDAV selhala."
+
+msgid "options_webDavSyncNextRetry"
+msgstr "Další automatický pokus:"
+
+msgid "options_webDavConfigSaved"
+msgstr "Nastavení synchronizace WebDAV bylo uloženo."
+
+msgid "options_webDavSyncTestEnableExists"
+msgstr "Připojení bylo úspěšné. Byl nalezen vzdálený soubor synchronizace. Zvolte Nahrát a zapnout nebo Stáhnout a zapnout pro zapnutí synchronizace WebDAV."
+
+msgid "options_webDavSyncTestEnableMissing"
+msgstr "Připojení bylo úspěšné. Nebyl nalezen žádný vzdálený soubor synchronizace. Pro zapnutí synchronizace WebDAV použijte Nahrát a zapnout."
+
+msgid "options_webDavSyncTestRebindExists"
+msgstr "Připojení bylo úspěšné. Byl nalezen vzdálený soubor synchronizace. Zvolte Nahrát nyní nebo Stáhnout nyní, aby se synchronizace WebDAV použila pro toto umístění."
+
+msgid "options_webDavSyncTestRebindMissing"
+msgstr "Připojení bylo úspěšné. Nebyl nalezen žádný vzdálený soubor synchronizace. Pro použití synchronizace WebDAV pro toto umístění použijte Nahrát nyní."
+
+msgid "options_webDavSyncTestSuccess"
+msgstr "Připojení bylo úspěšné."
+
+msgid "options_webDavServerUrl"
+msgstr "URL serveru"
+
+msgid "options_webDavRemotePath"
+msgstr "Vzdálená cesta"
+
+msgid "options_webDavUsername"
+msgstr "Uživatelské jméno"
+
+msgid "options_webDavPassword"
+msgstr "Heslo nebo token aplikace"
+
+msgid "options_webDavPasswordSaved"
+msgstr "Uložené heslo bude znovu použito"
+
+msgid "options_webDavInterval"
+msgstr "Interval synchronizace"
+
+msgid "options_webDavInterval1"
+msgstr "1 minuta"
+
+msgid "options_webDavInterval5"
+msgstr "5 minut"
+
+msgid "options_webDavInterval15"
+msgstr "15 minut"
+
+msgid "options_webDavInterval30"
+msgstr "30 minut"
+
+msgid "options_webDavInterval60"
+msgstr "60 minut"
+
+msgid "options_webDavIntervalManual"
+msgstr "Pouze ručně"
+
+msgid "options_webDavTestSave"
+msgstr "Otestovat a uložit"
+
+msgid "options_webDavUploadEnable"
+msgstr "Nahrát a zapnout"
+
+msgid "options_webDavDownloadEnable"
+msgstr "Stáhnout a zapnout"
+
+msgid "options_webDavUploadNow"
+msgstr "Nahrát nyní"
+
+msgid "options_webDavUploadNowConfirm"
+msgstr "Nahrát místní nastavení do WebDAV nyní? Tím se přepíše vzdálená konfigurace synchronizace."
+
+msgid "options_webDavUploadNowSuccess"
+msgstr "Nahrávání dokončeno."
+
+msgid "options_webDavUploadNowTitle"
+msgstr "Nahrát nyní"
+
+msgid "options_webDavDownloadNow"
+msgstr "Stáhnout nyní"
+
+msgid "options_webDavDownloadNowConfirm"
+msgstr "Stáhnout vzdálená nastavení WebDAV nyní? Tím se přepíšou vaše místní nastavení."
+
+msgid "options_webDavDownloadNowTitle"
+msgstr "Stáhnout nyní"
+
+msgid "options_webDavDisable"
+msgstr "Vypnout synchronizaci WebDAV"
 
 msgid "options_syncEnableForce"
 msgstr "Stáhnout ze synchronizace"
@@ -1261,9 +1384,6 @@ msgid "options_resetOptionsConfirm"
 msgstr ""
 "Opravdu chcete obnovit možnosti? Všechny profily a nastavení bude ztraceno!"
 
-msgid "options_formInvalid"
-msgstr "Opravte chyby na této stránce."
-
 msgid "options_profileNotFound"
 msgstr "Profil $PROFILE$ neexistuje! Nastavení může být špatné."
 
@@ -1412,28 +1532,8 @@ msgstr "Přidat podmínku"
 msgid "popup_showOptions"
 msgstr "Možnosti"
 
-msgid "popup_reportIssues"
-msgstr "Report problémů"
-
 msgid "popup_errorLog"
 msgstr "Uložit protokol chyb"
-
-msgid "popup_requestErrorWarning"
-msgstr "Některé zdroje se nepodařilo načíst."
-
-msgid "popup_requestErrorWarningHelp"
-msgstr "SwitchyAgain jen reportuje tyto chyby, ale není příčinou těchto chyb."
-
-msgid "popup_requestErrorAddCondition"
-msgstr "Zkontrolujte níže uvedené domény a v případě potřeby přidejte pravidla proxy."
-
-msgid "popup_requestErrorCannotAddCondition"
-msgstr ""
-"Můžete přidat podmínky, přepínač se použije pouze při použití Přepnout "
-"profil."
-
-msgid "popup_configureMonitorWebRequests"
-msgstr "Konfigurovat monitor sítě"
 
 msgid "options_resultProfileForSelectedDomains"
 msgstr "Použít tento profil pro všechny vybrané domény"
@@ -1507,9 +1607,6 @@ msgstr "Licencováno pod __GPL_LICENSE__ verze 3 nebo novější."
 
 msgid "about_experimental_warning_moz"
 msgstr "Mozilla Firefox support is highly experimental! If you encounter issues, please report using the buttons below."
-
-msgid "options_tab_routeTrace"
-msgstr "Trasování trasy"
 
 msgid "options_profileDownloadStatusDownloading"
 msgstr "Načítání..."

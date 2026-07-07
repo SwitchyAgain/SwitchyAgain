@@ -26,9 +26,6 @@ msgstr "Manage and switch between multiple proxies quickly & easily on modern br
 msgid "manifest_icon_default_title"
 msgstr "Loading…"
 
-msgid "upgrade_profile_auto"
-msgstr "Auto Switch"
-
 msgid "profile_direct"
 msgstr "[Direct]"
 
@@ -208,9 +205,6 @@ msgstr "Close"
 msgid "dialog_save"
 msgstr "Save changes"
 
-msgid "dialog_ok"
-msgstr "OK"
-
 msgid "dialog_cancel"
 msgstr "Cancel"
 
@@ -327,9 +321,6 @@ msgstr "Show Add Temporary Rule in the popup menu."
 
 msgid "options_showCurrentProfileInGeneral"
 msgstr "Show Current Profile on the General settings page."
-
-msgid "options_showRouteTrace"
-msgstr "Show Route Trace in the settings sidebar."
 
 msgid "options_addConditionsToBottom"
 msgstr "Put new conditions added using the popup menu to the bottom of the list."
@@ -585,11 +576,20 @@ msgstr "Options file URL (e.g. 'http://example.com/switchy.bak')"
 msgid "options_restoreOnlineSubmit"
 msgstr "Restore"
 
-msgid "options_group_syncing"
-msgstr "Syncing (Experimental)"
+msgid "options_group_sync"
+msgstr "Sync"
 
-msgid "options_syncEnable"
-msgstr "Enable Syncing"
+msgid "options_syncProviderHelp"
+msgstr "Choose Browser Sync or WebDAV Sync. Only one sync method can be enabled at a time."
+
+msgid "options_group_browserSync"
+msgstr "Browser Sync"
+
+msgid "options_browserSyncBlockedByWebDav"
+msgstr "WebDAV Sync is enabled. Disable WebDAV Sync before enabling Browser Sync."
+
+msgid "options_browserSyncEnable"
+msgstr "Enable Browser Sync"
 
 msgid "options_syncEnableForce"
 msgstr "Download from Syncing"
@@ -625,6 +625,137 @@ msgstr ""
 
 msgid "options_syncUnsupportedHelp"
 msgstr "Options syncing is not supported on your platform or browser."
+
+msgid "options_group_webDavSync"
+msgstr "WebDAV Sync"
+
+msgid "options_webDavSyncBlockedByBrowser"
+msgstr "Browser Sync is enabled. Disable Browser Sync before enabling WebDAV Sync."
+
+msgid "options_webDavSyncEnable"
+msgstr "Enable WebDAV Sync"
+
+msgid "options_webDavSyncEnabled"
+msgstr "WebDAV Sync is enabled."
+
+msgid "options_webDavSyncNeedsDirection"
+msgstr "WebDAV Sync is waiting. Choose Upload Now or Download Now to apply the saved WebDAV location."
+
+msgid "options_webDavSyncPendingUpload"
+msgstr "Local changes are waiting to sync."
+
+msgid "options_webDavSyncStatusSuccess"
+msgstr "WebDAV Sync is enabled. Last synced:"
+
+msgid "options_webDavSyncStatusRetrying"
+msgstr "WebDAV sync is retrying. Last attempt:"
+
+msgid "options_webDavSyncStatusRetryingNoTime"
+msgstr "WebDAV sync is retrying."
+
+msgid "options_webDavSyncStatusFailed"
+msgstr "WebDAV sync failed. Last failed:"
+
+msgid "options_webDavSyncStatusFailedNoTime"
+msgstr "WebDAV sync failed."
+
+msgid "options_webDavSyncNextRetry"
+msgstr "Next automatic retry:"
+
+msgid "options_webDavConfigSaved"
+msgstr "WebDAV Sync settings saved."
+
+msgid "options_webDavSyncTestEnableExists"
+msgstr ""
+"Connection successful. A remote sync file was found. Choose Upload & Enable "
+"or Download & Enable to enable WebDAV Sync."
+
+msgid "options_webDavSyncTestEnableMissing"
+msgstr ""
+"Connection successful. No remote sync file was found. Upload & Enable to "
+"enable WebDAV Sync."
+
+msgid "options_webDavSyncTestRebindExists"
+msgstr ""
+"Connection successful. A remote sync file was found. Choose Upload Now or "
+"Download Now to apply WebDAV Sync to this location."
+
+msgid "options_webDavSyncTestRebindMissing"
+msgstr ""
+"Connection successful. No remote sync file was found. Upload Now to apply "
+"WebDAV Sync to this location."
+
+msgid "options_webDavSyncTestSuccess"
+msgstr "Connection successful."
+
+msgid "options_webDavServerUrl"
+msgstr "Server URL"
+
+msgid "options_webDavRemotePath"
+msgstr "Remote path"
+
+msgid "options_webDavUsername"
+msgstr "Username"
+
+msgid "options_webDavPassword"
+msgstr "Password or app token"
+
+msgid "options_webDavPasswordSaved"
+msgstr "Saved password will be reused"
+
+msgid "options_webDavInterval"
+msgstr "Sync interval"
+
+msgid "options_webDavInterval1"
+msgstr "1 minute"
+
+msgid "options_webDavInterval5"
+msgstr "5 minutes"
+
+msgid "options_webDavInterval15"
+msgstr "15 minutes"
+
+msgid "options_webDavInterval30"
+msgstr "30 minutes"
+
+msgid "options_webDavInterval60"
+msgstr "60 minutes"
+
+msgid "options_webDavIntervalManual"
+msgstr "Manual only"
+
+msgid "options_webDavTestSave"
+msgstr "Test & Save"
+
+msgid "options_webDavUploadEnable"
+msgstr "Upload & Enable"
+
+msgid "options_webDavDownloadEnable"
+msgstr "Download & Enable"
+
+msgid "options_webDavUploadNow"
+msgstr "Upload Now"
+
+msgid "options_webDavUploadNowConfirm"
+msgstr "Upload local options to WebDAV now? This will overwrite the remote sync config."
+
+msgid "options_webDavUploadNowSuccess"
+msgstr "Upload complete."
+
+msgid "options_webDavUploadNowTitle"
+msgstr "Upload Now"
+
+msgid "options_webDavDownloadNow"
+msgstr "Download Now"
+
+msgid "options_webDavDownloadNowConfirm"
+msgstr "Download remote WebDAV options now? This will overwrite your local options."
+
+msgid "options_webDavDownloadNowTitle"
+msgstr "Download Now"
+
+msgid "options_webDavDisable"
+msgstr "Disable WebDAV Sync"
 
 msgid "options_profileSyncDisabled"
 msgstr "Syncing is disabled for this profile."
@@ -1258,9 +1389,6 @@ msgstr ""
 "Do you really want to reset the options? All profiles and settings will be "
 "LOST!"
 
-msgid "options_formInvalid"
-msgstr "Please correct the errors in this page."
-
 msgid "options_profileNotFound"
 msgstr "Profile $PROFILE$ does not exist! The options may be corrupted."
 
@@ -1408,26 +1536,8 @@ msgstr "Add condition"
 msgid "popup_showOptions"
 msgstr "Options"
 
-msgid "popup_reportIssues"
-msgstr "Report issues"
-
 msgid "popup_errorLog"
 msgstr "Save error log"
-
-msgid "popup_requestErrorWarning"
-msgstr "Some resources failed to load."
-
-msgid "popup_requestErrorWarningHelp"
-msgstr "SwitchyAgain is just the reporter of these issues, not the cause of them."
-
-msgid "popup_requestErrorAddCondition"
-msgstr "Review the domains below and add proxy rules if needed."
-
-msgid "popup_requestErrorCannotAddCondition"
-msgstr "You can add switch conditions for them only when using a Switch Profile."
-
-msgid "popup_configureMonitorWebRequests"
-msgstr "Configure Network Monitor"
 
 msgid "options_resultProfileForSelectedDomains"
 msgstr "Use this profile for all selected domains"
@@ -1499,9 +1609,6 @@ msgstr "Licensed under the __GPL_LICENSE__ Version 3 or later."
 
 msgid "about_experimental_warning_moz"
 msgstr "Mozilla Firefox support is highly experimental! If you encounter issues, please report using the buttons below."
-
-msgid "options_tab_routeTrace"
-msgstr "Route Trace"
 
 msgid "options_profileDownloadStatusDownloading"
 msgstr "Loading..."

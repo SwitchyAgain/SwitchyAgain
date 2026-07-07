@@ -26,9 +26,6 @@ msgstr "مدیریت و تعویض سریع و آسان بین چندین پیش
 msgid "manifest_icon_default_title"
 msgstr "بار کردن…"
 
-msgid "upgrade_profile_auto"
-msgstr "تعویض خودکار"
-
 msgid "profile_direct"
 msgstr "[مستقیم]"
 
@@ -211,9 +208,6 @@ msgstr "بستن"
 msgid "dialog_save"
 msgstr "ذخیرهٔ تغییرات"
 
-msgid "dialog_ok"
-msgstr "قبول"
-
 msgid "dialog_cancel"
 msgstr "لغو"
 
@@ -332,9 +326,6 @@ msgstr "نمایش «افزودن قانون موقت» در منوی بازشو
 
 msgid "options_showCurrentProfileInGeneral"
 msgstr "نمایه فعلی را در صفحه تنظیمات عمومی نشان دهید."
-
-msgid "options_showRouteTrace"
-msgstr "ردیابی مسیر را در نوار کناری تنظیمات نشان بده."
 
 msgid "options_addConditionsToBottom"
 msgstr "شرایط جدید افزوده‌شده از منوی بازشو را در انتهای فهرست قرار بده."
@@ -594,11 +585,143 @@ msgstr "تنظیمات آدرس فایل ( به طور مثال 'http://example.
 msgid "options_restoreOnlineSubmit"
 msgstr "بازگردانی"
 
-msgid "options_group_syncing"
-msgstr "همگام‌سازی (آزمایشی)"
+msgid "options_group_sync"
+msgstr "همگام‌سازی"
 
-msgid "options_syncEnable"
-msgstr "به کار انداختن همگام‌سازی"
+msgid "options_syncProviderHelp"
+msgstr "همگام‌سازی مرورگر یا همگام‌سازی WebDAV را انتخاب کنید. در هر زمان فقط یک روش همگام‌سازی می‌تواند فعال باشد."
+
+msgid "options_group_browserSync"
+msgstr "همگام‌سازی مرورگر"
+
+msgid "options_browserSyncBlockedByWebDav"
+msgstr "همگام‌سازی WebDAV فعال است. پیش از فعال‌سازی همگام‌سازی مرورگر، همگام‌سازی WebDAV را غیرفعال کنید."
+
+msgid "options_browserSyncEnable"
+msgstr "فعال‌سازی همگام‌سازی مرورگر"
+
+msgid "options_group_webDavSync"
+msgstr "همگام‌سازی WebDAV"
+
+msgid "options_webDavSyncBlockedByBrowser"
+msgstr "همگام‌سازی مرورگر فعال است. پیش از فعال‌سازی همگام‌سازی WebDAV، همگام‌سازی مرورگر را غیرفعال کنید."
+
+msgid "options_webDavSyncEnable"
+msgstr "فعال‌سازی همگام‌سازی WebDAV"
+
+msgid "options_webDavSyncEnabled"
+msgstr "همگام‌سازی WebDAV فعال است."
+
+msgid "options_webDavSyncNeedsDirection"
+msgstr "همگام‌سازی WebDAV منتظر است. برای اعمال مکان ذخیره‌شده WebDAV، بارگذاری اکنون یا دانلود اکنون را انتخاب کنید."
+
+msgid "options_webDavSyncPendingUpload"
+msgstr "تغییرات محلی در انتظار همگام‌سازی هستند."
+
+msgid "options_webDavSyncStatusSuccess"
+msgstr "همگام‌سازی WebDAV فعال است. آخرین همگام‌سازی:"
+
+msgid "options_webDavSyncStatusRetrying"
+msgstr "همگام‌سازی WebDAV در حال تلاش دوباره است. آخرین تلاش:"
+
+msgid "options_webDavSyncStatusRetryingNoTime"
+msgstr "همگام‌سازی WebDAV در حال تلاش دوباره است."
+
+msgid "options_webDavSyncStatusFailed"
+msgstr "همگام‌سازی WebDAV ناموفق بود. آخرین شکست:"
+
+msgid "options_webDavSyncStatusFailedNoTime"
+msgstr "همگام‌سازی WebDAV ناموفق بود."
+
+msgid "options_webDavSyncNextRetry"
+msgstr "تلاش خودکار بعدی:"
+
+msgid "options_webDavConfigSaved"
+msgstr "تنظیمات همگام‌سازی WebDAV ذخیره شد."
+
+msgid "options_webDavSyncTestEnableExists"
+msgstr "اتصال موفق بود. یک فایل همگام‌سازی ریموت پیدا شد. برای فعال‌سازی همگام‌سازی WebDAV، بارگذاری و فعال‌سازی یا دانلود و فعال‌سازی را انتخاب کنید."
+
+msgid "options_webDavSyncTestEnableMissing"
+msgstr "اتصال موفق بود. هیچ فایل همگام‌سازی ریموتی پیدا نشد. برای فعال‌سازی همگام‌سازی WebDAV از بارگذاری و فعال‌سازی استفاده کنید."
+
+msgid "options_webDavSyncTestRebindExists"
+msgstr "اتصال موفق بود. یک فایل همگام‌سازی ریموت پیدا شد. برای اعمال همگام‌سازی WebDAV به این مکان، بارگذاری اکنون یا دانلود اکنون را انتخاب کنید."
+
+msgid "options_webDavSyncTestRebindMissing"
+msgstr "اتصال موفق بود. هیچ فایل همگام‌سازی ریموتی پیدا نشد. برای اعمال همگام‌سازی WebDAV به این مکان، از بارگذاری اکنون استفاده کنید."
+
+msgid "options_webDavSyncTestSuccess"
+msgstr "اتصال موفق بود."
+
+msgid "options_webDavServerUrl"
+msgstr "نشانی سرور"
+
+msgid "options_webDavRemotePath"
+msgstr "مسیر ریموت"
+
+msgid "options_webDavUsername"
+msgstr "نام کاربری"
+
+msgid "options_webDavPassword"
+msgstr "گذرواژه یا توکن برنامه"
+
+msgid "options_webDavPasswordSaved"
+msgstr "گذرواژه ذخیره‌شده دوباره استفاده خواهد شد"
+
+msgid "options_webDavInterval"
+msgstr "فاصله همگام‌سازی"
+
+msgid "options_webDavInterval1"
+msgstr "۱ دقیقه"
+
+msgid "options_webDavInterval5"
+msgstr "۵ دقیقه"
+
+msgid "options_webDavInterval15"
+msgstr "۱۵ دقیقه"
+
+msgid "options_webDavInterval30"
+msgstr "۳۰ دقیقه"
+
+msgid "options_webDavInterval60"
+msgstr "۶۰ دقیقه"
+
+msgid "options_webDavIntervalManual"
+msgstr "فقط دستی"
+
+msgid "options_webDavTestSave"
+msgstr "تست و ذخیره"
+
+msgid "options_webDavUploadEnable"
+msgstr "بارگذاری و فعال‌سازی"
+
+msgid "options_webDavDownloadEnable"
+msgstr "دانلود و فعال‌سازی"
+
+msgid "options_webDavUploadNow"
+msgstr "بارگذاری اکنون"
+
+msgid "options_webDavUploadNowConfirm"
+msgstr "تنظیمات محلی اکنون در WebDAV بارگذاری شود؟ این کار پیکربندی همگام‌سازی ریموت را بازنویسی می‌کند."
+
+msgid "options_webDavUploadNowSuccess"
+msgstr "بارگذاری کامل شد."
+
+msgid "options_webDavUploadNowTitle"
+msgstr "بارگذاری اکنون"
+
+msgid "options_webDavDownloadNow"
+msgstr "دانلود اکنون"
+
+msgid "options_webDavDownloadNowConfirm"
+msgstr "تنظیمات WebDAV ریموت اکنون دانلود شود؟ این کار تنظیمات محلی شما را بازنویسی می‌کند."
+
+msgid "options_webDavDownloadNowTitle"
+msgstr "دانلود اکنون"
+
+msgid "options_webDavDisable"
+msgstr "غیرفعال کردن همگام‌سازی WebDAV"
 
 msgid "options_syncEnableForce"
 msgstr "دانلود از همگام سازی"
@@ -1271,9 +1394,6 @@ msgstr ""
 "آیا از ریست کردن تنظیمات اطمینان دارید ؟ تمامی پروفایل ها و تنظیمات از بین "
 "خواهند رفت !"
 
-msgid "options_formInvalid"
-msgstr "لطفا خطاهای موجود در صفحه را تصحیح کنید."
-
 msgid "options_profileNotFound"
 msgstr "پروفایل $PROFILE$ وجود ندارد ! تنظیمات ممکن است خراب شده باشند ."
 
@@ -1423,29 +1543,8 @@ msgstr "افزودن شرط"
 msgid "popup_showOptions"
 msgstr "گزینه‌ها"
 
-msgid "popup_reportIssues"
-msgstr "گزارش مشکلات"
-
 msgid "popup_errorLog"
 msgstr "ذخیره لاگ خطا"
-
-msgid "popup_requestErrorWarning"
-msgstr "برخی منابع بارگیری نشدند."
-
-msgid "popup_requestErrorWarningHelp"
-msgstr ""
-"SwitchyAgain تنها گزارش دهنده این خطاها میباشد ، نه ایجاد کننده ی آن ها ."
-
-msgid "popup_requestErrorAddCondition"
-msgstr "دامنه‌های زیر را بررسی کنید و در صورت نیاز قوانین پروکسی اضافه کنید."
-
-msgid "popup_requestErrorCannotAddCondition"
-msgstr ""
-"شما در صورتی میتوانید شرط متغییر ( سوییچ) برای آن ها تعیین کنید که از "
-"پروفایل متغییر استفاده کرده باشید ."
-
-msgid "popup_configureMonitorWebRequests"
-msgstr "تنظیم مانیتور شبکه"
 
 msgid "options_resultProfileForSelectedDomains"
 msgstr "از این پروفایل برای تمامی دامنه های منتخب استفاده کن"
@@ -1521,9 +1620,6 @@ msgid "about_experimental_warning_moz"
 msgstr ""
 "پشتیبانی از فایرفاکس کاملا آزمایشی میباشد! در صورت مواجه با خطا، لطفا از "
 "طریق دکمه ی زیر ما را در جریان بگذارید."
-
-msgid "options_tab_routeTrace"
-msgstr "ردیابی مسیر"
 
 msgid "options_profileDownloadStatusDownloading"
 msgstr "در حال بارگیری..."

@@ -18,6 +18,7 @@ msgid "appNameShort"
 msgstr "SwitchyAgain"
 
 #, fuzzy
+
 msgid "manifest_app_name"
 msgstr "Proxy SwitchyAgain"
 
@@ -26,9 +27,6 @@ msgstr "Behandle og bytt mellom flerfoldige mellomtjenere raskt og enkelt i mode
 
 msgid "manifest_icon_default_title"
 msgstr "Laster inn…"
-
-msgid "upgrade_profile_auto"
-msgstr "Automatisk bytte"
 
 msgid "profile_direct"
 msgstr "[Direkte]"
@@ -78,6 +76,7 @@ msgid "condition_UrlRegexCondition"
 msgstr "Regulært uttrykk for URL"
 
 #, fuzzy
+
 msgid "condition_help_UrlRegexCondition"
 msgstr ""
 "Samsvarer med URL-er i kraft av ekstremt mektige <a "
@@ -171,9 +170,6 @@ msgstr "Lukk"
 
 msgid "dialog_save"
 msgstr "Lagre endringer"
-
-msgid "dialog_ok"
-msgstr "OK"
 
 msgid "dialog_cancel"
 msgstr "Avbryt"
@@ -285,9 +281,6 @@ msgstr "Vis «Legg til midlertidig regel» i oppsprettsmenyen."
 
 msgid "options_showCurrentProfileInGeneral"
 msgstr "Vis Gjeldende profil på siden Generelt."
-
-msgid "options_showRouteTrace"
-msgstr "Vis Rutesporing i sidepanelet for innstillinger."
 
 msgid "options_addConditionsToBottom"
 msgstr "Put new conditions added using the popup menu to the bottom of the list."
@@ -494,6 +487,7 @@ msgstr ""
 "nettlesere."
 
 #, fuzzy
+
 msgid "options_exportProfileHelp"
 msgstr ""
 "For å eksportere en profil, bruk handlingsfeltet øverst til høyre på "
@@ -530,11 +524,143 @@ msgstr "URL til valg-fil (f.eks. 'http://eksempel.no/switchy.bak')"
 msgid "options_restoreOnlineSubmit"
 msgstr "Gjenopprett"
 
-msgid "options_group_syncing"
-msgstr "Synkroniserer (eksperimentelt)"
+msgid "options_group_sync"
+msgstr "Synkronisering"
 
-msgid "options_syncEnable"
-msgstr "Skru på synkronisering"
+msgid "options_syncProviderHelp"
+msgstr "Velg nettlesersynkronisering eller WebDAV-synkronisering. Bare én synkroniseringsmetode kan være aktiv om gangen."
+
+msgid "options_group_browserSync"
+msgstr "Nettlesersynkronisering"
+
+msgid "options_browserSyncBlockedByWebDav"
+msgstr "WebDAV-synkronisering er aktivert. Slå av WebDAV-synkronisering før du aktiverer nettlesersynkronisering."
+
+msgid "options_browserSyncEnable"
+msgstr "Aktiver nettlesersynkronisering"
+
+msgid "options_group_webDavSync"
+msgstr "WebDAV-synkronisering"
+
+msgid "options_webDavSyncBlockedByBrowser"
+msgstr "Nettlesersynkronisering er aktivert. Slå av nettlesersynkronisering før du aktiverer WebDAV-synkronisering."
+
+msgid "options_webDavSyncEnable"
+msgstr "Aktiver WebDAV-synkronisering"
+
+msgid "options_webDavSyncEnabled"
+msgstr "WebDAV-synkronisering er aktivert."
+
+msgid "options_webDavSyncNeedsDirection"
+msgstr "WebDAV-synkronisering venter. Velg Last opp nå eller Last ned nå for å bruke den lagrede WebDAV-plasseringen."
+
+msgid "options_webDavSyncPendingUpload"
+msgstr "Lokale endringer venter på synkronisering."
+
+msgid "options_webDavSyncStatusSuccess"
+msgstr "WebDAV-synkronisering er aktivert. Sist synkronisert:"
+
+msgid "options_webDavSyncStatusRetrying"
+msgstr "WebDAV-synkronisering prøver på nytt. Siste forsøk:"
+
+msgid "options_webDavSyncStatusRetryingNoTime"
+msgstr "WebDAV-synkronisering prøver på nytt."
+
+msgid "options_webDavSyncStatusFailed"
+msgstr "WebDAV-synkronisering mislyktes. Siste feil:"
+
+msgid "options_webDavSyncStatusFailedNoTime"
+msgstr "WebDAV-synkronisering mislyktes."
+
+msgid "options_webDavSyncNextRetry"
+msgstr "Neste automatiske forsøk:"
+
+msgid "options_webDavConfigSaved"
+msgstr "Innstillinger for WebDAV-synkronisering er lagret."
+
+msgid "options_webDavSyncTestEnableExists"
+msgstr "Tilkoblingen var vellykket. En ekstern synkroniseringsfil ble funnet. Velg Last opp og aktiver eller Last ned og aktiver for å aktivere WebDAV-synkronisering."
+
+msgid "options_webDavSyncTestEnableMissing"
+msgstr "Tilkoblingen var vellykket. Ingen ekstern synkroniseringsfil ble funnet. Last opp og aktiver for å aktivere WebDAV-synkronisering."
+
+msgid "options_webDavSyncTestRebindExists"
+msgstr "Tilkoblingen var vellykket. En ekstern synkroniseringsfil ble funnet. Velg Last opp nå eller Last ned nå for å bruke WebDAV-synkronisering på denne plasseringen."
+
+msgid "options_webDavSyncTestRebindMissing"
+msgstr "Tilkoblingen var vellykket. Ingen ekstern synkroniseringsfil ble funnet. Last opp nå for å bruke WebDAV-synkronisering på denne plasseringen."
+
+msgid "options_webDavSyncTestSuccess"
+msgstr "Tilkoblingen var vellykket."
+
+msgid "options_webDavServerUrl"
+msgstr "Server-URL"
+
+msgid "options_webDavRemotePath"
+msgstr "Ekstern sti"
+
+msgid "options_webDavUsername"
+msgstr "Brukernavn"
+
+msgid "options_webDavPassword"
+msgstr "Passord eller app-token"
+
+msgid "options_webDavPasswordSaved"
+msgstr "Lagret passord vil bli brukt igjen"
+
+msgid "options_webDavInterval"
+msgstr "Synkroniseringsintervall"
+
+msgid "options_webDavInterval1"
+msgstr "1 minutt"
+
+msgid "options_webDavInterval5"
+msgstr "5 minutter"
+
+msgid "options_webDavInterval15"
+msgstr "15 minutter"
+
+msgid "options_webDavInterval30"
+msgstr "30 minutter"
+
+msgid "options_webDavInterval60"
+msgstr "60 minutter"
+
+msgid "options_webDavIntervalManual"
+msgstr "Kun manuelt"
+
+msgid "options_webDavTestSave"
+msgstr "Test og lagre"
+
+msgid "options_webDavUploadEnable"
+msgstr "Last opp og aktiver"
+
+msgid "options_webDavDownloadEnable"
+msgstr "Last ned og aktiver"
+
+msgid "options_webDavUploadNow"
+msgstr "Last opp nå"
+
+msgid "options_webDavUploadNowConfirm"
+msgstr "Last opp lokale innstillinger til WebDAV nå? Dette overskriver den eksterne synkroniseringskonfigurasjonen."
+
+msgid "options_webDavUploadNowSuccess"
+msgstr "Opplasting fullført."
+
+msgid "options_webDavUploadNowTitle"
+msgstr "Last opp nå"
+
+msgid "options_webDavDownloadNow"
+msgstr "Last ned nå"
+
+msgid "options_webDavDownloadNowConfirm"
+msgstr "Last ned eksterne WebDAV-innstillinger nå? Dette overskriver dine lokale innstillinger."
+
+msgid "options_webDavDownloadNowTitle"
+msgstr "Last ned nå"
+
+msgid "options_webDavDisable"
+msgstr "Slå av WebDAV-synkronisering"
 
 msgid "options_syncEnableForce"
 msgstr ""
@@ -702,6 +828,7 @@ msgid "options_proxy_authUnsupportedProtocol"
 msgstr "$1-proxyautentisering støttes ikke."
 
 #, fuzzy
+
 msgid "options_proxy_authAllWarningPac"
 msgstr ""
 "Advarsel: Brukernavn/passord kan bli sendt til uventede tjenere fra PAC-"
@@ -720,6 +847,7 @@ msgid "options_scheme_default"
 msgstr "(forvalg)"
 
 #, fuzzy
+
 msgid "options_protocol_direct"
 msgstr "DIREKTE"
 
@@ -1145,9 +1273,6 @@ msgstr ""
 "Lnsker du virkelig å tilbakestille valgene? Alle profiler og innstillinger "
 "vil gå TAPT!"
 
-msgid "options_formInvalid"
-msgstr "Korriger feilene på denne siden."
-
 msgid "options_profileNotFound"
 msgstr "Profilen $PROFILE$ finnes ikke! Valgene kan være skadet."
 
@@ -1257,27 +1382,8 @@ msgstr ""
 msgid "popup_showOptions"
 msgstr "Valg"
 
-msgid "popup_reportIssues"
-msgstr "Rapporter feil"
-
 msgid "popup_errorLog"
 msgstr "Lagre feilrettingslogg"
-
-msgid "popup_requestErrorWarning"
-msgstr "Noen ressurser kunne ikke lastes inn."
-
-msgid "popup_requestErrorWarningHelp"
-msgstr "SwitchyAgain rapporterer bare disse feilene, det er ikke opphavet."
-
-msgid "popup_requestErrorAddCondition"
-msgstr "Se over domenene nedenfor og legg til mellomtjenerregler ved behov."
-
-msgid "popup_requestErrorCannotAddCondition"
-msgstr ""
-
-#, fuzzy
-msgid "popup_configureMonitorWebRequests"
-msgstr "Sett opp nettverksoversikt"
 
 msgid "options_resultProfileForSelectedDomains"
 msgstr "Bruk denne profilen for alle valgte domener"
@@ -1315,6 +1421,7 @@ msgid "browserAction_defaultRuleDetails"
 msgstr "(forvalg)"
 
 #, fuzzy
+
 msgid "browserAction_directResult"
 msgstr "DIREKTE"
 
@@ -1350,9 +1457,6 @@ msgstr "Lisensiert under __GPL_LICENSE__ versjon 3 eller nyere."
 
 msgid "about_experimental_warning_moz"
 msgstr "Mozilla Firefox support is highly experimental! If you encounter issues, please report using the buttons below."
-
-msgid "options_tab_routeTrace"
-msgstr "Rutesporing"
 
 msgid "options_profileDownloadStatusDownloading"
 msgstr "Laster..."
