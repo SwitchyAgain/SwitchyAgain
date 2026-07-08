@@ -4,8 +4,10 @@ SwitchyAgain
 ![Version](https://img.shields.io/github/v/tag/SwitchyAgain/SwitchyAgain?label=Version)
 ![License](https://img.shields.io/badge/License-GPL--3.0%2B-A42E2B)
 ![TypeScript](https://img.shields.io/github/languages/top/SwitchyAgain/SwitchyAgain?label=TypeScript)
-![Chrome Supported](https://img.shields.io/badge/Chrome-Supported-4285F4?logo=googlechrome&logoColor=white)
-[![Firefox Click to Add](https://img.shields.io/badge/Firefox-Click%20to%20Add-FF7139?logo=firefoxbrowser&logoColor=white)](https://addons.mozilla.org/firefox/addon/switchyagain/)
+<br>
+[![Add to Chrome](https://img.shields.io/badge/Add%20to-Chrome-4285F4?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/proxy-switchyagain/hbbkenlefdmcliffbbdengpolpeenlgd)
+[![Add to Edge](https://img.shields.io/badge/Add%20to-Edge-0F766E)](https://microsoftedge.microsoft.com/addons/detail/proxy-switchyagain/gpkccogacfckfelafcjcapmfgjkjalei)
+[![Add to Firefox](https://img.shields.io/badge/Add%20to-Firefox-FF7139?logo=firefoxbrowser&logoColor=white)](https://addons.mozilla.org/firefox/addon/switchyagain/)
 <br>
 ![Languages](https://img.shields.io/badge/Languages-English%20%E4%B8%AD%E6%96%87%20Espa%C3%B1ol%20%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B8%D0%B9%20%C4%8Ce%C5%A1tina%20%D9%81%D8%A7%D8%B1%D8%B3%DB%8C-6F42C1)
 
@@ -25,20 +27,24 @@ Changes from SwitchyOmega
 | Project structure | Extension-focused layout | Workspace packages for proxy engine, extension runtime, web UI, and browser extension |
 | Background runtime | Persistent background page model | MV3 background support for Chrome/Edge service workers and Firefox |
 | UI architecture | Original UI stack | React-based UI entry points while keeping the classic workflow |
-| Interface settings | Browser-locale dependent UI | In-app language selection plus light, dark, and system themes |
+| Interface settings | Browser-locale dependent UI | In-app language and theme selection plus configurable sidebar, popup, context menu, and action menu options |
 | Popup experience | Classic profile menu | Extended popup with profile scope controls, route info, and hidden profiles |
+| Profile organization | Flat profile list | Profile groups, hidden profiles, and profile browser |
 | Profile scopes | Global profile switching | Scope-aware profile assignments for tabs, tab groups, containers, and normal/private windows |
 | Context menus | Original context menu implementation | New MV3-compatible context menu implementation with profile switching and scope menus |
-| Diagnostics | Limited routing visibility | Route Trace and popup Route Info for inspecting matched profiles and request results |
+| Diagnostics | Limited routing visibility | Request Lens diagnostics for inspecting route traces, matched profiles, request results, and ignored requests |
+| Options sync | Browser Sync | Browser Sync + WebDAV Sync |
 | Build tooling | Legacy npm, Browserify, and Bower-era extension build tooling | npm workspaces with TypeScript and esbuild-based bundling |
 
 ### Browser Feature Support
 
 | Feature | ![Chrome / Edge](https://img.shields.io/badge/Chrome-Edge-0F766E?labelColor=1A73E8) | ![Firefox](https://img.shields.io/badge/Firefox-FF7139?logo=firefoxbrowser&logoColor=white) |
 | --- | :---: | :---: |
-| Install source | Release archive | [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/switchyagain/) |
+| Install source | [Chrome Web Store](https://chromewebstore.google.com/detail/proxy-switchyagain/hbbkenlefdmcliffbbdengpolpeenlgd)<br>[Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/proxy-switchyagain/gpkccogacfckfelafcjcapmfgjkjalei) | [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/switchyagain/) |
 | Popup profile switching | ![Supported](https://img.shields.io/badge/Supported-2EA44F) | ![Supported](https://img.shields.io/badge/Supported-2EA44F) |
 | Context menu profile switching | ![Supported](https://img.shields.io/badge/Supported-2EA44F) | ![Supported](https://img.shields.io/badge/Supported-2EA44F) |
+| SOCKS5 username/password | ![Not available](https://img.shields.io/badge/Not%20available-8C959F) | ![Supported](https://img.shields.io/badge/Supported-2EA44F) |
+| SOCKS5 local DNS | ![Not available](https://img.shields.io/badge/Not%20available-8C959F) | ![Supported](https://img.shields.io/badge/Supported-2EA44F) |
 | Tab profile scope | ![Not available](https://img.shields.io/badge/Not%20available-8C959F) | ![Supported](https://img.shields.io/badge/Supported-2EA44F) |
 | Tab group profile scope | ![Not available](https://img.shields.io/badge/Not%20available-8C959F) | ![Supported](https://img.shields.io/badge/Supported-2EA44F) |
 | Container profile scope | ![Not available](https://img.shields.io/badge/Not%20available-8C959F) | ![Supported](https://img.shields.io/badge/Supported-2EA44F) |
