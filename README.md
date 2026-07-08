@@ -4,12 +4,11 @@ SwitchyAgain
 ![Version](https://img.shields.io/github/v/tag/SwitchyAgain/SwitchyAgain?label=Version)
 ![License](https://img.shields.io/badge/License-GPL--3.0%2B-A42E2B)
 ![TypeScript](https://img.shields.io/github/languages/top/SwitchyAgain/SwitchyAgain?label=TypeScript)
-<br>
-[![Add to Chrome](https://img.shields.io/badge/Add%20to-Chrome-4285F4?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/proxy-switchyagain/hbbkenlefdmcliffbbdengpolpeenlgd)
-[![Add to Edge](https://img.shields.io/badge/Add%20to-Edge-0F766E)](https://microsoftedge.microsoft.com/addons/detail/proxy-switchyagain/gpkccogacfckfelafcjcapmfgjkjalei)
-[![Add to Firefox](https://img.shields.io/badge/Add%20to-Firefox-FF7139?logo=firefoxbrowser&logoColor=white)](https://addons.mozilla.org/firefox/addon/switchyagain/)
-<br>
 ![Languages](https://img.shields.io/badge/Languages-English%20%E4%B8%AD%E6%96%87%20Espa%C3%B1ol%20%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B8%D0%B9%20%C4%8Ce%C5%A1tina%20%D9%81%D8%A7%D8%B1%D8%B3%DB%8C-6F42C1)
+
+<a href="https://chromewebstore.google.com/detail/proxy-switchyagain/hbbkenlefdmcliffbbdengpolpeenlgd"><img alt="Available in the Chrome Web Store" src="https://developer.chrome.com/static/docs/webstore/branding/image/UV4C4ybeBTsZt43U4xis.png"></a><br>
+<a href="https://microsoftedge.microsoft.com/addons/detail/proxy-switchyagain/gpkccogacfckfelafcjcapmfgjkjalei"><img alt="Get it from Microsoft Edge" src="https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/add-ons-badge-images/microsoft-edge-add-ons-badge.png"></a><br>
+<a href="https://addons.mozilla.org/firefox/addon/switchyagain/"><img alt="Get the add-on for Firefox" src="https://extensionworkshop.com/assets/img/documentation/publish/get-the-addon-178x60px.dad84b42.png"></a>
 
 SwitchyAgain is a Manifest V3 continuation of [SwitchyOmega](https://github.com/FelisCatus/SwitchyOmega) that keeps the
 classic proxy profile switching workflow available on modern browsers, including Chrome, Edge, and Firefox.
@@ -27,7 +26,7 @@ Changes from SwitchyOmega
 | Project structure | Extension-focused layout | Workspace packages for proxy engine, extension runtime, web UI, and browser extension |
 | Background runtime | Persistent background page model | MV3 background support for Chrome/Edge service workers and Firefox |
 | UI architecture | Original UI stack | React-based UI entry points while keeping the classic workflow |
-| Interface settings | Browser-locale dependent UI | In-app language and theme selection plus configurable sidebar, popup, context menu, and action menu options |
+| Interface settings | Browser-locale dependent UI | In-app language, light/dark theme, and configurable sidebar, popup, and menu options |
 | Popup experience | Classic profile menu | Extended popup with profile scope controls, route info, and hidden profiles |
 | Profile organization | Flat profile list | Profile groups, hidden profiles, and profile browser |
 | Profile scopes | Global profile switching | Scope-aware profile assignments for tabs, tab groups, containers, and normal/private windows |
