@@ -1,5 +1,29 @@
 # Changelog
 
+## v1.3.0
+
+Profile organization, Request Lens diagnostics, and WebDAV sync updates.
+
+- Added profile groups, hidden profile sidebar sections, profile browser menus,
+  profile action menus, and custom group colors for organizing larger profile
+  sets.
+- Added WebDAV Sync for synchronizing settings and profiles through a user
+  controlled WebDAV server, including connection testing, manual upload and
+  download actions, retry handling, and sync status feedback.
+- Expanded Request Lens diagnostics with route trace controls, ignored request
+  handling, redirected-request cleanup, and improved popup route info actions.
+- Improved fixed proxy profile editing with WebSocket proxy overrides, bypass
+  list groups, SOCKS5 local DNS visibility controls, and clearer Chromium HTTPS
+  URL limitation messaging.
+- Added sidebar, profile page, popup, context menu, and action menu visibility
+  options, and reorganized Interface settings for the expanded option set.
+- Improved options-page navigation and handoff behavior across browser window
+  types, popup dropdown placement, profile selector behavior, and settings
+  modal positioning.
+- Cleaned up legacy Omega naming in runtime assets, narrowed extension network
+  request permissions, refreshed README browser store links, and updated
+  localized web UI messages.
+
 ## v1.2.2
 
 Profile scope menus, web UI hardening, and release packaging updates.
