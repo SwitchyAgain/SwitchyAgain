@@ -4,14 +4,21 @@ SwitchyAgain
 ![Version](https://img.shields.io/github/v/tag/SwitchyAgain/SwitchyAgain?label=Version)
 ![License](https://img.shields.io/badge/License-GPL--3.0%2B-A42E2B)
 ![TypeScript](https://img.shields.io/github/languages/top/SwitchyAgain/SwitchyAgain?label=TypeScript)
+![Chrome Supported](https://img.shields.io/badge/Chrome-Supported-4285F4?logo=googlechrome&logoColor=white)
+![Edge Supported](https://img.shields.io/badge/Edge-Supported-0F766E)
+![Firefox Supported](https://img.shields.io/badge/Firefox-Supported-FF7139?logo=firefoxbrowser&logoColor=white)
+<br>
 ![Languages](https://img.shields.io/badge/Languages-English%20%E4%B8%AD%E6%96%87%20Espa%C3%B1ol%20%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B8%D0%B9%20%C4%8Ce%C5%A1tina%20%D9%81%D8%A7%D8%B1%D8%B3%DB%8C-6F42C1)
-
-<a href="https://chromewebstore.google.com/detail/proxy-switchyagain/hbbkenlefdmcliffbbdengpolpeenlgd"><img alt="Available in the Chrome Web Store" src="https://developer.chrome.com/static/docs/webstore/branding/image/UV4C4ybeBTsZt43U4xis.png"></a><br>
-<a href="https://microsoftedge.microsoft.com/addons/detail/proxy-switchyagain/gpkccogacfckfelafcjcapmfgjkjalei"><img alt="Get it from Microsoft Edge" src="https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/add-ons-badge-images/microsoft-edge-add-ons-badge.png"></a><br>
-<a href="https://addons.mozilla.org/firefox/addon/switchyagain/"><img alt="Get the add-on for Firefox" src="https://extensionworkshop.com/assets/img/documentation/publish/get-the-addon-178x60px.dad84b42.png"></a>
 
 SwitchyAgain is a Manifest V3 continuation of [SwitchyOmega](https://github.com/FelisCatus/SwitchyOmega) that keeps the
 classic proxy profile switching workflow available on modern browsers, including Chrome, Edge, and Firefox.
+
+Install
+-------
+
+<a href="https://chromewebstore.google.com/detail/proxy-switchyagain/hbbkenlefdmcliffbbdengpolpeenlgd"><img alt="Available in the Chrome Web Store" src="https://developer.chrome.com/static/docs/webstore/branding/image/UV4C4ybeBTsZt43U4xis.png"></a>
+<a href="https://microsoftedge.microsoft.com/addons/detail/proxy-switchyagain/gpkccogacfckfelafcjcapmfgjkjalei"><img alt="Get it from Microsoft Edge" src="https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/add-ons-badge-images/microsoft-edge-add-ons-badge.png"></a>
+<a href="https://addons.mozilla.org/firefox/addon/switchyagain/"><img alt="Get the add-on for Firefox" src="https://extensionworkshop.com/assets/img/documentation/publish/get-the-addon-178x60px.dad84b42.png"></a>
 
 Changes from SwitchyOmega
 -------------------------
