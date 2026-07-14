@@ -77,11 +77,7 @@ describe('ui settings component', () => {
       })
     );
 
-    fireEvent.click(
-      screen.getByLabelText(
-        'Show Profile Options on profile pages for hiding profiles from the popup menu, context menu, and options sidebar.'
-      )
-    );
+    fireEvent.click(screen.getByRole('checkbox', {name: /^Show Profile Options/}));
     expect(onOptionsChange).toHaveBeenLastCalledWith(
       expect.objectContaining({
         '-showProfileOptions': true
@@ -110,9 +106,9 @@ describe('ui settings component', () => {
       })
     );
 
-    expect((screen.getByLabelText('Show action menus for profile section headers.') as HTMLInputElement).checked).toBe(true);
-    expect((screen.getByLabelText('Show action menus for sidebar profiles.') as HTMLInputElement).checked).toBe(false);
-    expect((screen.getByLabelText('Show action menus for profile browser profiles.') as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByLabelText('Show action menus on profile section headers.') as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByLabelText('Show action menus on sidebar profiles.') as HTMLInputElement).checked).toBe(false);
+    expect((screen.getByLabelText('Show action menus on profile browser profiles.') as HTMLInputElement).checked).toBe(true);
     expect((screen.getByLabelText('Show profile color in sidebar profile action menus.') as HTMLInputElement).checked).toBe(false);
     expect((screen.getByLabelText('Show profile color in profile browser action menus.') as HTMLInputElement).checked).toBe(false);
     expect((screen.getByLabelText('Show export actions in sidebar profile action menus.') as HTMLInputElement).checked).toBe(true);
@@ -178,7 +174,7 @@ describe('ui settings component', () => {
       })
     );
 
-    expect((screen.getByLabelText('Show SOCKS5 local DNS option. Firefox only.') as HTMLInputElement).disabled).toBe(true);
+    expect((screen.getByRole('checkbox', {name: /^Show SOCKS5 local DNS option/}) as HTMLInputElement).disabled).toBe(true);
     expect((screen.getByLabelText('Show HTTP/HTTPS proxy overrides in proxy profiles.') as HTMLInputElement).checked).toBe(true);
     expect((screen.getByLabelText('Show WebSocket (ws/wss) proxy overrides in proxy profiles.') as HTMLInputElement).checked).toBe(false);
     expect((screen.getByLabelText('Show bypass list groups in proxy profiles.') as HTMLInputElement).checked).toBe(false);
@@ -305,7 +301,7 @@ describe('ui settings component', () => {
 
     const tabProfiles = screen.getByLabelText('Tab profiles') as HTMLInputElement;
     const windowProfiles = screen.getByLabelText('Normal/private defaults') as HTMLInputElement;
-    const socks5LocalDns = screen.getByLabelText('Show SOCKS5 local DNS option. Firefox only.') as HTMLInputElement;
+    const socks5LocalDns = screen.getByRole('checkbox', {name: /^Show SOCKS5 local DNS option/}) as HTMLInputElement;
     const websocketProxyRows = screen.getByLabelText('Show WebSocket (ws/wss) proxy overrides in proxy profiles.') as HTMLInputElement;
     const bypassListGroups = screen.getByLabelText('Show bypass list groups in proxy profiles.') as HTMLInputElement;
     expect(tabProfiles.disabled).toBe(false);
