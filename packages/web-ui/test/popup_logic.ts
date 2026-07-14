@@ -4,6 +4,7 @@ import {
   conditionTypes,
   defaultConditionType,
   finalRouteKey,
+  groupedScopeAssignableProfiles,
   hiddenMenuProfiles,
   iconForProfileType,
   ignoredRouteInfoRules,
@@ -22,7 +23,6 @@ import {
   requestHostname,
   requestIsIgnored,
   suggestCondition,
-  splitPopupHiddenProfiles,
   visibleMenuProfiles,
   visibleResultProfiles,
   visibleScopeAssignableProfiles
@@ -108,18 +108,36 @@ describe('popup logic', () => {
       validResultProfiles: ['proxy-z']
     };
     const scopeProfiles = visibleScopeAssignableProfiles(state);
+    const scopeProfileGroups = groupedScopeAssignableProfiles(scopeProfiles, state);
+    const activeScopeProfileGroups = groupedScopeAssignableProfiles(scopeProfiles, state, 'hidden-scope');
 
     expect(visibleResultProfiles(state).map((item) => item.name)).toEqual(['proxy-z']);
     expect(scopeProfiles.map((item) => item.name)).toEqual(['hidden-scope', 'proxy-z', 'direct', 'system']);
-    expect(splitPopupHiddenProfiles(scopeProfiles).visible.map((item) => item.name)).toEqual(['proxy-z', 'direct', 'system']);
-    expect(splitPopupHiddenProfiles(scopeProfiles).hidden.map((item) => item.name)).toEqual(['hidden-scope']);
-    expect(splitPopupHiddenProfiles(scopeProfiles, 'hidden-scope').visible.map((item) => item.name)).toEqual([
-      'hidden-scope',
-      'proxy-z',
-      'direct',
-      'system'
-    ]);
-    expect(splitPopupHiddenProfiles(scopeProfiles, 'hidden-scope').hidden).toEqual([]);
+    expect(scopeProfileGroups.visible.map((item) => item.name)).toEqual(['proxy-z', 'direct', 'system']);
+    expect(scopeProfileGroups.hidden.map((item) => item.name)).toEqual(['hidden-scope']);
+    expect(activeScopeProfileGroups.visible.map((item) => item.name)).toEqual(['hidden-scope', 'proxy-z', 'direct', 'system']);
+    expect(activeScopeProfileGroups.hidden).toEqual([]);
+  });
+
+  it('groups only scope assignable profiles for popup display', () => {
+    const availableProfiles: ProfileMap = {
+      '+grouped': profile('grouped', 'FixedProfile', {profileGroupEnabled: true, profileGroupId: 'work'}),
+      '+hidden': profile('hidden', 'FixedProfile', {hiddenInPopup: true}),
+      '+not-assignable': profile('not-assignable', 'FixedProfile', {profileGroupEnabled: true, profileGroupId: 'work'}),
+      '+plain': profile('plain')
+    };
+    const state: PopupState = {
+      availableProfiles,
+      profileGroups: [{id: 'work', name: 'Work'}],
+      profileGroupsEnabled: true,
+      scopeAssignableProfiles: ['plain', 'grouped', 'hidden']
+    };
+
+    const groups = groupedScopeAssignableProfiles(visibleScopeAssignableProfiles(state), state);
+
+    expect(groups.visible.map((item) => item.name)).toEqual(['plain']);
+    expect(groups.groups.map((group) => [group.name, group.profiles.map((item) => item.name)])).toEqual([['Work', ['grouped']]]);
+    expect(groups.hidden.map((item) => item.name)).toEqual(['hidden']);
   });
 
   it('resolves profiles, virtual targets, and titles', () => {

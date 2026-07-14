@@ -24,6 +24,7 @@ import {
   conditionTypes,
   defaultConditionType,
   groupedMenuProfiles,
+  groupedScopeAssignableProfiles,
   iconForProfileType,
   ignoredRouteInfoRules,
   isPopupConditionType,
@@ -37,7 +38,6 @@ import {
   profileTitle,
   requestDomains,
   suggestCondition,
-  splitPopupHiddenProfiles,
   visibleResultProfiles,
   visibleScopeAssignableProfiles
 } from './popup_logic';
@@ -1279,13 +1279,18 @@ function ProfileScopeMenuItem({
 }) {
   const dropdown = useFloatingDropdown<HTMLLIElement>(open);
   const [hiddenOpen, setHiddenOpen] = useState(false);
+  const [profileGroupOpen, setProfileGroupOpen] = useState('');
   const activeProfile = profileFromMap(state.availableProfiles, activeProfileName);
-  const profileGroups = useMemo(() => splitPopupHiddenProfiles(profiles, activeProfileName), [activeProfileName, profiles]);
+  const profileGroups = useMemo(
+    () => groupedScopeAssignableProfiles(profiles, state, activeProfileName),
+    [activeProfileName, profiles, state]
+  );
   const text = activeProfile ? `${label}: ${displayProfileName(activeProfile)}` : label;
 
   useEffect(() => {
     if (!open) {
       setHiddenOpen(false);
+      setProfileGroupOpen('');
     }
   }, [open]);
 
@@ -1343,6 +1348,17 @@ function ProfileScopeMenuItem({
             </a>
           </li>
           {profileGroups.visible.map(profileItem)}
+          {profileGroups.groups.map((group) => (
+            <ProfileScopeGroupMenuItem
+              key={group.id}
+              activeProfileName={activeProfileName}
+              group={group}
+              open={profileGroupOpen === group.id}
+              state={state}
+              onProfileChange={onProfileChange}
+              onToggle={() => setProfileGroupOpen(profileGroupOpen === group.id ? '' : group.id)}
+            />
+          ))}
           {profileGroups.hidden.length > 0 && (
             <li className={`sa-popup-nav-item sa-popup-hidden-scope-profiles ${hiddenOpen ? 'sa-popup-open' : ''}`}>
               <a
@@ -1364,6 +1380,66 @@ function ProfileScopeMenuItem({
               {hiddenOpen && <ul className="sa-popup-scope-hidden-list">{profileGroups.hidden.map(profileItem)}</ul>}
             </li>
           )}
+        </ul>
+      )}
+    </li>
+  );
+}
+
+function ProfileScopeGroupMenuItem({
+  activeProfileName,
+  group,
+  onProfileChange,
+  onToggle,
+  open,
+  state
+}: {
+  activeProfileName?: string;
+  group: ProfileDisplayGroup<Profile>;
+  onProfileChange: (profileName?: string) => void;
+  onToggle: () => void;
+  open: boolean;
+  state: PopupState;
+}) {
+  const dropdown = useFloatingDropdown<HTMLLIElement>(open);
+  return (
+    <li
+      ref={dropdown.anchorRef}
+      className={`sa-popup-nav-item sa-popup-nav-profile-group sa-popup-has-dropdown ${open ? 'sa-popup-open' : ''}`}
+      data-profile-group={group.id}
+    >
+      <a
+        aria-expanded={open}
+        href="#"
+        role="button"
+        onClick={(event) => {
+          event.preventDefault();
+          onToggle();
+        }}
+      >
+        <ProfileGroupIcon group={group} />
+        <span>
+          <span>{group.name}</span>
+          <span className="sa-popup-caret" />
+        </span>
+      </a>
+      {open && (
+        <ul ref={dropdown.dropdownRef} className="sa-popup-dropdown sa-popup-floating-dropdown" style={dropdown.dropdownStyle}>
+          {group.profiles.map((profile) => (
+            <li className={`sa-popup-nav-item ${profile.name === activeProfileName ? 'sa-popup-active' : ''}`} key={profile.name}>
+              <a
+                href="#"
+                role="button"
+                title={profileTitle(profile, state.availableProfiles)}
+                onClick={(event) => {
+                  event.preventDefault();
+                  onProfileChange(profile.name);
+                }}
+              >
+                <ProfileInline legacySpacing profile={profile} availableProfiles={state.availableProfiles} />
+              </a>
+            </li>
+          ))}
         </ul>
       )}
     </li>

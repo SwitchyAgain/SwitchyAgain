@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import React from 'react';
-import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import {PopupApp} from '../src/react/popup_app';
 import type {PageInfo, PopupBridgeClient, PopupState} from '../src/react/popup_bridge_client';
 
@@ -249,5 +249,51 @@ describe('popup app', () => {
     expect(await screen.findByText('Add Condition')).toBeTruthy();
     expect(screen.getByText('example.com')).toBeTruthy();
     expect(screen.queryByText('Route Info')).toBeNull();
+  });
+
+  it('keeps profile groups in scope menus', async () => {
+    window.location.hash = '';
+    currentPageInfo = {
+      profileScope: {
+        enabled: {tab: true},
+        tabId: 1
+      }
+    };
+    testGlobal().PopupBridge = {
+      ...testGlobal().PopupBridge,
+      getState(_keys, callback) {
+        callback(undefined, {
+          ...popupState(),
+          availableProfiles: {
+            ...popupState().availableProfiles,
+            '+grouped': {
+              name: 'grouped',
+              profileGroupEnabled: true,
+              profileGroupId: 'work',
+              profileType: 'FixedProfile'
+            },
+            '+plain': {
+              name: 'plain',
+              profileType: 'FixedProfile'
+            }
+          },
+          profileGroups: [{id: 'work', name: 'Work'}],
+          profileGroupsEnabled: true,
+          scopeAssignableProfiles: ['plain', 'grouped']
+        });
+      }
+    };
+
+    const {container} = render(<PopupApp />);
+    await screen.findByText('This Tab');
+    const scopeMenu = container.querySelector<HTMLElement>('[data-profile-scope="tab"]');
+
+    expect(scopeMenu).toBeTruthy();
+    fireEvent.click(within(scopeMenu!).getByRole('button', {name: 'This Tab'}));
+    expect(within(scopeMenu!).getByText('plain')).toBeTruthy();
+    expect(within(scopeMenu!).queryByText('grouped')).toBeNull();
+
+    fireEvent.click(within(scopeMenu!).getByRole('button', {name: 'Work'}));
+    expect(within(scopeMenu!).getByText('grouped')).toBeTruthy();
   });
 });

@@ -133,17 +133,14 @@ export function visibleScopeAssignableProfiles(state?: PopupState) {
     .sort(compareProfile);
 }
 
-export function splitPopupHiddenProfiles(profiles: Profile[], activeProfileName?: string) {
-  const visible: Profile[] = [];
-  const hidden: Profile[] = [];
-  for (const profile of profiles) {
-    if (profile.hiddenInPopup === true && profile.name !== activeProfileName) {
-      hidden.push(profile);
-    } else {
-      visible.push(profile);
-    }
-  }
-  return {hidden, visible};
+export function groupedScopeAssignableProfiles(profiles: Profile[], state?: PopupState, activeProfileName?: string) {
+  return splitProfilesByGroup(
+    profiles,
+    profileGroupsForOptions({'-profileGroups': state?.profileGroups || []}),
+    state?.profileGroupsEnabled === true,
+    'popup',
+    activeProfileName
+  );
 }
 
 export function requestDomains(info?: PageInfo) {
