@@ -4,7 +4,6 @@ import type {Options} from './options_client_types';
 export type UiLocale = 'en' | 'zh-Hans' | 'zh-Hant' | 'es' | 'ru' | 'cs' | 'fa';
 
 export type UiLocaleOption = {
-  dir?: 'rtl';
   extensionLocale: string;
   label: string;
   value: UiLocale;
@@ -29,7 +28,7 @@ export const UI_LOCALES: UiLocaleOption[] = [
   {value: 'es', extensionLocale: 'es', label: 'Español'},
   {value: 'ru', extensionLocale: 'ru', label: 'Русский'},
   {value: 'cs', extensionLocale: 'cs', label: 'Čeština'},
-  {value: 'fa', extensionLocale: 'fa', label: 'فارسی', dir: 'rtl'}
+  {value: 'fa', extensionLocale: 'fa', label: 'فارسی'}
 ];
 
 const UI_LOCALE_BY_VALUE = new Map(UI_LOCALES.map((locale) => [locale.value, locale]));
@@ -151,8 +150,7 @@ async function fetchLocaleCatalog(locale: UiLocale) {
 }
 
 function applyDocumentLocale(locale: UiLocale) {
-  const option = UI_LOCALE_BY_VALUE.get(locale);
-  applyRootLocale(locale, option?.dir || 'ltr');
+  applyRootLocale(locale);
 }
 
 export async function setUiLocale(locale: unknown) {

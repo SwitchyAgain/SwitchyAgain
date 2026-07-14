@@ -61,11 +61,11 @@ function installBackgroundResponses(responses: RuntimeResponse[]) {
   };
 }
 
-function expectAppliedUi(theme: string, effectiveTheme: string, locale: string, dir: string) {
+function expectAppliedUi(theme: string, effectiveTheme: string, locale: string) {
   expect(document.documentElement.dataset.uiTheme).toBe(theme);
   expect(document.documentElement.dataset.effectiveTheme).toBe(effectiveTheme);
   expect(document.documentElement.lang).toBe(locale);
-  expect(document.documentElement.dir).toBe(dir);
+  expect(document.documentElement.hasAttribute('dir')).toBe(false);
 }
 
 beforeEach(() => {
@@ -73,7 +73,7 @@ beforeEach(() => {
   delete document.documentElement.dataset.uiTheme;
   delete document.documentElement.dataset.effectiveTheme;
   document.documentElement.lang = '';
-  document.documentElement.dir = '';
+  document.documentElement.dir = 'rtl';
   document.documentElement.style.colorScheme = '';
 });
 
@@ -94,7 +94,7 @@ describe('options API client', () => {
         method: 'getAll'
       }
     ]);
-    expectAppliedUi('dark', 'dark', 'fa', 'rtl');
+    expectAppliedUi('dark', 'dark', 'fa');
   });
 
   it('patches options and applies the returned UI settings', async () => {
@@ -116,7 +116,7 @@ describe('options API client', () => {
         method: 'patch'
       }
     ]);
-    expectAppliedUi('dark', 'dark', 'en', 'ltr');
+    expectAppliedUi('dark', 'dark', 'en');
   });
 
   it('patches options and reloads options afterwards', async () => {
@@ -144,7 +144,7 @@ describe('options API client', () => {
         method: 'getAll'
       }
     ]);
-    expectAppliedUi('light', 'light', 'en', 'ltr');
+    expectAppliedUi('light', 'light', 'en');
   });
 
   it('resets options with optional input and applies the returned UI settings', async () => {
@@ -163,7 +163,7 @@ describe('options API client', () => {
         method: 'reset'
       }
     ]);
-    expectAppliedUi('light', 'light', 'zh-Hans', 'ltr');
+    expectAppliedUi('light', 'light', 'zh-Hans');
   });
 
   it('applies a profile with active-page refresh enabled', async () => {
@@ -272,7 +272,7 @@ describe('options API client', () => {
         method: 'renameProfile'
       }
     ]);
-    expectAppliedUi('dark', 'dark', 'fa', 'rtl');
+    expectAppliedUi('dark', 'dark', 'fa');
   });
 
   it('replaces profile references and applies the returned options', async () => {
@@ -291,7 +291,7 @@ describe('options API client', () => {
         method: 'replaceRef'
       }
     ]);
-    expectAppliedUi('light', 'light', 'zh-Hans', 'ltr');
+    expectAppliedUi('light', 'light', 'zh-Hans');
   });
 
   it('decodes profile update results and reloads options afterwards', async () => {
@@ -339,7 +339,7 @@ describe('options API client', () => {
     expect(result.results.stable).toEqual({
       ok: true
     });
-    expectAppliedUi('dark', 'dark', 'en', 'ltr');
+    expectAppliedUi('dark', 'dark', 'en');
   });
 
   it('rejects decoded background errors without applying options UI', async () => {

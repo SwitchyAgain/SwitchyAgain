@@ -183,9 +183,9 @@ export function setJsonLocalStorage<T>(key: string, value: T) {
   globalThis.localStorage.setItem(key, JSON.stringify(value));
 }
 
-export function applyRootLocale(locale: string, dir: string) {
+export function applyRootLocale(locale: string) {
   globalThis.document.documentElement.lang = locale;
-  globalThis.document.documentElement.dir = dir;
+  globalThis.document.documentElement.removeAttribute('dir');
 }
 
 export function shouldAutoMountScript(scriptName: string) {
