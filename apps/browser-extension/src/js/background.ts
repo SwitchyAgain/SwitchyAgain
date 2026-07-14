@@ -442,7 +442,7 @@ type BackgroundExtensionRuntime = {
     try {
       if (drawContext == null) {
         if (typeof OffscreenCanvas !== 'undefined') {
-          drawContext = new OffscreenCanvas(38, 38).getContext('2d');
+          drawContext = new OffscreenCanvas(38, 38).getContext('2d', {willReadFrequently: true});
         } else if (typeof document !== 'undefined') {
           let canvas = document.getElementById('canvas-icon') as HTMLCanvasElement | null;
           if (canvas == null) {
@@ -452,7 +452,7 @@ type BackgroundExtensionRuntime = {
               document.body.appendChild(canvas);
             }
           }
-          drawContext = canvas.getContext('2d');
+          drawContext = canvas.getContext('2d', {willReadFrequently: true});
         } else {
           throw new Error('Canvas is unavailable in this background context.');
         }
