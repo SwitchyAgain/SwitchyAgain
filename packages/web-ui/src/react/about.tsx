@@ -6,7 +6,6 @@ import {loadOptions} from './options_api_client';
 
 export type AboutProps = {
   embedded?: boolean;
-  isExperimental?: boolean;
   version?: string;
   onDownloadLog?: () => void;
   onResetOptions?: () => void;
@@ -24,7 +23,7 @@ function messageWithNodes(key: string, fallback: string, nodes: Record<string, R
     .map((part, index) => (nodes[part] ? <React.Fragment key={`${part}-${index}`}>{nodes[part]}</React.Fragment> : part));
 }
 
-export function About({embedded = false, isExperimental = false, version, onDownloadLog, onResetOptions}: AboutProps) {
+export function About({embedded = false, version, onDownloadLog, onResetOptions}: AboutProps) {
   useEffect(() => {
     if (embedded) {
       return;
@@ -36,20 +35,6 @@ export function About({embedded = false, isExperimental = false, version, onDown
   const iconPath = embedded ? 'img/icons/app-icon-32.png' : '../img/icons/app-icon-32.png';
   const content = (
     <>
-      {isExperimental && (
-        <section className="about-experimental">
-          <p className="alert alert-warning">
-            <span className="glyphicon glyphicon-warning-sign" />{' '}
-            <span>
-              {message(
-                'about_experimental_warning_moz',
-                'Mozilla Firefox support is highly experimental! If you encounter issues, please report using the buttons below.'
-              )}
-            </span>
-          </p>
-        </section>
-      )}
-
       <section>
         <div className="media" style={{margin: '1em 0'}}>
           <div className="media-left">

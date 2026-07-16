@@ -21,7 +21,6 @@ export type NewProfileProps = {
   isProfileNameReserved?: (name: string) => boolean;
   onClose?: (profile: NewProfileSpec) => void;
   onDismiss?: () => void;
-  pacProfilesUnsupported?: boolean;
   profileByName?: (name: string) => Profile | null;
 };
 
@@ -293,7 +292,6 @@ export function NewProfileModal({
   isProfileNameReserved,
   onClose,
   onDismiss,
-  pacProfilesUnsupported = false,
   profileByName
 }: NewProfileProps) {
   const [name, setName] = useState('');
@@ -386,28 +384,15 @@ export function NewProfileModal({
         <ProfileTypeOption
           checked={!duplicateSelected && profileType === 'PacProfile'}
           description={message('options_profileDescPacProfile', 'Choosing proxies using an online/local PAC script.')}
-          disabled={pacProfilesUnsupported}
-          extraHelp={
-            !pacProfilesUnsupported
-              ? message(
-                  'options_profileDescMorePacProfile',
-                  "You will only need this if you have a PAC script or a URL to it. Don't try to create one unless you have knowledge about PAC."
-                )
-              : undefined
-          }
+          extraHelp={message(
+            'options_profileDescMorePacProfile',
+            "You will only need this if you have a PAC script or a URL to it. Don't try to create one unless you have knowledge about PAC."
+          )}
           icon={PROFILE_ICONS.PacProfile}
           name="profile-new-type"
           onChange={selectProfileType}
           title={message('options_profileTypePacProfile', 'PAC Profile')}
           value="PacProfile"
-          warning={
-            pacProfilesUnsupported
-              ? message(
-                  'options_pac_profile_unsupported_moz',
-                  'PAC Profiles WILL NOT work in Mozilla Firefox due to technical limitations!'
-                )
-              : undefined
-          }
         />
         <ProfileTypeOption
           checked={!duplicateSelected && profileType === 'VirtualProfile'}

@@ -21,15 +21,6 @@ const DUPLICATABLE_PROFILE_TYPES: Record<string, true> = {
   SwitchProfile: true,
   VirtualProfile: true
 };
-type GlobalWithBrowserProxy = typeof globalThis & {
-  browser?: {
-    proxy?: {
-      register?: unknown;
-      registerProxyScript?: unknown;
-    };
-  };
-};
-
 type AttachedProfileIdentity = {
   attachedKey: string;
   attachedName: string;
@@ -276,11 +267,6 @@ export function proxyAuthSupported(protocol?: string, capabilities: ProxyAuthCap
 
 export function cloneAuth(auth?: ProfileAuth) {
   return auth ? cloneOptions(auth) : undefined;
-}
-
-export function hasProxyScriptApi() {
-  const proxy = (globalThis as GlobalWithBrowserProxy).browser?.proxy;
-  return Boolean(proxy?.register || proxy?.registerProxyScript);
 }
 
 export function isProfileNameHidden(name: string) {

@@ -13,7 +13,6 @@ import {
   exportRuleListOptions,
   firstFixedProfileName,
   getParentName,
-  hasProxyScriptApi,
   isErrorResult,
   isPatchEmpty,
   isProfileNameHidden,
@@ -174,7 +173,7 @@ describe('options logic', () => {
         name: 'UnknownError',
         statusCode: 404
       })
-    ).toBe('Profile download failed.');
+    ).toBe('Error downloading profile data!');
   });
 
   it('creates PAC export blobs and sanitized filenames', async () => {
@@ -588,12 +587,11 @@ describe('options logic', () => {
     ]);
   });
 
-  it('detects proxy authentication and proxy script API support', () => {
+  it('detects proxy authentication support', () => {
     expect(proxyAuthSupported('http')).toBe(true);
     expect(proxyAuthSupported('https')).toBe(true);
     expect(proxyAuthSupported('socks4')).toBe(false);
     expect(proxyAuthSupported('socks5')).toBe(false);
-    expect(hasProxyScriptApi()).toBe(false);
 
     expect(
       proxyAuthSupported('socks5', {
@@ -604,21 +602,7 @@ describe('options logic', () => {
       })
     ).toBe(true);
 
-    (globalThis as any).browser = {
-      proxy: {
-        register() {}
-      }
-    };
     expect(proxyAuthSupported('socks5')).toBe(false);
-    expect(hasProxyScriptApi()).toBe(true);
-
-    (globalThis as any).browser = {
-      proxy: {
-        registerProxyScript() {}
-      }
-    };
-    expect(proxyAuthSupported('socks5')).toBe(false);
-    expect(hasProxyScriptApi()).toBe(true);
   });
 
   it('clones proxy auth records when present', () => {

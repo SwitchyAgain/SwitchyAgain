@@ -285,7 +285,6 @@ export type PacProfileProps = {
   onDownload?: (name: string) => void;
   onEditProxyAuth?: () => void;
   onProfileChange?: (field: PacProfileField, value: string) => void;
-  pacProfilesUnsupported?: boolean;
   profile: NamedPacProfileModel;
   referenced?: boolean;
   updating?: boolean;
@@ -1287,15 +1286,7 @@ function DownloadedRuleListContentToggle({shown, onToggle}: {shown: boolean; onT
   );
 }
 
-export function PacProfile({
-  onDownload,
-  onEditProxyAuth,
-  onProfileChange,
-  pacProfilesUnsupported = false,
-  profile,
-  referenced = false,
-  updating = false
-}: PacProfileProps) {
+export function PacProfile({onDownload, onEditProxyAuth, onProfileChange, profile, referenced = false, updating = false}: PacProfileProps) {
   const formattedLastUpdate = formatMediumDate(profile.lastUpdate);
   const [draft, setDraft] = useState<PacProfileDraft>({
     pacScript: profile.pacScript || '',
@@ -1320,12 +1311,6 @@ export function PacProfile({
 
   return (
     <div>
-      {pacProfilesUnsupported && (
-        <p className="alert alert-danger width-limit">
-          <span className="glyphicon glyphicon-remove" />{' '}
-          {message('options_pac_profile_unsupported_moz', 'PAC Profiles WILL NOT work in Mozilla Firefox due to technical limitations!')}
-        </p>
-      )}
       <section className="settings-group">
         <h3>{message('options_group_pacUrl', 'PAC URL')}</h3>
         <div className="width-limit">

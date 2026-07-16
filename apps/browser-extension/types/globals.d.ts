@@ -228,9 +228,6 @@ interface BrowserProxyApi {
   onRequest: ChromeEvent<
     (details: {cookieStoreId?: string; groupId?: number; incognito?: boolean; tabId?: number; url: string; windowId?: number}) => unknown
   >;
-  register?(scriptUrl: string): Promise<unknown> | void;
-  registerProxyScript(scriptUrl: string): Promise<unknown> | void;
-  unregister?(): Promise<unknown> | void;
   [key: string]: unknown;
 }
 

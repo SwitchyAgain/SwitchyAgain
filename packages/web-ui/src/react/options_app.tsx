@@ -35,7 +35,6 @@ import {
   duplicateProfileOption,
   exportRuleListOptions,
   firstFixedProfileName,
-  hasProxyScriptApi,
   isPatchEmpty,
   isProfileNameHidden,
   isProfileNameReserved,
@@ -615,8 +614,6 @@ export function OptionsApp() {
   const applyOptionsRef = useRef<((opts?: {silent?: boolean}) => Promise<Options | void>) | null>(null);
   const discardOptionsRef = useRef<(() => void) | null>(null);
   const allowHandoffCloseRef = useRef(false);
-  const isExperimental = useMemo(hasProxyScriptApi, []);
-  const pacProfilesUnsupported = isExperimental;
 
   useEffect(() => {
     document.title = message('options_title', 'SwitchyAgain Options');
@@ -1768,7 +1765,6 @@ export function OptionsApp() {
               onDownload={downloadProfile}
               onEditProxyAuth={() => requestPacProxyAuth(profile)}
               onProfileChange={(field, value) => updatePacProfileField(profile.name, field, value)}
-              pacProfilesUnsupported={pacProfilesUnsupported}
               updating={profileUpdating(updatingProfiles, profile.name)}
             />
           );
@@ -1899,9 +1895,7 @@ export function OptionsApp() {
         </>
       );
     }
-    return (
-      <About embedded isExperimental={isExperimental} onDownloadLog={downloadLog} onResetOptions={() => setModal({kind: 'resetOptions'})} />
-    );
+    return <About embedded onDownloadLog={downloadLog} onResetOptions={() => setModal({kind: 'resetOptions'})} />;
   }
 
   return (
@@ -1939,7 +1933,6 @@ export function OptionsApp() {
             showProfilesCollapseToggle={showProfilesCollapseToggle}
             showProfileScope={showProfileScope}
             showRequestLens={showRequestLens}
-            isExperimental={isExperimental}
             uiHref={routeHref('ui')}
           />
         </header>
@@ -1996,7 +1989,6 @@ export function OptionsApp() {
             isProfileNameReserved={isProfileNameReserved}
             onClose={createProfile}
             onDismiss={() => setModal(null)}
-            pacProfilesUnsupported={pacProfilesUnsupported}
             profileByName={(name) => profileByName(options, name)}
           />
         </ModalFrame>
