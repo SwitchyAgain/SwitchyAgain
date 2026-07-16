@@ -215,9 +215,6 @@ msgstr "深色"
 msgid "options_interfaceThemeSystem"
 msgstr "系统"
 
-msgid "options_experimental_badge"
-msgstr "测试版"
-
 msgid "options_navHeader_setting"
 msgstr "设置"
 
@@ -1412,9 +1409,6 @@ msgstr "保存错误日志"
 msgid "options_resultProfileForSelectedDomains"
 msgstr "对所有选中域名使用此情景模式"
 
-msgid "options_pac_profile_unsupported_moz"
-msgstr "由于技术限制，PAC 情景模式无法在 Mozilla Firefox 上工作！"
-
 msgid "browserAction_profileDetails_PacProfile"
 msgstr "(PAC 脚本)"
 
@@ -1476,9 +1470,6 @@ msgstr "SwitchyAgain 修改部分版权所有 2026 __SWITCHYAGAIN_AUTHORS__。"
 
 msgid "about_licenseLine"
 msgstr "使用 __GPL_LICENSE__ 版本 3 或更高版本授权。"
-
-msgid "about_experimental_warning_moz"
-msgstr "Mozilla Firefox 浏览器支持目前仍处于早期实验阶段！如果您遇到任何问题，请使用下方的按钮进行反馈。"
 
 msgid "options_profileDownloadStatusDownloading"
 msgstr "正在加载..."

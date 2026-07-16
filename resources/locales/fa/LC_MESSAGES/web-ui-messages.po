@@ -241,9 +241,6 @@ msgstr "تیره"
 msgid "options_interfaceThemeSystem"
 msgstr "سیستم"
 
-msgid "options_experimental_badge"
-msgstr "α"
-
 msgid "options_navHeader_setting"
 msgstr "تنظیمات"
 
@@ -1576,11 +1573,6 @@ msgstr "ذخیره لاگ خطا"
 msgid "options_resultProfileForSelectedDomains"
 msgstr "از این پروفایل برای تمامی دامنه های منتخب استفاده کن"
 
-msgid "options_pac_profile_unsupported_moz"
-msgstr ""
-"نمایه(پروفایل) های PAC در به دلیل محدودیت های تکنیکی در موزیلا فایرفاکس کار "
-"نخواهند کرد!"
-
 msgid "browserAction_profileDetails_PacProfile"
 msgstr "( اسکریپت PAC )"
 
@@ -1642,11 +1634,6 @@ msgstr "تغییرات SwitchyAgain حق نشر ۲۰۲۶ __SWITCHYAGAIN_AUTHORS_
 
 msgid "about_licenseLine"
 msgstr "تحت __GPL_LICENSE__ نسخه ۳ یا بالاتر مجوز داده شده است."
-
-msgid "about_experimental_warning_moz"
-msgstr ""
-"پشتیبانی از فایرفاکس کاملا آزمایشی میباشد! در صورت مواجه با خطا، لطفا از "
-"طریق دکمه ی زیر ما را در جریان بگذارید."
 
 msgid "options_profileDownloadStatusDownloading"
 msgstr "در حال بارگیری..."

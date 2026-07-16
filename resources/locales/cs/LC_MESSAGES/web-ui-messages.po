@@ -241,9 +241,6 @@ msgstr "Tmavý"
 msgid "options_interfaceThemeSystem"
 msgstr "Systém"
 
-msgid "options_experimental_badge"
-msgstr "α"
-
 msgid "options_navHeader_setting"
 msgstr "Nastavení"
 
@@ -1565,9 +1562,6 @@ msgstr "Uložit protokol chyb"
 msgid "options_resultProfileForSelectedDomains"
 msgstr "Použít tento profil pro všechny vybrané domény"
 
-msgid "options_pac_profile_unsupported_moz"
-msgstr "PAC Profiles WILL NOT work in Mozilla Firefox due to technical limitations!"
-
 msgid "browserAction_profileDetails_PacProfile"
 msgstr "(PAC skript)"
 
@@ -1631,9 +1625,6 @@ msgstr "Změny SwitchyAgain Copyright 2026 __SWITCHYAGAIN_AUTHORS__."
 
 msgid "about_licenseLine"
 msgstr "Licencováno pod __GPL_LICENSE__ verze 3 nebo novější."
-
-msgid "about_experimental_warning_moz"
-msgstr "Mozilla Firefox support is highly experimental! If you encounter issues, please report using the buttons below."
 
 msgid "options_profileDownloadStatusDownloading"
 msgstr "Načítání..."

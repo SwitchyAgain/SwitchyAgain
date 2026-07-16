@@ -210,9 +210,6 @@ msgstr "深色"
 msgid "options_interfaceThemeSystem"
 msgstr "系統"
 
-msgid "options_experimental_badge"
-msgstr "測試版"
-
 msgid "options_navHeader_setting"
 msgstr "設定"
 
@@ -1399,9 +1396,6 @@ msgstr "儲存錯誤記錄"
 msgid "options_resultProfileForSelectedDomains"
 msgstr "對所有選取網域使用此情境模式："
 
-msgid "options_pac_profile_unsupported_moz"
-msgstr "由於技術限制，PAC 情境模式無法在 Mozilla Firefox 上工作！"
-
 msgid "browserAction_profileDetails_PacProfile"
 msgstr "(PAC 指令碼)"
 
@@ -1463,9 +1457,6 @@ msgstr "SwitchyAgain 修改部分版權所有 2026 __SWITCHYAGAIN_AUTHORS__。"
 
 msgid "about_licenseLine"
 msgstr "使用 __GPL_LICENSE__ 版本 3 或更新版本授權。"
-
-msgid "about_experimental_warning_moz"
-msgstr "Mozilla Firefox 瀏覽器支持目前仍處於早期實驗階段！如果您遇到任何問題，請使用下方的按鈕進行回報。"
 
 msgid "options_profileDownloadStatusDownloading"
 msgstr "正在載入..."

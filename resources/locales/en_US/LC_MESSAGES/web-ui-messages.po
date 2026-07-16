@@ -238,9 +238,6 @@ msgstr "Dark"
 msgid "options_interfaceThemeSystem"
 msgstr "System"
 
-msgid "options_experimental_badge"
-msgstr "α"
-
 msgid "options_navHeader_setting"
 msgstr "Settings"
 
@@ -1567,9 +1564,6 @@ msgstr "Save error log"
 msgid "options_resultProfileForSelectedDomains"
 msgstr "Use this profile for all selected domains"
 
-msgid "options_pac_profile_unsupported_moz"
-msgstr "PAC Profiles WILL NOT work in Mozilla Firefox due to technical limitations!"
-
 msgid "browserAction_profileDetails_PacProfile"
 msgstr "(PAC script)"
 
@@ -1631,9 +1625,6 @@ msgstr "SwitchyAgain changes Copyright 2026 __SWITCHYAGAIN_AUTHORS__."
 
 msgid "about_licenseLine"
 msgstr "Licensed under the __GPL_LICENSE__ Version 3 or later."
-
-msgid "about_experimental_warning_moz"
-msgstr "Mozilla Firefox support is highly experimental! If you encounter issues, please report using the buttons below."
 
 msgid "options_profileDownloadStatusDownloading"
 msgstr "Loading..."
