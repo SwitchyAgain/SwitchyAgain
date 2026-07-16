@@ -323,7 +323,7 @@ function ProfileColorActionSubmenu({
                 className={`profile-color-swatch-option${normalizeColor(swatch).toLowerCase() === color ? ' active' : ''}`}
                 style={{backgroundColor: swatch}}
                 title={swatch}
-                aria-label={message('options_profileUseColor', `Use ${swatch}`, swatch)}
+                aria-label={message('options_profileUseColor', `Use color ${swatch}`, swatch)}
                 onClick={() => commitColor(swatch)}
               />
             ))}
@@ -464,7 +464,7 @@ function ProfileActionsControl({
               role="menuitem"
               onClick={action(onExportRuleListProfile)}
             >
-              <span className="glyphicon glyphicon-list" /> <span>{message('options_profileExportRuleList', 'Export Rule List')}</span>
+              <span className="glyphicon glyphicon-list" /> <span>{message('options_profileExportRuleList', 'Publish rule list')}</span>
             </button>
           )}
           {onExportPacProfile && canExportPacProfile(profile) && (
@@ -494,7 +494,7 @@ function ProfileActionsControl({
               role="menuitem"
               onClick={action(onDeleteProfile)}
             >
-              <span className="glyphicon glyphicon-trash" /> <span>{message('options_deleteProfile', 'Delete Profile')}</span>
+              <span className="glyphicon glyphicon-trash" /> <span>{message('options_deleteProfile', 'Delete')}</span>
             </button>
           )}
         </span>
@@ -1119,9 +1119,7 @@ export function OptionsShell({
         <a href="#/about" title={message('about_title', 'About')} onClick={(event) => navClick(event, () => onNavigate?.('about'))}>
           {message('appNameShort', 'SwitchyAgain')}
         </a>
-        {isExperimental && (
-          <sup className="options-experimental-badge text-danger">{message('options_experimental_badge', 'Experimental')}</sup>
-        )}
+        {isExperimental && <sup className="options-experimental-badge text-danger">{message('options_experimental_badge', 'α')}</sup>}
       </h1>
       <nav className="options-shell-nav">
         <ul className="nav nav-pills nav-stacked options-shell-settings">
@@ -1323,7 +1321,7 @@ export function OptionsShell({
         <ul className="nav nav-pills nav-stacked options-shell-actions">
           <li className="nav-new-profile">
             <a href={newProfileHref} role="button" onClick={(event) => navClick(event, onNewProfile)}>
-              <span className="glyphicon glyphicon-plus" /> <span>{message('options_newProfile', 'New profile')}</span>
+              <span className="glyphicon glyphicon-plus" /> <span>{message('options_newProfile', 'New profile…')}</span>
             </a>
           </li>
           <li className="divider" />

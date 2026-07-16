@@ -737,12 +737,17 @@ export function ImportExport({
               checked={Boolean(options?.['-exportLegacyRuleList'])}
               onChange={(event) => saveExportLegacyRuleList(event.currentTarget.checked)}
             />{' '}
-            <span>{message('options_exportLegacyRuleList', 'Export legacy rule lists')}</span>
+            <span>
+              {message(
+                'options_exportLegacyRuleList',
+                'Export rule lists using Proxy Switchy!/SwitchyPlus/SwitchySharp compatible format when possible.'
+              )}
+            </span>
           </label>
           <p className="help-block">
             {richMessage(
               'options_exportLegacyRuleListHelp',
-              'Enable this option only if you publish rule lists for users of those projects.'
+              'Enable this option only if you publish rule lists for users of those projects.<br>Please consider advising your audience to upgrade to SwitchyAgain for the improvements.'
             )}
           </p>
         </div>
@@ -867,9 +872,15 @@ export function ImportExport({
           {browserSyncActive && (
             <>
               <p className="alert alert-success width-limit">
-                <span className="glyphicon glyphicon-ok" /> {message('options_syncSyncAlert', 'Options sync is enabled.')}
+                <span className="glyphicon glyphicon-ok" />{' '}
+                {message('options_syncSyncAlert', 'Your options are automatically synchronized with your other devices.')}
               </p>
-              <p className="help-block">{richMessage('options_syncSyncHelp', 'Your options are synchronized.')}</p>
+              <p className="help-block">
+                {richMessage(
+                  'options_syncSyncHelp',
+                  'Please note that you must sign in to the same browser account on each device (including this one) for syncing to work. <br> You may check this section on other devices to ensure that it is working.'
+                )}
+              </p>
               <p>
                 <button
                   type="button"
@@ -885,9 +896,15 @@ export function ImportExport({
           {syncOptions === 'conflict' && syncProvider !== 'webdav' && (
             <>
               <p className="alert alert-info width-limit">
-                <span className="glyphicon glyphicon-info-sign" /> {message('options_syncConflictAlert', 'Options sync conflict detected.')}
+                <span className="glyphicon glyphicon-info-sign" />{' '}
+                {message('options_syncConflictAlert', 'You have uploaded a copy of your options on another device via syncing.')}
               </p>
-              <p className="help-block">{richMessage('options_syncConflictHelp', 'Choose which options should be used for syncing.')}</p>
+              <p className="help-block">
+                {richMessage(
+                  'options_syncConflictHelp',
+                  'You may download the remote copy to your device if you like. <br>However, doing so would <b>overwrite your existing settings and profiles</b> on this device.'
+                )}
+              </p>
               <p>
                 <button
                   type="button"
@@ -895,7 +912,7 @@ export function ImportExport({
                   disabled={syncActionBusy}
                   onClick={() => runSyncAction('enabling', () => enableOptionsSync({force: true}))}
                 >
-                  <span className="glyphicon glyphicon-cloud-download" /> {message('options_syncEnableForce', 'Use synced options')}
+                  <span className="glyphicon glyphicon-cloud-download" /> {message('options_syncEnableForce', 'Download from Syncing')}
                 </button>{' '}
                 <button
                   type="button"
@@ -903,13 +920,15 @@ export function ImportExport({
                   disabled={syncActionBusy}
                   onClick={() => runSyncAction('resetting', resetSyncedOptions)}
                 >
-                  <span className="glyphicon glyphicon-erase" /> {message('options_syncReset', 'Reset sync')}
+                  <span className="glyphicon glyphicon-erase" /> {message('options_syncReset', 'Clear remote copy')}
                 </button>
               </p>
             </>
           )}
           {syncOptions === 'unsupported' && (
-            <p className="help-block">{richMessage('options_syncUnsupportedHelp', 'Options sync is not supported in this browser.')}</p>
+            <p className="help-block">
+              {richMessage('options_syncUnsupportedHelp', 'Options syncing is not supported on your platform or browser.')}
+            </p>
           )}
         </div>
       </div>

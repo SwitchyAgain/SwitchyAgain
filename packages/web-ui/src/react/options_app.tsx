@@ -225,7 +225,7 @@ function applySourceToOptions(sourceOptions: Options, profileName: string, sourc
   const profile = profileOption<NamedSwitchProfileModel>(sourceOptions, profileName, isSwitchProfile);
   if (!profile) {
     nextSource.error = {
-      message: message('options_profileNotFound', `Profile not found: ${profileName}`, profileName)
+      message: message('options_profileNotFound', `Profile ${profileName} does not exist! The options may be corrupted.`, profileName)
     };
     return {
       ok: false,
@@ -800,7 +800,10 @@ export function OptionsApp() {
           if (allowHandoffCloseRef.current) {
             return;
           }
-          return message('options_optionsNotSaved', 'Options are not saved.');
+          return message(
+            'options_optionsNotSaved',
+            'Your modifications to the options have not been saved and will be lost if you proceed!'
+          );
         }
       : null
   );
@@ -832,7 +835,7 @@ export function OptionsApp() {
   function showProfileNotFound(profileName: string) {
     showAlert({
       type: 'error',
-      message: message('options_profileNotFound', `Profile not found: ${profileName}`, profileName)
+      message: message('options_profileNotFound', `Profile ${profileName} does not exist! The options may be corrupted.`, profileName)
     });
   }
 
@@ -1723,7 +1726,13 @@ export function OptionsApp() {
         return (
           <div className="react-options">
             <div className="page-header">
-              <h2>{message('options_profileNotFound', 'Profile not found')}</h2>
+              <h2>
+                {message(
+                  'options_profileNotFound',
+                  `Profile ${route.profileName || ''} does not exist! The options may be corrupted.`,
+                  route.profileName || ''
+                )}
+              </h2>
             </div>
           </div>
         );

@@ -433,7 +433,7 @@ export function ProfileGroupModal({
                       className={`profile-color-swatch-option${cleanProfileGroupColor(choice) === color ? ' active' : ''}`}
                       style={{backgroundColor: choice}}
                       title={choice}
-                      aria-label={message('options_profileUseColor', `Use ${choice}`, choice)}
+                      aria-label={message('options_profileUseColor', `Use color ${choice}`, choice)}
                       onClick={() => setColor(choice)}
                     />
                   ))}

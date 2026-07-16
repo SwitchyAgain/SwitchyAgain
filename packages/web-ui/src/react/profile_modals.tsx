@@ -276,7 +276,7 @@ function NewProfileColorControl({color, onChange}: {color: string; onChange: (co
                 className={`profile-color-swatch-option${choice === color ? ' active' : ''}`}
                 style={{backgroundColor: choice}}
                 title={choice}
-                aria-label={message('options_profileUseColor', `Use ${choice}`, choice)}
+                aria-label={message('options_profileUseColor', `Use color ${choice}`, choice)}
                 onClick={() => choose(choice)}
               />
             ))}
@@ -361,7 +361,7 @@ export function NewProfileModal({
           profileByName={profileByName}
           trailingControl={<NewProfileColorControl color={profileColor} onChange={setProfileColor} />}
         />
-        <label>{message('options_profileType', 'Profile type')}</label>
+        <label>{message('options_profileType', 'Please select the type of the profile:')}</label>
         <ProfileTypeOption
           checked={!duplicateSelected && profileType === 'FixedProfile'}
           description={message('options_profileDescFixedProfile', 'Tunneling traffic through proxy servers.')}
@@ -599,7 +599,7 @@ export function ProxyAuthModal({auth, onClose, onDismiss}: ProxyAuthProps) {
           {message('dialog_cancel', 'Cancel')}
         </button>
         <button type="submit" className="btn btn-primary">
-          {message('dialog_save', 'Save')}
+          {message('dialog_save', 'Save changes')}
         </button>
       </div>
     </form>

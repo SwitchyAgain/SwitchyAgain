@@ -252,7 +252,7 @@ export function profileDownloadErrorMessage(err: unknown) {
   const statusCode = error?.statusCode ?? error?.original?.statusCode ?? '';
   return (
     message(`options_profileDownloadError_${error?.name || ''}`, '', String(statusCode)) ||
-    message('options_profileDownloadError', 'Profile download failed.')
+    message('options_profileDownloadError', 'Error downloading profile data!')
   );
 }
 

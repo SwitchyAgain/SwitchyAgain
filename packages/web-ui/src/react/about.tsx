@@ -68,13 +68,13 @@ export function About({embedded = false, isExperimental = false, version, onDown
             {onDownloadLog && (
               <>
                 <button type="button" className="btn btn-default" onClick={onDownloadLog}>
-                  <span className="glyphicon glyphicon-download" /> {message('popup_errorLog', 'Error log')}
+                  <span className="glyphicon glyphicon-download" /> {message('popup_errorLog', 'Save error log')}
                 </button>{' '}
               </>
             )}
             {onResetOptions && (
               <button type="button" className="btn btn-danger" onClick={onResetOptions}>
-                <span className="glyphicon glyphicon-alert" /> {message('options_reset', 'Reset')}
+                <span className="glyphicon glyphicon-alert" /> {message('options_reset', 'Reset options')}
               </button>
             )}
           </p>

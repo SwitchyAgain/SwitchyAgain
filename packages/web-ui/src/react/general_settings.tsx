@@ -323,10 +323,18 @@ export function GeneralSettings({
 
       <section className="settings-group width-limit">
         <h3>{message('options_group_conflicts', 'Conflicts')}</h3>
-        <p>{message('options_conflicts_introduction', 'Other apps may also try to control proxy settings, resulting in conflicts.')}</p>
+        <p>
+          {message(
+            'options_conflicts_introduction',
+            'Sometimes, other apps will also try to control the proxy settings, resulting in conflicts. Note that ad blockers and other extensions may also use proxy settings under the hood. Such conflicts cannot be avoided due to how the browser works.'
+          )}
+        </p>
         <p className="help-text text-danger">
           <span style={{padding: '1px 4px', background: '#da4f49', color: '#fff', boxShadow: '#ccc 1px 1px 1px 1px'}}>=</span>{' '}
-          {message('options_conflicts_lowerPriority', 'A red badge indicates that another app has higher priority.')}
+          {message(
+            'options_conflicts_lowerPriority',
+            "A red badge like this on the SwitchyAgain icon indicates that another app has higher priority so SwitchyAgain cannot control the settings. Please try to uninstall SwitchyAgain and reinstall, which should raise SwitchyAgain's priority. If you still see conflicts after reinstallation, please consider removing the other app causing the conflict."
+          )}
         </p>
         <p className="help-text text-info">
           <span className="glyphicon glyphicon-info-sign" />{' '}

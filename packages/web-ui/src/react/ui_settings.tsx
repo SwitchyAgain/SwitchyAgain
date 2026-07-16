@@ -684,7 +684,7 @@ export function UiSettings({
               checked={Boolean(draftOptions['-confirmDeletion'])}
               onChange={(event) => updateOption('-confirmDeletion', event.currentTarget.checked)}
             />
-            <span> {message('options_confirmDeletion', 'Confirm before deleting profiles and rules.')}</span>
+            <span> {message('options_confirmDeletion', 'Confirm on condition deletion.')}</span>
           </label>
         </div>
         <div className="checkbox">
@@ -695,7 +695,7 @@ export function UiSettings({
               checked={Boolean(draftOptions['-refreshOnProfileChange'])}
               onChange={(event) => updateOption('-refreshOnProfileChange', event.currentTarget.checked)}
             />
-            <span> {message('options_refreshOnProfileChange', 'Refresh the current tab when profile changes.')}</span>
+            <span> {message('options_refreshOnProfileChange', 'Refresh current tab on profile change.')}</span>
           </label>
         </div>
         <div className="checkbox">
@@ -962,10 +962,13 @@ export function UiSettings({
           <button type="button" role="button" className="btn btn-default" onClick={handleShortcutClick}>
             <span className="glyphicon glyphicon-share-alt" /> {message('options_menuShortcutConfigure', 'Configure shortcut')}
           </button>{' '}
-          {message('options_menuShortcutHelp', 'Configure keyboard shortcuts in the extension settings.')}
+          {message('options_menuShortcutHelp', 'Pressing the shortcut will open the switch popup menu. (Defaults to Alt+Shift+O).')}
         </p>
         <p className="help-block">
-          {message('options_menuShortcutMore', 'More shortcut settings are available in the browser extension settings.')}
+          {message(
+            'options_menuShortcutMore',
+            'The items in the popup menu can also be accessed using the keyboard. Press ? (or /) in the menu to learn more.'
+          )}
         </p>
       </section>
 
@@ -974,7 +977,7 @@ export function UiSettings({
         <div className="form-group">
           <label htmlFor="react-startup-profile">{message('options_startupProfile', 'Startup Profile')}</label>{' '}
           <ProfileSelect
-            defaultText={message('options_startupProfile_none', '(Current Profile)')}
+            defaultText={message('options_startupProfile_none', '(Current profile)')}
             dispName={displayProfileName}
             inline
             name={String(draftOptions['-startupProfileName'] || '')}
@@ -991,7 +994,12 @@ export function UiSettings({
             />
             <span> {message('options_showConditionTypesAdvanced', 'Show advanced condition types')}</span>
           </label>
-          <p className="help-block">{message('options_showConditionTypesAdvancedHelp', 'Unlock advanced condition types.')}</p>
+          <p className="help-block">
+            {message(
+              'options_showConditionTypesAdvancedHelp',
+              'Unlocks new types of advanced but complicated switch conditions. For most scenarios, the basic condition types should be enough, so this option is not recommended.'
+            )}
+          </p>
         </div>
         <div className="checkbox">
           <label>
@@ -1006,10 +1014,20 @@ export function UiSettings({
         {Boolean(draftOptions['-enableQuickSwitch']) && (
           <div id="quick-switch-settings" className="settings-group">
             <h4>{message('options_cycledProfiles', 'Cycled Profiles')}</h4>
-            <p className="help-block">{message('options_cycledProfilesHelp', 'Cycle through these profiles when using Quick Switch.')}</p>
+            <p className="help-block">
+              {message(
+                'options_cycledProfilesHelp',
+                'When you click on the icon (or use the shortcut above), the following profiles will be applied in their order.'
+              )}
+            </p>
             {quickSwitchProfiles.length < 2 && (
               <div className="has-error">
-                <p className="help-block">{message('options_cycledProfilesTooFew', 'At least 2 profiles are required for cycling.')}</p>
+                <p className="help-block">
+                  {message(
+                    'options_cycledProfilesTooFew',
+                    'You need to select at least 2 profiles to enable this function! You can drag them from the box below.'
+                  )}
+                </p>
               </div>
             )}
             <QuickSwitchList enabled names={quickSwitchProfiles} />

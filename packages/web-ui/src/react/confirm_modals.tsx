@@ -110,7 +110,7 @@ function titleFor(kind: ConfirmKind) {
     case 'ruleRemove':
       return message('options_modalHeader_deleteRule', 'Delete Rule');
     case 'ruleReset':
-      return message('options_modalHeader_resetRules', 'Reset Rules');
+      return message('options_modalHeader_resetRules', 'Reset rules');
   }
 }
 
@@ -299,13 +299,13 @@ function closeButtonFor(kind: ConfirmKind) {
     case 'deleteProfile':
       return {
         className: 'btn-danger',
-        label: message('options_deleteProfile', 'Delete Profile'),
+        label: message('options_deleteProfile', 'Delete'),
         value: 'ok'
       };
     case 'reset':
       return {
         className: 'btn-danger',
-        label: message('options_reset', 'Reset'),
+        label: message('options_reset', 'Reset options'),
         value: 'ok'
       };
     case 'replaceProfile':
@@ -323,7 +323,7 @@ function closeButtonFor(kind: ConfirmKind) {
     case 'ruleReset':
       return {
         className: 'btn-warning',
-        label: message('options_resetRules', 'Reset Rules'),
+        label: message('options_resetRules', 'Reset rules'),
         value: 'ok'
       };
     case 'sourceDraft':

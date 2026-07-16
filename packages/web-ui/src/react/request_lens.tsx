@@ -253,7 +253,10 @@ export function RequestLens({currentProfileName: initialCurrentProfileName, embe
             <span> {message('options_monitorWebRequests', 'Show count of failed web requests for resources in the current tab.')}</span>
           </label>
           <p className="help-block">
-            {richMessage('options_monitorWebRequestsHelp', 'A yellow badge will be displayed on the icon if some resources fail to load.')}
+            {richMessage(
+              'options_monitorWebRequestsHelp',
+              'A yellow badge will be displayed on the icon if some resources fail to load,<br>and you can set the profile for such resources conveniently via the popup menu.'
+            )}
           </p>
         </div>
         <div className="checkbox">

@@ -183,7 +183,7 @@ function ProfileColorEditor({color, isVirtual = false, onColorChange}: ProfileCo
                 className={`profile-color-swatch-option${normalizeColor(swatch).toLowerCase() === color.toLowerCase() ? ' active' : ''}`}
                 style={{backgroundColor: swatch}}
                 title={swatch}
-                aria-label={message('options_profileUseColor', `Use ${swatch}`, swatch)}
+                aria-label={message('options_profileUseColor', `Use color ${swatch}`, swatch)}
                 onClick={() => commitColor(swatch)}
               />
             ))}
@@ -520,10 +520,10 @@ export function ProfileShell({
               <button
                 type="button"
                 className={`btn ${exportRuleListWarning ? 'btn-warning' : 'btn-default'}`}
-                title={message('options_profileExportRuleListHelp', 'Export the rule list in this profile.')}
+                title={message('options_profileExportRuleListHelp', 'Export Switch Rules as text format for publishing.')}
                 onClick={onExportRuleList}
               >
-                <span className="glyphicon glyphicon-list" /> {message('options_profileExportRuleList', 'Export Rule List')}
+                <span className="glyphicon glyphicon-list" /> {message('options_profileExportRuleList', 'Publish rule list')}
               </button>{' '}
             </>
           )}
@@ -532,7 +532,10 @@ export function ProfileShell({
               <button
                 type="button"
                 className="btn btn-default"
-                title={message('options_exportPacFileHelp', 'Export this profile as a PAC file.')}
+                title={message(
+                  'options_exportPacFileHelp',
+                  'Export the current profile as a PAC file, so you can use it in other browsers.'
+                )}
                 onClick={onExportScript}
               >
                 <span className="glyphicon glyphicon-download" /> {message('options_profileExportPac', 'Export PAC')}
@@ -543,7 +546,7 @@ export function ProfileShell({
             <span className="glyphicon glyphicon-edit" /> {message('options_renameProfile', 'Rename')}
           </button>{' '}
           <button type="button" className="btn btn-danger" onClick={onDelete}>
-            <span className="glyphicon glyphicon-trash" /> {message('options_deleteProfile', 'Delete Profile')}
+            <span className="glyphicon glyphicon-trash" /> {message('options_deleteProfile', 'Delete')}
           </button>
         </div>
       </div>
@@ -935,11 +938,11 @@ function SwitchRuleRow({
               autoSelectKey={autoSelectKey}
               value={condition.pattern || ''}
               disabled
-              title={message('condition_details_FalseCondition', 'Never')}
+              title={message('condition_details_FalseCondition', '(Condition ignored when matching)')}
             />
           </span>
         ) : (
-          <span>{message('condition_details_FalseCondition', 'Never')}</span>
+          <span>{message('condition_details_FalseCondition', '(Condition ignored when matching)')}</span>
         );
       case 'HostLevelsCondition':
         return (
@@ -953,7 +956,7 @@ function SwitchRuleRow({
               value={String(condition.minValue ?? '')}
               onChange={(value) => changeField('minValue', value)}
             />{' '}
-            <span>{message('options_hostLevelsBetween', 'to')}</span>{' '}
+            <span>{message('options_hostLevelsBetween', '≤ host levels ≤')}</span>{' '}
             <DraftInput
               type="number"
               min={1}
@@ -989,7 +992,7 @@ function SwitchRuleRow({
               value={String(condition.startHour ?? '')}
               onChange={(value) => changeField('startHour', value)}
             />{' '}
-            <span>{message('options_hourBetween', 'to')}</span>{' '}
+            <span>{message('options_hourBetween', '≤ current hour ≤')}</span>{' '}
             <DraftInput
               type="number"
               min={0}
@@ -1070,7 +1073,7 @@ function SwitchRuleRow({
         <button
           type="button"
           className="btn btn-danger btn-sm"
-          title={message('options_deleteRule', 'Delete rule')}
+          title={message('options_deleteRule', 'Delete')}
           onClick={() => onRemoveRule?.(index)}
         >
           <span className="glyphicon glyphicon-trash" />
@@ -1078,7 +1081,7 @@ function SwitchRuleRow({
         <button
           type="button"
           className="btn btn-default btn-sm"
-          title={message('options_cloneRule', 'Clone rule')}
+          title={message('options_cloneRule', 'Clone')}
           onClick={() => onCloneRule?.(index)}
         >
           <span className="glyphicon glyphicon-duplicate" />
@@ -1328,12 +1331,20 @@ export function PacProfile({
         <div className="width-limit">
           <ClearableInput type="text" value={pacUrl} onChange={(value) => changeField('pacUrl', value)} />
         </div>
-        <p className="help-block">{message('options_pacUrlHelp', 'The PAC script will be downloaded from this URL.')}</p>
+        <p className="help-block">
+          {message(
+            'options_pacUrlHelp',
+            'The PAC script will be updated from this URL. If it is left blank, the following script will be used directly instead.'
+          )}
+        </p>
         {pacUrlIsFile && !referenced && (
           <div className="has-warning">
             <p className="help-block">
               <span className="glyphicon glyphicon-warning-sign" />{' '}
-              {message('options_pacUrlFile', 'Loading PAC scripts from file: URLs is not recommended.')}
+              {message(
+                'options_pacUrlFile',
+                'PAC profiles with file: URLs can only be applied directly. They cannot be used as result profiles because local files cannot be accessed due to browser limitation.'
+              )}
             </p>
           </div>
         )}
@@ -1341,9 +1352,17 @@ export function PacProfile({
           <div className="has-error">
             <p className="help-block">
               <span className="glyphicon glyphicon-remove-sign" />{' '}
-              {message('options_pacUrlFile', 'Loading PAC scripts from file: URLs is not recommended.')}
+              {message(
+                'options_pacUrlFile',
+                'PAC profiles with file: URLs can only be applied directly. They cannot be used as result profiles because local files cannot be accessed due to browser limitation.'
+              )}
             </p>
-            <p className="help-block">{message('options_pacUrlFileDisabled', 'File URLs are disabled for referenced PAC profiles.')}</p>
+            <p className="help-block">
+              {message(
+                'options_pacUrlFileDisabled',
+                'Therefore, you cannot use local PAC file for this profile. You can create a new PAC profile for that if you really want that.'
+              )}
+            </p>
           </div>
         )}
         {pacUrl && !pacUrlIsFile && (
@@ -1366,7 +1385,7 @@ export function PacProfile({
             type="button"
             role="button"
             className={`btn btn-xs proxy-auth-toggle ${authAll ? 'btn-success' : 'btn-default'}`}
-            title={message('options_proxy_auth', 'Proxy Authentication')}
+            title={message('options_proxy_auth', 'Authentication')}
             onClick={() => onEditProxyAuth?.()}
           >
             <span className="glyphicon glyphicon-lock" />
@@ -1377,28 +1396,31 @@ export function PacProfile({
             <p>
               {message(
                 'options_proxy_authAllWarningPac',
-                'Proxy authentication will be applied to all proxies returned by this PAC profile.'
+                'Warning: The username/password may be sent to unexpected servers returned by the PAC script.'
               )}
             </p>
             {pacUrl ? (
               <p>
                 {message(
                   'options_proxy_authAllWarningPacUrl',
-                  'Make sure the downloaded PAC script only returns proxies that share these credentials.'
+                  'Please make sure that you trust the script provided via the URL above before entering sensitive credentials.'
                 )}
               </p>
             ) : (
               <p>
                 {message(
                   'options_proxy_authAllWarningPacScript',
-                  'Make sure the PAC script only returns proxies that share these credentials.'
+                  'Please make sure that you trust the script below before providing sensitive credentials.'
                 )}
               </p>
             )}
             {referenced && (
               <p>
                 <span className="glyphicon glyphicon-warning-sign" />{' '}
-                {message('options_proxy_authReferencedWarning', 'This profile is referenced by other profiles.')}
+                {message(
+                  'options_proxy_authReferencedWarning',
+                  'Additionally, using this profile in other profiles (e.g. Switch Profile) may cause the username/password to be sent to proxy servers configured in other profiles.'
+                )}
               </p>
             )}
           </div>
@@ -1407,12 +1429,15 @@ export function PacProfile({
           <div>
             {pacUrl && profile.lastUpdate && (
               <p className="alert alert-success width-limit">
-                {message('options_pacScriptLastUpdate', 'Last update: $1', formattedLastUpdate)}
+                {message('options_pacScriptLastUpdate', 'PAC script downloaded at $1:', formattedLastUpdate)}
               </p>
             )}
             {pacUrl && !profile.lastUpdate && (
               <p className="alert alert-danger width-limit">
-                {message('options_pacScriptObsolete', 'PAC script is obsolete. Please download it now.')}
+                {message(
+                  'options_pacScriptObsolete',
+                  'PAC script is obsolete due to URL change. Press the download button above to update.'
+                )}
               </p>
             )}
             <textarea
@@ -1437,7 +1462,7 @@ function fixedProfileProtocolLabel(protocol: string) {
 }
 
 function fixedProfileOptionsForScheme(scheme: FixedProfileScheme, showSocks5LocalDnsOption = false, currentProtocol?: string) {
-  const defaultLabel = scheme ? message('options_protocol_useDefault', 'Use default') : message('options_protocol_direct', 'Direct');
+  const defaultLabel = scheme ? message('options_protocol_useDefault', '(use default)') : message('options_protocol_direct', 'DIRECT');
   const includeSocks5LocalDns = showSocks5LocalDnsOption || currentProtocol === FIXED_PROFILE_SOCKS5_LOCAL_DNS_PROTOCOL;
   const protocols = includeSocks5LocalDns
     ? FIXED_PROFILE_PROTOCOLS.concat(FIXED_PROFILE_SOCKS5_LOCAL_DNS_PROTOCOL)
@@ -1450,7 +1475,7 @@ function fixedProfileOptionsForScheme(scheme: FixedProfileScheme, showSocks5Loca
     ...(scheme
       ? [
           {
-            label: message('options_protocol_direct', 'Direct'),
+            label: message('options_protocol_direct', 'DIRECT'),
             value: FIXED_PROFILE_DIRECT_PROTOCOL
           }
         ]
@@ -1464,7 +1489,7 @@ function fixedProfileOptionsForScheme(scheme: FixedProfileScheme, showSocks5Loca
 
 function fixedProfileAuthTitle(protocol?: string, supported = false) {
   if (supported || !protocol) {
-    return message('options_proxy_auth', 'Proxy Authentication');
+    return message('options_proxy_auth', 'Authentication');
   }
   if (protocol === 'socks4') {
     return message('options_proxy_authUnsupportedSocks4', 'SOCKS4 does not support username/password authentication.');
@@ -1726,7 +1751,7 @@ export function FixedProfileContent({
   return (
     <div>
       <section className="settings-group settings-group-fixed-servers">
-        <h3>{message('options_group_proxyServers', 'Proxy Servers')}</h3>
+        <h3>{message('options_group_proxyServers', 'Proxy servers')}</h3>
         <div className="table-responsive">
           <table className="fixed-servers table table-bordered table-striped width-limit-lg">
             <thead>
@@ -1747,7 +1772,7 @@ export function FixedProfileContent({
                 const authTitle = fixedProfileAuthTitle(editor.scheme, authSupported);
                 return (
                   <tr key={scheme || 'default'}>
-                    <td>{FIXED_PROFILE_SCHEME_DISP[scheme] || message('options_scheme_default', 'Default')}</td>
+                    <td>{FIXED_PROFILE_SCHEME_DISP[scheme] || message('options_scheme_default', '(default)')}</td>
                     <td>
                       <select
                         className="form-control"
@@ -1838,10 +1863,12 @@ export function FixedProfileContent({
       </section>
       <section className="settings-group">
         <h3>{message('options_group_bypassList', 'Bypass List')}</h3>
-        <p className="help-block">{message('options_bypassListHelp', 'Requests matching the bypass list will not use the proxy.')}</p>
+        <p className="help-block">
+          {message('options_bypassListHelp', 'Servers for which you do not want to use any proxy: (One server on each line.)')}
+        </p>
         <p className="help-block">
           <a href="https://developer.chrome.com/extensions/proxy#bypass_list" target="_blank" rel="noreferrer">
-            {message('options_bypassListHelpLinkText', 'Learn more about bypass list syntax.')}
+            {message('options_bypassListHelpLinkText', '(Wildcards and more available…)')}
           </a>
         </p>
         <textarea
@@ -1955,12 +1982,15 @@ export function SwitchAttachedProfile({
   if (!attached) {
     return (
       <section className="settings-group">
-        <h3>{message('options_group_attachProfile', 'Attach Profile')}</h3>
+        <h3>{message('options_group_attachProfile', 'Import online rule lists')}</h3>
         <p className="help-block">
-          {message('options_attachProfileHelp', 'Attach a rule list profile to import rules from a URL or text.')}
+          {message(
+            'options_attachProfileHelp',
+            'You can reuse an online collection of conditions published by others by adding a rule list.'
+          )}
         </p>
         <button type="button" className="btn btn-default" onClick={() => onAttachNew?.()}>
-          <span className="glyphicon glyphicon-plus" /> {message('options_attachProfile', 'Attach Profile')}
+          <span className="glyphicon glyphicon-plus" /> {message('options_attachProfile', 'Add a rule list')}
         </button>
       </section>
     );
@@ -2005,7 +2035,12 @@ export function SwitchAttachedProfile({
               <span className="glyphicon glyphicon-download-alt" /> {message('options_downloadProfileNow', 'Download Profile Now')}
             </button>
           </div>
-          <p className="help-block">{message('options_ruleListUrlHelp', 'The rule list will be downloaded from this URL.')}</p>
+          <p className="help-block">
+            {message(
+              'options_ruleListUrlHelp',
+              'The rule list will be updated from this URL. If it is left blank, the following text will be parsed instead.'
+            )}
+          </p>
           <RuleListExportContentSwitch
             checked={draft.omitRuleListFromExport}
             disabled={!draft.sourceUrl}
@@ -2016,11 +2051,13 @@ export function SwitchAttachedProfile({
       <section className="settings-group">
         <h3>{message('options_group_ruleListText', 'Rule List Content')}</h3>
         {draft.sourceUrl && attached.lastUpdate && (
-          <p className="alert alert-success width-limit">{message('options_ruleListLastUpdate', 'Last update: $1', formattedLastUpdate)}</p>
+          <p className="alert alert-success width-limit">
+            {message('options_ruleListLastUpdate', 'Rule list downloaded at $1:', formattedLastUpdate)}
+          </p>
         )}
         {draft.sourceUrl && !attached.lastUpdate && (
           <p className="alert alert-danger width-limit">
-            {message('options_ruleListObsolete', 'Rule list is obsolete. Please download it now.')}
+            {message('options_ruleListObsolete', 'Rule list is obsolete due to URL change. Press the download button above to update.')}
           </p>
         )}
         {attachedRuleListError && (
@@ -2061,7 +2098,7 @@ export function SwitchConditionHelp({onClose, proxyFeatures, show = false, showC
   return (
     <section className="condition-help-section settings-group">
       <h3>
-        {message('options_group_conditionHelp', 'Condition Help')}
+        {message('options_group_conditionHelp', 'About Condition Types')}
         <button type="button" className="close close-condition-help" onClick={() => onClose?.()}>
           <span aria-hidden="true">{'\u00d7'}</span>
           <span className="sr-only">{message('dialog_close', 'Close')}</span>
@@ -2122,10 +2159,10 @@ export function SwitchRulesHeader({editSource = false, onDiscardSource, onSource
   return (
     <>
       <h3>
-        {message('options_group_switchRules', 'Switch Rules')}{' '}
+        {message('options_group_switchRules', 'Switch rules')}{' '}
         {!editSource && (
           <button type="button" className="btn btn-default" onClick={() => onToggleSource?.()}>
-            <span className="glyphicon glyphicon-edit" /> {message('options_profileEditSource', 'Edit Source')}
+            <span className="glyphicon glyphicon-edit" /> {message('options_profileEditSource', 'Edit source code')}
           </button>
         )}
         {editSource && (
@@ -2140,8 +2177,11 @@ export function SwitchRulesHeader({editSource = false, onDiscardSource, onSource
               className="btn btn-link btn-sm clear-padding toggle-condition-help"
               target="_blank"
               rel="noreferrer"
-              title={message('options_profileEditSourceHelp', 'Edit source help')}
-              href={message('options_profileEditSourceHelpUrl', '#')}
+              title={message('options_profileEditSourceHelp', 'Show help about the source code format')}
+              href={message(
+                'options_profileEditSourceHelpUrl',
+                'https://github.com/FelisCatus/SwitchyOmega/wiki/SwitchyOmega-conditions-format#result-profile'
+              )}
             >
               <span className="glyphicon glyphicon-question-sign" />
             </a>
@@ -2176,14 +2216,14 @@ export function SwitchRuleTableHeader({onToggleConditionHelp, showNotes = false}
         <button
           type="button"
           className="btn btn-link btn-sm clear-padding toggle-condition-help"
-          title={message('options_showConditionTypeHelp', 'Show condition type help')}
+          title={message('options_showConditionTypeHelp', 'Show help')}
           onClick={() => onToggleConditionHelp?.()}
         >
           <span className="glyphicon glyphicon-question-sign" />
         </button>
       </th>
       <th>{message('options_conditionDetails', 'Condition Details')}</th>
-      <th>{message('options_resultProfile', 'Result Profile')}</th>
+      <th>{message('options_resultProfile', 'Profile')}</th>
       <th>{message('options_conditionActions', 'Actions')}</th>
       {showNotes && <th>{message('options_ruleNote', 'Note')}</th>}
     </tr>
@@ -2212,7 +2252,7 @@ export function SwitchRuleFooter({
         <td style={{borderRight: 'none'}} />
         <td style={{borderLeft: 'none'}} colSpan={showNotes ? 5 : 4}>
           <button type="button" className="btn btn-default btn-sm" onClick={() => onAddRule?.()}>
-            <span className="glyphicon glyphicon-plus" /> <span>{message('options_addCondition', 'Add Condition')}</span>
+            <span className="glyphicon glyphicon-plus" /> <span>{message('options_addCondition', 'Add condition')}</span>
           </button>
         </td>
       </tr>
@@ -2229,15 +2269,15 @@ export function SwitchRuleFooter({
                   checked={!!attachedOptions.enabled}
                   onChange={(event) => onAttachedEnabledChange?.(event.currentTarget.checked)}
                 />
-                {message('options_switchAttachedProfileInCondition', 'Use attached rule list in conditions')}
+                {message('options_switchAttachedProfileInCondition', 'Rule list rules')}
               </label>
             </span>
           </td>
           <td>
             {attachedOptions.enabled ? (
-              <span>{message('options_switchAttachedProfileInConditionDetails', 'Rules from the attached profile are included.')}</span>
+              <span>{message('options_switchAttachedProfileInConditionDetails', '(Any request matching the rule list below)')}</span>
             ) : (
-              <span>{message('options_switchAttachedProfileInConditionDisabled', 'Rules from the attached profile are disabled.')}</span>
+              <span>{message('options_switchAttachedProfileInConditionDisabled', '(Rule list rules are DISABLED)')}</span>
             )}
           </td>
           <td>
@@ -2254,7 +2294,7 @@ export function SwitchRuleFooter({
             <button
               type="button"
               className="btn btn-danger btn-sm"
-              title={message('options_deleteAttached', 'Delete attached profile')}
+              title={message('options_deleteAttached', 'Remove rule list')}
               onClick={() => onRemoveAttached?.()}
             >
               <span className="glyphicon glyphicon-trash" />
@@ -2265,7 +2305,7 @@ export function SwitchRuleFooter({
       )}
       <tr className="switch-default-row">
         <td />
-        <td colSpan={2}>{message('options_switchDefaultProfile', 'Default Profile')}</td>
+        <td colSpan={2}>{message('options_switchDefaultProfile', 'Default')}</td>
         <td>
           <ProfileSelect
             name={attachedOptions.defaultProfileName || ''}
@@ -2278,7 +2318,7 @@ export function SwitchRuleFooter({
           <button
             type="button"
             className="btn btn-info btn-sm"
-            title={message('options_resetRules_help', 'Reset rules')}
+            title={message('options_resetRules_help', 'Set profile for all rules')}
             onClick={() => onResetRules?.()}
           >
             <span className="glyphicon glyphicon-chevron-up" />
@@ -3060,7 +3100,7 @@ export function RuleListProfile({onDownload, onProfileChange, options, profile, 
       <section className="settings-group">
         <h3>{message('options_group_ruleListConfig', 'Rule List Config')}</h3>
         <div className="form-group">
-          <label>{message('options_ruleListMatchProfile', 'Match Profile')}</label>{' '}
+          <label>{message('options_ruleListMatchProfile', 'Match profile')}</label>{' '}
           <ProfileSelect
             inline
             name={draft.matchProfileName}
@@ -3070,7 +3110,7 @@ export function RuleListProfile({onDownload, onProfileChange, options, profile, 
           />
         </div>
         <div className="form-group">
-          <label>{message('options_ruleListDefaultProfile', 'Default Profile')}</label>{' '}
+          <label>{message('options_ruleListDefaultProfile', 'Default profile')}</label>{' '}
           <ProfileSelect
             inline
             name={draft.defaultProfileName}
@@ -3112,7 +3152,12 @@ export function RuleListProfile({onDownload, onProfileChange, options, profile, 
             <span className="glyphicon glyphicon-download-alt" /> {message('options_downloadProfileNow', 'Download Profile Now')}
           </button>
         </div>
-        <p className="help-block">{message('options_ruleListUrlHelp', 'The rule list will be downloaded from this URL.')}</p>
+        <p className="help-block">
+          {message(
+            'options_ruleListUrlHelp',
+            'The rule list will be updated from this URL. If it is left blank, the following text will be parsed instead.'
+          )}
+        </p>
         <RuleListExportContentSwitch
           checked={draft.omitRuleListFromExport}
           disabled={!draft.sourceUrl}
