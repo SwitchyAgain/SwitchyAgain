@@ -114,7 +114,7 @@ describe('profile content components', () => {
     );
 
     fireEvent.click(screen.getByRole('button', {name: 'Profile color'}));
-    fireEvent.click(screen.getByRole('button', {name: 'Use #dd6633'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Use color #dd6633'}));
     expect(onColorChange).toHaveBeenCalledWith('#dd6633');
 
     fireEvent.click(screen.getByRole('button', {name: 'Profile color'}));
@@ -147,13 +147,13 @@ describe('profile content components', () => {
       <PacProfile onDownload={onDownload} onEditProxyAuth={onEditProxyAuth} onProfileChange={onProfileChange} profile={profile} />
     );
 
-    expect(screen.getByText('Proxy authentication will be applied to all proxies returned by this PAC profile.')).toBeTruthy();
+    expect(screen.getByText('Warning: The username/password may be sent to unexpected servers returned by the PAC script.')).toBeTruthy();
     expect((container.querySelector('textarea') as HTMLTextAreaElement).disabled).toBe(true);
 
     fireEvent.click(screen.getByRole('button', {name: 'Download Profile Now'}));
     expect(onDownload).toHaveBeenCalledWith('pac');
 
-    fireEvent.click(screen.getByTitle('Proxy Authentication'));
+    fireEvent.click(screen.getByTitle('Authentication'));
     expect(onEditProxyAuth).toHaveBeenCalled();
 
     fireEvent.change(screen.getByDisplayValue('https://example.com/proxy.pac'), {
@@ -173,7 +173,11 @@ describe('profile content components', () => {
 
     render(<PacProfile profile={profile} referenced />);
 
-    expect(screen.getByText('File URLs are disabled for referenced PAC profiles.')).toBeTruthy();
+    expect(
+      screen.getByText(
+        'PAC profiles with file: URLs can only be applied directly. They cannot be used as result profiles because local files cannot be accessed due to browser limitation.'
+      )
+    ).toBeTruthy();
     expect(screen.queryByRole('button', {name: 'Download Profile Now'})).toBeNull();
   });
 
@@ -290,7 +294,7 @@ describe('profile content components', () => {
       }
     );
 
-    fireEvent.click(screen.getByTitle('Proxy Authentication'));
+    fireEvent.click(screen.getByTitle('Authentication'));
     expect(onEditProxyAuth).toHaveBeenCalledWith('');
 
     const bypassList = container.querySelector('textarea') as HTMLTextAreaElement;
@@ -423,7 +427,7 @@ describe('profile content components', () => {
     render(<FixedProfileContent profile={profile} showHttpProxyOverrideRows={false} showWebSocketProxyOverrideRows={false} />);
 
     expect(screen.queryByRole('button', {name: /Show Advanced/})).toBeNull();
-    expect(screen.getByText('Default')).toBeTruthy();
+    expect(screen.getByText('(default)')).toBeTruthy();
     expect(screen.queryByText('http://')).toBeNull();
     expect(screen.queryByText('ws://')).toBeNull();
   });
@@ -561,7 +565,7 @@ describe('profile content components', () => {
         }}
       />
     );
-    fireEvent.click(screen.getByTitle('Proxy Authentication'));
+    fireEvent.click(screen.getByTitle('Authentication'));
     expect(onEditProxyAuth).toHaveBeenCalledWith('');
   });
 
@@ -792,7 +796,7 @@ describe('profile content components', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Edit source code'}));
     expect((screen.getByRole('textbox') as HTMLTextAreaElement).value).toBe(sourceCode);
 
     fireEvent.click(screen.getByRole('button', {name: 'Discard Source'}));
@@ -923,7 +927,7 @@ describe('profile content components', () => {
       });
       expect(container.querySelectorAll('.switch-rule-row')).toHaveLength(23);
 
-      fireEvent.click(screen.getAllByTitle('Delete rule')[0]);
+      fireEvent.click(screen.getAllByTitle('Delete')[0]);
       expect(container.querySelectorAll('.switch-rule-row')).toHaveLength(22);
     } finally {
       vi.useRealTimers();

@@ -709,7 +709,7 @@ describe('import export component', () => {
 
     render(<ImportExport embedded onApplyOptions={onApplyOptions} options={optionsFixture()} optionsDirty />);
 
-    fireEvent.click(screen.getByRole('button', {name: 'Reset sync'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Clear remote copy'}));
 
     await waitFor(() => expect(optionsClientMock.resetOptionsSync).toHaveBeenCalled());
     expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('Your changes to the options must be applied before you proceed.'));
@@ -728,7 +728,9 @@ describe('import export component', () => {
 
     render(<ImportExport embedded onOptionsReplace={onOptionsReplace} options={optionsFixture()} />);
 
-    fireEvent.click(screen.getByLabelText('Export legacy rule lists'));
+    fireEvent.click(
+      screen.getByLabelText('Export rule lists using Proxy Switchy!/SwitchyPlus/SwitchySharp compatible format when possible.')
+    );
 
     await waitFor(() =>
       expect(optionsClientMock.patchOptions).toHaveBeenCalledWith({
@@ -755,7 +757,9 @@ describe('import export component', () => {
 
     render(<ImportExport embedded onApplyOptions={onApplyOptions} options={currentOptions} optionsDirty />);
 
-    fireEvent.click(screen.getByLabelText('Export legacy rule lists'));
+    fireEvent.click(
+      screen.getByLabelText('Export rule lists using Proxy Switchy!/SwitchyPlus/SwitchySharp compatible format when possible.')
+    );
 
     await waitFor(() =>
       expect(optionsClientMock.patchOptions).toHaveBeenCalledWith({

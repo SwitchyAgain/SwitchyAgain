@@ -70,7 +70,7 @@ describe('ui settings component', () => {
     fireEvent.click(screen.getByRole('button', {name: /Configure shortcut/}));
     expect(onOpenShortcutConfig).toHaveBeenCalled();
 
-    fireEvent.click(screen.getByLabelText('Confirm before deleting profiles and rules.'));
+    fireEvent.click(screen.getByLabelText('Confirm on condition deletion.'));
     expect(onOptionsChange).toHaveBeenLastCalledWith(
       expect.objectContaining({
         '-confirmDeletion': false

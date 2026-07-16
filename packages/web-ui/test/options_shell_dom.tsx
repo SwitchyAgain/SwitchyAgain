@@ -51,7 +51,7 @@ describe('options shell components', () => {
       name: 'proxy'
     });
 
-    fireEvent.click(screen.getByRole('button', {name: 'New profile'}));
+    fireEvent.click(screen.getByRole('button', {name: 'New profile…'}));
     expect(onNewProfile).toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
@@ -321,12 +321,12 @@ describe('options shell components', () => {
     let dialog = openProfileBrowser();
     let actions = openProfileActions(dialog, 'proxy');
     fireEvent.mouseEnter(actions.getByRole('menuitem', {name: 'Profile color'}));
-    fireEvent.click(screen.getByRole('button', {name: 'Use #dd6633'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Use color #dd6633'}));
     expect(onProfileColorChange).toHaveBeenCalledWith(expect.objectContaining({name: 'proxy'}), '#dd6633');
     expect(screen.getByRole('dialog')).toBeTruthy();
 
     dialog = screen.getByRole('dialog');
-    fireEvent.click(openProfileActions(dialog, 'auto').getByRole('menuitem', {name: 'Export Rule List'}));
+    fireEvent.click(openProfileActions(dialog, 'auto').getByRole('menuitem', {name: 'Publish rule list'}));
     expect(onExportRuleListProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'auto'}));
     expect(screen.getByRole('dialog')).toBeTruthy();
 
@@ -346,7 +346,7 @@ describe('options shell components', () => {
     expect(screen.getByRole('dialog')).toBeTruthy();
 
     dialog = screen.getByRole('dialog');
-    fireEvent.click(openProfileActions(dialog, 'proxy').getByRole('menuitem', {name: 'Delete Profile'}));
+    fireEvent.click(openProfileActions(dialog, 'proxy').getByRole('menuitem', {name: 'Delete'}));
     expect(onDeleteProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'proxy'}));
     expect(screen.getByRole('dialog')).toBeTruthy();
   });
@@ -383,7 +383,7 @@ describe('options shell components', () => {
     const proxyItem = within(profileList).getByRole('link', {name: /proxy/}).closest('.nav-profile') as HTMLElement;
     fireEvent.click(within(proxyItem).getByRole('button', {name: 'Profile Options'}));
     fireEvent.mouseEnter(within(proxyItem).getByRole('menuitem', {name: 'Profile color'}));
-    fireEvent.click(screen.getByRole('button', {name: 'Use #99dd99'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Use color #99dd99'}));
     expect(onProfileColorChange).toHaveBeenCalledWith(expect.objectContaining({name: 'proxy'}), '#99dd99');
 
     fireEvent.click(within(proxyItem).getByRole('button', {name: 'Profile Options'}));
@@ -398,7 +398,7 @@ describe('options shell components', () => {
     const hiddenList = container.querySelector('.options-shell-hidden-profile-list') as HTMLElement;
     const autoItem = within(hiddenList).getByRole('link', {name: /auto/}).closest('.nav-profile') as HTMLElement;
     fireEvent.click(within(autoItem).getByRole('button', {name: 'Profile Options'}));
-    fireEvent.click(within(autoItem).getByRole('menuitem', {name: 'Export Rule List'}));
+    fireEvent.click(within(autoItem).getByRole('menuitem', {name: 'Publish rule list'}));
     expect(onExportRuleListProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'auto'}));
 
     fireEvent.click(within(autoItem).getByRole('button', {name: 'Profile Options'}));
@@ -406,7 +406,7 @@ describe('options shell components', () => {
     expect(onExportPacProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'auto'}));
 
     fireEvent.click(within(autoItem).getByRole('button', {name: 'Profile Options'}));
-    fireEvent.click(within(autoItem).getByRole('menuitem', {name: 'Delete Profile'}));
+    fireEvent.click(within(autoItem).getByRole('menuitem', {name: 'Delete'}));
     expect(onDeleteProfile).toHaveBeenCalledWith(expect.objectContaining({name: 'auto'}));
   });
 
@@ -437,7 +437,7 @@ describe('options shell components', () => {
     expect(within(sidebarProxyItem).queryByRole('menuitem', {name: 'Profile color'})).toBeNull();
     expect(within(sidebarProxyItem).queryByRole('menuitem', {name: 'Export PAC'})).toBeNull();
     expect(within(sidebarProxyItem).getByRole('menuitem', {name: 'Rename'})).toBeTruthy();
-    expect(within(sidebarProxyItem).getByRole('menuitem', {name: 'Delete Profile'})).toBeTruthy();
+    expect(within(sidebarProxyItem).getByRole('menuitem', {name: 'Delete'})).toBeTruthy();
 
     fireEvent.click(screen.getAllByRole('button', {name: 'Show all'})[0]);
     fireEvent.click(screen.getByRole('menuitem', {name: 'Browse all'}));
@@ -449,7 +449,7 @@ describe('options shell components', () => {
     expect(within(browserProxyItem).queryByRole('menuitem', {name: 'Profile color'})).toBeNull();
     expect(within(browserProxyItem).queryByRole('menuitem', {name: 'Export PAC'})).toBeNull();
     expect(within(browserProxyItem).getByRole('menuitem', {name: 'Rename'})).toBeTruthy();
-    expect(within(browserProxyItem).getByRole('menuitem', {name: 'Delete Profile'})).toBeTruthy();
+    expect(within(browserProxyItem).getByRole('menuitem', {name: 'Delete'})).toBeTruthy();
   });
 
   it('shows dismissible alerts with mapped alert classes', () => {
@@ -458,7 +458,7 @@ describe('options shell components', () => {
     const {container} = render(
       <OptionsAlert
         alert={{
-          message: 'Profile download failed.',
+          message: 'Error downloading profile data!',
           type: 'error'
         }}
         onClose={onClose}
@@ -466,7 +466,7 @@ describe('options shell components', () => {
       />
     );
 
-    expect(screen.getByText('Profile download failed.')).toBeTruthy();
+    expect(screen.getByText('Error downloading profile data!')).toBeTruthy();
     expect(container.querySelector('.alert')?.classList.contains('alert-danger')).toBe(true);
 
     fireEvent.click(screen.getByRole('button', {name: 'Close'}));

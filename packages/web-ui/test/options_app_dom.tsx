@@ -319,7 +319,7 @@ function sourceEditor() {
 }
 
 function editSwitchSourceDraft(value: string) {
-  fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+  fireEvent.click(screen.getByRole('button', {name: 'Edit source code'}));
   fireEvent.change(sourceEditor(), {
     target: {
       value: switchSource(value)
@@ -370,7 +370,7 @@ function selectModalProfile(dialog: HTMLElement, label: string, name: string) {
 }
 
 async function openNewProfileModal() {
-  fireEvent.click(screen.getByRole('button', {name: 'New profile'}));
+  fireEvent.click(screen.getByRole('button', {name: 'New profile…'}));
   const dialog = await screen.findByRole('dialog');
   expect(within(dialog).getByRole('heading', {name: 'New Profile'})).toBeTruthy();
   return dialog;
@@ -644,8 +644,10 @@ describe('options app', () => {
     await screen.findByRole('heading', {name: 'Interface'});
     expect(requests.filter((request) => (request as {method?: string}).method === 'getState')).toHaveLength(1);
 
-    fireEvent.click(screen.getByLabelText('Confirm before deleting profiles and rules.'));
-    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.');
+    fireEvent.click(screen.getByLabelText('Confirm on condition deletion.'));
+    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe(
+      'Your modifications to the options have not been saved and will be lost if you proceed!'
+    );
 
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
 
@@ -678,7 +680,11 @@ describe('options app', () => {
     const dataTransfer = createDataTransfer();
     fireEvent.dragStart(proxyItem, {dataTransfer});
     fireEvent.drop(disabledList, {dataTransfer});
-    await waitFor(() => expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.'));
+    await waitFor(() =>
+      expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe(
+        'Your modifications to the options have not been saved and will be lost if you proceed!'
+      )
+    );
 
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
 
@@ -776,7 +782,11 @@ describe('options app', () => {
     fireEvent.click(screen.getByLabelText('Tab group profiles'));
     fireEvent.click(screen.getByLabelText('Container profiles'));
     fireEvent.click(screen.getByLabelText('Normal/private defaults'));
-    await waitFor(() => expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.'));
+    await waitFor(() =>
+      expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe(
+        'Your modifications to the options have not been saved and will be lost if you proceed!'
+      )
+    );
 
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
 
@@ -869,7 +879,11 @@ describe('options app', () => {
     fireEvent.click(screen.getByLabelText('Show containers using default profile'));
     changeTableProfileSelect(screen.getByRole('table'), 'Work', 'auto');
     changeTableProfileSelect(screen.getByRole('table'), 'Personal', 'Use Default');
-    await waitFor(() => expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.'));
+    await waitFor(() =>
+      expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe(
+        'Your modifications to the options have not been saved and will be lost if you proceed!'
+      )
+    );
 
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
 
@@ -915,9 +929,13 @@ describe('options app', () => {
       'Normal windows',
       'pac'
     );
-    await waitFor(() => expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.'));
+    await waitFor(() =>
+      expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe(
+        'Your modifications to the options have not been saved and will be lost if you proceed!'
+      )
+    );
 
-    fireEvent.click(screen.getByRole('button', {name: 'New profile'}));
+    fireEvent.click(screen.getByRole('button', {name: 'New profile…'}));
 
     let dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
@@ -953,7 +971,7 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: /Profile :: proxy/});
-    const proxyServers = screen.getByRole('heading', {name: 'Proxy Servers'}).closest('section') as HTMLElement;
+    const proxyServers = screen.getByRole('heading', {name: 'Proxy servers'}).closest('section') as HTMLElement;
 
     fireEvent.change(within(proxyServers).getAllByRole('combobox')[0], {
       target: {
@@ -970,7 +988,9 @@ describe('options app', () => {
         value: '8080'
       }
     });
-    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.');
+    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe(
+      'Your modifications to the options have not been saved and will be lost if you proceed!'
+    );
 
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
 
@@ -1220,7 +1240,9 @@ describe('options app', () => {
     await createFixedProfile('newproxy');
 
     await screen.findByRole('heading', {name: /Profile :: newproxy/});
-    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.');
+    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe(
+      'Your modifications to the options have not been saved and will be lost if you proceed!'
+    );
 
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
 
@@ -1312,7 +1334,7 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: /Profile :: auto/});
-    fireEvent.click(screen.getByRole('button', {name: 'Attach Profile'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Add a rule list'}));
     fireEvent.click(screen.getByRole('button', {name: 'Rename'}));
 
     let dialog = await screen.findByRole('dialog');
@@ -1457,7 +1479,7 @@ describe('options app', () => {
       method: 'renameProfile'
     });
 
-    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Edit source code'}));
     expect(sourceEditor().value).toBe(switchSource('default:proxy'));
   });
 
@@ -1589,7 +1611,7 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: /Profile :: auto/});
-    changeTableProfileSelect(screen.getByRole('table'), 'Default Profile', 'proxy');
+    changeTableProfileSelect(screen.getByRole('table'), 'Default', 'proxy');
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
 
     await waitFor(() => expect(window.onbeforeunload).toBeNull());
@@ -1624,7 +1646,7 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: /Profile :: auto/});
-    fireEvent.click(screen.getByTitle('Delete attached profile'));
+    fireEvent.click(screen.getByTitle('Remove rule list'));
 
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('heading', {name: 'Remove Rule List'})).toBeTruthy();
@@ -1661,7 +1683,7 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: /Profile :: auto/});
-    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Edit source code'}));
     fireEvent.change(sourceEditor(), {
       target: {
         value: switchSource('proxy:HostWildcardCondition:*.example.com\ndefault:virtual')
@@ -1704,7 +1726,7 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: /Profile :: auto/});
-    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Edit source code'}));
     fireEvent.change(sourceEditor(), {
       target: {
         value: switchSource('proxy:HostWildcardCondition:*.example.com\ndefault:virtual')
@@ -1748,20 +1770,22 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: /Profile :: auto/});
-    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Edit source code'}));
     fireEvent.change(sourceEditor(), {
       target: {
         value: switchSource('proxy:HostWildcardCondition:*.example.com\ndefault:virtual')
       }
     });
-    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.');
+    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe(
+      'Your modifications to the options have not been saved and will be lost if you proceed!'
+    );
 
     fireEvent.click(screen.getByRole('button', {name: 'Discard changes'}));
     await waitFor(() => expect(window.onbeforeunload).toBeNull());
 
     fireEvent.click(screen.getByRole('link', {name: /auto/}));
     await screen.findByRole('heading', {name: /Profile :: auto/});
-    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Edit source code'}));
 
     expect(sourceEditor().value).toBe(switchSource('default:direct'));
     expect(patchRequests(requests)).toHaveLength(0);
@@ -1790,7 +1814,7 @@ describe('options app', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Discard Source'}));
 
     expect(document.querySelector('.rules-source textarea')).toBeNull();
-    expect(screen.getByRole('button', {name: 'Edit Source'})).toBeTruthy();
+    expect(screen.getByRole('button', {name: 'Edit source code'})).toBeTruthy();
     expect(window.onbeforeunload).toBeNull();
     expect(patchRequests(requests)).toHaveLength(0);
   });
@@ -1813,7 +1837,7 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: /Profile :: auto/});
-    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Edit source code'}));
     fireEvent.change(sourceEditor(), {
       target: {
         value: '[SwitchyOmega Conditions]\n@with result\n\ndefault:missing'
@@ -1825,7 +1849,9 @@ describe('options app', () => {
 
     expect(await screen.findByText('Unknown profile: missing')).toBeTruthy();
     expect(sourceEditor()).toBeTruthy();
-    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.');
+    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe(
+      'Your modifications to the options have not been saved and will be lost if you proceed!'
+    );
     expect(patchRequests(requests)).toHaveLength(0);
   });
 
@@ -1847,7 +1873,7 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: /Profile :: auto/});
-    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Edit source code'}));
     fireEvent.change(sourceEditor(), {
       target: {
         value: '[SwitchyOmega Conditions]\n@with result\n\ndefault:missing'
@@ -1911,7 +1937,7 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: /Profile :: auto/});
-    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Edit source code'}));
     fireEvent.change(sourceEditor(), {
       target: {
         value: switchSource('default:proxy')
@@ -1946,7 +1972,7 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: /Profile :: auto/});
-    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Edit source code'}));
     fireEvent.change(sourceEditor(), {
       target: {
         value: switchSource('default:missing')
@@ -1956,7 +1982,9 @@ describe('options app', () => {
 
     expect(await screen.findByText('Unknown profile: missing')).toBeTruthy();
     expect(sourceEditor()).toBeTruthy();
-    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.');
+    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe(
+      'Your modifications to the options have not been saved and will be lost if you proceed!'
+    );
     expect(patchRequests(requests)).toHaveLength(0);
   });
 
@@ -1995,14 +2023,16 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: /Profile :: auto/});
-    fireEvent.click(screen.getByRole('button', {name: 'Delete Profile'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Delete'}));
 
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('heading', {name: 'Delete Profile'})).toBeTruthy();
-    fireEvent.click(within(dialog).getByRole('button', {name: 'Delete Profile'}));
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Delete'}));
 
     await screen.findByRole('heading', {name: 'Interface'});
-    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.');
+    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe(
+      'Your modifications to the options have not been saved and will be lost if you proceed!'
+    );
 
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
 
@@ -2037,12 +2067,12 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: /Profile :: proxy/});
-    fireEvent.click(screen.getByRole('button', {name: 'Delete Profile'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Delete'}));
 
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('heading', {name: 'Unable to Delete Profile'})).toBeTruthy();
     expect(within(dialog).getByText('auto')).toBeTruthy();
-    expect(within(dialog).queryByRole('button', {name: 'Delete Profile'})).toBeNull();
+    expect(within(dialog).queryByRole('button', {name: 'Delete'})).toBeNull();
     expect(patchRequests(requests)).toHaveLength(0);
   });
 
@@ -2088,7 +2118,7 @@ describe('options app', () => {
         value: '#99dd99'
       }
     });
-    fireEvent.click(screen.getByRole('button', {name: 'Delete Profile'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Delete'}));
 
     let dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
@@ -2099,7 +2129,7 @@ describe('options app', () => {
       expect(within(dialog).getByRole('heading', {name: 'Unable to Delete Profile'})).toBeTruthy();
     });
     expect(within(dialog).getByText('auto')).toBeTruthy();
-    expect(within(dialog).queryByRole('button', {name: 'Delete Profile'})).toBeNull();
+    expect(within(dialog).queryByRole('button', {name: 'Delete'})).toBeNull();
     expect(profilePatchValue(firstPatch(requests), '+proxy')).toMatchObject({
       color: '#99dd99'
     });
@@ -2135,7 +2165,7 @@ describe('options app', () => {
     fireEvent.click(screen.getByRole('link', {name: /proxy/}));
     await applySourceDraftDialog();
     await screen.findByRole('heading', {name: /Profile :: proxy/});
-    fireEvent.click(screen.getByRole('button', {name: 'Delete Profile'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Delete'}));
 
     let dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
@@ -2146,7 +2176,7 @@ describe('options app', () => {
       expect(within(dialog).getByRole('heading', {name: 'Unable to Delete Profile'})).toBeTruthy();
     });
     expect(within(dialog).getByText('auto')).toBeTruthy();
-    expect(within(dialog).queryByRole('button', {name: 'Delete Profile'})).toBeNull();
+    expect(within(dialog).queryByRole('button', {name: 'Delete'})).toBeNull();
     expect(profilePatchValue(firstPatch(requests), '+auto')).toMatchObject({
       defaultProfileName: 'proxy'
     });
@@ -2171,7 +2201,7 @@ describe('options app', () => {
 
     await screen.findByRole('heading', {name: /Profile :: auto/});
     editSwitchSourceDraft('default:missing');
-    fireEvent.click(screen.getByRole('button', {name: 'Delete Profile'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Delete'}));
 
     await applySourceDraftDialog();
 
@@ -2200,7 +2230,7 @@ describe('options app', () => {
 
     await screen.findByRole('heading', {name: /Profile :: auto/});
     editSwitchSourceDraft('default:proxy');
-    fireEvent.click(screen.getByRole('button', {name: 'Delete Profile'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Delete'}));
 
     const dialog = await sourceDraftDialog();
     fireEvent.click(within(dialog).getByRole('button', {name: 'Cancel'}));
@@ -2229,14 +2259,14 @@ describe('options app', () => {
 
     await screen.findByRole('heading', {name: /Profile :: auto/});
     editSwitchSourceDraft('default:proxy');
-    fireEvent.click(screen.getByRole('button', {name: 'Delete Profile'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Delete'}));
 
     let dialog = await sourceDraftDialog();
     fireEvent.click(within(dialog).getByRole('button', {name: 'Discard Source'}));
 
     dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('heading', {name: 'Delete Profile'})).toBeTruthy();
-    fireEvent.click(within(dialog).getByRole('button', {name: 'Delete Profile'}));
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Delete'}));
 
     await screen.findByRole('heading', {name: 'Interface'});
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
@@ -2260,8 +2290,8 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: 'Interface'});
-    fireEvent.click(screen.getByLabelText('Confirm before deleting profiles and rules.'));
-    fireEvent.click(screen.getByRole('button', {name: 'New profile'}));
+    fireEvent.click(screen.getByLabelText('Confirm on condition deletion.'));
+    fireEvent.click(screen.getByRole('button', {name: 'New profile…'}));
 
     let dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
@@ -2303,7 +2333,7 @@ describe('options app', () => {
 
     await screen.findByRole('heading', {name: /Profile :: auto/});
     editSwitchSourceDraft('proxy:HostWildcardCondition:*.example.com\ndefault:virtual');
-    fireEvent.click(screen.getByRole('button', {name: 'New profile'}));
+    fireEvent.click(screen.getByRole('button', {name: 'New profile…'}));
 
     await applySourceDraftDialog();
     let dialog = await screen.findByRole('dialog');
@@ -2370,7 +2400,7 @@ describe('options app', () => {
         value: pacScript
       }
     });
-    fireEvent.click(screen.getByRole('button', {name: 'Delete Profile'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Delete'}));
 
     let dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
@@ -2378,7 +2408,7 @@ describe('options app', () => {
 
     dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('heading', {name: 'Delete Profile'})).toBeTruthy();
-    fireEvent.click(within(dialog).getByRole('button', {name: 'Delete Profile'}));
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Delete'}));
 
     await screen.findByRole('heading', {name: 'Interface'});
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
@@ -2411,11 +2441,11 @@ describe('options app', () => {
 
     await screen.findByRole('heading', {name: 'About'});
 
-    fireEvent.click(screen.getByRole('button', {name: 'Reset'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Reset options'}));
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('heading', {name: 'Reset Options'})).toBeTruthy();
 
-    fireEvent.click(within(dialog).getByRole('button', {name: 'Reset'}));
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Reset options'}));
 
     await waitFor(() =>
       expect(requests).toContainEqual({
@@ -2447,14 +2477,16 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: 'Interface'});
-    fireEvent.click(screen.getByLabelText('Confirm before deleting profiles and rules.'));
-    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.');
+    fireEvent.click(screen.getByLabelText('Confirm on condition deletion.'));
+    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe(
+      'Your modifications to the options have not been saved and will be lost if you proceed!'
+    );
 
     fireEvent.click(screen.getByRole('link', {name: 'SwitchyAgain'}));
     await screen.findByRole('heading', {name: 'About'});
-    fireEvent.click(screen.getByRole('button', {name: 'Reset'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Reset options'}));
     const dialog = await screen.findByRole('dialog');
-    fireEvent.click(within(dialog).getByRole('button', {name: 'Reset'}));
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Reset options'}));
 
     await waitFor(() =>
       expect(requests).toContainEqual({
@@ -2494,8 +2526,10 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: 'Interface'});
-    fireEvent.click(screen.getByLabelText('Confirm before deleting profiles and rules.'));
-    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.');
+    fireEvent.click(screen.getByLabelText('Confirm on condition deletion.'));
+    expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe(
+      'Your modifications to the options have not been saved and will be lost if you proceed!'
+    );
 
     fireEvent.click(screen.getByRole('link', {name: 'Import/Export'}));
     await screen.findByRole('heading', {name: 'Import/Export'});
@@ -2533,7 +2567,7 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: 'Interface'});
-    fireEvent.click(screen.getByLabelText('Confirm before deleting profiles and rules.'));
+    fireEvent.click(screen.getByLabelText('Confirm on condition deletion.'));
     fireEvent.click(screen.getByRole('link', {name: 'Import/Export'}));
     await screen.findByRole('heading', {name: 'Import/Export'});
 
@@ -2590,7 +2624,7 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: /Profile :: auto/});
-    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Edit source code'}));
     fireEvent.change(sourceEditor(), {
       target: {
         value: switchSource('proxy:HostWildcardCondition:*.example.com\ndefault:virtual')
@@ -2647,11 +2681,13 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: 'Interface'});
-    fireEvent.click(screen.getByLabelText('Confirm before deleting profiles and rules.'));
+    fireEvent.click(screen.getByLabelText('Confirm on condition deletion.'));
     fireEvent.click(screen.getByRole('link', {name: 'Import/Export'}));
     await screen.findByRole('heading', {name: 'Import/Export'});
 
-    fireEvent.click(screen.getByLabelText('Export legacy rule lists'));
+    fireEvent.click(
+      screen.getByLabelText('Export rule lists using Proxy Switchy!/SwitchyPlus/SwitchySharp compatible format when possible.')
+    );
 
     await waitFor(() => expect(patchRequests(requests)).toHaveLength(2));
     const patches = patchRequests(requests);
@@ -2678,11 +2714,11 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: 'Interface'});
-    fireEvent.click(screen.getByLabelText('Confirm before deleting profiles and rules.'));
+    fireEvent.click(screen.getByLabelText('Confirm on condition deletion.'));
     fireEvent.click(screen.getByRole('link', {name: 'Import/Export'}));
     await screen.findByRole('heading', {name: 'Import/Export'});
 
-    fireEvent.click(screen.getByRole('button', {name: 'Reset sync'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Clear remote copy'}));
 
     await waitFor(() =>
       expect(requests).toContainEqual({
@@ -2790,8 +2826,8 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: /Profile :: auto/});
-    changeTableProfileSelect(screen.getByRole('table'), 'Default Profile', 'proxy');
-    fireEvent.click(screen.getByRole('button', {name: 'Export Rule List'}));
+    changeTableProfileSelect(screen.getByRole('table'), 'Default', 'proxy');
+    fireEvent.click(screen.getByRole('button', {name: 'Publish rule list'}));
 
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
@@ -2848,13 +2884,13 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: /Profile :: auto/});
-    fireEvent.click(screen.getByRole('button', {name: 'Edit Source'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Edit source code'}));
     fireEvent.change(sourceEditor(), {
       target: {
         value: switchSource('proxy:HostWildcardCondition:*.example.com\ndefault:virtual')
       }
     });
-    fireEvent.click(screen.getByRole('button', {name: 'Export Rule List'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Publish rule list'}));
 
     await applySourceDraftDialog();
     const dialog = await screen.findByRole('dialog');
@@ -2921,8 +2957,8 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: /Profile :: auto/});
-    changeTableProfileSelect(screen.getByRole('table'), 'Default Profile', 'proxy');
-    fireEvent.click(screen.getByRole('button', {name: 'Export Rule List'}));
+    changeTableProfileSelect(screen.getByRole('table'), 'Default', 'proxy');
+    fireEvent.click(screen.getByRole('button', {name: 'Publish rule list'}));
 
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('heading', {name: 'Apply Options'})).toBeTruthy();
@@ -2965,7 +3001,7 @@ describe('options app', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Export PAC'}));
 
     await waitFor(() => expect(anchorClicks).toHaveLength(1));
-    expect(await screen.findByText(/Profile not found/)).toBeTruthy();
+    expect(await screen.findByText(/does not exist/)).toBeTruthy();
   });
 
   it('shows an error instead of exporting when a switch profile attached rule list is missing', async () => {
@@ -2987,9 +3023,9 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: /Profile :: auto/});
-    fireEvent.click(screen.getByRole('button', {name: 'Export Rule List'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Publish rule list'}));
 
-    expect(await screen.findByText(/Profile not found/)).toBeTruthy();
+    expect(await screen.findByText(/does not exist/)).toBeTruthy();
     expect(anchorClicks).toHaveLength(0);
     expect(patchRequests(requests)).toHaveLength(0);
   });
@@ -3143,7 +3179,7 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: /Profile :: pac/});
-    fireEvent.click(screen.getByTitle('Proxy Authentication'));
+    fireEvent.click(screen.getByTitle('Authentication'));
 
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('heading', {name: 'Proxy Authentication'})).toBeTruthy();
@@ -3188,7 +3224,7 @@ describe('options app', () => {
     render(<OptionsApp />);
 
     await screen.findByRole('heading', {name: /Profile :: pac/});
-    fireEvent.click(screen.getByTitle('Proxy Authentication'));
+    fireEvent.click(screen.getByTitle('Authentication'));
 
     let dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByRole('heading', {name: 'Proxy Authentication'})).toBeTruthy();
@@ -3202,10 +3238,14 @@ describe('options app', () => {
         value: 'next-pass'
       }
     });
-    fireEvent.click(within(dialog).getByRole('button', {name: 'Save'}));
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Save changes'}));
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    await waitFor(() => expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe('Options are not saved.'));
+    await waitFor(() =>
+      expect(window.onbeforeunload?.({} as BeforeUnloadEvent)).toBe(
+        'Your modifications to the options have not been saved and will be lost if you proceed!'
+      )
+    );
 
     fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
 

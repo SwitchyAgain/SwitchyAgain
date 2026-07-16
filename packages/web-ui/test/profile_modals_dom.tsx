@@ -78,7 +78,7 @@ describe('profile modal components', () => {
       }
     });
     fireEvent.click(screen.getByRole('button', {name: 'Profile color'}));
-    fireEvent.click(screen.getByRole('button', {name: 'Use #99dd99'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Use color #99dd99'}));
     fireEvent.click(screen.getByRole('button', {name: 'Create'}));
 
     expect(onClose).toHaveBeenCalledWith({
@@ -169,7 +169,7 @@ describe('profile modal components', () => {
     });
     fireEvent.click(screen.getByRole('radio', {name: /Duplicate/}));
     fireEvent.click(screen.getByRole('button', {name: 'Profile color'}));
-    fireEvent.click(screen.getByRole('button', {name: 'Use #99dd99'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Use color #99dd99'}));
     fireEvent.click(screen.getByRole('listbox', {name: 'Profile'}));
     fireEvent.click(screen.getByRole('option', {name: /proxy/}).querySelector('a') as HTMLAnchorElement);
     fireEvent.click(screen.getByRole('button', {name: 'Create'}));
@@ -211,7 +211,7 @@ describe('profile modal components', () => {
         value: 'next-pass'
       }
     });
-    fireEvent.click(screen.getByRole('button', {name: 'Save'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Save changes'}));
 
     expect(onClose).toHaveBeenCalledWith({
       password: 'next-pass',
