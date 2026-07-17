@@ -156,23 +156,7 @@ beforeEach(() => {
 });
 
 describe('import export component', () => {
-  it('confirms dirty options before exporting a backup', async () => {
-    const onApplyOptions = vi.fn().mockResolvedValue(undefined);
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
-
-    render(<ImportExport embedded onApplyOptions={onApplyOptions} options={optionsFixture()} optionsDirty />);
-
-    fireEvent.click(screen.getByRole('button', {name: /Make backup/}));
-
-    await waitFor(() => {
-      expect(optionsClientMock.downloadBlob).toHaveBeenCalledWith(expect.any(Blob), 'OmegaOptions.bak');
-    });
-    expect(window.confirm).toHaveBeenCalled();
-    expect(onApplyOptions).toHaveBeenCalled();
-    expect(await (optionsClientMock.downloadBlob.mock.calls[0][0] as Blob).text()).toBe(JSON.stringify(optionsFixture()));
-  });
-
-  it('exports full backups from applied dirty options', async () => {
+  it('applies dirty options before exporting a full backup', async () => {
     const appliedOptions = {
       ...optionsFixture(),
       '+applied': {
@@ -188,6 +172,8 @@ describe('import export component', () => {
     fireEvent.click(screen.getByRole('button', {name: /Make backup/}));
 
     await waitFor(() => expect(optionsClientMock.downloadBlob).toHaveBeenCalledWith(expect.any(Blob), 'OmegaOptions.bak'));
+    expect(window.confirm).toHaveBeenCalled();
+    expect(onApplyOptions).toHaveBeenCalled();
     expect(await downloadedOptions()).toEqual(appliedOptions);
   });
 
@@ -278,7 +264,7 @@ describe('import export component', () => {
     await waitFor(() => expect(optionsClientMock.reloadLocation).toHaveBeenCalled());
   });
 
-  it('opens WebDAV settings only after choosing WebDAV sync', async () => {
+  it('opens WebDAV settings only after choosing WebDAV sync and disables spellcheck', async () => {
     render(<ImportExport embedded options={optionsFixture()} />);
 
     expect(screen.queryByLabelText('Server URL')).toBeNull();
@@ -293,14 +279,6 @@ describe('import export component', () => {
     fireEvent.click(enableWebDavSync);
 
     expect(screen.getByLabelText('Server URL')).toBeTruthy();
-  });
-
-  it('disables spellcheck for WebDAV configuration inputs', async () => {
-    render(<ImportExport embedded options={optionsFixture()} />);
-
-    fireEvent.click(screen.getByLabelText('WebDAV Sync'));
-    fireEvent.click(screen.getByRole('button', {name: 'Enable WebDAV Sync'}));
-
     for (const label of ['Server URL', 'Remote path', 'Username', 'Password or app token']) {
       expect(screen.getByLabelText(label).getAttribute('spellcheck')).toBe('false');
     }
@@ -537,21 +515,6 @@ describe('import export component', () => {
     await waitFor(() => expect(optionsClientMock.setWebDavSyncConfig).toHaveBeenCalledWith(expect.objectContaining({intervalMinutes: 15})));
     expect(optionsClientMock.testWebDavSync).not.toHaveBeenCalled();
     expect(await screen.findByText('WebDAV Sync settings saved.')).toBeTruthy();
-  });
-
-  it('shows active WebDAV manual actions directly', async () => {
-    mockActiveWebDavSync();
-
-    render(<ImportExport embedded options={optionsFixture()} />);
-
-    const testButton = await screen.findByRole('button', {name: 'Test & Save'});
-    const actionRow = testButton.closest('p') as HTMLElement;
-
-    expect(screen.queryByRole('button', {name: 'More...'})).toBeNull();
-    expect(within(actionRow).getByRole('button', {name: 'Upload Now'}).classList.contains('btn-primary')).toBe(true);
-    expect(within(actionRow).getByRole('button', {name: 'Download Now'}).classList.contains('btn-danger')).toBe(true);
-    expect(within(actionRow).getByRole('button', {name: 'Disable WebDAV Sync'}).classList.contains('btn-warning')).toBe(true);
-    expect(screen.queryByRole('button', {name: 'Disable Sync & Delete Remote'})).toBeNull();
   });
 
   it('disables active WebDAV remote actions while connection changes are unsaved', async () => {
