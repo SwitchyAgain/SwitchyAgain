@@ -1,0 +1,802 @@
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {useOutsidePointer} from './dom_event_hooks';
+import {message} from './i18n_client';
+import type {Options} from './options_client_types';
+import {cloneOptions, updateProfileRevision} from './options_logic';
+import {fixedProfileBypassList, fixedProfileBypassText} from './profile_content_logic';
+import {ProfileGroupInline, profileGroupsEnabled, profileGroupsForOptions, type ProfileGroup} from './profile_groups';
+import type {FixedProfileBypassGroup, SupplementalBypassList} from './profile_types';
+import {ProfileInline, profilesForFilter} from './profile_widgets';
+import {
+  addSupplementalList,
+  DEFAULT_SUPPLEMENTAL_LIST_ID,
+  ensureDefaultSupplementalList,
+  supplementalListNameError,
+  supplementalListsForOptions
+} from './supplemental_lists';
+
+type GroupDraft = {enabled: boolean; name: string; text: string};
+type ListModalState = {kind: 'create'} | {kind: 'rename'; list: SupplementalBypassList} | null;
+
+function groupDrafts(groups?: FixedProfileBypassGroup[]): GroupDraft[] {
+  return (groups || []).map((group) => ({
+    enabled: group.enabled !== false,
+    name: group.name || '',
+    text: fixedProfileBypassText({bypassList: group.bypassList})
+  }));
+}
+
+function groupsFromDrafts(value: GroupDraft[]): FixedProfileBypassGroup[] {
+  return value.map((group) => ({
+    bypassList: fixedProfileBypassList(group.text),
+    ...(group.name ? {name: group.name} : {}),
+    ...(group.enabled ? {} : {enabled: false})
+  }));
+}
+
+function SupplementalListContentEditor({
+  list,
+  showGroups,
+  showListName = false,
+  onChange
+}: {
+  list: SupplementalBypassList;
+  showGroups: boolean;
+  showListName?: boolean;
+  onChange: (list: SupplementalBypassList) => void;
+}) {
+  const [listText, setListText] = useState(() => fixedProfileBypassText({bypassList: list.bypassList}));
+  const [groups, setGroups] = useState<GroupDraft[]>(() => groupDrafts(list.bypassGroups));
+
+  useEffect(() => {
+    setListText(fixedProfileBypassText({bypassList: list.bypassList}));
+    setGroups(groupDrafts(list.bypassGroups));
+  }, [list.id, list.bypassList, list.bypassGroups]);
+
+  function commit(nextText = listText, nextGroups = groups) {
+    onChange({
+      ...list,
+      bypassList: fixedProfileBypassList(nextText),
+      bypassGroups: groupsFromDrafts(nextGroups)
+    });
+  }
+
+  function updateGroup(index: number, patch: Partial<GroupDraft>) {
+    const next = groups.map((group, groupIndex) => (groupIndex === index ? {...group, ...patch} : group));
+    setGroups(next);
+    commit(listText, next);
+  }
+
+  return (
+    <div className={`supplemental-list-content-item${showListName ? ' supplemental-list-content-item-all' : ''}`}>
+      {showListName && <h4 className="supplemental-list-content-name">{list.name}</h4>}
+      <p className="help-block">
+        {message('options_bypassListHelp', 'Servers for which you do not want to use any proxy: (One server on each line.)')}
+      </p>
+      <p className="help-block">
+        <a href="https://developer.chrome.com/extensions/proxy#bypass_list" target="_blank" rel="noreferrer">
+          {message('options_bypassListHelpLinkText', '(Wildcards and more available…)')}
+        </a>
+      </p>
+      <textarea
+        className="monospace form-control width-limit"
+        rows={10}
+        spellCheck={false}
+        value={listText}
+        onChange={(event) => setListText(event.currentTarget.value)}
+        onBlur={() => commit()}
+      />
+      {showGroups &&
+        groups.map((group, index) => (
+          <div className="fixed-bypass-group" key={index}>
+            <div className="fixed-bypass-group-header width-limit">
+              <label htmlFor={`supplemental-list-${list.id}-group-name-${index}`}>{message('options_bypassGroupName', 'Group name')}</label>
+              <input
+                id={`supplemental-list-${list.id}-group-name-${index}`}
+                className="form-control"
+                spellCheck={false}
+                type="text"
+                value={group.name}
+                onChange={(event) => updateGroup(index, {name: event.currentTarget.value})}
+              />
+              <button
+                type="button"
+                className="btn btn-danger"
+                title={message('options_deleteBypassGroup', 'Delete group')}
+                onClick={() => {
+                  const next = groups.filter((_item, i) => i !== index);
+                  setGroups(next);
+                  commit(listText, next);
+                }}
+              >
+                <span className="glyphicon glyphicon-trash" />
+              </button>
+            </div>
+            <label className="profile-switch-label fixed-bypass-group-switch">
+              <input
+                type="checkbox"
+                role="switch"
+                checked={group.enabled}
+                onChange={(event) => updateGroup(index, {enabled: event.currentTarget.checked})}
+              />
+              <span className="profile-switch" aria-hidden="true">
+                <span className="profile-switch-knob" />
+              </span>
+              <span>{message('options_enableBypassGroup', 'Enable this list group')}</span>
+            </label>
+            <textarea
+              className="monospace form-control width-limit fixed-bypass-group-textarea"
+              rows={10}
+              spellCheck={false}
+              value={group.text}
+              onChange={(event) => setGroups(groups.map((item, i) => (i === index ? {...item, text: event.currentTarget.value} : item)))}
+              onBlur={() => commit()}
+            />
+          </div>
+        ))}
+      {showGroups && (
+        <p className="fixed-bypass-group-add">
+          <button
+            type="button"
+            className="btn btn-default"
+            onClick={() => {
+              const next = groups.concat({enabled: true, name: '', text: ''});
+              setGroups(next);
+              commit(listText, next);
+            }}
+          >
+            <span className="glyphicon glyphicon-plus" /> <span>{message('options_addBypassGroup', 'Add a new list group')}</span>
+          </button>
+        </p>
+      )}
+    </div>
+  );
+}
+
+function SupplementalListSelect({
+  ariaLabel,
+  disabled = false,
+  lists,
+  value,
+  onChange
+}: {
+  ariaLabel: string;
+  disabled?: boolean;
+  lists: SupplementalBypassList[];
+  value: string;
+  onChange: (listId: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const selected = lists.find((list) => list.id === value) || lists[0];
+  useOutsidePointer(rootRef, () => setOpen(false), open);
+  return (
+    <div ref={rootRef} className={`btn-group supplemental-list-select ${open ? 'open' : ''}`}>
+      <button
+        type="button"
+        className="btn btn-default dropdown-toggle"
+        aria-expanded={open ? 'true' : 'false'}
+        aria-haspopup="true"
+        aria-label={ariaLabel}
+        disabled={disabled || !selected}
+        onClick={() => setOpen(!open)}
+      >
+        <span>{selected?.name || message('options_supplementalListNone', 'No lists')}</span> <span className="caret" />
+      </button>
+      {open && (
+        <ul className="dropdown-menu" role="listbox">
+          {lists.map((list) => (
+            <li key={list.id} role="option" className={list.id === selected?.id ? 'active' : ''}>
+              <a
+                onClick={() => {
+                  onChange(list.id);
+                  setOpen(false);
+                }}
+              >
+                {list.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function ListNameModal({
+  currentListId,
+  initialName = '',
+  lists,
+  action,
+  title,
+  onCancel,
+  onSubmit
+}: {
+  currentListId?: string;
+  initialName?: string;
+  lists: SupplementalBypassList[];
+  action: string;
+  title: string;
+  onCancel: () => void;
+  onSubmit: (name: string) => void;
+}) {
+  const [name, setName] = useState(initialName);
+  const trimmed = name.trim();
+  const error = supplementalListNameError(trimmed, lists, currentListId);
+  return (
+    <>
+      <div className="modal-backdrop fade in" />
+      <div className="modal fade in options-modal" role="dialog" style={{display: 'flex'}} tabIndex={-1}>
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <button type="button" className="close" aria-label={message('options_modalClose', 'Close')} onClick={onCancel}>
+                <span aria-hidden="true">{'×'}</span>
+              </button>
+              <h4 className="modal-title">{title}</h4>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label>{message('options_supplementalListName', 'List name')}</label>
+                <input
+                  autoFocus
+                  className="form-control"
+                  spellCheck={false}
+                  type="text"
+                  value={name}
+                  onChange={(event) => setName(event.currentTarget.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' && !error) onSubmit(trimmed);
+                  }}
+                />
+                {error && <p className="help-block text-danger">{error}</p>}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-default" onClick={onCancel}>
+                {message('options_cancel', 'Cancel')}
+              </button>
+              <button type="button" className="btn btn-primary" disabled={!!error} onClick={() => onSubmit(trimmed)}>
+                {action}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function ProfileLinksModal({
+  list,
+  options,
+  onCancel,
+  onSave
+}: {
+  list: SupplementalBypassList;
+  options: Options;
+  onCancel: () => void;
+  onSave: (profileNames: Set<string>) => void;
+}) {
+  const profiles = profilesForFilter(options, 'sorted').filter((profile) => profile.profileType === 'FixedProfile');
+  const [selected, setSelected] = useState(
+    () => new Set(profiles.filter((profile) => profile.supplementalListIds?.includes(list.id)).map((profile) => profile.name))
+  );
+  return (
+    <>
+      <div className="modal-backdrop fade in" />
+      <div className="modal fade in options-modal" role="dialog" style={{display: 'flex'}} tabIndex={-1}>
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <button type="button" className="close" aria-label={message('options_modalClose', 'Close')} onClick={onCancel}>
+                <span aria-hidden="true">{'×'}</span>
+              </button>
+              <h4 className="modal-title">
+                {message('options_supplementalListProfilesTitle', `Proxy Profiles for ${list.name}`, list.name)}
+              </h4>
+            </div>
+            <div className="modal-body supplemental-list-profile-links">
+              {profiles.map((profile) => (
+                <div className="checkbox" key={profile.name}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={selected.has(profile.name)}
+                      onChange={(event) => {
+                        const next = new Set(selected);
+                        if (event.currentTarget.checked) next.add(profile.name);
+                        else next.delete(profile.name);
+                        setSelected(next);
+                      }}
+                    />{' '}
+                    <ProfileInline profile={profile} />
+                  </label>
+                </div>
+              ))}
+              {!profiles.length && (
+                <p className="text-muted">{message('options_supplementalListNoProfiles', 'No Proxy Profiles are available.')}</p>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-default" onClick={onCancel}>
+                {message('options_cancel', 'Cancel')}
+              </button>
+              <button type="button" className="btn btn-primary" onClick={() => onSave(selected)}>
+                {message('options_save', 'Save')}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function GroupLinksModal({
+  list,
+  groups,
+  onCancel,
+  onSave
+}: {
+  list: SupplementalBypassList;
+  groups: ProfileGroup[];
+  onCancel: () => void;
+  onSave: (groupIds: Set<string>) => void;
+}) {
+  const [selected, setSelected] = useState(
+    () => new Set(groups.filter((group) => group.supplementalListIds?.includes(list.id)).map((group) => group.id))
+  );
+  return (
+    <>
+      <div className="modal-backdrop fade in" />
+      <div className="modal fade in options-modal" role="dialog" style={{display: 'flex'}} tabIndex={-1}>
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <button type="button" className="close" aria-label={message('options_modalClose', 'Close')} onClick={onCancel}>
+                <span aria-hidden="true">{'×'}</span>
+              </button>
+              <h4 className="modal-title">
+                {message('options_supplementalListGroupsTitle', `Profile Groups for ${list.name}`, list.name)}
+              </h4>
+            </div>
+            <div className="modal-body">
+              {groups.map((group) => (
+                <div className="checkbox" key={group.id}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={selected.has(group.id)}
+                      onChange={(event) => {
+                        const next = new Set(selected);
+                        if (event.currentTarget.checked) next.add(group.id);
+                        else next.delete(group.id);
+                        setSelected(next);
+                      }}
+                    />{' '}
+                    {group.name}
+                  </label>
+                </div>
+              ))}
+              {!groups.length && (
+                <p className="text-muted">{message('options_supplementalListNoGroups', 'No Profile Groups are available.')}</p>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-default" onClick={onCancel}>
+                {message('options_cancel', 'Cancel')}
+              </button>
+              <button type="button" className="btn btn-primary" onClick={() => onSave(selected)}>
+                {message('options_save', 'Save')}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export function ProxyExceptionsPage({options, onOptionsChange}: {options: Options; onOptionsChange: (options: Options) => void}) {
+  const lists = useMemo(() => supplementalListsForOptions(options), [options]);
+  const [selectedListId, setSelectedListId] = useState(lists[0]?.id || '');
+  const [showAllLists, setShowAllLists] = useState(false);
+  const [listModal, setListModal] = useState<ListModalState>(null);
+  const [deleteListState, setDeleteListState] = useState<SupplementalBypassList | null>(null);
+  const [profileLinksList, setProfileLinksList] = useState<SupplementalBypassList | null>(null);
+  const [groupLinksList, setGroupLinksList] = useState<SupplementalBypassList | null>(null);
+  const showGroups = Boolean(options['-showProxyExceptionsBypassListGroups']);
+  const selectedList = lists.find((list) => list.id === selectedListId) || lists[0];
+  const globalListId = lists.some((list) => list.id === options['-globalBypassListId'])
+    ? (options['-globalBypassListId'] as string)
+    : lists[0]?.id || '';
+  const profiles = useMemo(
+    () => profilesForFilter(options, 'sorted').filter((profile) => profile.profileType === 'FixedProfile'),
+    [options]
+  );
+  const groupsEnabled = profileGroupsEnabled(options);
+  const profileGroups = useMemo(() => profileGroupsForOptions(options), [options]);
+
+  useEffect(() => {
+    if (lists.some((list) => list.id === DEFAULT_SUPPLEMENTAL_LIST_ID) || options['-proxyExceptionsEnabled'] !== true) return;
+    const next = cloneOptions(options);
+    ensureDefaultSupplementalList(next);
+    onOptionsChange(next);
+  }, [lists.length, onOptionsChange, options]);
+
+  useEffect(() => {
+    if (!selectedList) setSelectedListId('');
+    else if (selectedList.id !== selectedListId) setSelectedListId(selectedList.id);
+  }, [selectedList?.id]);
+
+  function updateOptions(updater: (next: Options) => void) {
+    const next = cloneOptions(options);
+    updater(next);
+    onOptionsChange(next);
+  }
+
+  function updateListContent(updatedList: SupplementalBypassList) {
+    updateOptions((next) => {
+      next['-supplementalLists'] = supplementalListsForOptions(next).map((list) => (list.id === updatedList.id ? updatedList : list));
+    });
+  }
+
+  function linkedProfiles(listId: string) {
+    return profiles.filter((profile) => profile.supplementalListIds?.includes(listId));
+  }
+
+  function linkedGroups(listId: string) {
+    return profileGroups.filter((group) => group.supplementalListIds?.includes(listId));
+  }
+
+  function createList(name: string) {
+    let createdId = '';
+    updateOptions((next) => {
+      createdId = addSupplementalList(next, name).id;
+    });
+    setSelectedListId(createdId);
+    setListModal(null);
+  }
+
+  function renameList(name: string) {
+    if (listModal?.kind !== 'rename') return;
+    const listId = listModal.list.id;
+    updateOptions((next) => {
+      next['-supplementalLists'] = supplementalListsForOptions(next).map((list) => (list.id === listId ? {...list, name} : list));
+    });
+    setListModal(null);
+  }
+
+  function deleteList(list: SupplementalBypassList) {
+    if (list.id === DEFAULT_SUPPLEMENTAL_LIST_ID) return;
+    const index = lists.findIndex((candidate) => candidate.id === list.id);
+    const remaining = lists.filter((candidate) => candidate.id !== list.id);
+    const fallback = remaining.find((candidate) => candidate.id === DEFAULT_SUPPLEMENTAL_LIST_ID);
+    updateOptions((next) => {
+      next['-supplementalLists'] = supplementalListsForOptions(next).filter((candidate) => candidate.id !== list.id);
+      if (next['-globalBypassListId'] === list.id) next['-globalBypassListId'] = fallback?.id || '';
+      profilesForFilter(next).forEach((profile) => {
+        if (!profile.supplementalListIds?.includes(list.id)) return;
+        profile.supplementalListIds = profile.supplementalListIds.filter((id) => id !== list.id);
+        updateProfileRevision(profile);
+      });
+      next['-profileGroups'] = profileGroupsForOptions(next).map((group) => ({
+        ...group,
+        supplementalListIds: (group.supplementalListIds || []).filter((id) => id !== list.id)
+      }));
+    });
+    if (selectedListId === list.id) setSelectedListId(fallback?.id || '');
+    setDeleteListState(null);
+  }
+
+  function saveProfileLinks(list: SupplementalBypassList, selectedNames: Set<string>) {
+    updateOptions((next) => {
+      profilesForFilter(next).forEach((profile) => {
+        if (profile.profileType !== 'FixedProfile') return;
+        const ids = new Set(Array.isArray(profile.supplementalListIds) ? profile.supplementalListIds : []);
+        if (selectedNames.has(profile.name)) ids.add(list.id);
+        else ids.delete(list.id);
+        profile.supplementalListIds = Array.from(ids);
+        updateProfileRevision(profile);
+      });
+    });
+    setProfileLinksList(null);
+  }
+
+  function saveGroupLinks(list: SupplementalBypassList, selectedGroupIds: Set<string>) {
+    updateOptions((next) => {
+      next['-profileGroups'] = profileGroupsForOptions(next).map((group) => {
+        const ids = new Set(group.supplementalListIds || []);
+        if (selectedGroupIds.has(group.id)) ids.add(list.id);
+        else ids.delete(list.id);
+        return {...group, supplementalListIds: Array.from(ids)};
+      });
+    });
+    setGroupLinksList(null);
+  }
+
+  const deleteListProfiles = deleteListState ? linkedProfiles(deleteListState.id) : [];
+  const deleteListGroups = deleteListState ? linkedGroups(deleteListState.id) : [];
+  const deleteListHasLinks = deleteListProfiles.length > 0 || deleteListGroups.length > 0;
+  const deleteListIsGlobal = deleteListState?.id === globalListId;
+
+  return (
+    <div className="proxy-exceptions-page">
+      <div className="page-header">
+        <h2>{message('options_tab_proxyExceptions', 'Proxy Exceptions')}</h2>
+      </div>
+
+      <section className="settings-group">
+        <h3>{message('options_proxyExceptionsGlobalHeading', 'Global Bypass')}</h3>
+        <p className="help-block">
+          {message('options_proxyExceptionsGlobalHelp', 'Choose a Supplemental List to apply to all Proxy Profiles.')}
+        </p>
+        <div className="form-group proxy-exceptions-list-control">
+          <label>{message('options_globalBypassList', 'Global Bypass List')}</label>
+          <SupplementalListSelect
+            ariaLabel={message('options_globalBypassList', 'Global Bypass List')}
+            lists={lists}
+            value={globalListId}
+            onChange={(listId) =>
+              updateOptions((next) => {
+                next['-globalBypassListId'] = listId;
+              })
+            }
+          />
+        </div>
+      </section>
+
+      <section className="settings-group profile-groups-settings-group">
+        <div className="profile-scope-section-heading">
+          <h3>{message('options_supplementalListsHeading', 'Supplemental Lists')}</h3>
+          <button className="btn btn-default" type="button" onClick={() => setListModal({kind: 'create'})}>
+            <span className="glyphicon glyphicon-plus" aria-hidden="true" /> {message('options_supplementalListNew', 'New List')}
+          </button>
+        </div>
+        <p className="help-block">
+          {message(
+            'options_supplementalListsHelp',
+            'Create and manage Bypass Lists that can be used globally or linked to selected Proxy Profiles.'
+          )}
+        </p>
+        {lists.length ? (
+          <table className="table table-striped profile-groups-table supplemental-lists-table">
+            <thead>
+              <tr>
+                <th>{message('options_supplementalListColumnList', 'List')}</th>
+                <th>{message('options_supplementalListColumnDirectProfiles', 'Direct Profiles')}</th>
+                {groupsEnabled && <th>{message('options_supplementalListColumnProfileGroups', 'Profile Groups')}</th>}
+                <th>{message('options_profileGroupColumnActions', 'Actions')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lists.map((list) => (
+                <tr key={list.id}>
+                  <td>
+                    {list.name}
+                    {list.id === globalListId && (
+                      <span className="label label-info supplemental-list-global-label">
+                        {message('options_supplementalListGlobalLabel', 'Global')}
+                      </span>
+                    )}
+                  </td>
+                  <td className="profile-groups-count-cell">{linkedProfiles(list.id).length}</td>
+                  {groupsEnabled && <td className="profile-groups-count-cell">{linkedGroups(list.id).length}</td>}
+                  <td className="profile-groups-actions-cell">
+                    <span className="profile-groups-actions">
+                      <button
+                        className="btn btn-default btn-sm"
+                        type="button"
+                        title={message('options_rename', 'Rename')}
+                        onClick={() => setListModal({kind: 'rename', list})}
+                      >
+                        <span className="glyphicon glyphicon-edit" aria-hidden="true" />
+                      </button>
+                      <button
+                        className="btn btn-default btn-sm"
+                        type="button"
+                        title={message('options_supplementalListManageProfiles', 'Manage Profiles')}
+                        onClick={() => setProfileLinksList(list)}
+                      >
+                        <span className="glyphicon glyphicon-arrow-right" aria-hidden="true" />
+                      </button>
+                      {groupsEnabled && (
+                        <button
+                          className="btn btn-default btn-sm"
+                          type="button"
+                          title={message('options_supplementalListManageGroups', 'Manage Profile Groups')}
+                          onClick={() => setGroupLinksList(list)}
+                        >
+                          <span className="glyphicon glyphicon-folder-close" aria-hidden="true" />
+                        </button>
+                      )}
+                      <button
+                        className="btn btn-danger btn-sm"
+                        type="button"
+                        disabled={list.id === DEFAULT_SUPPLEMENTAL_LIST_ID}
+                        title={
+                          list.id === DEFAULT_SUPPLEMENTAL_LIST_ID
+                            ? message('options_defaultSupplementalListCannotDelete', 'The Default Supplemental List cannot be deleted.')
+                            : message('options_delete', 'Delete')
+                        }
+                        onClick={() => setDeleteListState(list)}
+                      >
+                        <span className="glyphicon glyphicon-trash" aria-hidden="true" />
+                      </button>
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="text-muted">{message('options_supplementalListsEmpty', 'No Supplemental Lists have been created.')}</p>
+        )}
+      </section>
+
+      <section className="settings-group">
+        <h3>{message('options_supplementalListContentHeading', 'List Content')}</h3>
+        <p className="help-block">{message('options_supplementalListContentHelp', 'Choose a Supplemental List to edit its content.')}</p>
+        <div className="form-group proxy-exceptions-list-control">
+          <label>{message('options_supplementalList', 'Supplemental List')}</label>
+          <SupplementalListSelect
+            ariaLabel={message('options_supplementalListContentHeading', 'List Content')}
+            disabled={showAllLists}
+            lists={lists}
+            value={selectedList?.id || ''}
+            onChange={setSelectedListId}
+          />
+          {lists.length > 0 && (
+            <button
+              type="button"
+              className="btn btn-link profile-groups-advanced-toggle supplemental-lists-show-all-toggle"
+              aria-expanded={showAllLists}
+              onClick={() => setShowAllLists(!showAllLists)}
+            >
+              <span className={`glyphicon ${showAllLists ? 'glyphicon-chevron-up' : 'glyphicon-chevron-down'}`} aria-hidden="true" />{' '}
+              {showAllLists
+                ? message('options_supplementalListHideAll', 'Hide All Lists')
+                : message('options_supplementalListShowAll', 'Show All Lists')}
+            </button>
+          )}
+        </div>
+        {showAllLists ? (
+          <div className="supplemental-list-content-all">
+            {lists.map((list) => (
+              <SupplementalListContentEditor key={list.id} list={list} showGroups={showGroups} showListName onChange={updateListContent} />
+            ))}
+          </div>
+        ) : selectedList ? (
+          <SupplementalListContentEditor list={selectedList} showGroups={showGroups} onChange={updateListContent} />
+        ) : (
+          <p className="text-muted">{message('options_supplementalListSelectHelp', 'Create a Supplemental List to edit its content.')}</p>
+        )}
+      </section>
+
+      {listModal?.kind === 'create' && (
+        <ListNameModal
+          action={message('options_create', 'Create')}
+          lists={lists}
+          title={message('options_supplementalListCreateTitle', 'New Supplemental List')}
+          onCancel={() => setListModal(null)}
+          onSubmit={createList}
+        />
+      )}
+      {listModal?.kind === 'rename' && (
+        <ListNameModal
+          action={message('options_save', 'Save')}
+          currentListId={listModal.list.id}
+          initialName={listModal.list.name}
+          lists={lists}
+          title={message('options_supplementalListRenameTitle', 'Rename Supplemental List')}
+          onCancel={() => setListModal(null)}
+          onSubmit={renameList}
+        />
+      )}
+      {profileLinksList && (
+        <ProfileLinksModal
+          list={profileLinksList}
+          options={options}
+          onCancel={() => setProfileLinksList(null)}
+          onSave={(names) => saveProfileLinks(profileLinksList, names)}
+        />
+      )}
+      {groupLinksList && (
+        <GroupLinksModal
+          groups={profileGroups}
+          list={groupLinksList}
+          onCancel={() => setGroupLinksList(null)}
+          onSave={(groupIds) => saveGroupLinks(groupLinksList, groupIds)}
+        />
+      )}
+      {deleteListState && (
+        <>
+          <div className="modal-backdrop fade in" />
+          <div className="modal fade in options-modal" role="dialog" style={{display: 'flex'}} tabIndex={-1}>
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <button
+                    type="button"
+                    className="close"
+                    aria-label={message('options_modalClose', 'Close')}
+                    onClick={() => setDeleteListState(null)}
+                  >
+                    <span aria-hidden="true">{'×'}</span>
+                  </button>
+                  <h4 className="modal-title">{message('options_deleteSupplementalListTitle', 'Delete Supplemental List')}</h4>
+                </div>
+                <div className="modal-body">
+                  <p>
+                    {message(
+                      'options_deleteSupplementalListHelp',
+                      `Delete the Supplemental List “${deleteListState.name}”?`,
+                      deleteListState.name
+                    )}
+                  </p>
+                  {deleteListProfiles.length > 0 && (
+                    <div className="supplemental-list-delete-links-section">
+                      <p>
+                        <strong>{message('options_supplementalListLinkedProfiles', 'Linked Proxy Profiles')}</strong>
+                      </p>
+                      <div className="well">
+                        <ul className="list-style-none supplemental-list-delete-links">
+                          {deleteListProfiles.map((profile) => (
+                            <li key={profile.name}>
+                              <ProfileInline profile={profile} />
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                  {deleteListGroups.length > 0 && (
+                    <div className="supplemental-list-delete-links-section">
+                      <p>
+                        <strong>{message('options_supplementalListLinkedGroups', 'Linked Profile Groups')}</strong>
+                      </p>
+                      <div className="well">
+                        <ul className="list-style-none supplemental-list-delete-links">
+                          {deleteListGroups.map((group) => (
+                            <li key={group.id}>
+                              <ProfileGroupInline group={group} />
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                  {deleteListHasLinks && (
+                    <p className="text-danger">
+                      {message(
+                        'options_deleteSupplementalListLinksWarning',
+                        'Deleting this Supplemental List will also remove all links shown above.'
+                      )}
+                    </p>
+                  )}
+                  {deleteListIsGlobal && (
+                    <p className="text-danger">
+                      {message(
+                        'options_deleteGlobalSupplementalListWarning',
+                        'This list is currently used as the Global Bypass List. The Default list will become the Global Bypass List after deletion.'
+                      )}
+                    </p>
+                  )}
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-default" onClick={() => setDeleteListState(null)}>
+                    {message('options_cancel', 'Cancel')}
+                  </button>
+                  <button type="button" className="btn btn-danger" onClick={() => deleteList(deleteListState)}>
+                    {message('options_delete', 'Delete')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

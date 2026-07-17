@@ -51,6 +51,8 @@ function StepRow({options, step}: {options?: Options | null; step: RequestExplai
   const labels: Record<string, string> = {
     attachedRuleList: message('routeTrace_step_attachedRuleList', 'Rule list rules'),
     bypass: message('routeTrace_step_bypass', 'Bypass'),
+    globalBypass: message('routeTrace_step_globalBypass', 'Global Bypass'),
+    supplementalBypass: message('routeTrace_step_supplementalBypass', 'Supplemental Bypass'),
     default: message('routeTrace_step_default', 'Default'),
     direct: message('routeTrace_step_direct', 'Direct'),
     profile: message('routeTrace_step_profile', 'Profile'),

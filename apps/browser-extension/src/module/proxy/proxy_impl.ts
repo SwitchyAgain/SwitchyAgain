@@ -1,5 +1,6 @@
 import ExtensionRuntime from '@switchyagain/extension-runtime';
 import ProxyAuth from './proxy_auth';
+import {profileWithProxyExceptions} from '../proxy_exceptions';
 import type {
   ExternalProxyDetails,
   ProxyChangeDetails,
@@ -100,6 +101,10 @@ class ProxyImpl {
     profileName = profileName.replace(/\\/g, '\\u002f');
     const prefix = `/*OmegaProfile*${profileName}*${meta.revision}*/`;
     return prefix + script;
+  }
+
+  withProxyExceptions(profile: ProxyProfile, options?: unknown) {
+    return profileWithProxyExceptions(profile, options);
   }
 }
 

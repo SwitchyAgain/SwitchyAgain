@@ -3,6 +3,7 @@ import ChromePort from './chrome_port';
 import fetchUrl from './fetch_url';
 import {tabUrl} from './tabs';
 import WebRequestMonitor from './web_request_monitor';
+import {optionsWithProxyExceptions} from './proxy_exceptions';
 import type {ProxyImplInstance, ProxyProfile, ProxyRequestDetails} from './proxy/proxy_types';
 
 const ProxyEngine = ExtensionRuntime.ProxyEngine;
@@ -34,6 +35,13 @@ const ROUTE_INFO_ENABLED_KEY = '-routeInfoEnabled';
 const ROUTE_INFO_REQUEST_DETAILS_ENABLED_KEY = '-routeInfoRequestDetailsEnabled';
 const NETWORK_REQUEST_IGNORE_LIST_ENABLED_KEY = '-networkRequestIgnoreListEnabled';
 const NETWORK_REQUEST_IGNORE_LIST_KEY = '-networkRequestIgnoreList';
+const PROXY_EXCEPTIONS_APPLIED_OPTION_KEYS = new Set([
+  '-proxyExceptionsEnabled',
+  '-globalBypassListId',
+  '-profileGroups',
+  '-profileGroupsEnabled',
+  '-supplementalLists'
+]);
 const PROFILE_MENU_ORDER: Record<string, number> = {
   FixedProfile: -2000,
   PacProfile: -1000,
@@ -78,6 +86,7 @@ type ProfileGroup = {
   id: string;
   name: string;
   order?: number;
+  supplementalListIds?: string[];
 };
 type ContextMenuProfileGroup = ProfileGroup & {
   profiles: ContextMenuProfile[];
@@ -694,6 +703,14 @@ class ChromeOptions extends ExtensionRuntime.Options {
     this._onContextMenuShown = this._onContextMenuShown.bind(this);
     this.initProfileScopes();
     this.restoreTabProfileNames();
+  }
+
+  optionAffectsAppliedProfile(key: string) {
+    return PROXY_EXCEPTIONS_APPLIED_OPTION_KEYS.has(key);
+  }
+
+  additionalAppliedProfileNames() {
+    return this.scopeProfileNames();
   }
 
   private initProfileScopes() {
@@ -2451,7 +2468,8 @@ class ChromeOptions extends ExtensionRuntime.Options {
   }
 
   matchProfileFromProfileName(profileName: string, request: Record<string, unknown>) {
-    let profile = this.validProfileName(profileName) ? ProxyEngine.Profiles.byName(profileName, this._options) : null;
+    const effectiveOptions = optionsWithProxyExceptions(this._options) as Record<string, unknown>;
+    let profile = this.validProfileName(profileName) ? ProxyEngine.Profiles.byName(profileName, effectiveOptions) : null;
     if (!profile) {
       return RuntimePromise.reject(new Error(`Profile ${profileName} does not exist!`));
     }
@@ -2473,12 +2491,36 @@ class ChromeOptions extends ExtensionRuntime.Options {
       } else {
         break;
       }
-      currentProfile = ProxyEngine.Profiles.byKey(next, this._options);
+      currentProfile = ProxyEngine.Profiles.byKey(next, effectiveOptions);
     }
     return RuntimePromise.resolve({
       profile: lastProfile,
       results
     });
+  }
+
+  matchProfile(request: Record<string, unknown>) {
+    const originalOptions = this._options;
+    this._options = optionsWithProxyExceptions(originalOptions) as Record<string, unknown>;
+    try {
+      return (
+        ExtensionRuntime.Options.prototype as unknown as {
+          matchProfile(this: ChromeOptions, request: Record<string, unknown>): ReturnType<ChromeOptions['matchProfileFromProfileName']>;
+        }
+      ).matchProfile.call(this, request);
+    } finally {
+      this._options = originalOptions;
+    }
+  }
+
+  explainRequest(input?: string | Record<string, unknown>) {
+    const originalOptions = this._options;
+    this._options = optionsWithProxyExceptions(originalOptions) as Record<string, unknown>;
+    try {
+      return super.explainRequest(input);
+    } finally {
+      this._options = originalOptions;
+    }
   }
 
   private scopeProfileNames() {

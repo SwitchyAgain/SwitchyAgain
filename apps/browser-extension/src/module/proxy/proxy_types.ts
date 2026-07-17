@@ -58,6 +58,7 @@ export type ProxyProfile = Record<string, unknown> & {
   proxyForWs?: ProxyServer;
   proxyForWss?: ProxyServer;
   revision?: string;
+  supplementalListIds?: string[];
 };
 
 export type ProxyRequestDetails = {

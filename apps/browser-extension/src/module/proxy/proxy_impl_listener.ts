@@ -83,20 +83,23 @@ class ListenerProxyImpl extends ProxyImpl {
   }
 
   applyProfile(profile: ProxyProfile, _state?: unknown, options?: unknown) {
-    this._options = options;
-    this._profile = profile;
+    const effective = this.withProxyExceptions(profile, options);
+    this._options = effective.options;
+    this._profile = effective.profile;
     if (typeof this._optionsReadyCallback === 'function') {
       this._optionsReadyCallback();
     }
     this._optionsReadyCallback = null;
-    return this.setProxyAuth(profile, options, this._scopeProfileNames?.() || []);
+    return this.setProxyAuth(effective.profile, effective.options, this._scopeProfileNames?.() || []);
   }
 
   onRequest(requestDetails: ProxyRequestDetails) {
     return (NativePromise as PromiseConstructor).resolve(
       this._optionsReady.then(() => {
         const request = ProxyEngine.Conditions.requestFromUrl(requestDetails.url);
-        let profile = this._profileResolver?.(requestDetails) || this._profile;
+        const resolvedProfile = this._profileResolver?.(requestDetails);
+        let profile =
+          (resolvedProfile?.name && ProxyEngine.Profiles.byName(resolvedProfile.name, this._options)) || resolvedProfile || this._profile;
         let next;
         while (profile) {
           const result = ProxyEngine.Profiles.match(profile, request);

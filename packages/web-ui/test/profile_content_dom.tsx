@@ -44,6 +44,40 @@ const CHROMIUM_HTTPS_URL_LIMITATION_TOOLTIP =
   'Chromium-based browsers cannot match the path or query of HTTPS or WSS URLs with URL wildcard or URL regex rules. Host conditions are unaffected.';
 
 describe('profile content components', () => {
+  it('shows direct and inherited Supplemental Lists as a read-only summary', () => {
+    const {container, rerender} = render(
+      <FixedProfileContent
+        inheritedSupplementalLists={[{id: 'supplemental-list-work', name: 'Work'}]}
+        profile={{
+          name: 'proxy',
+          profileType: 'FixedProfile',
+          supplementalListIds: ['supplemental-list-default', 'supplemental-list-work']
+        }}
+        supplementalLists={[
+          {id: 'supplemental-list-default', name: 'Default'},
+          {id: 'supplemental-list-work', name: 'Work'}
+        ]}
+        supplementalListGroupName="Work Group"
+      />
+    );
+
+    const items = Array.from(container.querySelectorAll('.profile-supplemental-lists-list > li'));
+    expect(items.map((item) => item.firstElementChild?.textContent)).toEqual(['Default', 'Work']);
+    expect(items[1].textContent).toContain('Inherited: Work Group');
+    expect(screen.queryByRole('button', {name: 'Edit'})).toBeNull();
+
+    rerender(
+      <FixedProfileContent
+        profile={{name: 'proxy', profileType: 'FixedProfile'}}
+        supplementalLists={[
+          {id: 'supplemental-list-default', name: 'Default'},
+          {id: 'supplemental-list-work', name: 'Work'}
+        ]}
+      />
+    );
+    expect(screen.getByText('No Supplemental Lists are linked to or inherited by this profile.')).toBeTruthy();
+  });
+
   it('toggles profile visibility from profile options', () => {
     const onContextMenuHiddenChange = vi.fn();
     const onOptionsSidebarHiddenChange = vi.fn();

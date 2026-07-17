@@ -52,5 +52,9 @@ export function routeTraceSteps(steps: RequestExplainStep[]) {
 }
 
 export function routeTraceStepCondition(step: RequestExplainStep) {
-  return step.source || step.condition || step.scheme || '';
+  const condition = step.source || step.condition || step.scheme || '';
+  if ((step.kind === 'globalBypass' || step.kind === 'supplementalBypass') && step.supplementalListName) {
+    return condition ? `${step.supplementalListName}: ${condition}` : step.supplementalListName;
+  }
+  return condition;
 }

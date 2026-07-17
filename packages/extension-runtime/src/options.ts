@@ -332,6 +332,7 @@ type ExplainStep = {
   proxy?: unknown;
   scheme?: string;
   source?: string;
+  supplementalListName?: string;
   targetProfile?: ExplainProfile;
 };
 
@@ -989,6 +990,9 @@ class Options {
       if (!currentProfileAffected && (key === '-profileScopes' || key === '-profileScopeAssignments')) {
         currentProfileAffected = 'changed';
       }
+      if (!currentProfileAffected && this.optionAffectsAppliedProfile(key)) {
+        currentProfileAffected = 'changed';
+      }
       if (key === '-contextMenuOptions') {
         profilesChanged = true;
       }
@@ -1021,6 +1025,27 @@ class Options {
     }
     return Promise.resolve(this._options);
   };
+
+  optionAffectsAppliedProfile(_key: string): boolean {
+    return false;
+  }
+
+  additionalAppliedProfileNames(): string[] {
+    return [];
+  }
+
+  _watchingProfilesFor(profile: ProfileLike): Record<string, string> {
+    const watchingProfiles = ProxyEngine.Profiles.allReferenceSet(profile, this._options, {
+      profileNotFound: this._profileNotFound.bind(this)
+    });
+    for (const profileName of this.additionalAppliedProfileNames()) {
+      ProxyEngine.Profiles.allReferenceSet(profileName, this._options, {
+        out: watchingProfiles,
+        profileNotFound: this._profileNotFound.bind(this)
+      });
+    }
+    return watchingProfiles;
+  }
 
   _watch(): StopWatching {
     const handler = (changes?: StorageChanges): unknown => {
@@ -1309,9 +1334,7 @@ class Options {
     }
     this._currentProfileName = profile.name || profileName;
     this._isSystem = (options != null ? options.system : void 0) || profile.profileType === 'SystemProfile';
-    this._watchingProfiles = ProxyEngine.Profiles.allReferenceSet(profile, this._options, {
-      profileNotFound: this._profileNotFound.bind(this)
-    });
+    this._watchingProfiles = this._watchingProfilesFor(profile);
     this._state.set({
       currentProfileName: this._currentProfileName,
       isSystemProfile: this._isSystem,
@@ -1356,9 +1379,7 @@ class Options {
         }
         ProxyEngine.Profiles.updateRevision(tempProfile);
       }
-      this._watchingProfiles = ProxyEngine.Profiles.allReferenceSet(tempProfile, this._options, {
-        profileNotFound: this._profileNotFound.bind(this)
-      });
+      this._watchingProfiles = this._watchingProfilesFor(tempProfile);
       applyProxy = proxyImpl.applyProfile(tempProfile, profile, this._options);
     } else {
       applyProxy = proxyImpl.applyProfile(profile, profile, this._options);
@@ -1987,11 +2008,24 @@ class Options {
         const proxyScheme = isRecordValue(proxy) ? proxy.scheme : undefined;
         const sourceIsCondition = isRecordValue(source);
         const scheme = typeof source === 'string' ? source : undefined;
-        const kind = pacResult === 'DIRECT' || proxyScheme === 'direct' ? (sourceIsCondition ? 'bypass' : 'direct') : 'proxy';
+        const globalBypass = sourceIsCondition && source.globalBypass === true;
+        const supplementalBypass = sourceIsCondition && source.supplementalBypass === true;
+        const kind =
+          pacResult === 'DIRECT' || proxyScheme === 'direct'
+            ? sourceIsCondition
+              ? globalBypass
+                ? 'globalBypass'
+                : supplementalBypass
+                  ? 'supplementalBypass'
+                  : 'bypass'
+              : 'direct'
+            : 'proxy';
         const step = {
           kind,
           profile: this._profileForExplanation(profile),
           condition: sourceIsCondition ? this._conditionForExplanation(source) : undefined,
+          supplementalListName:
+            sourceIsCondition && typeof source.supplementalListName === 'string' ? source.supplementalListName : undefined,
           scheme,
           pacResult,
           proxy,

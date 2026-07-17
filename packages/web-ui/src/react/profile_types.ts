@@ -30,6 +30,7 @@ export type Profile = {
   name?: string;
   profileGroupEnabled?: boolean;
   profileGroupId?: string;
+  supplementalListIds?: string[];
   profileType?: ProfileType;
   syncError?: ProfileSyncError;
   syncOptions?: string;
@@ -72,6 +73,7 @@ export type ProfileGroup = {
   id: string;
   name: string;
   order?: number;
+  supplementalListIds?: string[];
 };
 
 export type OptionsData = {
@@ -113,6 +115,10 @@ export type OptionsData = {
   '-refreshOnProfileChange'?: boolean;
   '-routeInfoEnabled'?: boolean;
   '-routeInfoRequestDetailsEnabled'?: boolean;
+  '-proxyExceptionsEnabled'?: boolean;
+  '-globalBypassListId'?: string;
+  '-showProxyExceptionsBypassListGroups'?: boolean;
+  '-supplementalLists'?: SupplementalBypassList[];
   '-showConditionTypes'?: number;
   '-showExternalProfile'?: boolean;
   '-showProfilesCollapseToggle'?: boolean;
@@ -202,6 +208,13 @@ export type FixedProfileBypassGroup = {
   bypassList?: FixedProfileBypassCondition[];
   enabled?: boolean;
   name?: string;
+};
+
+export type SupplementalBypassList = {
+  bypassGroups?: FixedProfileBypassGroup[];
+  bypassList?: FixedProfileBypassCondition[];
+  id: string;
+  name: string;
 };
 
 export type FixedProfileModel = Profile & {

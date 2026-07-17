@@ -220,6 +220,43 @@ describe('Options', function () {
     });
   });
 
+  describe('#applied profile dependencies', function () {
+    it('should reapply the current profile when a subclass option affects proxy behavior', async function () {
+      const options = new Options({schemaVersion: 3});
+      await options.ready;
+      options._options = {};
+      options._watchingProfiles = {};
+      options._currentProfileName = 'proxy';
+      options.sync = null;
+      options.optionAffectsAppliedProfile = (key: string) => key === '-runtimeProxyOption';
+      options.applyProfile = stubReturns(Promise.resolve());
+
+      await options._setOptions({'-runtimeProxyOption': true});
+      assertCalledOnce(options.applyProfile);
+      assertCalledWith(options.applyProfile, 'proxy', {update: false});
+    });
+
+    it('should watch profiles selected outside the current profile reference tree', function () {
+      const options = Object.create(Options.prototype);
+      options._options = {
+        '+proxy1': {
+          name: 'proxy1',
+          profileType: 'FixedProfile'
+        },
+        '+proxy2': {
+          name: 'proxy2',
+          profileType: 'FixedProfile'
+        }
+      };
+      options.additionalAppliedProfileNames = () => ['proxy2'];
+
+      assert.deepStrictEqual(options._watchingProfilesFor(options._options['+proxy1']), {
+        '+proxy1': 'proxy1',
+        '+proxy2': 'proxy2'
+      });
+    });
+  });
+
   describe('#_setAvailableProfiles', function () {
     function stateRecorder() {
       const calls: any[] = [];
@@ -335,6 +372,49 @@ describe('Options', function () {
         );
         assert.strictEqual(explanation.steps[0].targetProfile.name, 'proxy');
       });
+    });
+
+    it('should identify Global and Supplemental Bypass list matches', async function () {
+      const options = Object.create(Options.prototype);
+      options._options = {
+        '+global': {
+          name: 'global',
+          profileType: 'FixedProfile',
+          bypassList: [
+            {
+              conditionType: 'BypassCondition',
+              globalBypass: true,
+              pattern: 'global.example',
+              supplementalListName: 'Default'
+            }
+          ]
+        },
+        '+supplemental': {
+          name: 'supplemental',
+          profileType: 'FixedProfile',
+          bypassList: [
+            {
+              conditionType: 'BypassCondition',
+              pattern: 'work.example',
+              supplementalBypass: true,
+              supplementalListName: 'Work'
+            }
+          ]
+        }
+      };
+      options._externalProfile = null;
+      options._tempProfileActive = false;
+      options._tempProfile = null;
+
+      options._currentProfileName = 'global';
+      const globalExplanation = await options.explainRequest('https://global.example/');
+      assert.strictEqual(globalExplanation.steps[0].kind, 'globalBypass');
+      assert.strictEqual(globalExplanation.steps[0].supplementalListName, 'Default');
+
+      options._currentProfileName = 'supplemental';
+      const supplementalExplanation = await options.explainRequest('https://work.example/');
+      assert.strictEqual(supplementalExplanation.steps[0].kind, 'supplementalBypass');
+      assert.strictEqual(supplementalExplanation.steps[0].supplementalListName, 'Work');
     });
 
     it('should mark attached rule list profiles without exposing them as normal profiles', function () {

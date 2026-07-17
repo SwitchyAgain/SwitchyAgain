@@ -1131,6 +1131,11 @@ type BackgroundExtensionRuntime = {
             } else {
               const source = result[1];
               condition = condition2Str(isRecord(source) && source.condition != null ? source.condition : source);
+              if (isRecord(source) && source.globalBypass === true) {
+                details += `Global Bypass${typeof source.supplementalListName === 'string' ? ` (${source.supplementalListName})` : ''}: `;
+              } else if (isRecord(source) && source.supplementalBypass === true) {
+                details += `Supplemental Bypass${typeof source.supplementalListName === 'string' ? ` (${source.supplementalListName})` : ''}: `;
+              }
               details += `${condition} => `;
               if (result[0] === 'DIRECT') {
                 details += chrome.i18n.getMessage('browserAction_directResult');

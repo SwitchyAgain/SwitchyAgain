@@ -70,7 +70,8 @@ import type {
   ProxyAuthCapabilities,
   ProxyEditor,
   RuleListProfileField,
-  RuleListProfileSourceField
+  RuleListProfileSourceField,
+  SupplementalBypassList
 } from './profile_types';
 
 const INITIAL_SWITCH_RULE_BATCH_SIZE = 15;
@@ -291,6 +292,7 @@ export type PacProfileProps = {
 };
 
 export type FixedProfileProps = {
+  inheritedSupplementalLists?: SupplementalBypassList[];
   onBypassGroupsChange?: (value: FixedProfileBypassGroup[]) => void;
   onBypassListChange?: (value: FixedProfileBypassCondition[]) => void;
   onEditProxyAuth?: (scheme: FixedProfileScheme) => void;
@@ -301,6 +303,8 @@ export type FixedProfileProps = {
   showHttpProxyOverrideRows?: boolean;
   showSocks5LocalDnsOption?: boolean;
   showWebSocketProxyOverrideRows?: boolean;
+  supplementalLists?: SupplementalBypassList[];
+  supplementalListGroupName?: string;
 };
 
 type FixedProfileBypassGroupDraft = {
@@ -1539,7 +1543,50 @@ function fixedProfileSchemeGroupVisible(
   return showWebSocketProxyOverrideRows;
 }
 
+function ProfileSupplementalLists({
+  groupName,
+  inheritedLists,
+  listIds,
+  lists
+}: {
+  groupName?: string;
+  inheritedLists: SupplementalBypassList[];
+  listIds: string[];
+  lists: SupplementalBypassList[];
+}) {
+  const inheritedListIds = new Set(inheritedLists.map((list) => list.id));
+  const appliedLists = lists.filter((list) => listIds.includes(list.id) || inheritedListIds.has(list.id));
+
+  return (
+    <div className="profile-supplemental-lists">
+      {appliedLists.length ? (
+        <ul className="profile-supplemental-lists-list">
+          {appliedLists.map((list) => (
+            <li key={list.id}>
+              <span>{list.name}</span>
+              {inheritedListIds.has(list.id) && (
+                <span className="label label-default profile-supplemental-list-inherited">
+                  {message(
+                    'options_supplementalListInheritedLabel',
+                    `Inherited: ${groupName || 'Profile Group'}`,
+                    groupName || 'Profile Group'
+                  )}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-muted profile-supplemental-lists-empty">
+          {message('options_profileSupplementalListsEmpty', 'No Supplemental Lists are linked to or inherited by this profile.')}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function FixedProfileContent({
+  inheritedSupplementalLists = [],
   profile,
   proxyAuthCapabilities,
   showBypassListGroups = false,
@@ -1549,7 +1596,9 @@ export function FixedProfileContent({
   onBypassGroupsChange,
   onBypassListChange,
   onEditProxyAuth,
-  onProxyChange
+  onProxyChange,
+  supplementalLists,
+  supplementalListGroupName
 }: FixedProfileProps) {
   const {bypassGroups, bypassList, fallbackProxy, name: profileName, proxyForHttp, proxyForHttps, proxyForWs, proxyForWss} = profile;
   const initialEditors = fixedProfileEditors(profile);
@@ -1860,6 +1909,7 @@ export function FixedProfileContent({
           ref={bypassEditorRef}
           className="monospace form-control width-limit"
           rows={10}
+          spellCheck={false}
           value={draftBypassList}
           onChange={(event) => changeBypassList(event.currentTarget.value)}
           onBlur={commitBypassList}
@@ -1901,6 +1951,7 @@ export function FixedProfileContent({
                 <textarea
                   className="monospace form-control width-limit fixed-bypass-group-textarea"
                   rows={10}
+                  spellCheck={false}
                   value={group.text}
                   onChange={(event) => updateBypassGroup(index, {text: event.currentTarget.value})}
                 />
@@ -1914,6 +1965,23 @@ export function FixedProfileContent({
           </>
         )}
       </section>
+      {supplementalLists && (
+        <section className="settings-group">
+          <h3>{message('options_supplementalListsHeading', 'Supplemental Lists')}</h3>
+          <p className="help-block">
+            {message(
+              'options_profileSupplementalListsHelp',
+              'Supplemental Lists linked to this profile or inherited from its Profile Group are shown below. Matching requests will bypass the proxy.'
+            )}
+          </p>
+          <ProfileSupplementalLists
+            groupName={supplementalListGroupName}
+            inheritedLists={inheritedSupplementalLists}
+            listIds={Array.isArray(profile.supplementalListIds) ? profile.supplementalListIds : []}
+            lists={supplementalLists}
+          />
+        </section>
+      )}
       {showBypassListGroups && pendingDeleteBypassGroupIndex != null && (
         <SwitchProfileModalFrame onDismiss={() => setPendingDeleteBypassGroupIndex(null)}>
           <ConfirmModal

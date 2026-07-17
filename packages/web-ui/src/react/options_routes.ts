@@ -1,4 +1,13 @@
-export type RouteName = 'about' | 'general' | 'io' | 'profile' | 'profileGroups' | 'profileScope' | 'requestLens' | 'ui';
+export type RouteName =
+  | 'about'
+  | 'general'
+  | 'io'
+  | 'profile'
+  | 'profileGroups'
+  | 'profileScope'
+  | 'proxyExceptions'
+  | 'requestLens'
+  | 'ui';
 
 export type Route = {
   name: RouteName;
@@ -29,6 +38,8 @@ export function parseRoute(hash = ''): Route {
       return {name: 'profileScope', params};
     case 'profileGroups':
       return {name: 'profileGroups', params};
+    case 'proxyExceptions':
+      return {name: 'proxyExceptions', params};
     case 'io':
       return {name: 'io', params};
     case 'profile':

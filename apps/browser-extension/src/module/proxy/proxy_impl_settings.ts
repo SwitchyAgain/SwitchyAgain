@@ -70,6 +70,9 @@ class SettingsProxyImpl extends ProxyImpl {
   }
 
   async applyProfile(profile: ProxyProfile, meta: ProxyProfile = profile, options?: unknown) {
+    const effective = this.withProxyExceptions(profile, options);
+    profile = effective.profile;
+    options = effective.options;
     const windowProfiles = this._windowScopeProfiles(profile, meta, options);
     const authProfileNames = windowProfiles ? [windowProfiles.regular.profile.name, windowProfiles.private.profile.name] : [];
     await (this.setProxyAuth(

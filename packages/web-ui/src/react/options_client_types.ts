@@ -49,6 +49,7 @@ export type RequestExplainStep = {
   proxy?: unknown;
   scheme?: string;
   source?: string;
+  supplementalListName?: string;
   targetProfile?: RequestExplainProfile;
 };
 

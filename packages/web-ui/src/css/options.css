@@ -730,6 +730,11 @@ h1 {
   flex: 0 0 auto;
 }
 
+.options-shell-settings .glyphicon-cog,
+.options-shell-settings-menu-panel .glyphicon-cog {
+  left: -1px;
+}
+
 .options-shell-profile-list,
 .options-shell-hidden-profile-list {
   flex: 0 1 auto;
@@ -2145,6 +2150,95 @@ main .profile-header {
 
 .profile-scope-section-heading > .btn {
   margin-top: 10px;
+}
+
+.profile-scope-section-heading > .supplemental-list-select {
+  margin-top: 10px;
+}
+
+.supplemental-list-select > .dropdown-toggle {
+  min-width: 160px;
+  text-align: left;
+}
+
+.supplemental-list-select > .dropdown-toggle .caret {
+  float: right;
+  margin-left: 14px;
+  margin-top: 8px;
+}
+
+.supplemental-list-select > .dropdown-menu {
+  min-width: 100%;
+}
+
+.proxy-exceptions-list-control .supplemental-list-select {
+  display: inline-block;
+  margin-left: 20px;
+  vertical-align: middle;
+}
+
+.supplemental-lists-table {
+  max-width: 900px;
+}
+
+.supplemental-list-global-label {
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.profile-supplemental-lists {
+  margin-bottom: 16px;
+  margin-left: 30px;
+  max-width: 870px;
+}
+
+.profile-supplemental-lists-list {
+  margin-bottom: 0;
+  padding-left: 20px;
+}
+
+.profile-supplemental-lists-list > li + li {
+  margin-top: 8px;
+}
+
+.profile-supplemental-list-inherited {
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.profile-supplemental-lists-empty {
+  margin-bottom: 0;
+}
+
+.supplemental-list-delete-links {
+  margin-bottom: 0;
+}
+
+.supplemental-list-delete-links > li + li {
+  margin-top: 8px;
+}
+
+.supplemental-list-delete-links-section + .supplemental-list-delete-links-section {
+  margin-top: 18px;
+}
+
+.supplemental-lists-show-all-toggle {
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.supplemental-list-content-item-all {
+  border-top: 1px solid #eee;
+  margin-top: 18px;
+  padding-top: 14px;
+}
+
+.theme-dark .supplemental-list-content-item-all {
+  border-top-color: #3a3f44;
+}
+
+.supplemental-list-content-name {
+  font-weight: bold;
 }
 
 .profile-scope-container-controls {

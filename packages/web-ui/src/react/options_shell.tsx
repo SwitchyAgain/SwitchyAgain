@@ -12,6 +12,7 @@ export type OptionsShellProps = {
   currentProfileName?: string;
   currentState?: string;
   generalHref?: string;
+  proxyExceptionsHref?: string;
   importExportHref?: string;
   keepSettingsExpanded?: boolean;
   newProfileHref?: string;
@@ -32,6 +33,7 @@ export type OptionsShellProps = {
   profileHref?: (profile: Profile) => string;
   requestLensHref?: string;
   showProfileGroups?: boolean;
+  showProxyExceptions?: boolean;
   showProfilesCollapseToggle?: boolean;
   showProfileScope?: boolean;
   showRequestLens?: boolean;
@@ -956,6 +958,7 @@ export function OptionsShell({
   currentProfileName = '',
   currentState = '',
   generalHref = '#',
+  proxyExceptionsHref = '#',
   importExportHref = '#',
   keepSettingsExpanded,
   newProfileHref = '#',
@@ -976,6 +979,7 @@ export function OptionsShell({
   profileHref,
   requestLensHref = '#',
   showProfileGroups = false,
+  showProxyExceptions = false,
   showProfilesCollapseToggle = false,
   showProfileScope = false,
   showRequestLens = true,
@@ -1067,6 +1071,18 @@ export function OptionsShell({
             key: 'profileGroups',
             label: message('options_tab_profileGroups', 'Profile Groups'),
             onClick: () => onNavigate?.('profileGroups')
+          }
+        ]
+      : []),
+    ...(showProxyExceptions
+      ? [
+          {
+            active: currentState === 'proxyExceptions',
+            href: proxyExceptionsHref,
+            icon: 'glyphicon-leaf',
+            key: 'proxyExceptions',
+            label: message('options_tab_proxyExceptions', 'Proxy Exceptions'),
+            onClick: () => onNavigate?.('proxyExceptions')
           }
         ]
       : []),

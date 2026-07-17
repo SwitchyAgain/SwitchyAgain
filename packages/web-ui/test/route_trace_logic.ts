@@ -147,5 +147,19 @@ describe('route trace logic', () => {
         kind: 'direct'
       })
     ).toBe('');
+    expect(
+      routeTraceStepCondition({
+        condition: 'example.com',
+        kind: 'globalBypass',
+        supplementalListName: 'Default'
+      })
+    ).toBe('Default: example.com');
+    expect(
+      routeTraceStepCondition({
+        condition: 'work.example',
+        kind: 'supplementalBypass',
+        supplementalListName: 'Work'
+      })
+    ).toBe('Work: work.example');
   });
 });

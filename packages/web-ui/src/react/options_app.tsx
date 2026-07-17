@@ -3,6 +3,7 @@ import {createRoot} from 'react-dom/client';
 import {About} from './about';
 import {clearWindowTimeout, closeWindow, locationHash, setLocationHash, setWindowTimeout} from './browser_env';
 import {GeneralSettings} from './general_settings';
+import {ProxyExceptionsPage} from './proxy_exceptions';
 import {ImportExport} from './import_export';
 import {callBackground} from './background_client';
 import {message} from './i18n_client';
@@ -93,6 +94,7 @@ import {
   profileGroupsForOptions,
   type ProfileGroupDraft
 } from './profile_groups';
+import {supplementalListsForOptions} from './supplemental_lists';
 import {
   NamedSwitchProfileModel,
   SwitchProfileModel,
@@ -659,6 +661,7 @@ export function OptionsApp() {
   const showRequestLens = savedOptions?.['-showRequestLens'] !== false;
   const showProfilesCollapseToggle = savedOptions?.['-showProfilesCollapseToggle'] === true;
   const showProfileGroups = profileGroupsEnabled(savedOptions);
+  const showProxyExceptions = Boolean(savedOptions?.['-proxyExceptionsEnabled']);
   const appliedVisibleProfileScopes = useMemo(
     () => visibleProfileScopes(savedOptions, profileScopeCapabilities),
     [savedOptions, profileScopeCapabilities]
@@ -690,6 +693,13 @@ export function OptionsApp() {
     }
     navigate('ui');
   }, [navigate, route.name, showProfileGroups, status]);
+
+  useEffect(() => {
+    if (status !== 'ready' || route.name !== 'proxyExceptions' || showProxyExceptions) {
+      return;
+    }
+    navigate('ui');
+  }, [navigate, route.name, showProxyExceptions, status]);
 
   useEffect(() => {
     if (status !== 'ready' || !appliedVisibleProfileScopes.container) {
@@ -1685,6 +1695,9 @@ export function OptionsApp() {
         </div>
       );
     }
+    if (route.name === 'proxyExceptions') {
+      return <ProxyExceptionsPage options={options} onOptionsChange={updateOptions} />;
+    }
     if (route.name === 'profileScope') {
       const visibleScopes = appliedVisibleProfileScopes;
       if (!visibleScopes.tab && !visibleScopes.group && !visibleScopes.container && !visibleScopes.window) {
@@ -1742,14 +1755,24 @@ export function OptionsApp() {
       };
       const content = (() => {
         if (isFixedProfile(profile)) {
+          const supplementalLists = Boolean(options['-proxyExceptionsEnabled']) ? supplementalListsForOptions(options) : undefined;
+          const profileGroup =
+            profileGroupsEnabled(options) && profile.profileGroupEnabled === true && typeof profile.profileGroupId === 'string'
+              ? profileGroupsForOptions(options).find((group) => group.id === profile.profileGroupId)
+              : undefined;
+          const inheritedSupplementalLists =
+            supplementalLists?.filter((list) => profileGroup?.supplementalListIds?.includes(list.id)) || [];
           return (
             <FixedProfileContent
+              inheritedSupplementalLists={inheritedSupplementalLists}
               profile={profile}
               proxyAuthCapabilities={proxyAuthCapabilities}
               showBypassListGroups={options['-showBypassListGroups'] === true}
               showHttpProxyOverrideRows={options['-showHttpProxyOverrideRows'] !== false}
               showSocks5LocalDnsOption={proxyDnsCapabilities.socks5 === true && options['-showSocks5LocalDnsOption'] === true}
               showWebSocketProxyOverrideRows={options['-showWebSocketProxyOverrideRows'] === true}
+              supplementalLists={supplementalLists}
+              supplementalListGroupName={profileGroup?.name}
               onBypassGroupsChange={(value) => updateFixedProfileBypassGroups(profile.name, value)}
               onBypassListChange={(value) => updateFixedProfileBypassList(profile.name, value)}
               onEditProxyAuth={(scheme) => requestFixedProxyAuth(profile, scheme)}
@@ -1907,6 +1930,7 @@ export function OptionsApp() {
             currentProfileName={route.profileName || ''}
             currentState={route.name}
             generalHref={routeHref('general')}
+            proxyExceptionsHref={routeHref('proxyExceptions')}
             importExportHref={routeHref('io')}
             keepSettingsExpanded={options ? options['-keepSettingsExpanded'] !== false : undefined}
             onApply={requestApplyOptions}
@@ -1930,6 +1954,7 @@ export function OptionsApp() {
             profileScopeHref={routeHref('profileScope')}
             requestLensHref={routeHref('requestLens')}
             showProfileGroups={showProfileGroups}
+            showProxyExceptions={showProxyExceptions}
             showProfilesCollapseToggle={showProfilesCollapseToggle}
             showProfileScope={showProfileScope}
             showRequestLens={showRequestLens}

@@ -12,6 +12,7 @@ import {DEFAULT_PROXY_DNS_CAPABILITIES, cloneOptions} from './options_logic';
 import {UI_THEME_ICON, UI_THEMES, uiThemeForOptions} from './ui_theme';
 import type {UiTheme} from './ui_theme';
 import type {ProfileActionMenuOptions, ProxyDnsCapabilities} from './profile_types';
+import {ensureDefaultSupplementalList} from './supplemental_lists';
 import {
   moveQuickSwitchProfileName,
   notCycledProfileNames,
@@ -353,6 +354,14 @@ export function UiSettings({
 
   function updateOption(key: string, value: unknown) {
     updateOptions((current) => ({...current, [key]: value}));
+  }
+
+  function updateProxyExceptionsEnabled(enabled: boolean) {
+    updateOptions((current) => {
+      const next = {...current, '-proxyExceptionsEnabled': enabled};
+      if (enabled) ensureDefaultSupplementalList(next);
+      return next;
+    });
   }
 
   function updateProfileScope(scope: ProfileScopeKey, enabled: boolean) {
@@ -716,6 +725,26 @@ export function UiSettings({
               onChange={(event) => updateOption('-profileGroupsEnabled', event.currentTarget.checked)}
             />
             <span> {message('options_enableProfileGroups', 'Enable Profile Groups.')}</span>
+          </label>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={Boolean(draftOptions['-proxyExceptionsEnabled'])}
+              onChange={(event) => updateProxyExceptionsEnabled(event.currentTarget.checked)}
+            />
+            <span> {message('options_enableProxyExceptions', 'Enable Proxy Exceptions.')}</span>
+          </label>
+        </div>
+        <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={Boolean(draftOptions['-showProxyExceptionsBypassListGroups'])}
+              onChange={(event) => updateOption('-showProxyExceptionsBypassListGroups', event.currentTarget.checked)}
+            />
+            <span> {message('options_showProxyExceptionsBypassListGroups', 'Show bypass list groups in Proxy Exceptions.')}</span>
           </label>
         </div>
       </section>

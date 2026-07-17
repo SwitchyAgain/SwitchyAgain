@@ -12,6 +12,7 @@ export type ProfileGroup = {
   id: string;
   name: string;
   order?: number;
+  supplementalListIds?: string[];
 };
 
 export type ProfileGroupDraft = {
@@ -124,7 +125,10 @@ export function profileGroupsForOptions(options?: Options | null): ProfileGroup[
       icon: cleanProfileGroupIcon(rawGroup.icon),
       id,
       name,
-      order: typeof rawGroup.order === 'number' ? rawGroup.order : index
+      order: typeof rawGroup.order === 'number' ? rawGroup.order : index,
+      supplementalListIds: Array.isArray(rawGroup.supplementalListIds)
+        ? Array.from(new Set(rawGroup.supplementalListIds.filter((id): id is string => typeof id === 'string' && !!id)))
+        : []
     });
   });
   return groups.sort(compareProfileGroup);
@@ -242,7 +246,7 @@ export function ProfileGroupIcon({group}: {group?: ProfileGroup | null}) {
   return <span className={`glyphicon ${profileGroupIcon(group)}`} style={color ? {color} : undefined} />;
 }
 
-function ProfileGroupInline({group}: {group?: ProfileGroup | null}) {
+export function ProfileGroupInline({group}: {group?: ProfileGroup | null}) {
   return (
     <span className="profile-groups-group-cell">
       <span className="profile-groups-group-icon" aria-hidden="true">

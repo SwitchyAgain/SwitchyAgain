@@ -99,6 +99,24 @@ describe('ui settings component', () => {
       })
     );
 
+    expect((screen.getByLabelText('Enable Proxy Exceptions.') as HTMLInputElement).checked).toBe(false);
+    expect((screen.getByLabelText('Show bypass list groups in Proxy Exceptions.') as HTMLInputElement).checked).toBe(false);
+    fireEvent.click(screen.getByLabelText('Enable Proxy Exceptions.'));
+    expect(onOptionsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        '-proxyExceptionsEnabled': true,
+        '-globalBypassListId': 'supplemental-list-default',
+        '-supplementalLists': [
+          expect.objectContaining({
+            id: 'supplemental-list-default',
+            name: 'Default'
+          })
+        ]
+      })
+    );
+    fireEvent.click(screen.getByLabelText('Show bypass list groups in Proxy Exceptions.'));
+    expect(onOptionsChange).toHaveBeenLastCalledWith(expect.objectContaining({'-showProxyExceptionsBypassListGroups': true}));
+
     fireEvent.click(screen.getByLabelText('Show Request Lens in the settings sidebar.'));
     expect(onOptionsChange).toHaveBeenLastCalledWith(
       expect.objectContaining({
