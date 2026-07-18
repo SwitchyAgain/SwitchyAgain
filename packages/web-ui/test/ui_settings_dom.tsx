@@ -99,9 +99,12 @@ describe('ui settings component', () => {
       })
     );
 
-    expect((screen.getByLabelText('Enable Proxy Exceptions.') as HTMLInputElement).checked).toBe(false);
+    expect(
+      (screen.getByLabelText('Enable Proxy Exceptions that can be applied globally or to selected Proxy Profiles.') as HTMLInputElement)
+        .checked
+    ).toBe(false);
     expect((screen.getByLabelText('Show bypass list groups in Proxy Exceptions.') as HTMLInputElement).checked).toBe(false);
-    fireEvent.click(screen.getByLabelText('Enable Proxy Exceptions.'));
+    fireEvent.click(screen.getByLabelText('Enable Proxy Exceptions that can be applied globally or to selected Proxy Profiles.'));
     expect(onOptionsChange).toHaveBeenLastCalledWith(
       expect.objectContaining({
         '-proxyExceptionsEnabled': true,

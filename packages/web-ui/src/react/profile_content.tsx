@@ -546,10 +546,10 @@ export function ProfileShell({
             </>
           )}
           <button type="button" className="btn btn-default" onClick={onRename}>
-            <span className="glyphicon glyphicon-edit" /> {message('options_renameProfile', 'Rename')}
+            <span className="glyphicon glyphicon-edit" /> {message('dialog_rename', 'Rename')}
           </button>{' '}
           <button type="button" className="btn btn-danger" onClick={onDelete}>
-            <span className="glyphicon glyphicon-trash" /> {message('options_deleteProfile', 'Delete')}
+            <span className="glyphicon glyphicon-trash" /> {message('dialog_delete', 'Delete')}
           </button>
         </div>
       </div>
@@ -1076,7 +1076,7 @@ function SwitchRuleRow({
         <button
           type="button"
           className="btn btn-danger btn-sm"
-          title={message('options_deleteRule', 'Delete')}
+          title={message('dialog_delete', 'Delete')}
           onClick={() => onRemoveRule?.(index)}
         >
           <span className="glyphicon glyphicon-trash" />

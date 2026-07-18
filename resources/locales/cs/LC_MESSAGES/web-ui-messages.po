@@ -206,10 +206,19 @@ msgid "dialog_close"
 msgstr "Zavřít"
 
 msgid "dialog_save"
-msgstr "Uložit změny"
+msgstr "Uložit"
 
 msgid "dialog_cancel"
 msgstr "Storno"
+
+msgid "dialog_create"
+msgstr "Vytvořit"
+
+msgid "dialog_rename"
+msgstr "Přejmenovat"
+
+msgid "dialog_delete"
+msgstr "Odstranit"
 
 msgid "inputClear_clear"
 msgstr "Vymazat"
@@ -806,12 +815,6 @@ msgstr "Použít"
 msgid "options_profileCustomColor"
 msgstr "Vlastní"
 
-msgid "options_renameProfile"
-msgstr "Přejmenovat"
-
-msgid "options_deleteProfile"
-msgstr "Smazat"
-
 msgid "options_profileExportRuleList"
 msgstr "Publikovat tento seznam podmínek"
 
@@ -1308,9 +1311,6 @@ msgstr "Odstranit pravidlo"
 msgid "options_deleteRuleConfirm"
 msgstr "Opravdu chcete odstranit toto pravidlo?"
 
-msgid "options_deleteRule"
-msgstr "Odstranit"
-
 msgid "options_modalHeader_resetRules"
 msgstr "Obnovit pravidla"
 
@@ -1397,9 +1397,6 @@ msgstr "Vyberte profil"
 
 msgid "options_profileDuplicateSourceRequired"
 msgstr "Vyberte profil, který chcete duplikovat."
-
-msgid "options_createProfile"
-msgstr "Vytvořit"
 
 msgid "options_modalHeader_resetOptions"
 msgstr "Obnovit nastavení"
@@ -1962,12 +1959,6 @@ msgstr "Vyberte alespoň jedno pravidlo ignorování."
 msgid "popup_routeInfoSwitchRuleTarget"
 msgstr "Pravidlo přepnutí"
 
-msgid "options_cancel"
-msgstr "Storno"
-
-msgid "options_delete"
-msgstr "Odstranit"
-
 msgid "options_edit"
 msgstr "Upravit"
 
@@ -2079,14 +2070,8 @@ msgstr "Aktuální skupina"
 msgid "options_profileGroupsProfilesEmpty"
 msgstr "Nejsou dostupné žádné profily."
 
-msgid "options_profileGroupCreate"
-msgstr "Vytvořit"
-
 msgid "options_profileGroupCreateTitle"
 msgstr "Nová skupina profilů"
-
-msgid "options_profileGroupSave"
-msgstr "Uložit"
 
 msgid "options_profileGroupRenameTitle"
 msgstr "Přejmenovat skupinu profilů"
@@ -2126,3 +2111,135 @@ msgstr "Před odstraněním přesuňte všechny profily z této skupiny."
 
 msgid "options_profileGroupDeleteHelp"
 msgstr "Opravdu chcete odstranit tuto skupinu profilů?"
+
+msgid "options_tab_proxyExceptions"
+msgstr "Výjimky proxy"
+
+msgid "options_proxyExceptionsGlobalHeading"
+msgstr "Globální vynechání proxy"
+
+msgid "options_proxyExceptionsGlobalHelp"
+msgstr "Vyberte doplňkový seznam, který se použije pro všechny profily serveru proxy."
+
+msgid "options_globalBypassList"
+msgstr "Globální seznam vynechaných serverů"
+
+msgid "options_supplementalListsHeading"
+msgstr "Doplňkové seznamy"
+
+msgid "options_supplementalListsHelp"
+msgstr "Vytvářejte a spravujte seznamy vynechaných serverů, které lze použít globálně nebo propojit s vybranými profily serveru proxy."
+
+msgid "options_supplementalListNew"
+msgstr "Nový seznam"
+
+msgid "options_supplementalListColumnList"
+msgstr "Seznam"
+
+msgid "options_supplementalListColumnDirectProfiles"
+msgstr "Přímo propojené profily"
+
+msgid "options_supplementalListColumnProfileGroups"
+msgstr "Skupiny profilů"
+
+msgid "options_supplementalListGlobalLabel"
+msgstr "Globální"
+
+msgid "options_supplementalListManageProfiles"
+msgstr "Spravovat profily"
+
+msgid "options_supplementalListManageGroups"
+msgstr "Spravovat skupiny profilů"
+
+msgid "options_defaultSupplementalListCannotDelete"
+msgstr "Výchozí doplňkový seznam nelze odstranit."
+
+msgid "options_supplementalListsEmpty"
+msgstr "Nebyly vytvořeny žádné doplňkové seznamy."
+
+msgid "options_supplementalListContentHeading"
+msgstr "Obsah seznamu"
+
+msgid "options_supplementalListContentHelp"
+msgstr "Vyberte doplňkový seznam, jehož obsah chcete upravit."
+
+msgid "options_supplementalList"
+msgstr "Doplňkový seznam"
+
+msgid "options_supplementalListHideAll"
+msgstr "Skrýt všechny seznamy"
+
+msgid "options_supplementalListShowAll"
+msgstr "Zobrazit všechny seznamy"
+
+msgid "options_supplementalListSelectHelp"
+msgstr "Chcete-li upravit obsah, vytvořte doplňkový seznam."
+
+msgid "options_supplementalListNone"
+msgstr "Žádné seznamy"
+
+msgid "options_supplementalListName"
+msgstr "Název seznamu"
+
+msgid "options_supplementalListNameRequired"
+msgstr "Název seznamu je povinný."
+
+msgid "options_supplementalListNameTaken"
+msgstr "Doplňkový seznam s tímto názvem již existuje."
+
+msgid "options_supplementalListCreateTitle"
+msgstr "Nový doplňkový seznam"
+
+msgid "options_supplementalListRenameTitle"
+msgstr "Přejmenovat doplňkový seznam"
+
+msgid "options_supplementalListProfilesTitle"
+msgstr "Profily serveru proxy pro $1:LIST$"
+
+msgid "options_supplementalListNoProfiles"
+msgstr "Nejsou k dispozici žádné profily serveru proxy."
+
+msgid "options_supplementalListGroupsTitle"
+msgstr "Skupiny profilů pro $1:LIST$"
+
+msgid "options_supplementalListNoGroups"
+msgstr "Nejsou k dispozici žádné skupiny profilů."
+
+msgid "options_supplementalListLinkedProfiles"
+msgstr "Propojené profily serveru proxy"
+
+msgid "options_supplementalListLinkedGroups"
+msgstr "Propojené skupiny profilů"
+
+msgid "options_deleteSupplementalListTitle"
+msgstr "Odstranit doplňkový seznam"
+
+msgid "options_deleteSupplementalListHelp"
+msgstr "Odstranit doplňkový seznam „$1:LIST$“?"
+
+msgid "options_deleteSupplementalListLinksWarning"
+msgstr "Odstraněním tohoto doplňkového seznamu se odstraní také všechna výše uvedená propojení."
+
+msgid "options_deleteGlobalSupplementalListWarning"
+msgstr "Tento seznam se aktuálně používá jako globální seznam vynechaných serverů. Po odstranění se globálním seznamem vynechaných serverů stane výchozí seznam."
+
+msgid "options_supplementalListInheritedLabel"
+msgstr "Zděděno z: $1:GROUP$"
+
+msgid "options_profileSupplementalListsEmpty"
+msgstr "S tímto profilem nejsou propojeny ani jím zděděny žádné doplňkové seznamy."
+
+msgid "options_profileSupplementalListsHelp"
+msgstr "Níže jsou zobrazeny doplňkové seznamy propojené s tímto profilem nebo zděděné z jeho skupiny profilů. Odpovídající požadavky vynechají server proxy."
+
+msgid "options_enableProxyExceptions"
+msgstr "Povolit výjimky proxy, které lze použít globálně nebo pro vybrané profily serveru proxy."
+
+msgid "options_showProxyExceptionsBypassListGroups"
+msgstr "Zobrazit skupiny seznamů vynechaných serverů ve výjimkách proxy."
+
+msgid "routeTrace_step_globalBypass"
+msgstr "Globální vynechání proxy"
+
+msgid "routeTrace_step_supplementalBypass"
+msgstr "Vynechání podle doplňkového seznamu"

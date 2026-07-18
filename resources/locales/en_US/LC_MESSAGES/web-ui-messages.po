@@ -203,10 +203,19 @@ msgid "dialog_close"
 msgstr "Close"
 
 msgid "dialog_save"
-msgstr "Save changes"
+msgstr "Save"
 
 msgid "dialog_cancel"
 msgstr "Cancel"
+
+msgid "dialog_create"
+msgstr "Create"
+
+msgid "dialog_rename"
+msgstr "Rename"
+
+msgid "dialog_delete"
+msgstr "Delete"
 
 msgid "inputClear_clear"
 msgstr "Clear"
@@ -803,12 +812,6 @@ msgstr "Apply"
 msgid "options_profileCustomColor"
 msgstr "Custom"
 
-msgid "options_renameProfile"
-msgstr "Rename"
-
-msgid "options_deleteProfile"
-msgstr "Delete"
-
 msgid "options_profileExportRuleList"
 msgstr "Publish rule list"
 
@@ -1310,9 +1313,6 @@ msgstr "Delete Rule"
 msgid "options_deleteRuleConfirm"
 msgstr "Do you really want to delete the following rule?"
 
-msgid "options_deleteRule"
-msgstr "Delete"
-
 msgid "options_modalHeader_resetRules"
 msgstr "Reset rules"
 
@@ -1399,9 +1399,6 @@ msgstr "Select a profile"
 
 msgid "options_profileDuplicateSourceRequired"
 msgstr "Please select a profile to duplicate."
-
-msgid "options_createProfile"
-msgstr "Create"
 
 msgid "options_modalHeader_resetOptions"
 msgstr "Reset Options"
@@ -1962,11 +1959,6 @@ msgstr "Select at least one ignore rule."
 msgid "popup_routeInfoSwitchRuleTarget"
 msgstr "Switch rule"
 
-msgid "options_cancel"
-msgstr "Cancel"
-
-msgid "options_delete"
-msgstr "Delete"
 
 msgid "options_edit"
 msgstr "Edit"
@@ -2079,14 +2071,8 @@ msgstr "Current Group"
 msgid "options_profileGroupsProfilesEmpty"
 msgstr "No profiles are available."
 
-msgid "options_profileGroupCreate"
-msgstr "Create"
-
 msgid "options_profileGroupCreateTitle"
 msgstr "New Profile Group"
-
-msgid "options_profileGroupSave"
-msgstr "Save"
 
 msgid "options_profileGroupRenameTitle"
 msgstr "Rename Profile Group"
@@ -2126,3 +2112,135 @@ msgstr "Move all profiles out of this group before deleting it."
 
 msgid "options_profileGroupDeleteHelp"
 msgstr "Do you really want to delete this profile group?"
+
+msgid "options_tab_proxyExceptions"
+msgstr "Proxy Exceptions"
+
+msgid "options_proxyExceptionsGlobalHeading"
+msgstr "Global Bypass"
+
+msgid "options_proxyExceptionsGlobalHelp"
+msgstr "Choose a Supplemental List to apply to all Proxy Profiles."
+
+msgid "options_globalBypassList"
+msgstr "Global Bypass List"
+
+msgid "options_supplementalListsHeading"
+msgstr "Supplemental Lists"
+
+msgid "options_supplementalListsHelp"
+msgstr "Create and manage Bypass Lists that can be used globally or linked to selected Proxy Profiles."
+
+msgid "options_supplementalListNew"
+msgstr "New List"
+
+msgid "options_supplementalListColumnList"
+msgstr "List"
+
+msgid "options_supplementalListColumnDirectProfiles"
+msgstr "Direct Profiles"
+
+msgid "options_supplementalListColumnProfileGroups"
+msgstr "Profile Groups"
+
+msgid "options_supplementalListGlobalLabel"
+msgstr "Global"
+
+msgid "options_supplementalListManageProfiles"
+msgstr "Manage Profiles"
+
+msgid "options_supplementalListManageGroups"
+msgstr "Manage Profile Groups"
+
+msgid "options_defaultSupplementalListCannotDelete"
+msgstr "The Default Supplemental List cannot be deleted."
+
+msgid "options_supplementalListsEmpty"
+msgstr "No Supplemental Lists have been created."
+
+msgid "options_supplementalListContentHeading"
+msgstr "List Content"
+
+msgid "options_supplementalListContentHelp"
+msgstr "Choose a Supplemental List to edit its content."
+
+msgid "options_supplementalList"
+msgstr "Supplemental List"
+
+msgid "options_supplementalListHideAll"
+msgstr "Hide All Lists"
+
+msgid "options_supplementalListShowAll"
+msgstr "Show All Lists"
+
+msgid "options_supplementalListSelectHelp"
+msgstr "Create a Supplemental List to edit its content."
+
+msgid "options_supplementalListNone"
+msgstr "No lists"
+
+msgid "options_supplementalListName"
+msgstr "List name"
+
+msgid "options_supplementalListNameRequired"
+msgstr "List name is required."
+
+msgid "options_supplementalListNameTaken"
+msgstr "A Supplemental List with this name already exists."
+
+msgid "options_supplementalListCreateTitle"
+msgstr "New Supplemental List"
+
+msgid "options_supplementalListRenameTitle"
+msgstr "Rename Supplemental List"
+
+msgid "options_supplementalListProfilesTitle"
+msgstr "Proxy Profiles for $1:LIST$"
+
+msgid "options_supplementalListNoProfiles"
+msgstr "No Proxy Profiles are available."
+
+msgid "options_supplementalListGroupsTitle"
+msgstr "Profile Groups for $1:LIST$"
+
+msgid "options_supplementalListNoGroups"
+msgstr "No Profile Groups are available."
+
+msgid "options_supplementalListLinkedProfiles"
+msgstr "Linked Proxy Profiles"
+
+msgid "options_supplementalListLinkedGroups"
+msgstr "Linked Profile Groups"
+
+msgid "options_deleteSupplementalListTitle"
+msgstr "Delete Supplemental List"
+
+msgid "options_deleteSupplementalListHelp"
+msgstr "Delete the Supplemental List “$1:LIST$”?"
+
+msgid "options_deleteSupplementalListLinksWarning"
+msgstr "Deleting this Supplemental List will also remove all links shown above."
+
+msgid "options_deleteGlobalSupplementalListWarning"
+msgstr "This list is currently used as the Global Bypass List. The Default list will become the Global Bypass List after deletion."
+
+msgid "options_supplementalListInheritedLabel"
+msgstr "Inherited: $1:GROUP$"
+
+msgid "options_profileSupplementalListsEmpty"
+msgstr "No Supplemental Lists are linked to or inherited by this profile."
+
+msgid "options_profileSupplementalListsHelp"
+msgstr "Supplemental Lists linked to this profile or inherited from its Profile Group are shown below. Matching requests will bypass the proxy."
+
+msgid "options_enableProxyExceptions"
+msgstr "Enable Proxy Exceptions that can be applied globally or to selected Proxy Profiles."
+
+msgid "options_showProxyExceptionsBypassListGroups"
+msgstr "Show bypass list groups in Proxy Exceptions."
+
+msgid "routeTrace_step_globalBypass"
+msgstr "Global Bypass"
+
+msgid "routeTrace_step_supplementalBypass"
+msgstr "Supplemental Bypass"

@@ -180,10 +180,19 @@ msgid "dialog_close"
 msgstr "Kapat"
 
 msgid "dialog_save"
-msgstr "Değişikleri Kaydet"
+msgstr "Kaydet"
 
 msgid "dialog_cancel"
 msgstr "İptal"
+
+msgid "dialog_create"
+msgstr "Oluştur"
+
+msgid "dialog_rename"
+msgstr "Yeniden adlandır"
+
+msgid "dialog_delete"
+msgstr "Sil"
 
 msgid "inputClear_clear"
 msgstr "Temizle"
@@ -734,12 +743,6 @@ msgstr "Uygula"
 msgid "options_profileCustomColor"
 msgstr "Özel"
 
-msgid "options_renameProfile"
-msgstr "Yeniden adlandır"
-
-msgid "options_deleteProfile"
-msgstr "Sil"
-
 msgid "options_profileExportRuleList"
 msgstr "Kural listesini yayınla"
 
@@ -1201,9 +1204,6 @@ msgstr "Kuralı Sil"
 msgid "options_deleteRuleConfirm"
 msgstr "Aşağıdaki kuralı silmek istediğine emin misin?"
 
-msgid "options_deleteRule"
-msgstr "Delete"
-
 msgid "options_modalHeader_resetRules"
 msgstr "Kuralları sıfırla"
 
@@ -1281,9 +1281,6 @@ msgstr "Bir profil seç"
 
 msgid "options_profileDuplicateSourceRequired"
 msgstr "Çoğaltılacak bir profil seçin."
-
-msgid "options_createProfile"
-msgstr "Oluştur"
 
 msgid "options_modalHeader_resetOptions"
 msgstr "Reset Options"
@@ -1811,12 +1808,6 @@ msgstr "Dil"
 msgid "options_interfaceLanguage"
 msgstr "Arayüz dili"
 
-msgid "options_cancel"
-msgstr "İptal"
-
-msgid "options_delete"
-msgstr "Sil"
-
 msgid "options_edit"
 msgstr "Düzenle"
 
@@ -1928,14 +1919,8 @@ msgstr "Geçerli grup"
 msgid "options_profileGroupsProfilesEmpty"
 msgstr "Kullanılabilir profil yok."
 
-msgid "options_profileGroupCreate"
-msgstr "Oluştur"
-
 msgid "options_profileGroupCreateTitle"
 msgstr "Yeni Profil Grubu"
-
-msgid "options_profileGroupSave"
-msgstr "Kaydet"
 
 msgid "options_profileGroupRenameTitle"
 msgstr "Profil Grubunu Yeniden Adlandır"
@@ -1975,3 +1960,135 @@ msgstr "Silmeden önce tüm profilleri bu grubun dışına taşıyın."
 
 msgid "options_profileGroupDeleteHelp"
 msgstr "Bu profil grubunu gerçekten silmek istiyor musunuz?"
+
+msgid "options_tab_proxyExceptions"
+msgstr "Proxy İstisnaları"
+
+msgid "options_proxyExceptionsGlobalHeading"
+msgstr "Genel Baypas"
+
+msgid "options_proxyExceptionsGlobalHelp"
+msgstr "Tüm Proxy Profillerine uygulanacak bir Ek Liste seçin."
+
+msgid "options_globalBypassList"
+msgstr "Genel Baypas Listesi"
+
+msgid "options_supplementalListsHeading"
+msgstr "Ek Listeler"
+
+msgid "options_supplementalListsHelp"
+msgstr "Genel olarak kullanılabilen veya seçili Proxy Profillerine bağlanabilen Baypas Listeleri oluşturun ve yönetin."
+
+msgid "options_supplementalListNew"
+msgstr "Yeni Liste"
+
+msgid "options_supplementalListColumnList"
+msgstr "Liste"
+
+msgid "options_supplementalListColumnDirectProfiles"
+msgstr "Doğrudan Bağlı Profiller"
+
+msgid "options_supplementalListColumnProfileGroups"
+msgstr "Profil Grupları"
+
+msgid "options_supplementalListGlobalLabel"
+msgstr "Genel"
+
+msgid "options_supplementalListManageProfiles"
+msgstr "Profilleri Yönet"
+
+msgid "options_supplementalListManageGroups"
+msgstr "Profil Gruplarını Yönet"
+
+msgid "options_defaultSupplementalListCannotDelete"
+msgstr "Varsayılan Ek Liste silinemez."
+
+msgid "options_supplementalListsEmpty"
+msgstr "Hiç Ek Liste oluşturulmadı."
+
+msgid "options_supplementalListContentHeading"
+msgstr "Liste İçeriği"
+
+msgid "options_supplementalListContentHelp"
+msgstr "İçeriğini düzenlemek için bir Ek Liste seçin."
+
+msgid "options_supplementalList"
+msgstr "Ek Liste"
+
+msgid "options_supplementalListHideAll"
+msgstr "Tüm Listeleri Gizle"
+
+msgid "options_supplementalListShowAll"
+msgstr "Tüm Listeleri Göster"
+
+msgid "options_supplementalListSelectHelp"
+msgstr "İçeriğini düzenlemek için bir Ek Liste oluşturun."
+
+msgid "options_supplementalListNone"
+msgstr "Liste yok"
+
+msgid "options_supplementalListName"
+msgstr "Liste adı"
+
+msgid "options_supplementalListNameRequired"
+msgstr "Liste adı gereklidir."
+
+msgid "options_supplementalListNameTaken"
+msgstr "Bu ada sahip bir Ek Liste zaten var."
+
+msgid "options_supplementalListCreateTitle"
+msgstr "Yeni Ek Liste"
+
+msgid "options_supplementalListRenameTitle"
+msgstr "Ek Listeyi Yeniden Adlandır"
+
+msgid "options_supplementalListProfilesTitle"
+msgstr "$1:LIST$ için Proxy Profilleri"
+
+msgid "options_supplementalListNoProfiles"
+msgstr "Kullanılabilir Proxy Profili yok."
+
+msgid "options_supplementalListGroupsTitle"
+msgstr "$1:LIST$ için Profil Grupları"
+
+msgid "options_supplementalListNoGroups"
+msgstr "Kullanılabilir Profil Grubu yok."
+
+msgid "options_supplementalListLinkedProfiles"
+msgstr "Bağlı Proxy Profilleri"
+
+msgid "options_supplementalListLinkedGroups"
+msgstr "Bağlı Profil Grupları"
+
+msgid "options_deleteSupplementalListTitle"
+msgstr "Ek Listeyi Sil"
+
+msgid "options_deleteSupplementalListHelp"
+msgstr "“$1:LIST$” Ek Listesi silinsin mi?"
+
+msgid "options_deleteSupplementalListLinksWarning"
+msgstr "Bu Ek Liste silindiğinde yukarıda gösterilen tüm bağlantılar da kaldırılır."
+
+msgid "options_deleteGlobalSupplementalListWarning"
+msgstr "Bu liste şu anda Genel Baypas Listesi olarak kullanılıyor. Silindikten sonra Varsayılan liste Genel Baypas Listesi olacaktır."
+
+msgid "options_supplementalListInheritedLabel"
+msgstr "Şuradan devralındı: $1:GROUP$"
+
+msgid "options_profileSupplementalListsEmpty"
+msgstr "Bu profile bağlı veya bu profil tarafından devralınan bir Ek Liste yok."
+
+msgid "options_profileSupplementalListsHelp"
+msgstr "Bu profile bağlı veya Profil Grubundan devralınan Ek Listeler aşağıda gösterilir. Eşleşen istekler proxy'yi baypas eder."
+
+msgid "options_enableProxyExceptions"
+msgstr "Genel olarak veya seçili Proxy Profillerine uygulanabilen Proxy İstisnalarını etkinleştir."
+
+msgid "options_showProxyExceptionsBypassListGroups"
+msgstr "Proxy İstisnalarında baypas listesi gruplarını göster."
+
+msgid "routeTrace_step_globalBypass"
+msgstr "Genel Baypas"
+
+msgid "routeTrace_step_supplementalBypass"
+msgstr "Ek Liste Baypası"

@@ -175,10 +175,19 @@ msgid "dialog_close"
 msgstr "關閉"
 
 msgid "dialog_save"
-msgstr "儲存變更"
+msgstr "儲存"
 
 msgid "dialog_cancel"
 msgstr "取消"
+
+msgid "dialog_create"
+msgstr "建立"
+
+msgid "dialog_rename"
+msgstr "變更名稱"
+
+msgid "dialog_delete"
+msgstr "刪除"
 
 msgid "inputClear_clear"
 msgstr "清除"
@@ -322,7 +331,7 @@ msgid "options_showWebSocketProxyOverrideRows"
 msgstr "在代理情境模式中顯示 WebSocket (ws/wss) 單獨代理設定。"
 
 msgid "options_showBypassListGroups"
-msgstr "在代理情境模式中顯示不代理清單分組。"
+msgstr "在代理情境模式中顯示不代理位址清單分組。"
 
 msgid "options_group_contextMenuOptions"
 msgstr "右鍵選單"
@@ -731,12 +740,6 @@ msgstr "套用"
 
 msgid "options_profileCustomColor"
 msgstr "自訂"
-
-msgid "options_renameProfile"
-msgstr "變更名稱"
-
-msgid "options_deleteProfile"
-msgstr "刪除"
 
 msgid "options_profileExportRuleList"
 msgstr "釋出規則清單"
@@ -1179,9 +1182,6 @@ msgstr "(無密碼)"
 msgid "options_deleteRuleConfirm"
 msgstr "真的要刪除這個規則嗎?"
 
-msgid "options_deleteRule"
-msgstr "刪除"
-
 msgid "options_modalHeader_resetRules"
 msgstr "重設全部規則"
 
@@ -1259,9 +1259,6 @@ msgstr "選擇情境模式"
 
 msgid "options_profileDuplicateSourceRequired"
 msgstr "請選擇要複製的情境模式。"
-
-msgid "options_createProfile"
-msgstr "建立"
 
 msgid "options_modalHeader_resetOptions"
 msgstr "重設選項"
@@ -1794,12 +1791,6 @@ msgstr "請至少選擇一條忽略規則。"
 msgid "popup_routeInfoSwitchRuleTarget"
 msgstr "切換規則"
 
-msgid "options_cancel"
-msgstr "取消"
-
-msgid "options_delete"
-msgstr "刪除"
-
 msgid "options_edit"
 msgstr "編輯"
 
@@ -1911,14 +1902,8 @@ msgstr "目前分組"
 msgid "options_profileGroupsProfilesEmpty"
 msgstr "沒有可用的情境模式。"
 
-msgid "options_profileGroupCreate"
-msgstr "建立"
-
 msgid "options_profileGroupCreateTitle"
 msgstr "新增情境模式分組"
-
-msgid "options_profileGroupSave"
-msgstr "儲存"
 
 msgid "options_profileGroupRenameTitle"
 msgstr "重新命名情境模式分組"
@@ -1958,3 +1943,135 @@ msgstr "請先將所有情境模式移出此分組，然後再刪除。"
 
 msgid "options_profileGroupDeleteHelp"
 msgstr "確定要刪除此情境模式分組嗎？"
+
+msgid "options_tab_proxyExceptions"
+msgstr "代理例外"
+
+msgid "options_proxyExceptionsGlobalHeading"
+msgstr "全域不代理"
+
+msgid "options_proxyExceptionsGlobalHelp"
+msgstr "選擇一個補充清單，將其套用至所有代理情境模式。"
+
+msgid "options_globalBypassList"
+msgstr "全域不代理清單"
+
+msgid "options_supplementalListsHeading"
+msgstr "補充清單"
+
+msgid "options_supplementalListsHelp"
+msgstr "建立並管理可全域使用或關聯至所選代理情境模式的不代理位址清單。"
+
+msgid "options_supplementalListNew"
+msgstr "新增清單"
+
+msgid "options_supplementalListColumnList"
+msgstr "清單"
+
+msgid "options_supplementalListColumnDirectProfiles"
+msgstr "直接關聯的情境模式"
+
+msgid "options_supplementalListColumnProfileGroups"
+msgstr "情境模式分組"
+
+msgid "options_supplementalListGlobalLabel"
+msgstr "全域"
+
+msgid "options_supplementalListManageProfiles"
+msgstr "管理情境模式"
+
+msgid "options_supplementalListManageGroups"
+msgstr "管理情境模式分組"
+
+msgid "options_defaultSupplementalListCannotDelete"
+msgstr "無法刪除預設補充清單。"
+
+msgid "options_supplementalListsEmpty"
+msgstr "尚未建立補充清單。"
+
+msgid "options_supplementalListContentHeading"
+msgstr "清單內容"
+
+msgid "options_supplementalListContentHelp"
+msgstr "選擇要編輯內容的補充清單。"
+
+msgid "options_supplementalList"
+msgstr "補充清單"
+
+msgid "options_supplementalListHideAll"
+msgstr "隱藏所有清單"
+
+msgid "options_supplementalListShowAll"
+msgstr "顯示所有清單"
+
+msgid "options_supplementalListSelectHelp"
+msgstr "請先建立補充清單，然後再編輯其內容。"
+
+msgid "options_supplementalListNone"
+msgstr "無清單"
+
+msgid "options_supplementalListName"
+msgstr "清單名稱"
+
+msgid "options_supplementalListNameRequired"
+msgstr "清單名稱不能為空。"
+
+msgid "options_supplementalListNameTaken"
+msgstr "已存在同名補充清單。"
+
+msgid "options_supplementalListCreateTitle"
+msgstr "新增補充清單"
+
+msgid "options_supplementalListRenameTitle"
+msgstr "重新命名補充清單"
+
+msgid "options_supplementalListProfilesTitle"
+msgstr "「$1:LIST$」的代理情境模式"
+
+msgid "options_supplementalListNoProfiles"
+msgstr "沒有可用的代理情境模式。"
+
+msgid "options_supplementalListGroupsTitle"
+msgstr "「$1:LIST$」的情境模式分組"
+
+msgid "options_supplementalListNoGroups"
+msgstr "沒有可用的情境模式分組。"
+
+msgid "options_supplementalListLinkedProfiles"
+msgstr "已關聯的代理情境模式"
+
+msgid "options_supplementalListLinkedGroups"
+msgstr "已關聯的情境模式分組"
+
+msgid "options_deleteSupplementalListTitle"
+msgstr "刪除補充清單"
+
+msgid "options_deleteSupplementalListHelp"
+msgstr "確定要刪除補充清單「$1:LIST$」嗎？"
+
+msgid "options_deleteSupplementalListLinksWarning"
+msgstr "刪除此補充清單也會移除上方顯示的所有關聯。"
+
+msgid "options_deleteGlobalSupplementalListWarning"
+msgstr "此清單目前是全域不代理清單。刪除後，預設清單將成為全域不代理清單。"
+
+msgid "options_supplementalListInheritedLabel"
+msgstr "繼承自：$1:GROUP$"
+
+msgid "options_profileSupplementalListsEmpty"
+msgstr "沒有直接關聯至此情境模式或從其情境模式分組繼承的補充清單。"
+
+msgid "options_profileSupplementalListsHelp"
+msgstr "下方顯示直接關聯至此情境模式或從其情境模式分組繼承的補充清單。與這些清單相符的請求將不經過代理。"
+
+msgid "options_enableProxyExceptions"
+msgstr "啟用可全域或依情境模式套用的「代理例外」。"
+
+msgid "options_showProxyExceptionsBypassListGroups"
+msgstr "在「代理例外」頁面中顯示不代理位址清單分組。"
+
+msgid "routeTrace_step_globalBypass"
+msgstr "全域不代理"
+
+msgid "routeTrace_step_supplementalBypass"
+msgstr "補充清單不代理"

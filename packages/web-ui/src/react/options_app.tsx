@@ -2054,7 +2054,7 @@ export function OptionsApp() {
       )}
       {modal?.kind === 'createProfileGroupForProfile' && (
         <ProfileGroupModal
-          action={message('options_profileGroupCreate', 'Create')}
+          action={message('dialog_create', 'Create')}
           groups={profileGroupsForOptions(options)}
           title={message('options_profileGroupCreateTitle', 'New Profile Group')}
           onCancel={() => setModal(null)}

@@ -299,7 +299,7 @@ function closeButtonFor(kind: ConfirmKind) {
     case 'deleteProfile':
       return {
         className: 'btn-danger',
-        label: message('options_deleteProfile', 'Delete'),
+        label: message('dialog_delete', 'Delete'),
         value: 'ok'
       };
     case 'reset':
@@ -317,7 +317,7 @@ function closeButtonFor(kind: ConfirmKind) {
     case 'ruleRemove':
       return {
         className: 'btn-danger',
-        label: message('options_deleteRule', 'Delete'),
+        label: message('dialog_delete', 'Delete'),
         value: 'ok'
       };
     case 'ruleReset':

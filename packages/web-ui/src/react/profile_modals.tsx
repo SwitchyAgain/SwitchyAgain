@@ -179,7 +179,7 @@ export function RenameProfileModal({
           {message('dialog_cancel', 'Cancel')}
         </button>
         <button type="submit" className="btn btn-primary" disabled={!valid}>
-          {message('options_renameProfile', 'Rename')}
+          {message('dialog_rename', 'Rename')}
         </button>
       </div>
     </form>
@@ -453,7 +453,7 @@ export function NewProfileModal({
           {message('dialog_cancel', 'Cancel')}
         </button>
         <button type="submit" className="btn btn-primary" disabled={!valid}>
-          {message('options_createProfile', 'Create')}
+          {message('dialog_create', 'Create')}
         </button>
       </div>
     </form>
@@ -584,7 +584,7 @@ export function ProxyAuthModal({auth, onClose, onDismiss}: ProxyAuthProps) {
           {message('dialog_cancel', 'Cancel')}
         </button>
         <button type="submit" className="btn btn-primary">
-          {message('dialog_save', 'Save changes')}
+          {message('dialog_save', 'Save')}
         </button>
       </div>
     </form>

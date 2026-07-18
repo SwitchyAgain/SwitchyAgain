@@ -463,7 +463,7 @@ export function ProfileGroupModal({
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-default" onClick={onCancel}>
-                {message('options_cancel', 'Cancel')}
+                {message('dialog_cancel', 'Cancel')}
               </button>
               <button type="button" className="btn btn-primary" disabled={!trimmed || !!error} onClick={submit}>
                 {action}
@@ -788,8 +788,8 @@ export function ProfileGroupsPage({onOptionsChange, options}: {onOptionsChange: 
                         <button
                           className="btn btn-danger btn-sm"
                           type="button"
-                          title={message('options_delete', 'Delete')}
-                          aria-label={message('options_delete', 'Delete')}
+                          title={message('dialog_delete', 'Delete')}
+                          aria-label={message('dialog_delete', 'Delete')}
                           onClick={() => requestDeleteGroup(group)}
                         >
                           <span className="glyphicon glyphicon-trash" aria-hidden="true" />
@@ -908,7 +908,7 @@ export function ProfileGroupsPage({onOptionsChange, options}: {onOptionsChange: 
 
       {createOpen && (
         <ProfileGroupModal
-          action={message('options_profileGroupCreate', 'Create')}
+          action={message('dialog_create', 'Create')}
           groups={groups}
           title={message('options_profileGroupCreateTitle', 'New Profile Group')}
           onCancel={() => setCreateOpen(false)}
@@ -917,7 +917,7 @@ export function ProfileGroupsPage({onOptionsChange, options}: {onOptionsChange: 
       )}
       {renameGroup && (
         <ProfileGroupModal
-          action={message('options_profileGroupSave', 'Save')}
+          action={message('dialog_save', 'Save')}
           currentGroupId={renameGroup.id}
           groups={groups}
           initialColor={renameGroup.color}
@@ -1047,7 +1047,7 @@ export function ProfileGroupsPage({onOptionsChange, options}: {onOptionsChange: 
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-default" onClick={() => setMoveGroupState(null)}>
-                    {moveGroupState.members.length ? message('options_cancel', 'Cancel') : message('options_modalClose', 'Close')}
+                    {moveGroupState.members.length ? message('dialog_cancel', 'Cancel') : message('options_modalClose', 'Close')}
                   </button>
                   {moveGroupState.members.length > 0 && (
                     <button
@@ -1129,11 +1129,11 @@ export function ProfileGroupsPage({onOptionsChange, options}: {onOptionsChange: 
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-default" onClick={() => setDeleteState(null)}>
-                    {deleteState.members.length ? message('options_modalClose', 'Close') : message('options_cancel', 'Cancel')}
+                    {deleteState.members.length ? message('options_modalClose', 'Close') : message('dialog_cancel', 'Cancel')}
                   </button>
                   {!deleteState.members.length && (
                     <button type="button" className="btn btn-danger" onClick={confirmDeleteGroup}>
-                      {message('options_delete', 'Delete')}
+                      {message('dialog_delete', 'Delete')}
                     </button>
                   )}
                 </div>

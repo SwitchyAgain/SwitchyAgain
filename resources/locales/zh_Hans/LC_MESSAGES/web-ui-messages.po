@@ -180,10 +180,19 @@ msgid "dialog_close"
 msgstr "关闭"
 
 msgid "dialog_save"
-msgstr "保存更改"
+msgstr "保存"
 
 msgid "dialog_cancel"
 msgstr "取消"
+
+msgid "dialog_create"
+msgstr "创建"
+
+msgid "dialog_rename"
+msgstr "更改名称"
+
+msgid "dialog_delete"
+msgstr "删除"
 
 msgid "inputClear_clear"
 msgstr "清空"
@@ -327,7 +336,7 @@ msgid "options_showWebSocketProxyOverrideRows"
 msgstr "在代理情景模式中显示 WebSocket (ws/wss) 单独代理配置。"
 
 msgid "options_showBypassListGroups"
-msgstr "在代理情景模式中显示绕过列表分组。"
+msgstr "在代理情景模式中显示不代理地址列表分组。"
 
 msgid "options_group_contextMenuOptions"
 msgstr "右键菜单"
@@ -742,12 +751,6 @@ msgstr "应用"
 
 msgid "options_profileCustomColor"
 msgstr "自定义"
-
-msgid "options_renameProfile"
-msgstr "更改名称"
-
-msgid "options_deleteProfile"
-msgstr "删除"
 
 msgid "options_profileExportRuleList"
 msgstr "发布规则列表"
@@ -1190,9 +1193,6 @@ msgstr "(无密码)"
 msgid "options_deleteRuleConfirm"
 msgstr "真的要删除这个规则吗?"
 
-msgid "options_deleteRule"
-msgstr "删除"
-
 msgid "options_modalHeader_resetRules"
 msgstr "重置全部规则"
 
@@ -1272,9 +1272,6 @@ msgstr "选择情景模式"
 
 msgid "options_profileDuplicateSourceRequired"
 msgstr "请选择要复制的情景模式。"
-
-msgid "options_createProfile"
-msgstr "创建"
 
 msgid "options_modalHeader_resetOptions"
 msgstr "重置选项"
@@ -1807,12 +1804,6 @@ msgstr "请至少选择一条忽略规则。"
 msgid "popup_routeInfoSwitchRuleTarget"
 msgstr "切换规则"
 
-msgid "options_cancel"
-msgstr "取消"
-
-msgid "options_delete"
-msgstr "删除"
-
 msgid "options_edit"
 msgstr "编辑"
 
@@ -1924,14 +1915,8 @@ msgstr "当前分组"
 msgid "options_profileGroupsProfilesEmpty"
 msgstr "没有可用的情景模式。"
 
-msgid "options_profileGroupCreate"
-msgstr "创建"
-
 msgid "options_profileGroupCreateTitle"
 msgstr "新建情景模式分组"
-
-msgid "options_profileGroupSave"
-msgstr "保存"
 
 msgid "options_profileGroupRenameTitle"
 msgstr "重命名情景模式分组"
@@ -1971,3 +1956,135 @@ msgstr "请先将所有情景模式移出此分组，然后再删除。"
 
 msgid "options_profileGroupDeleteHelp"
 msgstr "确定要删除这个情景模式分组吗？"
+
+msgid "options_tab_proxyExceptions"
+msgstr "代理例外"
+
+msgid "options_proxyExceptionsGlobalHeading"
+msgstr "全局不代理"
+
+msgid "options_proxyExceptionsGlobalHelp"
+msgstr "选择一个补充列表，将其应用到所有代理情景模式。"
+
+msgid "options_globalBypassList"
+msgstr "全局不代理列表"
+
+msgid "options_supplementalListsHeading"
+msgstr "补充列表"
+
+msgid "options_supplementalListsHelp"
+msgstr "创建并管理可全局使用或关联到所选代理情景模式的不代理地址列表。"
+
+msgid "options_supplementalListNew"
+msgstr "新建列表"
+
+msgid "options_supplementalListColumnList"
+msgstr "列表"
+
+msgid "options_supplementalListColumnDirectProfiles"
+msgstr "直接关联的情景模式"
+
+msgid "options_supplementalListColumnProfileGroups"
+msgstr "情景模式分组"
+
+msgid "options_supplementalListGlobalLabel"
+msgstr "全局"
+
+msgid "options_supplementalListManageProfiles"
+msgstr "管理情景模式"
+
+msgid "options_supplementalListManageGroups"
+msgstr "管理情景模式分组"
+
+msgid "options_defaultSupplementalListCannotDelete"
+msgstr "不能删除默认补充列表。"
+
+msgid "options_supplementalListsEmpty"
+msgstr "尚未创建补充列表。"
+
+msgid "options_supplementalListContentHeading"
+msgstr "列表内容"
+
+msgid "options_supplementalListContentHelp"
+msgstr "选择要编辑内容的补充列表。"
+
+msgid "options_supplementalList"
+msgstr "补充列表"
+
+msgid "options_supplementalListHideAll"
+msgstr "隐藏所有列表"
+
+msgid "options_supplementalListShowAll"
+msgstr "显示所有列表"
+
+msgid "options_supplementalListSelectHelp"
+msgstr "请先创建补充列表，然后再编辑其内容。"
+
+msgid "options_supplementalListNone"
+msgstr "无列表"
+
+msgid "options_supplementalListName"
+msgstr "列表名称"
+
+msgid "options_supplementalListNameRequired"
+msgstr "列表名称不能为空。"
+
+msgid "options_supplementalListNameTaken"
+msgstr "已存在同名补充列表。"
+
+msgid "options_supplementalListCreateTitle"
+msgstr "新建补充列表"
+
+msgid "options_supplementalListRenameTitle"
+msgstr "重命名补充列表"
+
+msgid "options_supplementalListProfilesTitle"
+msgstr "「$1:LIST$」的代理情景模式"
+
+msgid "options_supplementalListNoProfiles"
+msgstr "没有可用的代理情景模式。"
+
+msgid "options_supplementalListGroupsTitle"
+msgstr "「$1:LIST$」的情景模式分组"
+
+msgid "options_supplementalListNoGroups"
+msgstr "没有可用的情景模式分组。"
+
+msgid "options_supplementalListLinkedProfiles"
+msgstr "已关联的代理情景模式"
+
+msgid "options_supplementalListLinkedGroups"
+msgstr "已关联的情景模式分组"
+
+msgid "options_deleteSupplementalListTitle"
+msgstr "删除补充列表"
+
+msgid "options_deleteSupplementalListHelp"
+msgstr "确定要删除补充列表「$1:LIST$」吗？"
+
+msgid "options_deleteSupplementalListLinksWarning"
+msgstr "删除此补充列表还会移除上面显示的所有关联。"
+
+msgid "options_deleteGlobalSupplementalListWarning"
+msgstr "此列表当前是全局不代理列表。删除后，默认列表将成为全局不代理列表。"
+
+msgid "options_supplementalListInheritedLabel"
+msgstr "继承自：$1:GROUP$"
+
+msgid "options_profileSupplementalListsEmpty"
+msgstr "没有直接关联到此情景模式或从其情景模式分组继承的补充列表。"
+
+msgid "options_profileSupplementalListsHelp"
+msgstr "下面显示直接关联到此情景模式或从其情景模式分组继承的补充列表。与这些列表匹配的请求将不经过代理。"
+
+msgid "options_enableProxyExceptions"
+msgstr "启用可全局或按情景模式应用的「代理例外」。"
+
+msgid "options_showProxyExceptionsBypassListGroups"
+msgstr "在「代理例外」页面中显示不代理地址列表分组。"
+
+msgid "routeTrace_step_globalBypass"
+msgstr "全局不代理"
+
+msgid "routeTrace_step_supplementalBypass"
+msgstr "补充列表不代理"

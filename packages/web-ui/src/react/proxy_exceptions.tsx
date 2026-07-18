@@ -254,7 +254,7 @@ function ListNameModal({
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-default" onClick={onCancel}>
-                {message('options_cancel', 'Cancel')}
+                {message('dialog_cancel', 'Cancel')}
               </button>
               <button type="button" className="btn btn-primary" disabled={!!error} onClick={() => onSubmit(trimmed)}>
                 {action}
@@ -320,10 +320,10 @@ function ProfileLinksModal({
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-default" onClick={onCancel}>
-                {message('options_cancel', 'Cancel')}
+                {message('dialog_cancel', 'Cancel')}
               </button>
               <button type="button" className="btn btn-primary" onClick={() => onSave(selected)}>
-                {message('options_save', 'Save')}
+                {message('dialog_save', 'Save')}
               </button>
             </div>
           </div>
@@ -385,10 +385,10 @@ function GroupLinksModal({
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-default" onClick={onCancel}>
-                {message('options_cancel', 'Cancel')}
+                {message('dialog_cancel', 'Cancel')}
               </button>
               <button type="button" className="btn btn-primary" onClick={() => onSave(selected)}>
-                {message('options_save', 'Save')}
+                {message('dialog_save', 'Save')}
               </button>
             </div>
           </div>
@@ -588,7 +588,7 @@ export function ProxyExceptionsPage({options, onOptionsChange}: {options: Option
                       <button
                         className="btn btn-default btn-sm"
                         type="button"
-                        title={message('options_rename', 'Rename')}
+                        title={message('dialog_rename', 'Rename')}
                         onClick={() => setListModal({kind: 'rename', list})}
                       >
                         <span className="glyphicon glyphicon-edit" aria-hidden="true" />
@@ -618,7 +618,7 @@ export function ProxyExceptionsPage({options, onOptionsChange}: {options: Option
                         title={
                           list.id === DEFAULT_SUPPLEMENTAL_LIST_ID
                             ? message('options_defaultSupplementalListCannotDelete', 'The Default Supplemental List cannot be deleted.')
-                            : message('options_delete', 'Delete')
+                            : message('dialog_delete', 'Delete')
                         }
                         onClick={() => setDeleteListState(list)}
                       >
@@ -676,7 +676,7 @@ export function ProxyExceptionsPage({options, onOptionsChange}: {options: Option
 
       {listModal?.kind === 'create' && (
         <ListNameModal
-          action={message('options_create', 'Create')}
+          action={message('dialog_create', 'Create')}
           lists={lists}
           title={message('options_supplementalListCreateTitle', 'New Supplemental List')}
           onCancel={() => setListModal(null)}
@@ -685,7 +685,7 @@ export function ProxyExceptionsPage({options, onOptionsChange}: {options: Option
       )}
       {listModal?.kind === 'rename' && (
         <ListNameModal
-          action={message('options_save', 'Save')}
+          action={message('dialog_save', 'Save')}
           currentListId={listModal.list.id}
           initialName={listModal.list.name}
           lists={lists}
@@ -786,10 +786,10 @@ export function ProxyExceptionsPage({options, onOptionsChange}: {options: Option
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-default" onClick={() => setDeleteListState(null)}>
-                    {message('options_cancel', 'Cancel')}
+                    {message('dialog_cancel', 'Cancel')}
                   </button>
                   <button type="button" className="btn btn-danger" onClick={() => deleteList(deleteListState)}>
-                    {message('options_delete', 'Delete')}
+                    {message('dialog_delete', 'Delete')}
                   </button>
                 </div>
               </div>

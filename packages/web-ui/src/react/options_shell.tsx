@@ -485,7 +485,7 @@ function ProfileActionsControl({
               role="menuitem"
               onClick={action(onRenameProfile)}
             >
-              <span className="glyphicon glyphicon-edit" /> <span>{message('options_renameProfile', 'Rename')}</span>
+              <span className="glyphicon glyphicon-edit" /> <span>{message('dialog_rename', 'Rename')}</span>
             </button>
           )}
           {onDeleteProfile && (
@@ -495,7 +495,7 @@ function ProfileActionsControl({
               role="menuitem"
               onClick={action(onDeleteProfile)}
             >
-              <span className="glyphicon glyphicon-trash" /> <span>{message('options_deleteProfile', 'Delete')}</span>
+              <span className="glyphicon glyphicon-trash" /> <span>{message('dialog_delete', 'Delete')}</span>
             </button>
           )}
         </span>

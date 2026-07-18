@@ -169,10 +169,19 @@ msgid "dialog_close"
 msgstr "Lukk"
 
 msgid "dialog_save"
-msgstr "Lagre endringer"
+msgstr "Lagre"
 
 msgid "dialog_cancel"
 msgstr "Avbryt"
+
+msgid "dialog_create"
+msgstr "Opprett"
+
+msgid "dialog_rename"
+msgstr "Gi nytt navn"
+
+msgid "dialog_delete"
+msgstr "Slett"
 
 msgid "inputClear_clear"
 msgstr "Tøm"
@@ -737,12 +746,6 @@ msgstr "Bruk"
 msgid "options_profileCustomColor"
 msgstr "Egendefinert"
 
-msgid "options_renameProfile"
-msgstr "Gi nytt navn"
-
-msgid "options_deleteProfile"
-msgstr "Slett"
-
 msgid "options_profileExportRuleList"
 msgstr "Offentliggjør regelliste"
 
@@ -1205,9 +1208,6 @@ msgstr "Slett regel"
 msgid "options_deleteRuleConfirm"
 msgstr "Ønsker du virkelig å slette følgende regel?"
 
-msgid "options_deleteRule"
-msgstr "Slett"
-
 msgid "options_modalHeader_resetRules"
 msgstr "Tilbakestill regler"
 
@@ -1285,9 +1285,6 @@ msgstr "Velg en profil"
 
 msgid "options_profileDuplicateSourceRequired"
 msgstr "Velg en profil som skal dupliseres."
-
-msgid "options_createProfile"
-msgstr "Opprett"
 
 msgid "options_modalHeader_resetOptions"
 msgstr "Tilbakestill valg"
@@ -1818,12 +1815,6 @@ msgstr "Språk"
 msgid "options_interfaceLanguage"
 msgstr "Grensesnittspråk"
 
-msgid "options_cancel"
-msgstr "Avbryt"
-
-msgid "options_delete"
-msgstr "Slett"
-
 msgid "options_edit"
 msgstr "Rediger"
 
@@ -1935,14 +1926,8 @@ msgstr "Gjeldende gruppe"
 msgid "options_profileGroupsProfilesEmpty"
 msgstr "Ingen profiler er tilgjengelige."
 
-msgid "options_profileGroupCreate"
-msgstr "Opprett"
-
 msgid "options_profileGroupCreateTitle"
 msgstr "Ny profilgruppe"
-
-msgid "options_profileGroupSave"
-msgstr "Lagre"
 
 msgid "options_profileGroupRenameTitle"
 msgstr "Gi profilgruppe nytt navn"
@@ -1982,3 +1967,135 @@ msgstr "Flytt alle profiler ut av denne gruppen før du sletter den."
 
 msgid "options_profileGroupDeleteHelp"
 msgstr "Vil du virkelig slette denne profilgruppen?"
+
+msgid "options_tab_proxyExceptions"
+msgstr "Mellomtjenerunntak"
+
+msgid "options_proxyExceptionsGlobalHeading"
+msgstr "Global omgåelse"
+
+msgid "options_proxyExceptionsGlobalHelp"
+msgstr "Velg en tilleggsliste som skal brukes på alle mellomtjenerprofiler."
+
+msgid "options_globalBypassList"
+msgstr "Global omgåelsesliste"
+
+msgid "options_supplementalListsHeading"
+msgstr "Tilleggslister"
+
+msgid "options_supplementalListsHelp"
+msgstr "Opprett og administrer omgåelseslister som kan brukes globalt eller kobles til valgte mellomtjenerprofiler."
+
+msgid "options_supplementalListNew"
+msgstr "Ny liste"
+
+msgid "options_supplementalListColumnList"
+msgstr "Liste"
+
+msgid "options_supplementalListColumnDirectProfiles"
+msgstr "Direkte tilknyttede profiler"
+
+msgid "options_supplementalListColumnProfileGroups"
+msgstr "Profilgrupper"
+
+msgid "options_supplementalListGlobalLabel"
+msgstr "Global"
+
+msgid "options_supplementalListManageProfiles"
+msgstr "Administrer profiler"
+
+msgid "options_supplementalListManageGroups"
+msgstr "Administrer profilgrupper"
+
+msgid "options_defaultSupplementalListCannotDelete"
+msgstr "Standardtilleggslisten kan ikke slettes."
+
+msgid "options_supplementalListsEmpty"
+msgstr "Ingen tilleggslister er opprettet."
+
+msgid "options_supplementalListContentHeading"
+msgstr "Listeinnhold"
+
+msgid "options_supplementalListContentHelp"
+msgstr "Velg en tilleggsliste for å redigere innholdet."
+
+msgid "options_supplementalList"
+msgstr "Tilleggsliste"
+
+msgid "options_supplementalListHideAll"
+msgstr "Skjul alle lister"
+
+msgid "options_supplementalListShowAll"
+msgstr "Vis alle lister"
+
+msgid "options_supplementalListSelectHelp"
+msgstr "Opprett en tilleggsliste for å redigere innholdet."
+
+msgid "options_supplementalListNone"
+msgstr "Ingen lister"
+
+msgid "options_supplementalListName"
+msgstr "Listenavn"
+
+msgid "options_supplementalListNameRequired"
+msgstr "Listenavn er påkrevd."
+
+msgid "options_supplementalListNameTaken"
+msgstr "Det finnes allerede en tilleggsliste med dette navnet."
+
+msgid "options_supplementalListCreateTitle"
+msgstr "Ny tilleggsliste"
+
+msgid "options_supplementalListRenameTitle"
+msgstr "Gi tilleggslisten nytt navn"
+
+msgid "options_supplementalListProfilesTitle"
+msgstr "Mellomtjenerprofiler for $1:LIST$"
+
+msgid "options_supplementalListNoProfiles"
+msgstr "Ingen mellomtjenerprofiler er tilgjengelige."
+
+msgid "options_supplementalListGroupsTitle"
+msgstr "Profilgrupper for $1:LIST$"
+
+msgid "options_supplementalListNoGroups"
+msgstr "Ingen profilgrupper er tilgjengelige."
+
+msgid "options_supplementalListLinkedProfiles"
+msgstr "Tilknyttede mellomtjenerprofiler"
+
+msgid "options_supplementalListLinkedGroups"
+msgstr "Tilknyttede profilgrupper"
+
+msgid "options_deleteSupplementalListTitle"
+msgstr "Slett tilleggsliste"
+
+msgid "options_deleteSupplementalListHelp"
+msgstr "Slette tilleggslisten «$1:LIST$»?"
+
+msgid "options_deleteSupplementalListLinksWarning"
+msgstr "Når denne tilleggslisten slettes, fjernes også alle tilknytningene som vises ovenfor."
+
+msgid "options_deleteGlobalSupplementalListWarning"
+msgstr "Denne listen brukes nå som global omgåelsesliste. Etter sletting blir standardlisten den globale omgåelseslisten."
+
+msgid "options_supplementalListInheritedLabel"
+msgstr "Arvet fra: $1:GROUP$"
+
+msgid "options_profileSupplementalListsEmpty"
+msgstr "Ingen tilleggslister er koblet til eller arvet av denne profilen."
+
+msgid "options_profileSupplementalListsHelp"
+msgstr "Tilleggslister som er koblet til denne profilen eller arvet fra profilgruppen, vises nedenfor. Samsvarende forespørsler omgår mellomtjeneren."
+
+msgid "options_enableProxyExceptions"
+msgstr "Aktiver mellomtjenerunntak som kan brukes globalt eller på utvalgte mellomtjenerprofiler."
+
+msgid "options_showProxyExceptionsBypassListGroups"
+msgstr "Vis grupper av omgåelseslister i mellomtjenerunntak."
+
+msgid "routeTrace_step_globalBypass"
+msgstr "Global omgåelse"
+
+msgid "routeTrace_step_supplementalBypass"
+msgstr "Omgåelse via tilleggsliste"

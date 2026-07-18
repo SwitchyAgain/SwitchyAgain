@@ -212,10 +212,19 @@ msgid "dialog_close"
 msgstr "Cerrar"
 
 msgid "dialog_save"
-msgstr "Guardar cambios"
+msgstr "Guardar"
 
 msgid "dialog_cancel"
 msgstr "Cancelar"
+
+msgid "dialog_create"
+msgstr "Crear"
+
+msgid "dialog_rename"
+msgstr "Renombrar"
+
+msgid "dialog_delete"
+msgstr "Borrar"
 
 msgid "inputClear_clear"
 msgstr "Borrar"
@@ -826,12 +835,6 @@ msgstr "Aplicar"
 msgid "options_profileCustomColor"
 msgstr "Personalizado"
 
-msgid "options_renameProfile"
-msgstr "Renombrar"
-
-msgid "options_deleteProfile"
-msgstr "Borrar"
-
 msgid "options_profileExportRuleList"
 msgstr "Publicar lista de reglas"
 
@@ -1344,9 +1347,6 @@ msgstr "Eliminar Regla"
 msgid "options_deleteRuleConfirm"
 msgstr "¿De verdad quieres borrar la siguiente regla?"
 
-msgid "options_deleteRule"
-msgstr "Borrar"
-
 msgid "options_modalHeader_resetRules"
 msgstr "Reestablecer reglas"
 
@@ -1436,9 +1436,6 @@ msgstr "Seleccionar un perfil"
 
 msgid "options_profileDuplicateSourceRequired"
 msgstr "Selecciona un perfil para duplicar."
-
-msgid "options_createProfile"
-msgstr "Crear"
 
 msgid "options_modalHeader_resetOptions"
 msgstr "Reestablecer Opciones"
@@ -2013,12 +2010,6 @@ msgstr "Selecciona al menos una regla de ignorados."
 msgid "popup_routeInfoSwitchRuleTarget"
 msgstr "Regla de cambio"
 
-msgid "options_cancel"
-msgstr "Cancelar"
-
-msgid "options_delete"
-msgstr "Borrar"
-
 msgid "options_edit"
 msgstr "Editar"
 
@@ -2130,14 +2121,8 @@ msgstr "Grupo actual"
 msgid "options_profileGroupsProfilesEmpty"
 msgstr "No hay perfiles disponibles."
 
-msgid "options_profileGroupCreate"
-msgstr "Crear"
-
 msgid "options_profileGroupCreateTitle"
 msgstr "Nuevo grupo de perfiles"
-
-msgid "options_profileGroupSave"
-msgstr "Guardar"
 
 msgid "options_profileGroupRenameTitle"
 msgstr "Renombrar grupo de perfiles"
@@ -2177,3 +2162,135 @@ msgstr "Mueve todos los perfiles fuera de este grupo antes de eliminarlo."
 
 msgid "options_profileGroupDeleteHelp"
 msgstr "¿Seguro que quieres eliminar este grupo de perfiles?"
+
+msgid "options_tab_proxyExceptions"
+msgstr "Excepciones del proxy"
+
+msgid "options_proxyExceptionsGlobalHeading"
+msgstr "Omisión global"
+
+msgid "options_proxyExceptionsGlobalHelp"
+msgstr "Elige una lista complementaria para aplicarla a todos los perfiles de proxy."
+
+msgid "options_globalBypassList"
+msgstr "Lista de omisión global"
+
+msgid "options_supplementalListsHeading"
+msgstr "Listas complementarias"
+
+msgid "options_supplementalListsHelp"
+msgstr "Crea y administra listas de omisión que se pueden usar globalmente o vincular a los perfiles de proxy seleccionados."
+
+msgid "options_supplementalListNew"
+msgstr "Nueva lista"
+
+msgid "options_supplementalListColumnList"
+msgstr "Lista"
+
+msgid "options_supplementalListColumnDirectProfiles"
+msgstr "Perfiles vinculados directamente"
+
+msgid "options_supplementalListColumnProfileGroups"
+msgstr "Grupos de perfiles"
+
+msgid "options_supplementalListGlobalLabel"
+msgstr "Global"
+
+msgid "options_supplementalListManageProfiles"
+msgstr "Administrar perfiles"
+
+msgid "options_supplementalListManageGroups"
+msgstr "Administrar grupos de perfiles"
+
+msgid "options_defaultSupplementalListCannotDelete"
+msgstr "La lista complementaria predeterminada no se puede eliminar."
+
+msgid "options_supplementalListsEmpty"
+msgstr "No se ha creado ninguna lista complementaria."
+
+msgid "options_supplementalListContentHeading"
+msgstr "Contenido de la lista"
+
+msgid "options_supplementalListContentHelp"
+msgstr "Elige una lista complementaria para editar su contenido."
+
+msgid "options_supplementalList"
+msgstr "Lista complementaria"
+
+msgid "options_supplementalListHideAll"
+msgstr "Ocultar todas las listas"
+
+msgid "options_supplementalListShowAll"
+msgstr "Mostrar todas las listas"
+
+msgid "options_supplementalListSelectHelp"
+msgstr "Crea una lista complementaria para editar su contenido."
+
+msgid "options_supplementalListNone"
+msgstr "No hay listas"
+
+msgid "options_supplementalListName"
+msgstr "Nombre de la lista"
+
+msgid "options_supplementalListNameRequired"
+msgstr "El nombre de la lista es obligatorio."
+
+msgid "options_supplementalListNameTaken"
+msgstr "Ya existe una lista complementaria con este nombre."
+
+msgid "options_supplementalListCreateTitle"
+msgstr "Nueva lista complementaria"
+
+msgid "options_supplementalListRenameTitle"
+msgstr "Renombrar lista complementaria"
+
+msgid "options_supplementalListProfilesTitle"
+msgstr "Perfiles de proxy para $1:LIST$"
+
+msgid "options_supplementalListNoProfiles"
+msgstr "No hay perfiles de proxy disponibles."
+
+msgid "options_supplementalListGroupsTitle"
+msgstr "Grupos de perfiles para $1:LIST$"
+
+msgid "options_supplementalListNoGroups"
+msgstr "No hay grupos de perfiles disponibles."
+
+msgid "options_supplementalListLinkedProfiles"
+msgstr "Perfiles de proxy vinculados"
+
+msgid "options_supplementalListLinkedGroups"
+msgstr "Grupos de perfiles vinculados"
+
+msgid "options_deleteSupplementalListTitle"
+msgstr "Eliminar lista complementaria"
+
+msgid "options_deleteSupplementalListHelp"
+msgstr "¿Eliminar la lista complementaria «$1:LIST$»?"
+
+msgid "options_deleteSupplementalListLinksWarning"
+msgstr "Al eliminar esta lista complementaria también se eliminarán todos los vínculos mostrados arriba."
+
+msgid "options_deleteGlobalSupplementalListWarning"
+msgstr "Esta lista se usa actualmente como lista de omisión global. Después de eliminarla, la lista predeterminada se convertirá en la lista de omisión global."
+
+msgid "options_supplementalListInheritedLabel"
+msgstr "Heredada de: $1:GROUP$"
+
+msgid "options_profileSupplementalListsEmpty"
+msgstr "No hay listas complementarias vinculadas a este perfil ni heredadas por él."
+
+msgid "options_profileSupplementalListsHelp"
+msgstr "A continuación se muestran las listas complementarias vinculadas a este perfil o heredadas de su grupo de perfiles. Las solicitudes coincidentes omitirán el proxy."
+
+msgid "options_enableProxyExceptions"
+msgstr "Activar las excepciones del proxy que pueden aplicarse globalmente o a los perfiles de proxy seleccionados."
+
+msgid "options_showProxyExceptionsBypassListGroups"
+msgstr "Mostrar grupos de listas de omisión en las excepciones del proxy."
+
+msgid "routeTrace_step_globalBypass"
+msgstr "Omisión global"
+
+msgid "routeTrace_step_supplementalBypass"
+msgstr "Omisión por lista complementaria"
