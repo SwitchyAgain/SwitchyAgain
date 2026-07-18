@@ -2,6 +2,7 @@
 
 import {
   createTab,
+  extensionBrowserName,
   extensionId,
   extensionManifestVersion,
   extensionManifestVersionNumber,
@@ -20,6 +21,7 @@ import {
 } from '../src/react/browser_env';
 
 type TestGlobal = typeof globalThis & {
+  browser?: any;
   chrome?: any;
   PopupBridge?: unknown;
 };
@@ -30,6 +32,7 @@ function testGlobal() {
 
 afterEach(() => {
   localStorage.clear();
+  delete testGlobal().browser;
   delete testGlobal().PopupBridge;
 });
 
@@ -77,6 +80,33 @@ describe('browser environment adapter', () => {
     expect(extensionUrl('options.html')).toBe('moz-extension://id/options.html');
     expect(extensionMessage('appName', 'fallback')).toBe('message:appName');
     expect(extensionUiLanguage()).toBe('zh-CN');
+  });
+
+  it('identifies the browser used for backup metadata', () => {
+    testGlobal().browser = {
+      runtime: {
+        getBrowserInfo: vi.fn()
+      }
+    };
+    expect(extensionBrowserName('Mozilla/5.0 Chrome/140.0.0.0 Safari/537.36', [{brand: 'Chromium'}, {brand: 'Google Chrome'}])).toBe(
+      'firefox'
+    );
+
+    delete testGlobal().browser;
+    expect(extensionBrowserName('Mozilla/5.0 Chrome/140.0.0.0 Safari/537.36', [{brand: 'Chromium'}, {brand: 'Microsoft Edge'}])).toBe(
+      'edge'
+    );
+    expect(extensionBrowserName('Mozilla/5.0 Chrome/140.0.0.0 Safari/537.36', [{brand: 'Chromium'}, {brand: 'Google Chrome'}])).toBe(
+      'chrome'
+    );
+    expect(extensionBrowserName('Mozilla/5.0 Chrome/140.0.0.0 Safari/537.36', [{brand: 'Chromium'}])).toBe('chromium');
+
+    expect(extensionBrowserName('Mozilla/5.0 Edg/140.0.0.0')).toBe('edge');
+    expect(extensionBrowserName('Mozilla/5.0 Firefox/140.0')).toBe('firefox');
+    expect(extensionBrowserName('Mozilla/5.0 Chrome/140.0.0.0 Safari/537.36')).toBe('chrome');
+    expect(extensionBrowserName('Mozilla/5.0 Chromium/140.0.0.0 Safari/537.36')).toBe('chromium');
+    expect(extensionBrowserName('Mozilla/5.0 Chrome/140.0.0.0 Safari/537.36 Vivaldi/7.0')).toBe('chromium');
+    expect(extensionBrowserName('unknown')).toBe('unknown');
   });
 
   it('wraps tab APIs and reports missing query support', () => {

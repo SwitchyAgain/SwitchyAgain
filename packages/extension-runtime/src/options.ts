@@ -50,6 +50,8 @@ const optionNumber = (value: unknown) => Number(value);
 const supportedUiLocales = new Set(['en', 'zh-Hans', 'zh-Hant', 'es', 'ru', 'cs', 'fa']);
 const supportedUiThemes = new Set(['light', 'dark', 'system']);
 const defaultEnabledOption = (value: unknown): boolean => value !== false;
+const switchyAgainBackupSchema = 'SwitchyAgainBackup';
+const switchyAgainBackupVersion = 1;
 
 type ProfileScopeSettings = {
   container: boolean;
@@ -807,6 +809,7 @@ class Options {
    */
 
   parseOptions(options: OptionsData | string | null | undefined): OptionsData {
+    const importedBackup = typeof options === 'string';
     if (typeof options === 'string') {
       if (options[0] !== '{') {
         try {
@@ -820,6 +823,23 @@ class Options {
       } catch (error) {
         options = undefined;
       }
+    }
+    if (importedBackup && isRecordValue(options) && hasProp.call(options, 'schema')) {
+      if (
+        options['schema'] !== switchyAgainBackupSchema ||
+        options['version'] !== switchyAgainBackupVersion ||
+        !isRecordValue(options['options']) ||
+        Array.isArray(options['options'])
+      ) {
+        throw new Error('Invalid backup file!');
+      }
+      options = {
+        ...options['options'],
+        schemaVersion: 3
+      };
+    }
+    if (importedBackup && isRecordValue(options) && (options['schemaVersion'] === 1 || options['schemaVersion'] === 2)) {
+      throw new Error('Invalid schemaVersion ' + options['schemaVersion'] + '!');
     }
     if (!options) {
       throw new Error('Invalid options!');

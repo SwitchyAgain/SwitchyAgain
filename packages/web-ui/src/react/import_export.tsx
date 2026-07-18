@@ -1,7 +1,14 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 import {createRoot} from 'react-dom/client';
-import {clearWindowTimeout, confirmDialog, reloadLocation, setWindowTimeout} from './browser_env';
+import {
+  clearWindowTimeout,
+  confirmDialog,
+  extensionBrowserName,
+  extensionManifestVersion,
+  reloadLocation,
+  setWindowTimeout
+} from './browser_env';
 import {message} from './i18n_client';
 import {downloadBlob, shouldAutoMount} from './navigation_client';
 import {
@@ -289,10 +296,19 @@ export function ImportExport({
     confirmCurrentOptions()
       .then((currentOptions) => {
         const exportOptions = currentOptions || options;
-        const blob = new Blob([backupOptionsText(exportOptions)], {
-          type: 'text/plain;charset=utf-8'
-        });
-        downloadBlob(blob, 'OmegaOptions.bak');
+        const blob = new Blob(
+          [
+            backupOptionsText(exportOptions, {
+              browser: extensionBrowserName(),
+              exportedAt: new Date().toISOString(),
+              extensionVersion: extensionManifestVersion()
+            })
+          ],
+          {
+            type: 'text/plain;charset=utf-8'
+          }
+        );
+        downloadBlob(blob, 'SwitchyAgainBackup.json');
       })
       .catch(() => {})
       .finally(() => {

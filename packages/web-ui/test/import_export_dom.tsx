@@ -14,6 +14,8 @@ const optionsClientMock = vi.hoisted(() => ({
   }),
   confirmDialog: vi.fn((messageText: string) => window.confirm(messageText)),
   downloadBlob: vi.fn(),
+  extensionBrowserName: vi.fn(() => 'firefox'),
+  extensionManifestVersion: vi.fn(() => '1.3.0'),
   getLocalState: vi.fn(),
   getState: vi.fn(),
   getWebDavSyncConfig: vi.fn(),
@@ -41,6 +43,8 @@ vi.mock('../src/react/navigation_client', () => ({
 vi.mock('../src/react/browser_env', () => ({
   clearWindowTimeout: optionsClientMock.clearWindowTimeout,
   confirmDialog: optionsClientMock.confirmDialog,
+  extensionBrowserName: optionsClientMock.extensionBrowserName,
+  extensionManifestVersion: optionsClientMock.extensionManifestVersion,
   reloadLocation: optionsClientMock.reloadLocation,
   setWindowTimeout: optionsClientMock.setWindowTimeout
 }));
@@ -109,8 +113,17 @@ function mockActiveWebDavSync(webDavSyncStatus?: WebDavSyncStatus) {
   });
 }
 
-async function downloadedOptions() {
-  return JSON.parse(await (optionsClientMock.downloadBlob.mock.calls[0][0] as Blob).text()) as Options;
+async function downloadedBackup() {
+  return JSON.parse(await (optionsClientMock.downloadBlob.mock.calls[0][0] as Blob).text()) as {
+    metadata: {
+      browser: string;
+      exportedAt: string;
+      extensionVersion: string;
+    };
+    options: Options;
+    schema: string;
+    version: number;
+  };
 }
 
 afterEach(() => {
@@ -170,10 +183,21 @@ describe('import export component', () => {
 
     fireEvent.click(screen.getByRole('button', {name: /Make backup/}));
 
-    await waitFor(() => expect(optionsClientMock.downloadBlob).toHaveBeenCalledWith(expect.any(Blob), 'OmegaOptions.bak'));
+    await waitFor(() => expect(optionsClientMock.downloadBlob).toHaveBeenCalledWith(expect.any(Blob), 'SwitchyAgainBackup.json'));
     expect(window.confirm).toHaveBeenCalled();
     expect(onApplyOptions).toHaveBeenCalled();
-    expect(await downloadedOptions()).toEqual(appliedOptions);
+    const backup = await downloadedBackup();
+    expect(backup).toEqual({
+      schema: 'SwitchyAgainBackup',
+      version: 1,
+      metadata: {
+        browser: 'firefox',
+        exportedAt: expect.any(String),
+        extensionVersion: '1.3.0'
+      },
+      options: appliedOptions
+    });
+    expect(new Date(backup.metadata.exportedAt).toISOString()).toBe(backup.metadata.exportedAt);
   });
 
   it('restores options from an online backup URL', async () => {

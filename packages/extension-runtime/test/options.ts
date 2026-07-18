@@ -7,6 +7,65 @@ describe('Options', function () {
   let Options: any;
   Options = OptionsClass;
 
+  describe('#parseOptions', function () {
+    it('should extract options from a SwitchyAgain backup without importing metadata', function () {
+      const options = Object.create(Options.prototype);
+      const parsed = options.parseOptions(
+        JSON.stringify({
+          schema: 'SwitchyAgainBackup',
+          version: 1,
+          metadata: {
+            browser: 'firefox',
+            exportedAt: '2026-07-19T03:19:18.123Z',
+            extensionVersion: '1.3.0'
+          },
+          options: {
+            '+proxy': {
+              name: 'proxy',
+              profileType: 'FixedProfile'
+            }
+          }
+        })
+      );
+
+      assert.deepStrictEqual(parsed, {
+        schemaVersion: 3,
+        '+proxy': {
+          name: 'proxy',
+          profileType: 'FixedProfile'
+        }
+      });
+    });
+
+    it('should preserve raw and base64 schemaVersion 3 backups', function () {
+      const options = Object.create(Options.prototype);
+      const raw = JSON.stringify({schemaVersion: 3, customOption: true});
+
+      assert.deepStrictEqual(options.parseOptions(raw), {schemaVersion: 3, customOption: true});
+      assert.deepStrictEqual(options.parseOptions(Buffer.from(raw, 'utf8').toString('base64')), {
+        schemaVersion: 3,
+        customOption: true
+      });
+    });
+
+    it('should reject imported schemaVersion 1 and 2 backups', function () {
+      const options = Object.create(Options.prototype);
+
+      assert.throws(() => options.parseOptions(JSON.stringify({schemaVersion: 1})), /Invalid schemaVersion 1/);
+      assert.throws(() => options.parseOptions(JSON.stringify({schemaVersion: 2})), /Invalid schemaVersion 2/);
+    });
+
+    it('should reject unsupported SwitchyAgain backup schemas and versions', function () {
+      const options = Object.create(Options.prototype);
+
+      assert.throws(() => options.parseOptions(JSON.stringify({schema: 'OtherBackup', version: 1, options: {}})), /Invalid backup file/);
+      assert.throws(
+        () => options.parseOptions(JSON.stringify({schema: 'SwitchyAgainBackup', version: 2, options: {}})),
+        /Invalid backup file/
+      );
+    });
+  });
+
   describe('#upgrade', function () {
     it('should preserve loopback bypass behavior when upgrading <local> from schemaVersion 2', function () {
       const options = Object.create(Options.prototype);

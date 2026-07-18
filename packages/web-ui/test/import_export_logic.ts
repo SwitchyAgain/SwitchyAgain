@@ -2,6 +2,12 @@ import {RESTORE_URL_STATE, backupOptionsText, importExportBusy, importExportErro
 import type {Options} from '../src/react/options_client_types';
 
 describe('import export logic', () => {
+  const metadata = {
+    browser: 'firefox' as const,
+    exportedAt: '2026-07-19T03:19:18.123Z',
+    extensionVersion: '1.3.0'
+  };
+
   it('uses a stable local state key for online restore URLs', () => {
     expect(RESTORE_URL_STATE).toBe('web.restoreOnlineUrl');
   });
@@ -13,8 +19,9 @@ describe('import export logic', () => {
     expect(importExportErrorMessage(null)).toBe('null');
   });
 
-  it('serializes options through a plain JSON backup shape', () => {
+  it('serializes options through the SwitchyAgain backup envelope', () => {
     const options: Options = {
+      schemaVersion: 3,
       '+proxy': {
         name: 'proxy',
         profileType: 'FixedProfile'
@@ -23,13 +30,18 @@ describe('import export logic', () => {
       transient: undefined
     };
 
-    expect(backupOptionsText(options)).toBe(
+    expect(backupOptionsText(options, metadata)).toBe(
       JSON.stringify({
-        '+proxy': {
-          name: 'proxy',
-          profileType: 'FixedProfile'
-        },
-        customOption: true
+        schema: 'SwitchyAgainBackup',
+        version: 1,
+        metadata,
+        options: {
+          '+proxy': {
+            name: 'proxy',
+            profileType: 'FixedProfile'
+          },
+          customOption: true
+        }
       })
     );
   });
@@ -69,34 +81,39 @@ describe('import export logic', () => {
       }
     };
 
-    expect(backupOptionsText(options)).toBe(
+    expect(backupOptionsText(options, metadata)).toBe(
       JSON.stringify({
-        '+online': {
-          defaultProfileName: 'direct',
-          matchProfileName: 'proxy',
-          name: 'online',
-          omitRuleListFromExport: true,
-          profileType: 'RuleListProfile',
-          sourceUrl: 'https://example.com/list.txt'
-        },
-        '+__ruleListOf_auto': {
-          name: '__ruleListOf_auto',
-          omitRuleListFromExport: true,
-          profileType: 'RuleListProfile',
-          sourceUrl: 'https://example.com/attached.txt'
-        },
-        '+manual': {
-          name: 'manual',
-          omitRuleListFromExport: true,
-          profileType: 'RuleListProfile',
-          ruleList: '*.manual.example'
-        },
-        '+full': {
-          lastUpdate: '2024-01-02T00:00:00.000Z',
-          name: 'full',
-          profileType: 'RuleListProfile',
-          ruleList: '*.full.example',
-          sourceUrl: 'https://example.com/full.txt'
+        schema: 'SwitchyAgainBackup',
+        version: 1,
+        metadata,
+        options: {
+          '+online': {
+            defaultProfileName: 'direct',
+            matchProfileName: 'proxy',
+            name: 'online',
+            omitRuleListFromExport: true,
+            profileType: 'RuleListProfile',
+            sourceUrl: 'https://example.com/list.txt'
+          },
+          '+__ruleListOf_auto': {
+            name: '__ruleListOf_auto',
+            omitRuleListFromExport: true,
+            profileType: 'RuleListProfile',
+            sourceUrl: 'https://example.com/attached.txt'
+          },
+          '+manual': {
+            name: 'manual',
+            omitRuleListFromExport: true,
+            profileType: 'RuleListProfile',
+            ruleList: '*.manual.example'
+          },
+          '+full': {
+            lastUpdate: '2024-01-02T00:00:00.000Z',
+            name: 'full',
+            profileType: 'RuleListProfile',
+            ruleList: '*.full.example',
+            sourceUrl: 'https://example.com/full.txt'
+          }
         }
       })
     );

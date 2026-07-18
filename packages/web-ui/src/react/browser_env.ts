@@ -3,6 +3,8 @@ export type ExtensionManifest = {
   version?: string;
 };
 
+export type ExtensionBrowserName = 'chrome' | 'chromium' | 'edge' | 'firefox' | 'unknown';
+
 export type ExtensionRuntimeApi = {
   connect?: (connectInfo: {name: string}) => ExtensionRuntimePort;
   getManifest?: () => ExtensionManifest;
@@ -41,6 +43,15 @@ export type ExtensionChromeApi = {
 export type ExtensionBrowserApi = {
   commands?: {
     openShortcutSettings?: () => Promise<void> | void;
+  };
+  runtime?: {
+    getBrowserInfo?: () => Promise<unknown>;
+  };
+};
+
+type NavigatorWithUserAgentData = Navigator & {
+  userAgentData?: {
+    brands?: Array<{brand?: string}>;
   };
 };
 
@@ -101,6 +112,38 @@ export function extensionManifestVersion() {
 
 export function extensionManifestVersionNumber() {
   return extensionManifest()?.manifest_version;
+}
+
+export function extensionBrowserName(
+  userAgent = globalThis.navigator?.userAgent || '',
+  brands = (globalThis.navigator as NavigatorWithUserAgentData | undefined)?.userAgentData?.brands || []
+): ExtensionBrowserName {
+  if (typeof extensionBrowser()?.runtime?.getBrowserInfo === 'function') {
+    return 'firefox';
+  }
+  const brandNames = new Set(brands.map((entry) => entry.brand));
+  if (brandNames.has('Microsoft Edge')) {
+    return 'edge';
+  }
+  if (brandNames.has('Google Chrome')) {
+    return 'chrome';
+  }
+  if (brandNames.has('Chromium')) {
+    return 'chromium';
+  }
+  if (/Edg\//.test(userAgent)) {
+    return 'edge';
+  }
+  if (/Firefox\//.test(userAgent)) {
+    return 'firefox';
+  }
+  if (/(?:Chromium|Vivaldi|OPR|Supermium)\//.test(userAgent)) {
+    return 'chromium';
+  }
+  if (/Chrome\//.test(userAgent)) {
+    return 'chrome';
+  }
+  return 'unknown';
 }
 
 export function extensionId() {
