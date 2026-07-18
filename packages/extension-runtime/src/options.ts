@@ -1,7 +1,6 @@
 /* @module @switchyagain/extension-runtime/options */
 declare const options: Record<string, unknown> | null | undefined;
 
-import {Buffer} from 'buffer';
 import {patch as patchJson} from 'jsondiffpatch';
 import ProxyEngineImpl from '@switchyagain/proxy-engine';
 import defaultOptions from './default_options';
@@ -12,8 +11,6 @@ import {
   isCurrentOptions,
   isCurrentOrEmptySyncOptions,
   isEmptyOptions,
-  isLegacyOptions,
-  migrateLegacyOptions,
   OPTIONS_SCHEMA,
   OPTIONS_VERSION
 } from './options_schema';
@@ -61,8 +58,6 @@ const optionNumber = (value: unknown) => Number(value);
 const supportedUiLocales = new Set(['en', 'zh-Hans', 'zh-Hant', 'es', 'ru', 'cs', 'fa']);
 const supportedUiThemes = new Set(['light', 'dark', 'system']);
 const defaultEnabledOption = (value: unknown): boolean => value !== false;
-const switchyAgainBackupSchema = 'SwitchyAgainBackup';
-const switchyAgainBackupVersion = 1;
 
 type ProfileScopeSettings = {
   container: boolean;
@@ -610,7 +605,7 @@ class Options {
         return getFallbackOptions.then((fallbackOptions) => {
           let prevEnabled: boolean | undefined;
           if (fallbackOptions == null) {
-            fallbackOptions = this.parseOptions(this.getDefaultOptions());
+            fallbackOptions = this.getDefaultOptions();
           }
           if (this.sync != null) {
             prevEnabled = this.sync.enabled;
@@ -712,9 +707,8 @@ class Options {
   }
 
   /**
-   * Validate current SwitchyAgain options and migrate legacy schemaVersion 3
-   * options to the SwitchyAgain options schema.
-   * @param {?OmegaOptions} options The options to validate or migrate
+   * Validate and normalize current SwitchyAgain options.
+   * @param {?OmegaOptions} options The options to validate
    * @param {{}={}} changes Previous pending changes to be applied. Default to
    * an empty dictionary. Please provide this argument when calling super().
    * @returns {Promise<[OmegaOptions, {}]>} The new options and the changes.
@@ -727,18 +721,8 @@ class Options {
     if (isEmptyOptions(options)) {
       return Promise.reject(new NoOptionsError());
     }
-    if (options!['schemaVersion'] != null && !isLegacyOptions(options)) {
-      return Promise.reject(new Error('Invalid schemaVersion ' + options!['schemaVersion'] + '!'));
-    }
-    if (isLegacyOptions(options)) {
-      migrateLegacyOptions(options!, changes);
-    }
     if (!isCurrentOptions(options)) {
       return Promise.reject(new Error('Invalid options schema or version!'));
-    }
-    if (hasProp.call(options, 'schemaVersion')) {
-      delete options!['schemaVersion'];
-      changes['schemaVersion'] = undefined;
     }
     const currentOptions = options!;
     const uiLocale = this.normalizeUiLocale(currentOptions['-uiLocale']);
@@ -775,57 +759,18 @@ class Options {
   }
 
   /**
-   * Parse options in various formats (including JSON & base64).
-   * @param {OmegaOptions|string} options The options to parse
-   * @returns {Promise<OmegaOptions>} The parsed options.
-   */
-
-  parseOptions(options: OptionsData | string | null | undefined): OptionsData {
-    const importedBackup = typeof options === 'string';
-    if (typeof options === 'string') {
-      if (options[0] !== '{') {
-        try {
-          options = Buffer.from(options, 'base64').toString('utf8');
-        } catch (error) {
-          options = null;
-        }
-      }
-      try {
-        options = JSON.parse(options as string) as OptionsData;
-      } catch (error) {
-        options = undefined;
-      }
-    }
-    if (importedBackup && isRecordValue(options) && options['schema'] === switchyAgainBackupSchema) {
-      if (options['version'] !== switchyAgainBackupVersion || !isRecordValue(options['options']) || Array.isArray(options['options'])) {
-        throw new Error('Invalid backup file!');
-      }
-      options = {...options['options']};
-    } else if (importedBackup && isRecordValue(options) && hasProp.call(options, 'schema') && options['schema'] !== OPTIONS_SCHEMA) {
-      throw new Error('Invalid backup file!');
-    }
-    if (importedBackup && isRecordValue(options) && (options['schemaVersion'] === 1 || options['schemaVersion'] === 2)) {
-      throw new Error('Invalid schemaVersion ' + options['schemaVersion'] + '!');
-    }
-    if (!options) {
-      throw new Error('Invalid options!');
-    }
-    return options as OptionsData;
-  }
-
-  /**
    * Reset the options to the given options or initial options.
    * @param {?OmegaOptions} options The options to set. Defaults to initial.
    * @returns {Promise<OmegaOptions>} The options just applied
    */
 
-  reset(options?: OptionsData | string | null): RuntimePromise<unknown> {
+  reset(options?: OptionsData | null): RuntimePromise<unknown> {
     this.log.method('Options#reset', this, arguments);
     const preserveProfileName = options != null ? this._currentProfileName : null;
     if (options == null) {
       options = this.getDefaultOptions();
     }
-    return this.upgrade(this.parseOptions(options)).then((arg) => {
+    return this.upgrade(options).then((arg) => {
       const opt = arg[0];
       if (this.sync != null) {
         this.sync.enabled = false;

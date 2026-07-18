@@ -1,6 +1,7 @@
 import extensionRuntime from '@switchyagain/extension-runtime';
 import ExternalApi from './external_api';
 import Options from './options';
+import OptionsImport from './options_import';
 import * as proxy from './proxy';
 import Storage from './storage';
 import ChromeTabs from './tabs';
@@ -28,6 +29,7 @@ const browserExtensionRuntime: Record<string, unknown> = {
   Storage,
   WebDavStorage,
   Options,
+  OptionsImport,
   ChromeTabs,
   ExternalApi,
   WebRequestMonitor,
@@ -41,6 +43,6 @@ for (const name of Object.keys(extensionRuntime)) {
   }
 }
 
-export {ChromeTabs, ExternalApi, Options, Storage, Url, WebDavStorage, WebRequestMonitor, proxy};
+export {ChromeTabs, ExternalApi, Options, OptionsImport, Storage, Url, WebDavStorage, WebRequestMonitor, proxy};
 
 export default browserExtensionRuntime;

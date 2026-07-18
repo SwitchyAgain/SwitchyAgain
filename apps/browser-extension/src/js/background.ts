@@ -326,6 +326,9 @@ type BackgroundExtensionRuntime = {
     validateSyncChanges(changes: Record<string, unknown | undefined>): boolean;
     validateSyncOptions(options: Record<string, unknown>): boolean;
   };
+  OptionsImport: {
+    parseImportedOptions(content: string): OmegaOptionsData;
+  };
   OptionsSync: new (storage: unknown) => BackgroundSync;
   Promise: BackgroundPromiseStatic;
   Storage: new (areaName: string) => unknown;
@@ -1964,6 +1967,14 @@ type BackgroundExtensionRuntime = {
     resolveOptionsHandoff
   };
 
+  const optionsImportApi = {
+    reset(optionsData?: OmegaOptionsData | string) {
+      const importedOptions =
+        typeof optionsData === 'string' ? ExtensionRuntimeCurrent.OptionsImport.parseImportedOptions(optionsData) : optionsData;
+      return options.reset(importedOptions);
+    }
+  };
+
   function isBackgroundMethod(method: unknown): method is BackgroundMethod {
     switch (method) {
       case 'addCondition':
@@ -2038,6 +2049,9 @@ type BackgroundExtensionRuntime = {
     ) {
       target = syncApi;
       method = syncApi[request.method];
+    } else if (request.method === 'reset') {
+      target = optionsImportApi;
+      method = optionsImportApi.reset;
     } else {
       target = options;
       method = options[request.method];

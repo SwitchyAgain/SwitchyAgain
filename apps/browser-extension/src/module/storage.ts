@@ -1,5 +1,6 @@
 import {chromeApiPromisify} from './chrome_api';
 import ExtensionRuntime from '@switchyagain/extension-runtime';
+import {migrateLegacyOptions} from './options_import';
 
 type StorageItems = Record<string, unknown>;
 type StorageKeys = string | string[] | StorageItems | null;
@@ -112,7 +113,26 @@ class ChromeStorage extends ExtensionRuntime.Storage {
   }
 
   get(keys: StorageKeys = null) {
-    return RuntimePromise.resolve(this.storage.get(keys)).catch(ChromeStorage.parseStorageErrors);
+    return RuntimePromise.resolve(this.storage.get(keys))
+      .then((items) => {
+        const storageItems = items as StorageItems;
+        if (this.areaName !== 'local' || keys !== null) {
+          return storageItems;
+        }
+        const migrated = migrateLegacyOptions(storageItems);
+        if (!migrated) {
+          return storageItems;
+        }
+        return RuntimePromise.resolve(
+          this.storage.set({
+            schema: migrated.schema,
+            version: migrated.version
+          })
+        )
+          .then(() => this.storage.remove('schemaVersion'))
+          .then(() => migrated);
+      })
+      .catch(ChromeStorage.parseStorageErrors);
   }
 
   set(items: StorageItems) {
