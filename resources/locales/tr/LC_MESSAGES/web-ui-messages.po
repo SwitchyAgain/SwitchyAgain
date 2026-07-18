@@ -176,6 +176,9 @@ msgstr "$LNO$ nolu satırda geçersiz kural: $SOURCE$"
 msgid "ruleList_error_noDefaultRule"
 msgstr ""
 
+msgid "ruleList_error_legacyFormatUnsupported"
+msgstr "Eski Proxy Switchy! kural listesi biçimi artık desteklenmiyor."
+
 msgid "dialog_close"
 msgstr "Kapat"
 
@@ -503,9 +506,6 @@ msgstr "Her gün"
 msgid "options_downloadInterval_never"
 msgstr "Asla"
 
-msgid "options_group_importExportProfile"
-msgstr "Profil"
-
 msgid "options_exportPacFile"
 msgstr "PAC Dosyası Olarak Dışa Aktar"
 
@@ -513,15 +513,6 @@ msgid "options_exportPacFileHelp"
 msgstr ""
 "Geçerli profili PAC dosyası olarak dışa aktar, böylece diğer tarayıcılarda "
 "kullanabilirsin."
-
-msgid "options_exportProfileHelp"
-msgstr ""
-
-msgid "options_exportLegacyRuleList"
-msgstr ""
-
-msgid "options_exportLegacyRuleListHelp"
-msgstr ""
 
 msgid "options_group_importExportSettings"
 msgstr "Ayarlar"
@@ -979,7 +970,7 @@ msgid "options_group_ruleListText"
 msgstr "Kural Listesi İçeriği"
 
 msgid "options_ruleListLastUpdate"
-msgstr "Kural listesi indirilme zamanı $TIME$:"
+msgstr "Son indirme: $TIME$"
 
 msgid "options_ruleListObsolete"
 msgstr ""

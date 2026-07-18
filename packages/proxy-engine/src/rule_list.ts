@@ -1,4 +1,4 @@
-import type {Condition, Profile, ReferenceSet, RuleListComposeOptions, RuleListParseOptions, SwitchRule} from './types';
+import type {Profile, ReferenceSet, RuleListComposeOptions, RuleListParseOptions, SwitchRule} from './types';
 import {Buffer} from 'buffer';
 import Conditions from './conditions';
 
@@ -10,6 +10,17 @@ type StrictRuleErrorFields = {
 };
 
 type RuleListError = Error & Record<string, unknown>;
+
+const LEGACY_SWITCHY_RULE_LIST_LINE = /^[ \t]*#BEGIN[ \t]*$/im;
+
+function rejectLegacySwitchyRuleList(text: string) {
+  if (!LEGACY_SWITCHY_RULE_LIST_LINE.test(text)) {
+    return;
+  }
+  const error = new Error('Legacy Proxy Switchy! rule list format is no longer supported.') as RuleListError;
+  error.reason = 'legacyFormatUnsupported';
+  throw error;
+}
 
 const strStartsWith = (str: string, prefix: string): boolean => {
   return str.startsWith(prefix);
@@ -85,30 +96,26 @@ export const Switchy = {
   omegaPrefix: '[SwitchyOmega Conditions',
   specialLineStart: '[;#@!',
   detect(text: string) {
+    rejectLegacySwitchyRuleList(text);
     if (strStartsWith(text, Switchy.omegaPrefix)) {
       return true;
     }
   },
   parse(text: string, matchProfileName: string, defaultProfileName: string): SwitchRule[] {
-    const switchy = Switchy;
-    const parser = switchy.getParser(text);
-    return switchy[parser](text, matchProfileName, defaultProfileName);
+    rejectLegacySwitchyRuleList(text);
+    return Switchy.parseOmega(text, matchProfileName, defaultProfileName);
   },
   directReferenceSet(arg: Profile): ReferenceSet | undefined {
     const {ruleList, defaultProfileName} = arg;
     const text = (ruleList || '').trim();
-    const switchy = Switchy;
-    const parser = switchy.getParser(text);
-    if (parser !== 'parseOmega') {
-      return;
-    }
+    rejectLegacySwitchyRuleList(text);
     if (!/(^|\n)@with\s+results?(\r|\n|$)/i.test(text)) {
       return;
     }
     const refs: ReferenceSet = {};
     for (let line of text.split(/\n|\r/)) {
       line = line.trim();
-      if (switchy.specialLineStart.indexOf(line[0]) < 0) {
+      if (Switchy.specialLineStart.indexOf(line[0]) < 0) {
         const iSpace = line.lastIndexOf(' +');
         let profile;
         if (iSpace < 0) {
@@ -158,94 +165,8 @@ export const Switchy = {
     }
     return ruleList;
   },
-  getParser(text: string): 'parseOmega' | 'parseLegacy' {
-    const switchy = Switchy;
-    let parser = 'parseOmega' as 'parseOmega' | 'parseLegacy';
-    if (!strStartsWith(text, switchy.omegaPrefix)) {
-      if (text[0] === '#' || text.indexOf('\n#') >= 0) {
-        parser = 'parseLegacy';
-      }
-    }
-    return parser;
-  },
-  conditionFromLegacyWildcard(pattern: string): Condition {
-    if (pattern[0] === '@') {
-      pattern = pattern.substring(1);
-    } else {
-      if (pattern.indexOf('://') <= 0 && pattern[0] !== '*') {
-        pattern = '*' + pattern;
-      }
-      if (pattern[pattern.length - 1] !== '*') {
-        pattern += '*';
-      }
-    }
-    const host = Conditions.urlWildcard2HostWildcard(pattern);
-    if (host) {
-      return {
-        conditionType: 'HostWildcardCondition',
-        pattern: host
-      };
-    } else {
-      return {
-        conditionType: 'UrlWildcardCondition',
-        pattern: pattern
-      };
-    }
-  },
-  parseLegacy(text: string, matchProfileName: string, defaultProfileName: string): SwitchRule[] {
-    const normal_rules: SwitchRule[] = [];
-    const exclusive_rules: SwitchRule[] = [];
-    let begin = false;
-    let section = 'WILDCARD';
-    for (let line of text.split(/\n|\r/)) {
-      line = line.trim();
-      if (line.length === 0 || line[0] === ';') {
-        continue;
-      }
-      if (!begin) {
-        if (line.toUpperCase() === '#BEGIN') {
-          begin = true;
-        }
-        continue;
-      }
-      if (line.toUpperCase() === '#END') {
-        break;
-      }
-      if (line[0] === '[' && line[line.length - 1] === ']') {
-        section = line.substring(1, line.length - 1).toUpperCase();
-        continue;
-      }
-      const source = line;
-      let profile = matchProfileName;
-      let list = normal_rules;
-      if (line[0] === '!') {
-        profile = defaultProfileName;
-        list = exclusive_rules;
-        line = line.substring(1);
-      }
-      let cond = null;
-      switch (section) {
-        case 'WILDCARD':
-          cond = Switchy.conditionFromLegacyWildcard(line);
-          break;
-        case 'REGEXP':
-          cond = {
-            conditionType: 'UrlRegexCondition',
-            pattern: line
-          };
-          break;
-      }
-      if (cond != null) {
-        list.push({
-          condition: cond,
-          profileName: profile,
-          source: source
-        });
-      }
-    }
-    return exclusive_rules.concat(normal_rules);
-  },
   parseOmega(text: string, matchProfileName: string | null, defaultProfileName: string | null, args?: RuleListParseOptions): SwitchRule[] {
+    rejectLegacySwitchyRuleList(text);
     if (args == null) {
       args = {};
     }

@@ -33,16 +33,3 @@ export function importExportBusy(status: ImportExportStatus) {
 export function syncBusy(status: SyncStatus) {
   return status !== 'ready';
 }
-
-export function legacyRuleListPatch(options: Options, checked: boolean) {
-  const nextOptions = {
-    ...options,
-    '-exportLegacyRuleList': checked
-  };
-  return {
-    nextOptions,
-    patch: {
-      '-exportLegacyRuleList': [options['-exportLegacyRuleList'], checked]
-    }
-  };
-}

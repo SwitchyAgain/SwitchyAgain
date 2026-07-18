@@ -263,6 +263,11 @@ function ruleListSourceErrorMessage(error?: SwitchRuleSourceState['error']) {
     }
     case 'noDefaultRule':
       return message('ruleList_error_noDefaultRule', fields.message || "Missing default rule with catch-all '*' condition!");
+    case 'legacyFormatUnsupported':
+      return message(
+        'ruleList_error_legacyFormatUnsupported',
+        fields.message || 'Legacy Proxy Switchy! rule list format is no longer supported.'
+      );
     default:
       return fields.message || String(error);
   }
@@ -448,7 +453,6 @@ export type SwitchProfileStatefulContentProps = Omit<
 
 export type ProfileShellProps = {
   exportRuleListAvailable?: boolean;
-  exportRuleListWarning?: boolean;
   onColorChange?: (color: string) => void;
   onDelete?: () => void;
   onExportRuleList?: () => void;
@@ -480,7 +484,6 @@ export type ProfileShellProps = {
 
 export function ProfileShell({
   exportRuleListAvailable = false,
-  exportRuleListWarning = false,
   onColorChange,
   onCreateProfileGroup,
   onDelete,
@@ -523,7 +526,7 @@ export function ProfileShell({
             <>
               <button
                 type="button"
-                className={`btn ${exportRuleListWarning ? 'btn-warning' : 'btn-default'}`}
+                className="btn btn-default"
                 title={message('options_profileExportRuleListHelp', 'Export Switch Rules as text format for publishing.')}
                 onClick={onExportRuleList}
               >
@@ -2045,7 +2048,7 @@ export function SwitchAttachedProfile({
         <h3>{message('options_group_ruleListText', 'Rule List Content')}</h3>
         {draft.sourceUrl && attached.lastUpdate && (
           <p className="alert alert-success width-limit">
-            {message('options_ruleListLastUpdate', 'Rule list downloaded at $1:', formattedLastUpdate)}
+            {message('options_ruleListLastUpdate', 'Last downloaded: $1', formattedLastUpdate)}
           </p>
         )}
         {draft.sourceUrl && !attached.lastUpdate && (

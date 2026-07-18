@@ -3,14 +3,12 @@ import {
   attachedProfileOption,
   cloneOptions,
   cloneAuth,
-  composeLegacyRuleList,
   composeOmegaRuleList,
   createPacExport,
   deleteAttachedProfileOption,
   deleteProfileOption,
   duplicatableProfilesFromOptions,
   duplicateProfileOption,
-  exportRuleListOptions,
   firstFixedProfileName,
   getParentName,
   isErrorResult,
@@ -174,6 +172,13 @@ describe('options logic', () => {
         statusCode: 404
       })
     ).toBe('Error downloading profile data!');
+
+    expect(
+      profileDownloadErrorMessage({
+        name: 'Error',
+        reason: 'legacyFormatUnsupported'
+      })
+    ).toBe('Legacy Proxy Switchy! rule list format is no longer supported.');
   });
 
   it('creates PAC export blobs and sanitized filenames', async () => {
@@ -239,48 +244,6 @@ describe('options logic', () => {
     expect(text).toContain('[SwitchyOmega Conditions]\r\n; Require: SwitchyOmega >= 2.3.2');
     expect(text).toContain('; Usage: https://github.com/FelisCatus/SwitchyOmega/wiki/RuleListUsage');
     expect(text).toContain('body');
-  });
-
-  it('composes legacy rule lists from supported switch conditions', () => {
-    const rules = [
-      {
-        condition: {
-          conditionType: 'HostWildcardCondition',
-          pattern: '*.example.com'
-        },
-        profileName: 'proxy'
-      },
-      {
-        condition: {
-          conditionType: 'UrlWildcardCondition',
-          pattern: 'http://internal/*'
-        },
-        profileName: 'direct'
-      },
-      {
-        condition: {
-          conditionType: 'UrlRegexCondition',
-          pattern: '^https://secure'
-        },
-        profileName: 'direct'
-      },
-      {
-        condition: {
-          conditionType: 'KeywordCondition',
-          pattern: 'ignored'
-        },
-        profileName: 'proxy'
-      }
-    ] as SwitchRule[];
-
-    const text = composeLegacyRuleList(rules, 'direct');
-
-    expect(text).toContain('; Summary: Proxy Switchy! Exported Rule List');
-    expect(text).toContain('; Website: https://github.com/FelisCatus/SwitchyOmega/wiki/RuleListUsage');
-    expect(text).toContain('@*://*.example.com/*\r\n');
-    expect(text).toContain('!@http://internal/*\r\n');
-    expect(text).toContain('!^https://secure\r\n');
-    expect(text).not.toContain('ignored');
   });
 
   it('detects switch profiles and attached rule-list options', () => {
@@ -626,21 +589,6 @@ describe('options logic', () => {
     expect(getParentName('__ruleListOf_auto')).toBe('auto');
     expect(getParentName('auto')).toBeUndefined();
     expect(safeProfileFileName('work/proxy 1')).toBe('work_proxy_1');
-  });
-
-  it('derives rule-list export mode from options and condition mode', () => {
-    expect(exportRuleListOptions({}, 0)).toEqual({
-      legacy: false,
-      warning: false
-    });
-    expect(exportRuleListOptions({'-exportLegacyRuleList': true}, 0)).toEqual({
-      legacy: true,
-      warning: false
-    });
-    expect(exportRuleListOptions({'-exportLegacyRuleList': true}, 1)).toEqual({
-      legacy: false,
-      warning: true
-    });
   });
 
   it('normalizes simple option values and profile records', () => {

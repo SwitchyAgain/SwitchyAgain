@@ -204,6 +204,9 @@ msgstr "Некорректное правило в строке $LNO$: $SOURCE$"
 msgid "ruleList_error_noDefaultRule"
 msgstr "Отсутствует правило для условия «*»!"
 
+msgid "ruleList_error_legacyFormatUnsupported"
+msgstr "Устаревший формат списков правил Proxy Switchy! больше не поддерживается."
+
 msgid "dialog_close"
 msgstr "Закрыть"
 
@@ -571,9 +574,6 @@ msgstr "Ежедневно"
 msgid "options_downloadInterval_never"
 msgstr "Никогда"
 
-msgid "options_group_importExportProfile"
-msgstr "Профиль"
-
 msgid "options_exportPacFile"
 msgstr "Экспортировать как PAC-файл"
 
@@ -581,22 +581,6 @@ msgid "options_exportPacFileHelp"
 msgstr ""
 "Экспортируйте текущий профиль как PAC-файл, чтобы использовать его в других "
 "браузерах."
-
-msgid "options_exportProfileHelp"
-msgstr ""
-"Чтобы экспортировать профиль, используйте панель действий в верхнем правом "
-"углу страницы профиля."
-
-msgid "options_exportLegacyRuleList"
-msgstr ""
-"Экспортировать списки правил, используя совместимый с Proxy Switchy!/"
-"SwitchyPlus/SwitchySharp формат, когда это возможно."
-
-msgid "options_exportLegacyRuleListHelp"
-msgstr ""
-"Включайте эту функцию, только если вы публикуете списки правил для "
-"пользователей этих проектов.<br>Не стесняйтесь советовать вашим знакомым "
-"перейти на SwitchyAgain."
 
 msgid "options_group_importExportSettings"
 msgstr "Настройки"
@@ -1095,7 +1079,7 @@ msgid "options_group_ruleListText"
 msgstr "Содержимое списка правил"
 
 msgid "options_ruleListLastUpdate"
-msgstr "Список правил загружен $TIME$:"
+msgstr "Последняя загрузка: $TIME$"
 
 msgid "options_ruleListObsolete"
 msgstr ""

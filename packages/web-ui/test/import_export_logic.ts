@@ -1,11 +1,4 @@
-import {
-  RESTORE_URL_STATE,
-  backupOptionsText,
-  importExportBusy,
-  importExportErrorMessage,
-  legacyRuleListPatch,
-  syncBusy
-} from '../src/react/import_export_logic';
+import {RESTORE_URL_STATE, backupOptionsText, importExportBusy, importExportErrorMessage, syncBusy} from '../src/react/import_export_logic';
 import type {Options} from '../src/react/options_client_types';
 
 describe('import export logic', () => {
@@ -26,7 +19,7 @@ describe('import export logic', () => {
         name: 'proxy',
         profileType: 'FixedProfile'
       },
-      '-exportLegacyRuleList': true,
+      customOption: true,
       transient: undefined
     };
 
@@ -36,7 +29,7 @@ describe('import export logic', () => {
           name: 'proxy',
           profileType: 'FixedProfile'
         },
-        '-exportLegacyRuleList': true
+        customOption: true
       })
     );
   });
@@ -124,26 +117,5 @@ describe('import export logic', () => {
     expect(syncBusy('enabling')).toBe(true);
     expect(syncBusy('disabling')).toBe(true);
     expect(syncBusy('resetting')).toBe(true);
-  });
-
-  it('builds legacy rule-list option updates and patches', () => {
-    const options: Options = {
-      '+proxy': {
-        name: 'proxy'
-      },
-      '-exportLegacyRuleList': false
-    };
-
-    expect(legacyRuleListPatch(options, true)).toEqual({
-      nextOptions: {
-        '+proxy': {
-          name: 'proxy'
-        },
-        '-exportLegacyRuleList': true
-      },
-      patch: {
-        '-exportLegacyRuleList': [false, true]
-      }
-    });
   });
 });

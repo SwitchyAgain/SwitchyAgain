@@ -24,7 +24,6 @@ import {
   attachedProfileOption,
   cloneOptions,
   cloneAuth,
-  composeLegacyRuleList,
   composeOmegaRuleList,
   createPacExport,
   DEFAULT_PROXY_AUTH_CAPABILITIES,
@@ -34,7 +33,6 @@ import {
   deleteProfileScopeAssignments,
   duplicatableProfilesFromOptions,
   duplicateProfileOption,
-  exportRuleListOptions,
   firstFixedProfileName,
   isPatchEmpty,
   isProfileNameHidden,
@@ -1443,16 +1441,9 @@ export function OptionsApp() {
       showProfileNotFound(defaultProfileName);
       return;
     }
-    const showConditionTypes = numberOption(sourceOptions['-showConditionTypes'], detectAdvancedConditionTypes(profile));
-    const {legacy} = exportRuleListOptions(sourceOptions, showConditionTypes);
-    const text = legacy
-      ? composeLegacyRuleList(profile.rules || [], defaultProfileName)
-      : composeOmegaRuleList(profile.rules || [], defaultProfileName);
+    const text = composeOmegaRuleList(profile.rules || [], defaultProfileName);
     const fileName = safeProfileFileName(profile.name);
-    downloadBlob(
-      new Blob([text], {type: 'text/plain;charset=utf-8'}),
-      legacy ? `SwitchyRules_${fileName}.ssrl` : `OmegaRules_${fileName}.sorl`
-    );
+    downloadBlob(new Blob([text], {type: 'text/plain;charset=utf-8'}), `OmegaRules_${fileName}.sorl`);
   }
 
   function exportScript(profileName: string) {
@@ -1844,16 +1835,11 @@ export function OptionsApp() {
         return <UnsupportedProfile profile={profile} />;
       })();
       const switchProfile = isSwitchProfile(profile) ? profile : null;
-      const showConditionTypes = switchProfile
-        ? numberOption(options['-showConditionTypes'], detectAdvancedConditionTypes(switchProfile))
-        : 0;
-      const ruleListOptions = switchProfile ? exportRuleListOptions(options, showConditionTypes) : {legacy: false, warning: false};
       return (
         <>
           <div className="react-profile-shell-host">
             <ProfileShell
               exportRuleListAvailable={!!switchProfile}
-              exportRuleListWarning={ruleListOptions.warning}
               profile={profile}
               profileColor={profile.color}
               profileGroups={profileGroupsForOptions(options)}

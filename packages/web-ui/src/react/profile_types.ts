@@ -92,7 +92,6 @@ export type OptionsData = {
   };
   '-downloadInterval'?: number | string;
   '-enableQuickSwitch'?: boolean;
-  '-exportLegacyRuleList'?: boolean;
   '-keepSettingsExpanded'?: boolean;
   '-monitorWebRequests'?: boolean;
   '-networkRequestIgnoreListEnabled'?: boolean;

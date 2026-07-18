@@ -176,6 +176,9 @@ msgstr "语法错误：非法规则。行号 $LNO$: $SOURCE$"
 msgid "ruleList_error_noDefaultRule"
 msgstr "缺少匹配全部请求的'*'默认规则！"
 
+msgid "ruleList_error_legacyFormatUnsupported"
+msgstr "已不再支持旧版 Proxy Switchy! 规则列表格式。"
+
 msgid "dialog_close"
 msgstr "关闭"
 
@@ -518,23 +521,11 @@ msgstr "每天一次"
 msgid "options_downloadInterval_never"
 msgstr "从不更新"
 
-msgid "options_group_importExportProfile"
-msgstr "情景模式"
-
 msgid "options_exportPacFile"
 msgstr "导出PAC文件"
 
 msgid "options_exportPacFileHelp"
 msgstr "导出PAC（代理自动设置）文件,以便在其它浏览器使用。"
-
-msgid "options_exportProfileHelp"
-msgstr "如需导出情景模式，请使用情景模式设置页面右上角的工具栏。"
-
-msgid "options_exportLegacyRuleList"
-msgstr "导出规则列表时使用 Proxy Switchy!/SwitchyPlus/SwitchySharp 兼容格式。"
-
-msgid "options_exportLegacyRuleListHelp"
-msgstr "如果您需要发布规则列表给那些软件的用户，请启用此选项。<br>建议您提醒订阅者升级到 SwitchyAgain 以享受新版功能。"
 
 msgid "options_group_importExportSettings"
 msgstr "选项"
@@ -976,7 +967,7 @@ msgid "options_group_ruleListText"
 msgstr "规则列表内容"
 
 msgid "options_ruleListLastUpdate"
-msgstr "规则列表下载时间 $TIME$："
+msgstr "最后下载时间：$TIME$"
 
 msgid "options_ruleListObsolete"
 msgstr "修改网址后尚未下载更新，因此规则列表已经过时。请使用上方的更新按钮进行下载。"

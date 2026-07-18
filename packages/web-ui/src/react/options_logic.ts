@@ -116,38 +116,6 @@ export function composeOmegaRuleList(rules: SwitchRule[], defaultProfileName: st
   return text.replace('\n', info);
 }
 
-export function composeLegacyRuleList(rules: SwitchRule[], defaultProfileName: string) {
-  let wildcardRules = '';
-  let regexpRules = '';
-  for (const rule of rules || []) {
-    const inverse = rule.profileName === defaultProfileName ? '!' : '';
-    switch (rule.condition?.conditionType) {
-      case 'HostWildcardCondition':
-        wildcardRules += `${inverse}@*://${rule.condition.pattern}/*\r\n`;
-        break;
-      case 'UrlWildcardCondition':
-        wildcardRules += `${inverse}@${rule.condition.pattern}\r\n`;
-        break;
-      case 'UrlRegexCondition':
-        regexpRules += `${inverse}${rule.condition.pattern}\r\n`;
-        break;
-    }
-  }
-  return [
-    '; Summary: Proxy Switchy! Exported Rule List',
-    `; Date: ${new Date().toLocaleDateString()}`,
-    `; Website: ${message('ruleList_usageUrl', RULE_LIST_USAGE_URL)}`,
-    '',
-    '#BEGIN',
-    '',
-    '[wildcard]',
-    wildcardRules,
-    '[regexp]',
-    regexpRules,
-    '#END'
-  ].join('\n');
-}
-
 export function isSwitchProfile(value: unknown): value is NamedSwitchProfileModel {
   if (!value || typeof value !== 'object') {
     return false;
@@ -240,6 +208,9 @@ export function duplicateProfileOption(options: Options, sourceName: string, tar
 
 export function profileDownloadErrorMessage(err: unknown) {
   const error = err as Partial<BackgroundError> | null | undefined;
+  if (error?.reason === 'legacyFormatUnsupported') {
+    return message('ruleList_error_legacyFormatUnsupported', 'Legacy Proxy Switchy! rule list format is no longer supported.');
+  }
   const statusCode = error?.statusCode ?? error?.original?.statusCode ?? '';
   return (
     message(`options_profileDownloadError_${error?.name || ''}`, '', String(statusCode)) ||
@@ -287,25 +258,6 @@ export function getParentName(name: string) {
 
 export function safeProfileFileName(profileName: string) {
   return profileName.replace(/\W+/g, '_');
-}
-
-export function exportRuleListOptions(options: Options, showConditionTypes: number) {
-  if (!options['-exportLegacyRuleList']) {
-    return {
-      legacy: false,
-      warning: false
-    };
-  }
-  if (showConditionTypes > 0) {
-    return {
-      legacy: false,
-      warning: true
-    };
-  }
-  return {
-    legacy: true,
-    warning: false
-  };
 }
 
 export function numberOption(value: unknown, fallback = 0) {

@@ -165,6 +165,9 @@ msgstr ""
 msgid "ruleList_error_noDefaultRule"
 msgstr ""
 
+msgid "ruleList_error_legacyFormatUnsupported"
+msgstr "Det eldre Proxy Switchy!-formatet for regellister støttes ikke lenger."
+
 msgid "dialog_close"
 msgstr "Lukk"
 
@@ -505,9 +508,6 @@ msgstr "Hver dag"
 msgid "options_downloadInterval_never"
 msgstr "Aldri"
 
-msgid "options_group_importExportProfile"
-msgstr "Profil"
-
 msgid "options_exportPacFile"
 msgstr "Eksporter som PAC-fil"
 
@@ -515,19 +515,6 @@ msgid "options_exportPacFileHelp"
 msgstr ""
 "Eksporter gjeldende profil som PAC-fil, slik at du kan bruke den i andre "
 "nettlesere."
-
-#, fuzzy
-
-msgid "options_exportProfileHelp"
-msgstr ""
-"For å eksportere en profil, bruk handlingsfeltet øverst til høyre på "
-"profilsiden."
-
-msgid "options_exportLegacyRuleList"
-msgstr ""
-
-msgid "options_exportLegacyRuleListHelp"
-msgstr ""
 
 msgid "options_group_importExportSettings"
 msgstr "Innstillinger"

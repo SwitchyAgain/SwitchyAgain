@@ -208,6 +208,9 @@ msgstr "Regla no válida en la línea $LNO$: $SOURCE$"
 msgid "ruleList_error_noDefaultRule"
 msgstr "¡ Falta regla por defecto con condición universal '*' !"
 
+msgid "ruleList_error_legacyFormatUnsupported"
+msgstr "El formato antiguo de listas de reglas de Proxy Switchy! ya no es compatible."
+
 msgid "dialog_close"
 msgstr "Cerrar"
 
@@ -577,9 +580,6 @@ msgstr "a diario"
 msgid "options_downloadInterval_never"
 msgstr "Nunca"
 
-msgid "options_group_importExportProfile"
-msgstr "Perfil"
-
 msgid "options_exportPacFile"
 msgstr "Exportar como archivo PAC"
 
@@ -587,22 +587,6 @@ msgid "options_exportPacFileHelp"
 msgstr ""
 "Exporta el perfil actual como un archivo PAC, para poder utilizarlo en otros "
 "navegadores."
-
-msgid "options_exportProfileHelp"
-msgstr ""
-"Para exportar un perfil, utilice la barra de acción de arriba a la derecha "
-"en la página del perfil."
-
-msgid "options_exportLegacyRuleList"
-msgstr ""
-"Exporta la lista de reglas utilizando, si es posible, un formato compatible "
-"con Proxy Switchy!/SwitchyPlus/SwitchySharp."
-
-msgid "options_exportLegacyRuleListHelp"
-msgstr ""
-"Habilite esta opción si publica listas de reglas para usuarios de esos "
-"proyectos.<br> Le agradeceríamos que recomendara a sus contactos actualizar "
-"a SwitchyAgain para disfrutar de las mejoras."
 
 msgid "options_group_importExportSettings"
 msgstr "Ajustes"
@@ -1103,7 +1087,7 @@ msgid "options_group_ruleListText"
 msgstr "Contenido de la lista de reglas"
 
 msgid "options_ruleListLastUpdate"
-msgstr "Lista de reglas descargada el $TIME$:"
+msgstr "Última descarga: $TIME$"
 
 msgid "options_ruleListObsolete"
 msgstr ""

@@ -7,7 +7,6 @@ import {downloadBlob, shouldAutoMount} from './navigation_client';
 import {
   getWebDavSyncConfig,
   loadOptions,
-  patchOptions,
   resetOptions,
   resetOptionsSync,
   runWebDavSyncAction,
@@ -18,14 +17,7 @@ import {
 } from './options_api_client';
 import type {Options, WebDavSyncConfig, WebDavSyncManualAction, WebDavSyncStatus} from './options_client_types';
 import {getLocalState, getState, setLocalState} from './state_client';
-import {
-  RESTORE_URL_STATE,
-  backupOptionsText,
-  importExportBusy,
-  importExportErrorMessage,
-  legacyRuleListPatch,
-  syncBusy
-} from './import_export_logic';
+import {RESTORE_URL_STATE, backupOptionsText, importExportBusy, importExportErrorMessage, syncBusy} from './import_export_logic';
 import type {ImportExportStatus, SyncStatus} from './import_export_logic';
 import {formatMediumDate} from './profile_content_logic';
 import {richMessage} from './rich_message';
@@ -701,60 +693,6 @@ export function ImportExport({
     );
   }
 
-  function saveExportLegacyRuleList(checked: boolean) {
-    confirmCurrentOptions()
-      .then((appliedOptions) => {
-        const currentOptions = appliedOptions || options || {};
-        const {nextOptions, patch} = legacyRuleListPatch(currentOptions, checked);
-        setOptions(nextOptions);
-        return patchOptions(patch)
-          .then((loadedOptions) => {
-            setOptions(loadedOptions);
-            onOptionsReplace?.(loadedOptions, {dirty: false});
-          })
-          .catch((err) => {
-            setOptions(currentOptions);
-            showError(err, 'options_saveError', 'Unable to save options.');
-          });
-      })
-      .catch(() => {});
-  }
-
-  const profileSection = (
-    <section className="settings-group">
-      <h3>{message('options_group_importExportProfile', 'Profile')}</h3>
-      <div className="help-block">
-        <div className="text-info">
-          <span className="glyphicon glyphicon-info-sign" />{' '}
-          {message('options_exportProfileHelp', 'To export a profile, use the top-right action bar on the profile page.')}
-        </div>
-      </div>
-      {!(Number(options?.['-showConditionTypes'] || 0) > 0) && (
-        <div className="checkbox">
-          <label>
-            <input
-              type="checkbox"
-              checked={Boolean(options?.['-exportLegacyRuleList'])}
-              onChange={(event) => saveExportLegacyRuleList(event.currentTarget.checked)}
-            />{' '}
-            <span>
-              {message(
-                'options_exportLegacyRuleList',
-                'Export rule lists using Proxy Switchy!/SwitchyPlus/SwitchySharp compatible format when possible.'
-              )}
-            </span>
-          </label>
-          <p className="help-block">
-            {richMessage(
-              'options_exportLegacyRuleListHelp',
-              'Enable this option only if you publish rule lists for users of those projects.<br>Please consider advising your audience to upgrade to SwitchyAgain for the improvements.'
-            )}
-          </p>
-        </div>
-      )}
-    </section>
-  );
-
   const settingsSection = (
     <section className="settings-group">
       {status === 'error' && (
@@ -1131,7 +1069,6 @@ export function ImportExport({
         <div className="page-header">
           <h2>{message('options_tab_importExport', 'Import/Export')}</h2>
         </div>
-        {profileSection}
         {settingsSection}
         {syncSection}
         {webDavConfirmModal}
@@ -1145,7 +1082,6 @@ export function ImportExport({
         <h2>{message('options_tab_importExport', 'Import/Export')}</h2>
       </div>
 
-      {profileSection}
       {settingsSection}
       {syncSection}
       {webDavConfirmModal}

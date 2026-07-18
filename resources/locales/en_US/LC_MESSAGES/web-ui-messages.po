@@ -199,6 +199,9 @@ msgstr "Invalid rule at Line $LNO$: $SOURCE$"
 msgid "ruleList_error_noDefaultRule"
 msgstr "Missing default rule with catch-all '*' condition!"
 
+msgid "ruleList_error_legacyFormatUnsupported"
+msgstr "Legacy Proxy Switchy! rule list format is no longer supported."
+
 msgid "dialog_close"
 msgstr "Close"
 
@@ -557,28 +560,11 @@ msgstr "Every day"
 msgid "options_downloadInterval_never"
 msgstr "Never"
 
-msgid "options_group_importExportProfile"
-msgstr "Profile"
-
 msgid "options_exportPacFile"
 msgstr "Export as PAC File"
 
 msgid "options_exportPacFileHelp"
 msgstr "Export the current profile as a PAC file, so you can use it in other browsers."
-
-msgid "options_exportProfileHelp"
-msgstr "To export a profile, use the top-right action bar on the profile page."
-
-msgid "options_exportLegacyRuleList"
-msgstr ""
-"Export rule lists using Proxy Switchy!/SwitchyPlus/SwitchySharp compatible "
-"format when possible."
-
-msgid "options_exportLegacyRuleListHelp"
-msgstr ""
-"Enable this option only if you publish rule lists for users of those projects.<"
-"br>Please consider advising your audience to upgrade to SwitchyAgain for the "
-"improvements."
 
 msgid "options_group_importExportSettings"
 msgstr "Settings"
@@ -1072,7 +1058,7 @@ msgid "options_group_ruleListText"
 msgstr "Rule List Content"
 
 msgid "options_ruleListLastUpdate"
-msgstr "Rule list downloaded at $TIME$:"
+msgstr "Last downloaded: $TIME$"
 
 msgid "options_ruleListObsolete"
 msgstr ""

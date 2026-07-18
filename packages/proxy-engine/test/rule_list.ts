@@ -138,149 +138,19 @@ describe('RuleList', function () {
     });
   });
   describe('Switchy', function () {
-    let compose, parse;
-    parse = RuleList['Switchy'].parse;
-    compose = function (sections: Record<string, string[]>): string {
-      let i, len, list, rule, rules, sec;
-      list = '#BEGIN\r\n\r\n';
-      for (sec in sections) {
-        rules = sections[sec];
-        list += '[' + sec + ']\r\n';
-        for (i = 0, len = rules.length; i < len; i++) {
-          rule = rules[i];
-          list += rule;
-          list += '\r\n';
-        }
-      }
-      return (list += '\r\n\r\n#END\r\n');
-    };
-    it('should parse empty rule lists', function () {
-      let list, result;
-      list = compose({});
-      result = parse(list, 'match', 'notmatch');
-      return assert.strictEqual(result.length, 0);
-    });
-    it('should ignore stuff before #BEGIN or after #END.', function () {
-      let list, result;
-      list = compose({});
-      list += '[RegExp]\r\ntest\r\n';
-      list = '[Wildcard]\r\ntest\r\n' + list;
-      result = parse(list, 'match', 'notmatch');
-      return assert.strictEqual(result.length, 0);
-    });
-    it('should parse wildcard rules', function () {
-      let list, result;
-      list = compose({
-        Wildcard: ['*://example.com/abc/*']
-      });
-      result = parse(list, 'match', 'notmatch');
-      assert.strictEqual(result.length, 1);
-      return assert.deepStrictEqual(result[0], {
-        source: '*://example.com/abc/*',
-        profileName: 'match',
-        condition: {
-          conditionType: 'UrlWildcardCondition',
-          pattern: '*://example.com/abc/*'
-        }
-      });
-    });
-    it('should parse RegExp rules', function () {
-      let list, result;
-      list = compose({
-        RegExp: ['^http://www\.example\.com/.*']
-      });
-      result = parse(list, 'match', 'notmatch');
-      assert.strictEqual(result.length, 1);
-      return assert.deepStrictEqual(result[0], {
-        source: '^http://www\.example\.com/.*',
-        profileName: 'match',
-        condition: {
-          conditionType: 'UrlRegexCondition',
-          pattern: '^http://www\.example\.com/.*'
-        }
-      });
-    });
-    it('should parse exclusive rules', function () {
-      let list, result;
-      list = compose({
-        RegExp: ['!^http://www\.example\.com/.*']
-      });
-      result = parse(list, 'match', 'notmatch');
-      assert.strictEqual(result.length, 1);
-      return assert.deepStrictEqual(result[0], {
-        source: '!^http://www\.example\.com/.*',
-        profileName: 'notmatch',
-        condition: {
-          conditionType: 'UrlRegexCondition',
-          pattern: '^http://www\.example\.com/.*'
-        }
-      });
-    });
-    it('should parse multiple rules in multiple sections', function () {
-      let list, result;
-      list = compose({
-        Wildcard: ['http://www.example.com/*', 'http://example.com/*'],
-        RegExp: ['^http://www\.example\.com/.*', '^http://example\.com/.*']
-      });
-      result = parse(list, 'match', 'notmatch');
-      assert.strictEqual(result.length, 4);
-      assert.deepStrictEqual(result[0], {
-        source: 'http://www.example.com/*',
-        profileName: 'match',
-        condition: {
-          conditionType: 'UrlWildcardCondition',
-          pattern: 'http://www.example.com/*'
-        }
-      });
-      assert.deepStrictEqual(result[1], {
-        source: 'http://example.com/*',
-        profileName: 'match',
-        condition: {
-          conditionType: 'UrlWildcardCondition',
-          pattern: 'http://example.com/*'
-        }
-      });
-      assert.deepStrictEqual(result[2], {
-        source: '^http://www\.example\.com/.*',
-        profileName: 'match',
-        condition: {
-          conditionType: 'UrlRegexCondition',
-          pattern: '^http://www\.example\.com/.*'
-        }
-      });
-      return assert.deepStrictEqual(result[3], {
-        source: '^http://example\.com/.*',
-        profileName: 'match',
-        condition: {
-          conditionType: 'UrlRegexCondition',
-          pattern: '^http://example\.com/.*'
-        }
-      });
-    });
-    it('should put exclusive rules first', function () {
-      let list, result;
-      list = compose({
-        Wildcard: ['http://www\.example\.com/*'],
-        RegExp: ['!^http://www\.example\.com/.*']
-      });
-      result = parse(list, 'match', 'notmatch');
-      assert.strictEqual(result.length, 2);
-      assert.deepStrictEqual(result[0], {
-        source: '!^http://www\.example\.com/.*',
-        profileName: 'notmatch',
-        condition: {
-          conditionType: 'UrlRegexCondition',
-          pattern: '^http://www.example\.com/.*'
-        }
-      });
-      return assert.deepStrictEqual(result[1], {
-        source: 'http://www\.example\.com/*',
-        profileName: 'match',
-        condition: {
-          conditionType: 'UrlWildcardCondition',
-          pattern: 'http://www.example.com/*'
-        }
-      });
+    it('should reject legacy Proxy Switchy! rule lists', function () {
+      const list = '; Summary: Proxy Switchy! Exported Rule List\r\n#BEGIN\r\n[wildcard]\r\n*.example.com\r\n#END\r\n';
+      const isUnsupportedLegacyError = (error: unknown) => {
+        const fields = error as {message?: string; reason?: string};
+        return (
+          fields.reason === 'legacyFormatUnsupported' && fields.message === 'Legacy Proxy Switchy! rule list format is no longer supported.'
+        );
+      };
+
+      assert.throws(() => RuleList.Switchy.detect(list), isUnsupportedLegacyError);
+      assert.throws(() => RuleList.Switchy.parse(list, 'match', 'notmatch'), isUnsupportedLegacyError);
+      assert.throws(() => RuleList.Switchy.parseOmega(list, 'match', 'notmatch'), isUnsupportedLegacyError);
+      assert.throws(() => RuleList.Switchy.directReferenceSet({ruleList: list}), isUnsupportedLegacyError);
     });
   });
   describe('Switchy (omega format)', function () {

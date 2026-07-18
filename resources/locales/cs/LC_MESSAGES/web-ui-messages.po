@@ -202,6 +202,9 @@ msgstr "Nesprávná podmínka na řádku $LNO$: $SOURCE$"
 msgid "ruleList_error_noDefaultRule"
 msgstr "Chybí výchozí pravidlo s catch-all '*' podmínkou!"
 
+msgid "ruleList_error_legacyFormatUnsupported"
+msgstr "Starší formát seznamu pravidel Proxy Switchy! již není podporován."
+
 msgid "dialog_close"
 msgstr "Zavřít"
 
@@ -559,9 +562,6 @@ msgstr "Každý den"
 msgid "options_downloadInterval_never"
 msgstr "Nikdy"
 
-msgid "options_group_importExportProfile"
-msgstr "Profil"
-
 msgid "options_exportPacFile"
 msgstr "Exportovat jako PAC soubor"
 
@@ -569,22 +569,6 @@ msgid "options_exportPacFileHelp"
 msgstr ""
 "Exportujte aktuální profil jako soubor PAC, takže můžete použít v jiných "
 "prohlížečích."
-
-msgid "options_exportProfileHelp"
-msgstr ""
-"Chcete-li exportovat profil, pomocí panelu Akce shora zprava na stránce "
-"profil."
-
-msgid "options_exportLegacyRuleList"
-msgstr ""
-"Exportovat pravidla seznamy pomocí Proxy Switchy!/SwitchyPlus/SwitchySharp "
-"kompatibilní formát pokud je to možné."
-
-msgid "options_exportLegacyRuleListHelp"
-msgstr ""
-"Tuto možnost použijte, pouze v případě, že publikujete pravidlo seznamy pro "
-"uživatele těchto projektů.<br>Prosím zvažte aktualizovat na  SwitchyAgain "
-"pro zlepšení."
 
 msgid "options_group_importExportSettings"
 msgstr "Nastavení"
@@ -1074,7 +1058,7 @@ msgid "options_group_ruleListText"
 msgstr "Obsah seznamu pravidel"
 
 msgid "options_ruleListLastUpdate"
-msgstr "Seznam pravidel stažen $TIME$:"
+msgstr "Naposledy staženo: $TIME$"
 
 msgid "options_ruleListObsolete"
 msgstr ""

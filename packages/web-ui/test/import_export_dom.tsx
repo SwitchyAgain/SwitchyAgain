@@ -73,8 +73,7 @@ function optionsFixture(): Options {
     '+proxy': {
       name: 'proxy',
       profileType: 'FixedProfile'
-    },
-    '-exportLegacyRuleList': false
+    }
   };
 }
 
@@ -180,7 +179,10 @@ describe('import export component', () => {
   it('restores options from an online backup URL', async () => {
     const restoredOptions = {
       ...optionsFixture(),
-      '-exportLegacyRuleList': true
+      '+restored': {
+        name: 'restored',
+        profileType: 'FixedProfile'
+      }
     };
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
@@ -681,54 +683,11 @@ describe('import export component', () => {
     await waitFor(() => expect(optionsClientMock.reloadLocation).toHaveBeenCalled());
   });
 
-  it('saves legacy rule list export preference through an options patch', async () => {
-    const updatedOptions = {
-      ...optionsFixture(),
-      '-exportLegacyRuleList': true
-    };
-    const onOptionsReplace = vi.fn();
-    optionsClientMock.patchOptions.mockResolvedValue(updatedOptions);
+  it('shows settings and sync without a profile export section', () => {
+    render(<ImportExport embedded options={optionsFixture()} />);
 
-    render(<ImportExport embedded onOptionsReplace={onOptionsReplace} options={optionsFixture()} />);
-
-    fireEvent.click(
-      screen.getByLabelText('Export rule lists using Proxy Switchy!/SwitchyPlus/SwitchySharp compatible format when possible.')
-    );
-
-    await waitFor(() =>
-      expect(optionsClientMock.patchOptions).toHaveBeenCalledWith({
-        '-exportLegacyRuleList': [false, true]
-      })
-    );
-    await waitFor(() => {
-      expect(onOptionsReplace).toHaveBeenCalledWith(updatedOptions, {dirty: false});
-    });
-  });
-
-  it('saves legacy rule list export preference from applied dirty options', async () => {
-    const currentOptions = {
-      ...optionsFixture(),
-      '-exportLegacyRuleList': true
-    };
-    const patchedOptions = {
-      ...currentOptions,
-      '-exportLegacyRuleList': false
-    };
-    const onApplyOptions = vi.fn().mockResolvedValue(currentOptions);
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
-    optionsClientMock.patchOptions.mockResolvedValue(patchedOptions);
-
-    render(<ImportExport embedded onApplyOptions={onApplyOptions} options={currentOptions} optionsDirty />);
-
-    fireEvent.click(
-      screen.getByLabelText('Export rule lists using Proxy Switchy!/SwitchyPlus/SwitchySharp compatible format when possible.')
-    );
-
-    await waitFor(() =>
-      expect(optionsClientMock.patchOptions).toHaveBeenCalledWith({
-        '-exportLegacyRuleList': [true, false]
-      })
-    );
-    expect(onApplyOptions).toHaveBeenCalled();
+    expect(screen.getByRole('heading', {name: 'Settings'})).toBeTruthy();
+    expect(screen.getByRole('heading', {name: 'Sync'})).toBeTruthy();
+    expect(screen.queryByRole('heading', {name: 'Profile'})).toBeNull();
   });
 });

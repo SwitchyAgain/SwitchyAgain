@@ -171,6 +171,9 @@ msgstr "語法錯誤：非法規則。行號 $LNO$: $SOURCE$"
 msgid "ruleList_error_noDefaultRule"
 msgstr "語法錯誤：缺少比對全部請求的預設規則。應在最後新增'*'規則和預設情境模式。"
 
+msgid "ruleList_error_legacyFormatUnsupported"
+msgstr "已不再支援舊版 Proxy Switchy! 規則清單格式。"
+
 msgid "dialog_close"
 msgstr "關閉"
 
@@ -507,23 +510,11 @@ msgstr "每天一次"
 msgid "options_downloadInterval_never"
 msgstr "從不更新"
 
-msgid "options_group_importExportProfile"
-msgstr "情境模式"
-
 msgid "options_exportPacFile"
 msgstr "匯出 PAC 檔案"
 
 msgid "options_exportPacFileHelp"
 msgstr "匯出 PAC（代理自動設定）檔案，以便在其它瀏覽器使用。"
-
-msgid "options_exportProfileHelp"
-msgstr "如需匯出情境模式，請使用情境模式設定頁面右上角的工具欄。"
-
-msgid "options_exportLegacyRuleList"
-msgstr "匯出規則清單時使用 Proxy Switchy!/SwitchyPlus/SwitchySharp 相容格式。"
-
-msgid "options_exportLegacyRuleListHelp"
-msgstr "如果您需要釋出規則清單給那些軟體的使用者，請啟用此選項。<br>建議您提醒訂閱者升級到 SwitchyAgain 以享受新版功能。"
 
 msgid "options_group_importExportSettings"
 msgstr "選項"
@@ -965,7 +956,7 @@ msgid "options_group_ruleListText"
 msgstr "規則清單內容"
 
 msgid "options_ruleListLastUpdate"
-msgstr "規則清單最後更新時間：$TIME$"
+msgstr "最後下載時間：$TIME$"
 
 msgid "options_ruleListObsolete"
 msgstr "修改網址後尚未下載更新，因此規則清單已經過時。請使用上方的更新按鈕進行下載。"

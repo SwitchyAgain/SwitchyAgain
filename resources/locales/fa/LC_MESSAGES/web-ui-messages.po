@@ -202,6 +202,9 @@ msgstr "قانون نامعتبر در خط $LNO$: $SOURCE$"
 msgid "ruleList_error_noDefaultRule"
 msgstr "قانون پیش فرض با شرط انتخاب همه '*' غایب است !"
 
+msgid "ruleList_error_legacyFormatUnsupported"
+msgstr "قالب قدیمی فهرست قوانین Proxy Switchy! دیگر پشتیبانی نمی‌شود."
+
 msgid "dialog_close"
 msgstr "بستن"
 
@@ -565,31 +568,12 @@ msgstr "هر روز"
 msgid "options_downloadInterval_never"
 msgstr "هرگز"
 
-msgid "options_group_importExportProfile"
-msgstr "نمایه"
-
 msgid "options_exportPacFile"
 msgstr "خروجی به صورت فایل PAC"
 
 msgid "options_exportPacFileHelp"
 msgstr ""
 "خروجی گرفتن پروفایل کنونی به صورت فایل PAC ، برای استفاده در دیگر مرورگرها ."
-
-msgid "options_exportProfileHelp"
-msgstr ""
-"برای خروجی گرفتن از یک پروفایل ، از عملگر سمت راست بالای صفحه ی پروفایل ها "
-"استفاده نمایید ."
-
-msgid "options_exportLegacyRuleList"
-msgstr ""
-"در صورت امکان با استفاده از قالب سازگار Proxy Switchy!/SwitchyPlus/"
-"SwitchySharp فهرست قوانین را صادر کنید."
-
-msgid "options_exportLegacyRuleListHelp"
-msgstr ""
-"این گزینه را تنها درصورتی که میخواهید لیست قوانین را برای کاربران اون پروژه "
-"ها انتشار دهید فعال کنید . <br>لطفا به کاربران خود پیشنهاد بروزرسانی به "
-"SwitchyAgain را برای بهره بری بهتر پیشنهاد دهید ."
 
 msgid "options_group_importExportSettings"
 msgstr "تنظیمات"
@@ -1082,7 +1066,7 @@ msgid "options_group_ruleListText"
 msgstr "محتوای فهرست قوانین"
 
 msgid "options_ruleListLastUpdate"
-msgstr "سیاههٔ قوانین بارگیری شده در $TIME$:"
+msgstr "آخرین بارگیری: $TIME$"
 
 msgid "options_ruleListObsolete"
 msgstr ""
