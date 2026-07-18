@@ -269,9 +269,9 @@ class SettingsProxyImpl extends ProxyImpl {
 
   private _fixedProfileBypassList(profile: ProxyProfile) {
     const bypassList = [...(profile.bypassList || [])];
-    for (const group of profile.bypassGroups || []) {
-      if (group && group.enabled !== false) {
-        bypassList.push(...(group.bypassList || []));
+    for (const section of profile.bypassSections || []) {
+      if (section && section.enabled !== false) {
+        bypassList.push(...(section.bypassList || []));
       }
     }
     return bypassList;

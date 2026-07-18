@@ -100,7 +100,7 @@ describe('ui settings component', () => {
     );
 
     expect((screen.getByLabelText('Enable global and per-profile Proxy Exceptions.') as HTMLInputElement).checked).toBe(false);
-    expect((screen.getByLabelText('Show bypass list groups in Proxy Exceptions.') as HTMLInputElement).checked).toBe(false);
+    expect((screen.getByLabelText('Show bypass list sections in Proxy Exceptions.') as HTMLInputElement).checked).toBe(false);
     fireEvent.click(screen.getByLabelText('Enable global and per-profile Proxy Exceptions.'));
     expect(onOptionsChange).toHaveBeenLastCalledWith(
       expect.objectContaining({
@@ -114,8 +114,8 @@ describe('ui settings component', () => {
         ]
       })
     );
-    fireEvent.click(screen.getByLabelText('Show bypass list groups in Proxy Exceptions.'));
-    expect(onOptionsChange).toHaveBeenLastCalledWith(expect.objectContaining({'-showProxyExceptionsBypassListGroups': true}));
+    fireEvent.click(screen.getByLabelText('Show bypass list sections in Proxy Exceptions.'));
+    expect(onOptionsChange).toHaveBeenLastCalledWith(expect.objectContaining({'-showProxyExceptionsBypassListSections': true}));
 
     fireEvent.click(screen.getByLabelText('Show Request Lens in the settings sidebar.'));
     expect(onOptionsChange).toHaveBeenLastCalledWith(
@@ -195,7 +195,7 @@ describe('ui settings component', () => {
     expect((screen.getByRole('checkbox', {name: /^Show SOCKS5 local DNS option/}) as HTMLInputElement).disabled).toBe(true);
     expect((screen.getByLabelText('Show HTTP/HTTPS proxy overrides in proxy profiles.') as HTMLInputElement).checked).toBe(true);
     expect((screen.getByLabelText('Show WebSocket (ws/wss) proxy overrides in proxy profiles.') as HTMLInputElement).checked).toBe(false);
-    expect((screen.getByLabelText('Show bypass list groups in proxy profiles.') as HTMLInputElement).checked).toBe(false);
+    expect((screen.getByLabelText('Show bypass list sections in proxy profiles.') as HTMLInputElement).checked).toBe(false);
 
     fireEvent.click(screen.getByLabelText('Show HTTP/HTTPS proxy overrides in proxy profiles.'));
     expect(onOptionsChange).toHaveBeenLastCalledWith(
@@ -211,10 +211,10 @@ describe('ui settings component', () => {
       })
     );
 
-    fireEvent.click(screen.getByLabelText('Show bypass list groups in proxy profiles.'));
+    fireEvent.click(screen.getByLabelText('Show bypass list sections in proxy profiles.'));
     expect(onOptionsChange).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        '-showBypassListGroups': true
+        '-showBypassListSections': true
       })
     );
 
@@ -321,17 +321,17 @@ describe('ui settings component', () => {
     const windowProfiles = screen.getByLabelText('Normal/private defaults') as HTMLInputElement;
     const socks5LocalDns = screen.getByRole('checkbox', {name: /^Show SOCKS5 local DNS option/}) as HTMLInputElement;
     const websocketProxyRows = screen.getByLabelText('Show WebSocket (ws/wss) proxy overrides in proxy profiles.') as HTMLInputElement;
-    const bypassListGroups = screen.getByLabelText('Show bypass list groups in proxy profiles.') as HTMLInputElement;
+    const bypassListSections = screen.getByLabelText('Show bypass list sections in proxy profiles.') as HTMLInputElement;
     expect(tabProfiles.disabled).toBe(false);
     expect(windowProfiles.disabled).toBe(true);
     expect(socks5LocalDns.disabled).toBe(false);
     expect(websocketProxyRows.checked).toBe(false);
-    expect(bypassListGroups.checked).toBe(false);
+    expect(bypassListSections.checked).toBe(false);
 
     fireEvent.click(tabProfiles);
     fireEvent.click(socks5LocalDns);
     fireEvent.click(websocketProxyRows);
-    fireEvent.click(bypassListGroups);
+    fireEvent.click(bypassListSections);
     fireEvent.click(screen.getByRole('button', {name: /Apply changes/}));
 
     await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('Options saved.'));
@@ -347,7 +347,7 @@ describe('ui settings component', () => {
               window: false
             }
           ],
-          '-showBypassListGroups': [undefined, true],
+          '-showBypassListSections': [undefined, true],
           '-showSocks5LocalDnsOption': [undefined, true],
           '-showWebSocketProxyOverrideRows': [undefined, true]
         }

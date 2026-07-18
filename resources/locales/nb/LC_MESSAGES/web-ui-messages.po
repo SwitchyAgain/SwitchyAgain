@@ -318,8 +318,8 @@ msgstr "Vis egne proxyinnstillinger for HTTP/HTTPS i proxyprofiler."
 msgid "options_showWebSocketProxyOverrideRows"
 msgstr "Vis egne proxyinnstillinger for WebSocket (ws/wss) i proxyprofiler."
 
-msgid "options_showBypassListGroups"
-msgstr "Vis grupper for forbikoblingslisten i proxyprofiler."
+msgid "options_showBypassListSections"
+msgstr "Vis seksjoner i forbikoblingslisten i proxyprofiler."
 
 msgid "options_group_contextMenuOptions"
 msgstr "Kontekstmeny"
@@ -893,23 +893,23 @@ msgstr ""
 msgid "options_bypassListHelpLinkText"
 msgstr ""
 
-msgid "options_bypassGroupName"
-msgstr "Gruppenavn"
+msgid "options_bypassSectionName"
+msgstr "Seksjonsnavn"
 
-msgid "options_enableBypassGroup"
-msgstr "Aktiver denne listegruppen"
+msgid "options_enableBypassSection"
+msgstr "Aktiver denne listeseksjonen"
 
-msgid "options_addBypassGroup"
-msgstr "Legg til en ny listegruppe"
+msgid "options_addBypassSection"
+msgstr "Legg til en ny listeseksjon"
 
-msgid "options_modalHeader_deleteBypassGroup"
-msgstr "Slett listegruppe"
+msgid "options_modalHeader_deleteBypassSection"
+msgstr "Slett listeseksjon"
 
-msgid "options_deleteBypassGroupConfirm"
-msgstr "Vil du virkelig slette denne listegruppen?"
+msgid "options_deleteBypassSectionConfirm"
+msgstr "Vil du virkelig slette denne listeseksjonen?"
 
-msgid "options_deleteBypassGroup"
-msgstr "Slett gruppe"
+msgid "options_deleteBypassSection"
+msgstr "Slett seksjon"
 
 msgid "options_group_pacUrl"
 msgstr ""
@@ -2100,8 +2100,8 @@ msgstr "Tilleggslister som er koblet til denne profilen eller arvet fra profilgr
 msgid "options_enableProxyExceptions"
 msgstr "Aktiver globale og profilspesifikke mellomtjenerunntak."
 
-msgid "options_showProxyExceptionsBypassListGroups"
-msgstr "Vis grupper av omgåelseslister i mellomtjenerunntak."
+msgid "options_showProxyExceptionsBypassListSections"
+msgstr "Vis seksjoner i omgåelseslister i mellomtjenerunntak."
 
 msgid "routeTrace_step_globalBypass"
 msgstr "Global omgåelse"

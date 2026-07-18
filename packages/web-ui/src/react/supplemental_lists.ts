@@ -29,7 +29,7 @@ export function supplementalListsForOptions(options?: Options | null): Supplemen
       id,
       name,
       bypassList: Array.isArray(source.bypassList) ? source.bypassList : [],
-      bypassGroups: Array.isArray(source.bypassGroups) ? source.bypassGroups : []
+      bypassSections: Array.isArray(source.bypassSections) ? source.bypassSections : []
     });
   }
   return lists;
@@ -66,7 +66,7 @@ export function addSupplementalList(options: Options, name: string) {
     id: createSupplementalListId(name, lists),
     name: cleanName(name),
     bypassList: [],
-    bypassGroups: []
+    bypassSections: []
   };
   options['-supplementalLists'] = lists.concat(list);
   if (!options['-globalBypassListId']) options['-globalBypassListId'] = list.id;
@@ -84,7 +84,7 @@ export function ensureDefaultSupplementalList(options: Options) {
     id: DEFAULT_SUPPLEMENTAL_LIST_ID,
     name: 'Default',
     bypassList: [],
-    bypassGroups: []
+    bypassSections: []
   };
   options['-supplementalLists'] = lists.concat(list);
   if (!lists.some((candidate) => candidate.id === options['-globalBypassListId'])) options['-globalBypassListId'] = list.id;

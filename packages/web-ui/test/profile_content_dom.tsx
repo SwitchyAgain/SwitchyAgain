@@ -632,9 +632,9 @@ describe('profile content components', () => {
     expect(onBypassListChange).not.toHaveBeenCalled();
   });
 
-  it('hides fixed proxy bypass list group controls by default', () => {
+  it('hides fixed proxy bypass list section controls by default', () => {
     const profile: NamedFixedProfileModel = {
-      bypassGroups: [
+      bypassSections: [
         {
           name: 'Internal',
           bypassList: [
@@ -651,47 +651,49 @@ describe('profile content components', () => {
 
     const {container, rerender} = render(<FixedProfileContent profile={profile} />);
 
-    expect(screen.queryByRole('button', {name: 'Add a new list group'})).toBeNull();
-    expect(screen.queryByLabelText('Group name')).toBeNull();
+    expect(screen.queryByRole('button', {name: 'Add a new list section'})).toBeNull();
+    expect(screen.queryByLabelText('Section name')).toBeNull();
     expect(container.querySelectorAll('textarea')).toHaveLength(1);
 
-    rerender(<FixedProfileContent profile={profile} showBypassListGroups />);
+    rerender(<FixedProfileContent profile={profile} showBypassListSections />);
 
-    expect(screen.getByRole('button', {name: 'Add a new list group'})).toBeTruthy();
-    expect(screen.getByLabelText('Group name')).toBeTruthy();
+    expect(screen.getByRole('button', {name: 'Add a new list section'})).toBeTruthy();
+    expect(screen.getByLabelText('Section name')).toBeTruthy();
     expect(container.querySelectorAll('textarea')).toHaveLength(2);
   });
 
-  it('adds and edits fixed proxy bypass list groups', () => {
-    const onBypassGroupsChange = vi.fn();
+  it('adds and edits fixed proxy bypass list sections', () => {
+    const onBypassSectionsChange = vi.fn();
     const profile: NamedFixedProfileModel = {
       name: 'proxy',
       profileType: 'FixedProfile'
     };
 
-    const {container} = render(<FixedProfileContent onBypassGroupsChange={onBypassGroupsChange} profile={profile} showBypassListGroups />);
+    const {container} = render(
+      <FixedProfileContent onBypassSectionsChange={onBypassSectionsChange} profile={profile} showBypassListSections />
+    );
 
-    fireEvent.click(screen.getByRole('button', {name: 'Add a new list group'}));
-    expect(onBypassGroupsChange).toHaveBeenLastCalledWith([
+    fireEvent.click(screen.getByRole('button', {name: 'Add a new list section'}));
+    expect(onBypassSectionsChange).toHaveBeenLastCalledWith([
       {
         bypassList: []
       }
     ]);
 
-    fireEvent.change(screen.getByLabelText('Group name'), {
+    fireEvent.change(screen.getByLabelText('Section name'), {
       target: {
         value: 'Internal'
       }
     });
-    expect(onBypassGroupsChange).toHaveBeenLastCalledWith([
+    expect(onBypassSectionsChange).toHaveBeenLastCalledWith([
       {
         bypassList: [],
         name: 'Internal'
       }
     ]);
 
-    fireEvent.click(screen.getByRole('switch', {name: 'Enable this list group'}));
-    expect(onBypassGroupsChange).toHaveBeenLastCalledWith([
+    fireEvent.click(screen.getByRole('switch', {name: 'Enable this list section'}));
+    expect(onBypassSectionsChange).toHaveBeenLastCalledWith([
       {
         bypassList: [],
         enabled: false,
@@ -705,7 +707,7 @@ describe('profile content components', () => {
         value: '*.internal\nlocalhost'
       }
     });
-    expect(onBypassGroupsChange).toHaveBeenLastCalledWith([
+    expect(onBypassSectionsChange).toHaveBeenLastCalledWith([
       {
         bypassList: [
           {
@@ -723,10 +725,10 @@ describe('profile content components', () => {
     ]);
   });
 
-  it('keeps fixed proxy bypass group textarea drafts while focused', () => {
+  it('keeps fixed proxy bypass section textarea drafts while focused', () => {
     function ControlledFixedProfileContent() {
       const [profile, setProfile] = React.useState<NamedFixedProfileModel>({
-        bypassGroups: [
+        bypassSections: [
           {
             name: 'Internal',
             bypassList: [
@@ -747,9 +749,9 @@ describe('profile content components', () => {
 
       return (
         <FixedProfileContent
-          onBypassGroupsChange={(bypassGroups) => setProfile((current) => ({...current, bypassGroups}))}
+          onBypassSectionsChange={(bypassSections) => setProfile((current) => ({...current, bypassSections}))}
           profile={profile}
-          showBypassListGroups
+          showBypassListSections
         />
       );
     }
@@ -768,10 +770,10 @@ describe('profile content components', () => {
     expect(groupBypassList.value).toBe('*.internal\n\nlocalhost');
   });
 
-  it('confirms deleting non-empty fixed proxy bypass list groups and removes empty groups directly', () => {
-    const onBypassGroupsChange = vi.fn();
+  it('confirms deleting non-empty fixed proxy bypass list sections and removes empty sections directly', () => {
+    const onBypassSectionsChange = vi.fn();
     const profile: NamedFixedProfileModel = {
-      bypassGroups: [
+      bypassSections: [
         {
           name: 'Internal',
           bypassList: [
@@ -786,29 +788,31 @@ describe('profile content components', () => {
       profileType: 'FixedProfile'
     };
 
-    const {rerender} = render(<FixedProfileContent onBypassGroupsChange={onBypassGroupsChange} profile={profile} showBypassListGroups />);
+    const {rerender} = render(
+      <FixedProfileContent onBypassSectionsChange={onBypassSectionsChange} profile={profile} showBypassListSections />
+    );
 
-    fireEvent.click(screen.getByTitle('Delete group'));
+    fireEvent.click(screen.getByTitle('Delete section'));
     const dialog = screen.getByRole('dialog');
-    expect(within(dialog).getByRole('heading', {name: 'Delete List Group'})).toBeTruthy();
+    expect(within(dialog).getByRole('heading', {name: 'Delete List Section'})).toBeTruthy();
     expect(within(dialog).getByText('Internal')).toBeTruthy();
-    expect(onBypassGroupsChange).not.toHaveBeenCalled();
+    expect(onBypassSectionsChange).not.toHaveBeenCalled();
 
-    fireEvent.click(within(dialog).getByRole('button', {name: 'Delete group'}));
-    expect(onBypassGroupsChange).toHaveBeenLastCalledWith([]);
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Delete section'}));
+    expect(onBypassSectionsChange).toHaveBeenLastCalledWith([]);
 
-    onBypassGroupsChange.mockClear();
+    onBypassSectionsChange.mockClear();
     rerender(
       <FixedProfileContent
-        onBypassGroupsChange={onBypassGroupsChange}
+        onBypassSectionsChange={onBypassSectionsChange}
         profile={{name: 'proxy', profileType: 'FixedProfile'}}
-        showBypassListGroups
+        showBypassListSections
       />
     );
-    fireEvent.click(screen.getByRole('button', {name: 'Add a new list group'}));
-    fireEvent.click(screen.getByTitle('Delete group'));
+    fireEvent.click(screen.getByRole('button', {name: 'Add a new list section'}));
+    fireEvent.click(screen.getByTitle('Delete section'));
     expect(screen.queryByRole('dialog')).toBeNull();
-    expect(onBypassGroupsChange).toHaveBeenLastCalledWith([]);
+    expect(onBypassSectionsChange).toHaveBeenLastCalledWith([]);
   });
 
   it('discards switch source editing without applying untouched source', () => {

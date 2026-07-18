@@ -954,13 +954,13 @@ export function OptionsApp() {
     updateProfileField<FixedProfileModel, 'bypassList'>(profileName, 'bypassList', value);
   }
 
-  function updateFixedProfileBypassGroups(profileName: string, value: FixedProfileModel['bypassGroups']) {
+  function updateFixedProfileBypassSections(profileName: string, value: FixedProfileModel['bypassSections']) {
     updateProfile<FixedProfileModel>(profileName, (nextProfile) => {
       if (!value || !value.length) {
-        delete nextProfile.bypassGroups;
+        delete nextProfile.bypassSections;
         return;
       }
-      nextProfile.bypassGroups = value;
+      nextProfile.bypassSections = value;
     });
   }
 
@@ -1767,13 +1767,13 @@ export function OptionsApp() {
               inheritedSupplementalLists={inheritedSupplementalLists}
               profile={profile}
               proxyAuthCapabilities={proxyAuthCapabilities}
-              showBypassListGroups={options['-showBypassListGroups'] === true}
+              showBypassListSections={options['-showBypassListSections'] === true}
               showHttpProxyOverrideRows={options['-showHttpProxyOverrideRows'] !== false}
               showSocks5LocalDnsOption={proxyDnsCapabilities.socks5 === true && options['-showSocks5LocalDnsOption'] === true}
               showWebSocketProxyOverrideRows={options['-showWebSocketProxyOverrideRows'] === true}
               supplementalLists={supplementalLists}
               supplementalListGroupName={profileGroup?.name}
-              onBypassGroupsChange={(value) => updateFixedProfileBypassGroups(profile.name, value)}
+              onBypassSectionsChange={(value) => updateFixedProfileBypassSections(profile.name, value)}
               onBypassListChange={(value) => updateFixedProfileBypassList(profile.name, value)}
               onEditProxyAuth={(scheme) => requestFixedProxyAuth(profile, scheme)}
               onProxyChange={(field, value, changeOptions) => updateFixedProfileProxy(profile.name, field, value, changeOptions)}

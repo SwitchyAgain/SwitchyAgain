@@ -335,8 +335,8 @@ msgstr "在代理情景模式中显示 HTTP/HTTPS 单独代理配置。"
 msgid "options_showWebSocketProxyOverrideRows"
 msgstr "在代理情景模式中显示 WebSocket (ws/wss) 单独代理配置。"
 
-msgid "options_showBypassListGroups"
-msgstr "在代理情景模式中显示不代理地址列表分组。"
+msgid "options_showBypassListSections"
+msgstr "在代理情景模式中显示不代理地址列表分区。"
 
 msgid "options_group_contextMenuOptions"
 msgstr "右键菜单"
@@ -883,23 +883,23 @@ msgstr "不经过代理连接的主机列表: (每行一个主机)"
 msgid "options_bypassListHelpLinkText"
 msgstr "(可使用通配符等匹配规则…)"
 
-msgid "options_bypassGroupName"
-msgstr "分组名称"
+msgid "options_bypassSectionName"
+msgstr "分区名称"
 
-msgid "options_enableBypassGroup"
-msgstr "启用此列表分组"
+msgid "options_enableBypassSection"
+msgstr "启用此列表分区"
 
-msgid "options_addBypassGroup"
-msgstr "添加新的列表分组"
+msgid "options_addBypassSection"
+msgstr "添加新的列表分区"
 
-msgid "options_modalHeader_deleteBypassGroup"
-msgstr "删除列表分组"
+msgid "options_modalHeader_deleteBypassSection"
+msgstr "删除列表分区"
 
-msgid "options_deleteBypassGroupConfirm"
-msgstr "确定要删除这个列表分组吗？"
+msgid "options_deleteBypassSectionConfirm"
+msgstr "确定要删除这个列表分区吗？"
 
-msgid "options_deleteBypassGroup"
-msgstr "删除分组"
+msgid "options_deleteBypassSection"
+msgstr "删除分区"
 
 msgid "options_group_pacUrl"
 msgstr "PAC 网址"
@@ -2089,8 +2089,8 @@ msgstr "下面显示直接关联到此情景模式或从其情景模式分组继
 msgid "options_enableProxyExceptions"
 msgstr "启用可全局或按情景模式应用的「代理例外」。"
 
-msgid "options_showProxyExceptionsBypassListGroups"
-msgstr "在「代理例外」页面中显示不代理地址列表分组。"
+msgid "options_showProxyExceptionsBypassListSections"
+msgstr "在「代理例外」页面中显示不代理地址列表分区。"
 
 msgid "routeTrace_step_globalBypass"
 msgstr "全局不代理"

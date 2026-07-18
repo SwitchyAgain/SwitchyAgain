@@ -2390,18 +2390,18 @@ main .profile-header {
   padding: 0;
 }
 
-.fixed-bypass-group {
+.fixed-bypass-section {
   border-top: 1px solid #eee;
   margin-left: 0;
   margin-top: 16px;
   padding-top: 16px;
 }
 
-.theme-dark .fixed-bypass-group {
+.theme-dark .fixed-bypass-section {
   border-top-color: #3a3f44;
 }
 
-.fixed-bypass-group-header {
+.fixed-bypass-section-header {
   align-items: center;
   display: flex;
   gap: 8px;
@@ -2409,27 +2409,27 @@ main .profile-header {
   margin-bottom: 10px;
 }
 
-.fixed-bypass-group-header label {
+.fixed-bypass-section-header label {
   flex: none;
   font-weight: normal;
   margin-bottom: 0;
 }
 
-.fixed-bypass-group-header .form-control {
+.fixed-bypass-section-header .form-control {
   flex: 1 1 auto;
   min-width: 0;
 }
 
-.fixed-bypass-group-switch {
+.fixed-bypass-section-switch {
   margin-left: 30px;
   margin-bottom: 10px;
 }
 
-.fixed-bypass-group-textarea {
+.fixed-bypass-section-textarea {
   margin-left: 30px;
 }
 
-.fixed-bypass-group-add {
+.fixed-bypass-section-add {
   margin-top: 12px;
 }
 

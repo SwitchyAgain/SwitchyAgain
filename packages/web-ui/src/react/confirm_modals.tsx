@@ -7,7 +7,7 @@ import type {SwitchRule} from './switch_profile_runtime';
 
 export type ConfirmKind =
   | 'apply'
-  | 'bypassGroupRemove'
+  | 'bypassSectionRemove'
   | 'cannotDeleteProfile'
   | 'deleteAttached'
   | 'deleteProfile'
@@ -40,8 +40,8 @@ export type ConfirmModalProps = ConfirmModalBaseProps &
         kind: 'apply';
       }
     | {
-        groupName?: string;
-        kind: 'bypassGroupRemove';
+        sectionName?: string;
+        kind: 'bypassSectionRemove';
       }
     | {
         kind: 'cannotDeleteProfile';
@@ -93,8 +93,8 @@ function titleFor(kind: ConfirmKind) {
   switch (kind) {
     case 'apply':
       return message('options_modalHeader_applyOptions', 'Apply Options');
-    case 'bypassGroupRemove':
-      return message('options_modalHeader_deleteBypassGroup', 'Delete List Group');
+    case 'bypassSectionRemove':
+      return message('options_modalHeader_deleteBypassSection', 'Delete List Section');
     case 'cannotDeleteProfile':
       return message('options_modalHeader_cannotDeleteProfile', 'Unable to Delete Profile');
     case 'deleteAttached':
@@ -143,11 +143,11 @@ function bodyFor(
           <p>{message('options_applyOptionsConfirm', 'Do you want to save and apply the options?')}</p>
         </>
       );
-    case 'bypassGroupRemove':
+    case 'bypassSectionRemove':
       return (
         <>
-          <p>{message('options_deleteBypassGroupConfirm', 'Do you really want to delete this list group?')}</p>
-          {props.groupName && <div className="well">{props.groupName}</div>}
+          <p>{message('options_deleteBypassSectionConfirm', 'Do you really want to delete this list section?')}</p>
+          {props.sectionName && <div className="well">{props.sectionName}</div>}
         </>
       );
     case 'cannotDeleteProfile':
@@ -282,10 +282,10 @@ function closeButtonFor(kind: ConfirmKind) {
         label: message('options_apply', 'Apply changes'),
         value: 'ok'
       };
-    case 'bypassGroupRemove':
+    case 'bypassSectionRemove':
       return {
         className: 'btn-danger',
-        label: message('options_deleteBypassGroup', 'Delete group'),
+        label: message('options_deleteBypassSection', 'Delete section'),
         value: 'ok'
       };
     case 'cannotDeleteProfile':

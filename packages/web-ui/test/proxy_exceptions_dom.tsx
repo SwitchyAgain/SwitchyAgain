@@ -38,13 +38,13 @@ function options(): Options {
         id: 'supplemental-list-default',
         name: 'Default',
         bypassList: [{conditionType: 'BypassCondition', pattern: 'example.com'}],
-        bypassGroups: []
+        bypassSections: []
       },
       {
         id: 'supplemental-list-work',
         name: 'Work',
         bypassList: [],
-        bypassGroups: []
+        bypassSections: []
       }
     ],
     '+proxy': {
@@ -99,10 +99,44 @@ describe('Proxy Exceptions page', () => {
 
     const editor = screen.getByDisplayValue('example.com');
     fireEvent.change(editor, {target: {value: 'updated.example'}});
-    fireEvent.blur(editor);
 
     const updated = onChange.mock.calls[onChange.mock.calls.length - 1][0] as Options;
     expect(updated['-supplementalLists']?.[0].bypassList?.[0].pattern).toBe('updated.example');
+  });
+
+  it('edits sections immediately and confirms deleting sections with a name or content', () => {
+    const source = options();
+    source['-showProxyExceptionsBypassListSections'] = true;
+    source['-supplementalLists']![0].bypassSections = [
+      {
+        name: 'Internal',
+        bypassList: [{conditionType: 'BypassCondition', pattern: '*.internal'}]
+      }
+    ];
+    const onChange = vi.fn();
+    render(<Harness initial={source} onChange={onChange} />);
+
+    const sectionEditor = screen.getByDisplayValue('*.internal');
+    fireEvent.change(sectionEditor, {target: {value: 'updated.internal'}});
+
+    let updated = onChange.mock.calls[onChange.mock.calls.length - 1][0] as Options;
+    expect(updated['-supplementalLists']?.[0].bypassSections?.[0].bypassList?.[0].pattern).toBe('updated.internal');
+
+    fireEvent.change(sectionEditor, {target: {value: ''}});
+    fireEvent.click(screen.getByTitle('Delete section'));
+    let dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByRole('heading', {name: 'Delete List Section'})).toBeTruthy();
+    expect(within(dialog).getByText('Internal')).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Delete section'}));
+
+    updated = onChange.mock.calls[onChange.mock.calls.length - 1][0] as Options;
+    expect(updated['-supplementalLists']?.[0].bypassSections).toEqual([]);
+
+    fireEvent.click(screen.getByRole('button', {name: 'Add a new list section'}));
+    fireEvent.click(screen.getByTitle('Delete section'));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    updated = onChange.mock.calls[onChange.mock.calls.length - 1][0] as Options;
+    expect(updated['-supplementalLists']?.[0].bypassSections).toEqual([]);
   });
 
   it('manages direct Proxy Profile and Profile Group links', () => {

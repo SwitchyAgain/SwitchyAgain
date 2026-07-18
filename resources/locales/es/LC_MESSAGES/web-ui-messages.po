@@ -370,8 +370,8 @@ msgstr "Mostrar configuraciones de proxy independientes para HTTP/HTTPS en perfi
 msgid "options_showWebSocketProxyOverrideRows"
 msgstr "Mostrar configuraciones de proxy independientes para WebSocket (ws/wss) en perfiles proxy."
 
-msgid "options_showBypassListGroups"
-msgstr "Mostrar grupos de lista de omisión en perfiles proxy."
+msgid "options_showBypassListSections"
+msgstr "Mostrar secciones de la lista de omisión en perfiles proxy."
 
 msgid "options_group_contextMenuOptions"
 msgstr "Menú contextual"
@@ -992,23 +992,23 @@ msgstr ""
 msgid "options_bypassListHelpLinkText"
 msgstr "(Comodines y más disponible ...)"
 
-msgid "options_bypassGroupName"
-msgstr "Nombre del grupo"
+msgid "options_bypassSectionName"
+msgstr "Nombre de la sección"
 
-msgid "options_enableBypassGroup"
-msgstr "Activar este grupo de lista"
+msgid "options_enableBypassSection"
+msgstr "Activar esta sección de la lista"
 
-msgid "options_addBypassGroup"
-msgstr "Añadir un nuevo grupo de lista"
+msgid "options_addBypassSection"
+msgstr "Añadir una nueva sección de lista"
 
-msgid "options_modalHeader_deleteBypassGroup"
-msgstr "Eliminar grupo de lista"
+msgid "options_modalHeader_deleteBypassSection"
+msgstr "Eliminar sección de lista"
 
-msgid "options_deleteBypassGroupConfirm"
-msgstr "¿Seguro que quieres eliminar este grupo de lista?"
+msgid "options_deleteBypassSectionConfirm"
+msgstr "¿Seguro que quieres eliminar esta sección de lista?"
 
-msgid "options_deleteBypassGroup"
-msgstr "Eliminar grupo"
+msgid "options_deleteBypassSection"
+msgstr "Eliminar sección"
 
 msgid "options_group_pacUrl"
 msgstr "URL PAC"
@@ -2295,8 +2295,8 @@ msgstr "A continuación se muestran las listas complementarias vinculadas a este
 msgid "options_enableProxyExceptions"
 msgstr "Activar excepciones del proxy globales y por perfil."
 
-msgid "options_showProxyExceptionsBypassListGroups"
-msgstr "Mostrar grupos de listas de omisión en las excepciones del proxy."
+msgid "options_showProxyExceptionsBypassListSections"
+msgstr "Mostrar secciones de las listas de omisión en las excepciones del proxy."
 
 msgid "routeTrace_step_globalBypass"
 msgstr "Omisión global"

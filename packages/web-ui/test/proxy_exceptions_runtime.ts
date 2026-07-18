@@ -25,7 +25,7 @@ describe('Proxy Exceptions runtime options', () => {
           id: 'supplemental-list-work',
           name: 'Work',
           bypassList: [condition('work.example')],
-          bypassGroups: [
+          bypassSections: [
             {name: 'Enabled', bypassList: [condition('enabled.example')]},
             {name: 'Disabled', enabled: false, bypassList: [condition('disabled.example')]}
           ]

@@ -1,10 +1,10 @@
 import ExtensionRuntime from '@switchyagain/extension-runtime';
-import type {ProxyBypassGroup, ProxyCondition, ProxyProfile} from './proxy/proxy_types';
+import type {ProxyBypassSection, ProxyCondition, ProxyProfile} from './proxy/proxy_types';
 
 const ProxyEngine = ExtensionRuntime.ProxyEngine;
 
 type SupplementalList = {
-  bypassGroups?: ProxyBypassGroup[];
+  bypassSections?: ProxyBypassSection[];
   bypassList?: ProxyCondition[];
   id: string;
   name: string;
@@ -33,8 +33,8 @@ function supplementalLists(source: Record<string, unknown>): SupplementalList[] 
 
 function listConditions(list: SupplementalList, global: boolean): EffectiveCondition[] {
   const conditions = Array.isArray(list.bypassList) ? [...list.bypassList] : [];
-  for (const group of list.bypassGroups || []) {
-    if (group?.enabled !== false && Array.isArray(group.bypassList)) conditions.push(...group.bypassList);
+  for (const section of list.bypassSections || []) {
+    if (section?.enabled !== false && Array.isArray(section.bypassList)) conditions.push(...section.bypassList);
   }
   return conditions.map((condition) => ({
     ...condition,

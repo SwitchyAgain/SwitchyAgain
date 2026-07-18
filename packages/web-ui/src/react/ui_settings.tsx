@@ -741,10 +741,10 @@ export function UiSettings({
           <label>
             <input
               type="checkbox"
-              checked={Boolean(draftOptions['-showProxyExceptionsBypassListGroups'])}
-              onChange={(event) => updateOption('-showProxyExceptionsBypassListGroups', event.currentTarget.checked)}
+              checked={Boolean(draftOptions['-showProxyExceptionsBypassListSections'])}
+              onChange={(event) => updateOption('-showProxyExceptionsBypassListSections', event.currentTarget.checked)}
             />
-            <span> {message('options_showProxyExceptionsBypassListGroups', 'Show bypass list groups in Proxy Exceptions.')}</span>
+            <span> {message('options_showProxyExceptionsBypassListSections', 'Show bypass list sections in Proxy Exceptions.')}</span>
           </label>
         </div>
       </section>
@@ -830,10 +830,10 @@ export function UiSettings({
           <label>
             <input
               type="checkbox"
-              checked={Boolean(draftOptions['-showBypassListGroups'])}
-              onChange={(event) => updateOption('-showBypassListGroups', event.currentTarget.checked)}
+              checked={Boolean(draftOptions['-showBypassListSections'])}
+              onChange={(event) => updateOption('-showBypassListSections', event.currentTarget.checked)}
             />
-            <span> {message('options_showBypassListGroups', 'Show bypass list groups in proxy profiles.')}</span>
+            <span> {message('options_showBypassListSections', 'Show bypass list sections in proxy profiles.')}</span>
           </label>
         </div>
       </section>

@@ -358,8 +358,8 @@ msgstr "Show HTTP/HTTPS proxy overrides in proxy profiles."
 msgid "options_showWebSocketProxyOverrideRows"
 msgstr "Show WebSocket (ws/wss) proxy overrides in proxy profiles."
 
-msgid "options_showBypassListGroups"
-msgstr "Show bypass list groups in proxy profiles."
+msgid "options_showBypassListSections"
+msgstr "Show bypass list sections in proxy profiles."
 
 msgid "options_group_contextMenuOptions"
 msgstr "Context Menu"
@@ -962,23 +962,23 @@ msgstr "Servers for which you do not want to use any proxy: (One server on each 
 msgid "options_bypassListHelpLinkText"
 msgstr "(Wildcards and more available…)"
 
-msgid "options_bypassGroupName"
-msgstr "Group name"
+msgid "options_bypassSectionName"
+msgstr "Section name"
 
-msgid "options_enableBypassGroup"
-msgstr "Enable this list group"
+msgid "options_enableBypassSection"
+msgstr "Enable this list section"
 
-msgid "options_addBypassGroup"
-msgstr "Add a new list group"
+msgid "options_addBypassSection"
+msgstr "Add a new list section"
 
-msgid "options_modalHeader_deleteBypassGroup"
-msgstr "Delete List Group"
+msgid "options_modalHeader_deleteBypassSection"
+msgstr "Delete List Section"
 
-msgid "options_deleteBypassGroupConfirm"
-msgstr "Do you really want to delete this list group?"
+msgid "options_deleteBypassSectionConfirm"
+msgstr "Do you really want to delete this list section?"
 
-msgid "options_deleteBypassGroup"
-msgstr "Delete group"
+msgid "options_deleteBypassSection"
+msgstr "Delete section"
 
 msgid "options_group_pacUrl"
 msgstr "PAC URL"
@@ -2245,8 +2245,8 @@ msgstr "Supplemental Lists linked to this profile or inherited from its Profile 
 msgid "options_enableProxyExceptions"
 msgstr "Enable global and per-profile Proxy Exceptions."
 
-msgid "options_showProxyExceptionsBypassListGroups"
-msgstr "Show bypass list groups in Proxy Exceptions."
+msgid "options_showProxyExceptionsBypassListSections"
+msgstr "Show bypass list sections in Proxy Exceptions."
 
 msgid "routeTrace_step_globalBypass"
 msgstr "Global Bypass"

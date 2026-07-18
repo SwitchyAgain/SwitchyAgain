@@ -243,10 +243,10 @@ describe('Profiles', function () {
         void 0
       ]);
     });
-    it('should use enabled bypass groups', function () {
+    it('should use enabled bypass sections', function () {
       const groupedProfile = {
         ...profile,
-        bypassGroups: [
+        bypassSections: [
           {
             name: 'internal',
             bypassList: [
@@ -271,7 +271,7 @@ describe('Profiles', function () {
       return Promise.all([
         testProfile(groupedProfile, 'http://app.internal/', [
           'DIRECT',
-          groupedProfile.bypassGroups[0].bypassList[0],
+          groupedProfile.bypassSections[0].bypassList[0],
           {
             scheme: 'direct'
           },

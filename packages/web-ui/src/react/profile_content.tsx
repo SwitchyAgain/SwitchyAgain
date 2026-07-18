@@ -1,4 +1,11 @@
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {
+  BypassSectionEditor,
+  bypassSectionDrafts,
+  bypassSectionIsEmpty,
+  bypassSectionsFromDrafts,
+  type BypassSectionDraft
+} from './bypass_section_editor';
 import {ConfirmModal} from './confirm_modals';
 import {message} from './i18n_client';
 import type {Options, ProxyFeature} from './options_client_types';
@@ -53,7 +60,7 @@ import {
   PROFILE_COLOR_SWATCHES
 } from './profile_content_logic';
 import type {
-  FixedProfileBypassGroup,
+  FixedProfileBypassSection,
   FixedProfileBypassCondition,
   FixedProfileProxyChangeOptions,
   FixedProfileProxyEditorField,
@@ -293,24 +300,18 @@ export type PacProfileProps = {
 
 export type FixedProfileProps = {
   inheritedSupplementalLists?: SupplementalBypassList[];
-  onBypassGroupsChange?: (value: FixedProfileBypassGroup[]) => void;
+  onBypassSectionsChange?: (value: FixedProfileBypassSection[]) => void;
   onBypassListChange?: (value: FixedProfileBypassCondition[]) => void;
   onEditProxyAuth?: (scheme: FixedProfileScheme) => void;
   onProxyChange?: (field: FixedProfileProxyField, value?: ProxyEditor, options?: FixedProfileProxyChangeOptions) => void;
   profile: NamedFixedProfileModel;
   proxyAuthCapabilities?: ProxyAuthCapabilities;
-  showBypassListGroups?: boolean;
+  showBypassListSections?: boolean;
   showHttpProxyOverrideRows?: boolean;
   showSocks5LocalDnsOption?: boolean;
   showWebSocketProxyOverrideRows?: boolean;
   supplementalLists?: SupplementalBypassList[];
   supplementalListGroupName?: string;
-};
-
-type FixedProfileBypassGroupDraft = {
-  enabled: boolean;
-  name: string;
-  text: string;
 };
 
 export type SwitchAttachedProfileProps = {
@@ -1492,36 +1493,9 @@ function fixedProfileAuthTitle(protocol?: string, supported = false) {
   return message('options_proxy_authUnsupportedProtocol', '$1 proxy authentication is not supported.', protocol.toUpperCase());
 }
 
-function fixedProfileBypassGroupDrafts(groups?: FixedProfileBypassGroup[]): FixedProfileBypassGroupDraft[] {
-  return (groups || []).map((group) => ({
-    enabled: group.enabled !== false,
-    name: group.name || '',
-    text: fixedProfileBypassText({bypassList: group.bypassList})
-  }));
-}
-
-function fixedProfileBypassGroupsFromDrafts(drafts: FixedProfileBypassGroupDraft[]): FixedProfileBypassGroup[] {
-  return drafts.map((draft) => {
-    const group: FixedProfileBypassGroup = {
-      bypassList: fixedProfileBypassList(draft.text)
-    };
-    if (draft.name) {
-      group.name = draft.name;
-    }
-    if (!draft.enabled) {
-      group.enabled = false;
-    }
-    return group;
-  });
-}
-
-function fixedProfileBypassGroupIsEmpty(draft: FixedProfileBypassGroupDraft) {
-  return !draft.name && !fixedProfileBypassList(draft.text).length;
-}
-
-function fixedProfileBypassGroupHasFocus() {
+function fixedProfileBypassSectionHasFocus() {
   const activeElement = document.activeElement;
-  return activeElement instanceof HTMLElement && !!activeElement.closest('.fixed-bypass-group');
+  return activeElement instanceof HTMLElement && !!activeElement.closest('.fixed-bypass-section');
 }
 
 function fixedProfileSchemeGroupVisible(
@@ -1589,33 +1563,31 @@ export function FixedProfileContent({
   inheritedSupplementalLists = [],
   profile,
   proxyAuthCapabilities,
-  showBypassListGroups = false,
+  showBypassListSections = false,
   showHttpProxyOverrideRows = true,
   showSocks5LocalDnsOption = false,
   showWebSocketProxyOverrideRows = false,
-  onBypassGroupsChange,
+  onBypassSectionsChange,
   onBypassListChange,
   onEditProxyAuth,
   onProxyChange,
   supplementalLists,
   supplementalListGroupName
 }: FixedProfileProps) {
-  const {bypassGroups, bypassList, fallbackProxy, name: profileName, proxyForHttp, proxyForHttps, proxyForWs, proxyForWss} = profile;
+  const {bypassSections, bypassList, fallbackProxy, name: profileName, proxyForHttp, proxyForHttps, proxyForWs, proxyForWss} = profile;
   const initialEditors = fixedProfileEditors(profile);
   const [draftEditors, setDraftEditors] = useState<FixedProfileProxyEditors>(() => cloneProxyEditors(initialEditors));
   const [draftBypassList, setDraftBypassList] = useState(fixedProfileBypassText(profile));
-  const [draftBypassGroups, setDraftBypassGroups] = useState<FixedProfileBypassGroupDraft[]>(() =>
-    fixedProfileBypassGroupDrafts(bypassGroups)
-  );
+  const [draftBypassSections, setDraftBypassSections] = useState<BypassSectionDraft[]>(() => bypassSectionDrafts(bypassSections));
   const [pinnedOverrideSchemes, setPinnedOverrideSchemes] = useState<Set<FixedProfileScheme>>(
     () => new Set(FIXED_PROFILE_SCHEMES.filter((scheme) => !!scheme && !!initialEditors[scheme]?.scheme))
   );
-  const [pendingDeleteBypassGroupIndex, setPendingDeleteBypassGroupIndex] = useState<number | null>(null);
+  const [pendingDeleteBypassSectionIndex, setPendingDeleteBypassSectionIndex] = useState<number | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(() => fixedProfileHasAdvancedProxy(initialEditors));
   const bypassEditorRef = useRef<HTMLTextAreaElement | null>(null);
   const previousProfileNameRef = useRef(profileName);
   const previousBypassProfileNameRef = useRef(profileName);
-  const previousBypassGroupsProfileNameRef = useRef(profileName);
+  const previousBypassSectionsProfileNameRef = useRef(profileName);
 
   useEffect(() => {
     const editors = fixedProfileEditors({fallbackProxy, proxyForHttp, proxyForHttps, proxyForWs, proxyForWss});
@@ -1640,13 +1612,13 @@ export function FixedProfileContent({
   }, [profileName, bypassList]);
 
   useEffect(() => {
-    const profileChanged = previousBypassGroupsProfileNameRef.current !== profileName;
-    previousBypassGroupsProfileNameRef.current = profileName;
-    if (profileChanged || !fixedProfileBypassGroupHasFocus()) {
-      setDraftBypassGroups(fixedProfileBypassGroupDrafts(bypassGroups));
-      setPendingDeleteBypassGroupIndex(null);
+    const profileChanged = previousBypassSectionsProfileNameRef.current !== profileName;
+    previousBypassSectionsProfileNameRef.current = profileName;
+    if (profileChanged || !fixedProfileBypassSectionHasFocus()) {
+      setDraftBypassSections(bypassSectionDrafts(bypassSections));
+      setPendingDeleteBypassSectionIndex(null);
     }
-  }, [profileName, bypassGroups]);
+  }, [profileName, bypassSections]);
 
   function commitProxyEditor(
     scheme: FixedProfileScheme,
@@ -1724,49 +1696,49 @@ export function FixedProfileContent({
     }
   }
 
-  function commitBypassGroups(groups: FixedProfileBypassGroupDraft[]) {
-    onBypassGroupsChange?.(fixedProfileBypassGroupsFromDrafts(groups));
+  function commitBypassSections(sections: BypassSectionDraft[]) {
+    onBypassSectionsChange?.(bypassSectionsFromDrafts(sections));
   }
 
-  function updateBypassGroup(index: number, changes: Partial<FixedProfileBypassGroupDraft>) {
-    const nextGroups = draftBypassGroups.map((group, groupIndex) => (groupIndex === index ? {...group, ...changes} : group));
-    setDraftBypassGroups(nextGroups);
-    commitBypassGroups(nextGroups);
+  function updateBypassSection(index: number, changes: Partial<BypassSectionDraft>) {
+    const nextSections = draftBypassSections.map((section, sectionIndex) => (sectionIndex === index ? {...section, ...changes} : section));
+    setDraftBypassSections(nextSections);
+    commitBypassSections(nextSections);
   }
 
-  function addBypassGroup() {
-    const nextGroups = draftBypassGroups.concat({
+  function addBypassSection() {
+    const nextSections = draftBypassSections.concat({
       enabled: true,
       name: '',
       text: ''
     });
-    setDraftBypassGroups(nextGroups);
-    commitBypassGroups(nextGroups);
+    setDraftBypassSections(nextSections);
+    commitBypassSections(nextSections);
   }
 
-  function removeBypassGroup(index: number) {
-    const nextGroups = draftBypassGroups.filter((_group, groupIndex) => groupIndex !== index);
-    setDraftBypassGroups(nextGroups);
-    commitBypassGroups(nextGroups);
+  function removeBypassSection(index: number) {
+    const nextSections = draftBypassSections.filter((_section, sectionIndex) => sectionIndex !== index);
+    setDraftBypassSections(nextSections);
+    commitBypassSections(nextSections);
   }
 
-  function requestRemoveBypassGroup(index: number) {
-    const group = draftBypassGroups[index];
-    if (!group) {
+  function requestRemoveBypassSection(index: number) {
+    const section = draftBypassSections[index];
+    if (!section) {
       return;
     }
-    if (fixedProfileBypassGroupIsEmpty(group)) {
-      removeBypassGroup(index);
+    if (bypassSectionIsEmpty(section)) {
+      removeBypassSection(index);
       return;
     }
-    setPendingDeleteBypassGroupIndex(index);
+    setPendingDeleteBypassSectionIndex(index);
   }
 
-  function confirmRemoveBypassGroup() {
-    if (pendingDeleteBypassGroupIndex != null) {
-      removeBypassGroup(pendingDeleteBypassGroupIndex);
+  function confirmRemoveBypassSection() {
+    if (pendingDeleteBypassSectionIndex != null) {
+      removeBypassSection(pendingDeleteBypassSectionIndex);
     }
-    setPendingDeleteBypassGroupIndex(null);
+    setPendingDeleteBypassSectionIndex(null);
   }
 
   const defaultEditor = draftEditors[''] || {};
@@ -1914,52 +1886,20 @@ export function FixedProfileContent({
           onChange={(event) => changeBypassList(event.currentTarget.value)}
           onBlur={commitBypassList}
         />
-        {showBypassListGroups && (
+        {showBypassListSections && (
           <>
-            {draftBypassGroups.map((group, index) => (
-              <div className="fixed-bypass-group" key={index}>
-                <div className="fixed-bypass-group-header width-limit">
-                  <label htmlFor={`fixed-bypass-group-name-${index}`}>{message('options_bypassGroupName', 'Group name')}</label>
-                  <input
-                    id={`fixed-bypass-group-name-${index}`}
-                    className="form-control"
-                    type="text"
-                    value={group.name}
-                    onChange={(event) => updateBypassGroup(index, {name: event.currentTarget.value})}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-danger"
-                    title={message('options_deleteBypassGroup', 'Delete group')}
-                    onClick={() => requestRemoveBypassGroup(index)}
-                  >
-                    <span className="glyphicon glyphicon-trash" />
-                  </button>
-                </div>
-                <label className="profile-switch-label fixed-bypass-group-switch">
-                  <input
-                    type="checkbox"
-                    role="switch"
-                    checked={group.enabled}
-                    onChange={(event) => updateBypassGroup(index, {enabled: event.currentTarget.checked})}
-                  />
-                  <span className="profile-switch" aria-hidden="true">
-                    <span className="profile-switch-knob" />
-                  </span>
-                  <span>{message('options_enableBypassGroup', 'Enable this list group')}</span>
-                </label>
-                <textarea
-                  className="monospace form-control width-limit fixed-bypass-group-textarea"
-                  rows={10}
-                  spellCheck={false}
-                  value={group.text}
-                  onChange={(event) => updateBypassGroup(index, {text: event.currentTarget.value})}
-                />
-              </div>
+            {draftBypassSections.map((section, index) => (
+              <BypassSectionEditor
+                id={`fixed-bypass-section-name-${index}`}
+                key={index}
+                section={section}
+                onChange={(changes) => updateBypassSection(index, changes)}
+                onRemove={() => requestRemoveBypassSection(index)}
+              />
             ))}
-            <p className="fixed-bypass-group-add">
-              <button type="button" className="btn btn-default" onClick={addBypassGroup}>
-                <span className="glyphicon glyphicon-plus" /> <span>{message('options_addBypassGroup', 'Add a new list group')}</span>
+            <p className="fixed-bypass-section-add">
+              <button type="button" className="btn btn-default" onClick={addBypassSection}>
+                <span className="glyphicon glyphicon-plus" /> <span>{message('options_addBypassSection', 'Add a new list section')}</span>
               </button>
             </p>
           </>
@@ -1982,13 +1922,13 @@ export function FixedProfileContent({
           />
         </section>
       )}
-      {showBypassListGroups && pendingDeleteBypassGroupIndex != null && (
-        <SwitchProfileModalFrame onDismiss={() => setPendingDeleteBypassGroupIndex(null)}>
+      {showBypassListSections && pendingDeleteBypassSectionIndex != null && (
+        <SwitchProfileModalFrame onDismiss={() => setPendingDeleteBypassSectionIndex(null)}>
           <ConfirmModal
-            groupName={draftBypassGroups[pendingDeleteBypassGroupIndex]?.name}
-            kind="bypassGroupRemove"
-            onClose={confirmRemoveBypassGroup}
-            onDismiss={() => setPendingDeleteBypassGroupIndex(null)}
+            sectionName={draftBypassSections[pendingDeleteBypassSectionIndex]?.name}
+            kind="bypassSectionRemove"
+            onClose={confirmRemoveBypassSection}
+            onDismiss={() => setPendingDeleteBypassSectionIndex(null)}
           />
         </SwitchProfileModalFrame>
       )}

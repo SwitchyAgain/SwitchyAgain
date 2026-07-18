@@ -361,8 +361,8 @@ msgstr "Zobrazit samostatná nastavení proxy pro HTTP/HTTPS v proxy profilech."
 msgid "options_showWebSocketProxyOverrideRows"
 msgstr "Zobrazit samostatná nastavení proxy pro WebSocket (ws/wss) v proxy profilech."
 
-msgid "options_showBypassListGroups"
-msgstr "Zobrazit skupiny seznamu výjimek proxy v proxy profilech."
+msgid "options_showBypassListSections"
+msgstr "Zobrazit sekce seznamu výjimek proxy v proxy profilech."
 
 msgid "options_group_contextMenuOptions"
 msgstr "Kontextové menu"
@@ -966,23 +966,23 @@ msgstr ""
 msgid "options_bypassListHelpLinkText"
 msgstr "(Wildcards and more available...)"
 
-msgid "options_bypassGroupName"
-msgstr "Název skupiny"
+msgid "options_bypassSectionName"
+msgstr "Název sekce"
 
-msgid "options_enableBypassGroup"
-msgstr "Povolit tuto skupinu seznamu"
+msgid "options_enableBypassSection"
+msgstr "Povolit tuto sekci seznamu"
 
-msgid "options_addBypassGroup"
-msgstr "Přidat novou skupinu seznamu"
+msgid "options_addBypassSection"
+msgstr "Přidat novou sekci seznamu"
 
-msgid "options_modalHeader_deleteBypassGroup"
-msgstr "Odstranit skupinu seznamu"
+msgid "options_modalHeader_deleteBypassSection"
+msgstr "Odstranit sekci seznamu"
 
-msgid "options_deleteBypassGroupConfirm"
-msgstr "Opravdu chcete odstranit tuto skupinu seznamu?"
+msgid "options_deleteBypassSectionConfirm"
+msgstr "Opravdu chcete odstranit tuto sekci seznamu?"
 
-msgid "options_deleteBypassGroup"
-msgstr "Odstranit skupinu"
+msgid "options_deleteBypassSection"
+msgstr "Odstranit sekci"
 
 msgid "options_group_pacUrl"
 msgstr "PAC URL"
@@ -2244,8 +2244,8 @@ msgstr "Níže jsou zobrazeny doplňkové seznamy propojené s tímto profilem n
 msgid "options_enableProxyExceptions"
 msgstr "Povolit globální výjimky proxy a výjimky pro jednotlivé profily."
 
-msgid "options_showProxyExceptionsBypassListGroups"
-msgstr "Zobrazit skupiny seznamů vynechaných serverů ve výjimkách proxy."
+msgid "options_showProxyExceptionsBypassListSections"
+msgstr "Zobrazit sekce seznamů vynechaných serverů ve výjimkách proxy."
 
 msgid "routeTrace_step_globalBypass"
 msgstr "Globální vynechání proxy"

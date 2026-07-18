@@ -211,7 +211,7 @@ describe('profile modal components', () => {
         value: 'next-pass'
       }
     });
-    fireEvent.click(screen.getByRole('button', {name: 'Save changes'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Save'}));
 
     expect(onClose).toHaveBeenCalledWith({
       password: 'next-pass',

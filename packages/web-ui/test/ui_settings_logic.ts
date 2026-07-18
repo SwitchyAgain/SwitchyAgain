@@ -34,7 +34,7 @@ describe('ui settings logic', () => {
         sidebarExport: false
       },
       '-quickSwitchProfiles': ['direct', 'proxy'],
-      '-showBypassListGroups': true,
+      '-showBypassListSections': true,
       '-showCurrentProfileInGeneral': true,
       '-showHttpProxyOverrideRows': false,
       '-showProfileOptions': true,
@@ -59,7 +59,7 @@ describe('ui settings logic', () => {
       ],
       '-quickSwitchProfiles': [['direct'], ['direct', 'proxy']],
       '-keepSettingsExpanded': [undefined, false],
-      '-showBypassListGroups': [undefined, true],
+      '-showBypassListSections': [undefined, true],
       '-showCurrentProfileInGeneral': [undefined, true],
       '-showHttpProxyOverrideRows': [undefined, false],
       '-showProfileOptions': [undefined, true],

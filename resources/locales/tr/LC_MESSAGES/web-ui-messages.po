@@ -329,8 +329,8 @@ msgstr "Proxy profillerinde HTTP/HTTPS için ayrı proxy ayarlarını göster."
 msgid "options_showWebSocketProxyOverrideRows"
 msgstr "Proxy profillerinde WebSocket (ws/wss) için ayrı proxy ayarlarını göster."
 
-msgid "options_showBypassListGroups"
-msgstr "Proxy profillerinde bypass listesi gruplarını göster."
+msgid "options_showBypassListSections"
+msgstr "Proxy profillerinde bypass listesi bölümlerini göster."
 
 msgid "options_group_contextMenuOptions"
 msgstr "Bağlam Menüsü"
@@ -884,23 +884,23 @@ msgstr ""
 msgid "options_bypassListHelpLinkText"
 msgstr "(Joker karakterleri ve daha fazlası…)"
 
-msgid "options_bypassGroupName"
-msgstr "Grup adı"
+msgid "options_bypassSectionName"
+msgstr "Bölüm adı"
 
-msgid "options_enableBypassGroup"
-msgstr "Bu liste grubunu etkinleştir"
+msgid "options_enableBypassSection"
+msgstr "Bu liste bölümünü etkinleştir"
 
-msgid "options_addBypassGroup"
-msgstr "Yeni liste grubu ekle"
+msgid "options_addBypassSection"
+msgstr "Yeni liste bölümü ekle"
 
-msgid "options_modalHeader_deleteBypassGroup"
-msgstr "Liste Grubunu Sil"
+msgid "options_modalHeader_deleteBypassSection"
+msgstr "Liste Bölümünü Sil"
 
-msgid "options_deleteBypassGroupConfirm"
-msgstr "Bu liste grubunu gerçekten silmek istiyor musunuz?"
+msgid "options_deleteBypassSectionConfirm"
+msgstr "Bu liste bölümünü gerçekten silmek istiyor musunuz?"
 
-msgid "options_deleteBypassGroup"
-msgstr "Grubu sil"
+msgid "options_deleteBypassSection"
+msgstr "Bölümü sil"
 
 msgid "options_group_pacUrl"
 msgstr "PAC Bağlantısı"
@@ -2093,8 +2093,8 @@ msgstr "Bu profile bağlı veya Profil Grubundan devralınan Ek Listeler aşağ�
 msgid "options_enableProxyExceptions"
 msgstr "Genel ve profil bazlı Proxy İstisnalarını etkinleştir."
 
-msgid "options_showProxyExceptionsBypassListGroups"
-msgstr "Proxy İstisnalarında baypas listesi gruplarını göster."
+msgid "options_showProxyExceptionsBypassListSections"
+msgstr "Proxy İstisnalarında baypas listesi bölümlerini göster."
 
 msgid "routeTrace_step_globalBypass"
 msgstr "Genel Baypas"

@@ -69,7 +69,7 @@ export type ProfileType =
 export type Profile = {
   auth?: ProfileAuthMap;
   builtin?: boolean;
-  bypassGroups?: Array<{
+  bypassSections?: Array<{
     bypassList?: Condition[];
     enabled?: boolean;
     name?: string;

@@ -31,9 +31,9 @@ const RuleListFormats = RuleList as Record<string, RuleListFormat>;
 
 function effectiveBypassList(profile: ProfileRecord) {
   const bypassList = (profile.bypassList || []).slice();
-  for (const group of profile.bypassGroups || []) {
-    if (group && group.enabled !== false) {
-      bypassList.push(...(group.bypassList || []));
+  for (const section of profile.bypassSections || []) {
+    if (section && section.enabled !== false) {
+      bypassList.push(...(section.bypassList || []));
     }
   }
   return bypassList;

@@ -330,8 +330,8 @@ msgstr "在代理情境模式中顯示 HTTP/HTTPS 單獨代理設定。"
 msgid "options_showWebSocketProxyOverrideRows"
 msgstr "在代理情境模式中顯示 WebSocket (ws/wss) 單獨代理設定。"
 
-msgid "options_showBypassListGroups"
-msgstr "在代理情境模式中顯示不代理位址清單分組。"
+msgid "options_showBypassListSections"
+msgstr "在代理情境模式中顯示不代理位址清單分區。"
 
 msgid "options_group_contextMenuOptions"
 msgstr "右鍵選單"
@@ -872,23 +872,23 @@ msgstr "不經過代理連線的主機清單: (每行一個主機)"
 msgid "options_bypassListHelpLinkText"
 msgstr "(可使用萬用字元等比對規則…)"
 
-msgid "options_bypassGroupName"
-msgstr "分組名稱"
+msgid "options_bypassSectionName"
+msgstr "分區名稱"
 
-msgid "options_enableBypassGroup"
-msgstr "啟用此清單分組"
+msgid "options_enableBypassSection"
+msgstr "啟用此清單分區"
 
-msgid "options_addBypassGroup"
-msgstr "新增新的清單分組"
+msgid "options_addBypassSection"
+msgstr "新增清單分區"
 
-msgid "options_modalHeader_deleteBypassGroup"
-msgstr "刪除清單分組"
+msgid "options_modalHeader_deleteBypassSection"
+msgstr "刪除清單分區"
 
-msgid "options_deleteBypassGroupConfirm"
-msgstr "確定要刪除此清單分組嗎？"
+msgid "options_deleteBypassSectionConfirm"
+msgstr "確定要刪除此清單分區嗎？"
 
-msgid "options_deleteBypassGroup"
-msgstr "刪除分組"
+msgid "options_deleteBypassSection"
+msgstr "刪除分區"
 
 msgid "options_group_pacUrl"
 msgstr "PAC 網址"
@@ -2076,8 +2076,8 @@ msgstr "下方顯示直接關聯至此情境模式或從其情境模式分組繼
 msgid "options_enableProxyExceptions"
 msgstr "啟用可全域或依情境模式套用的「代理例外」。"
 
-msgid "options_showProxyExceptionsBypassListGroups"
-msgstr "在「代理例外」頁面中顯示不代理位址清單分組。"
+msgid "options_showProxyExceptionsBypassListSections"
+msgstr "在「代理例外」頁面中顯示不代理位址清單分區。"
 
 msgid "routeTrace_step_globalBypass"
 msgstr "全域不代理"

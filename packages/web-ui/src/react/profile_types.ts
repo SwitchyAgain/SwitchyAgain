@@ -117,13 +117,13 @@ export type OptionsData = {
   '-routeInfoRequestDetailsEnabled'?: boolean;
   '-proxyExceptionsEnabled'?: boolean;
   '-globalBypassListId'?: string;
-  '-showProxyExceptionsBypassListGroups'?: boolean;
+  '-showProxyExceptionsBypassListSections'?: boolean;
   '-supplementalLists'?: SupplementalBypassList[];
   '-showConditionTypes'?: number;
   '-showExternalProfile'?: boolean;
   '-showProfilesCollapseToggle'?: boolean;
   '-showRequestLens'?: boolean;
-  '-showBypassListGroups'?: boolean;
+  '-showBypassListSections'?: boolean;
   '-showHttpProxyOverrideRows'?: boolean;
   '-showSocks5LocalDnsOption'?: boolean;
   '-showWebSocketProxyOverrideRows'?: boolean;
@@ -204,14 +204,14 @@ export type FixedProfileBypassCondition = {
   pattern: string;
 };
 
-export type FixedProfileBypassGroup = {
+export type FixedProfileBypassSection = {
   bypassList?: FixedProfileBypassCondition[];
   enabled?: boolean;
   name?: string;
 };
 
 export type SupplementalBypassList = {
-  bypassGroups?: FixedProfileBypassGroup[];
+  bypassSections?: FixedProfileBypassSection[];
   bypassList?: FixedProfileBypassCondition[];
   id: string;
   name: string;
@@ -219,7 +219,7 @@ export type SupplementalBypassList = {
 
 export type FixedProfileModel = Profile & {
   auth?: ProfileAuthMap;
-  bypassGroups?: FixedProfileBypassGroup[];
+  bypassSections?: FixedProfileBypassSection[];
   bypassList?: FixedProfileBypassCondition[];
   fallbackProxy?: ProxyEditor;
   profileType?: 'FixedProfile';

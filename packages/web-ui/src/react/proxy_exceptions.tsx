@@ -1,11 +1,19 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {
+  BypassSectionEditor,
+  bypassSectionDrafts,
+  bypassSectionIsEmpty,
+  bypassSectionsFromDrafts,
+  type BypassSectionDraft
+} from './bypass_section_editor';
+import {ConfirmModal} from './confirm_modals';
 import {useOutsidePointer} from './dom_event_hooks';
 import {message} from './i18n_client';
 import type {Options} from './options_client_types';
 import {cloneOptions, updateProfileRevision} from './options_logic';
 import {fixedProfileBypassList, fixedProfileBypassText} from './profile_content_logic';
 import {ProfileGroupInline, profileGroupsEnabled, profileGroupsForOptions, type ProfileGroup} from './profile_groups';
-import type {FixedProfileBypassGroup, SupplementalBypassList} from './profile_types';
+import type {SupplementalBypassList} from './profile_types';
 import {ProfileInline, profilesForFilter} from './profile_widgets';
 import {
   addSupplementalList,
@@ -15,60 +23,71 @@ import {
   supplementalListsForOptions
 } from './supplemental_lists';
 
-type GroupDraft = {enabled: boolean; name: string; text: string};
 type ListModalState = {kind: 'create'} | {kind: 'rename'; list: SupplementalBypassList} | null;
-
-function groupDrafts(groups?: FixedProfileBypassGroup[]): GroupDraft[] {
-  return (groups || []).map((group) => ({
-    enabled: group.enabled !== false,
-    name: group.name || '',
-    text: fixedProfileBypassText({bypassList: group.bypassList})
-  }));
-}
-
-function groupsFromDrafts(value: GroupDraft[]): FixedProfileBypassGroup[] {
-  return value.map((group) => ({
-    bypassList: fixedProfileBypassList(group.text),
-    ...(group.name ? {name: group.name} : {}),
-    ...(group.enabled ? {} : {enabled: false})
-  }));
-}
 
 function SupplementalListContentEditor({
   list,
-  showGroups,
+  showSections,
   showListName = false,
   onChange
 }: {
   list: SupplementalBypassList;
-  showGroups: boolean;
+  showSections: boolean;
   showListName?: boolean;
   onChange: (list: SupplementalBypassList) => void;
 }) {
   const [listText, setListText] = useState(() => fixedProfileBypassText({bypassList: list.bypassList}));
-  const [groups, setGroups] = useState<GroupDraft[]>(() => groupDrafts(list.bypassGroups));
+  const [sections, setSections] = useState<BypassSectionDraft[]>(() => bypassSectionDrafts(list.bypassSections));
+  const [pendingDeleteSectionIndex, setPendingDeleteSectionIndex] = useState<number | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const listEditorRef = useRef<HTMLTextAreaElement>(null);
+  const previousListIdRef = useRef(list.id);
 
   useEffect(() => {
-    setListText(fixedProfileBypassText({bypassList: list.bypassList}));
-    setGroups(groupDrafts(list.bypassGroups));
-  }, [list.id, list.bypassList, list.bypassGroups]);
+    const listChanged = previousListIdRef.current !== list.id;
+    previousListIdRef.current = list.id;
+    if (listChanged || document.activeElement !== listEditorRef.current) {
+      setListText(fixedProfileBypassText({bypassList: list.bypassList}));
+    }
+    const activeElement = document.activeElement;
+    const sectionFocused =
+      activeElement instanceof HTMLElement && rootRef.current?.contains(activeElement) && !!activeElement.closest('.fixed-bypass-section');
+    if (listChanged || !sectionFocused) {
+      setSections(bypassSectionDrafts(list.bypassSections));
+      setPendingDeleteSectionIndex(null);
+    }
+  }, [list.id, list.bypassList, list.bypassSections]);
 
-  function commit(nextText = listText, nextGroups = groups) {
+  function commit(nextText = listText, nextSections = sections) {
     onChange({
       ...list,
       bypassList: fixedProfileBypassList(nextText),
-      bypassGroups: groupsFromDrafts(nextGroups)
+      bypassSections: bypassSectionsFromDrafts(nextSections)
     });
   }
 
-  function updateGroup(index: number, patch: Partial<GroupDraft>) {
-    const next = groups.map((group, groupIndex) => (groupIndex === index ? {...group, ...patch} : group));
-    setGroups(next);
+  function updateSection(index: number, patch: Partial<BypassSectionDraft>) {
+    const next = sections.map((section, sectionIndex) => (sectionIndex === index ? {...section, ...patch} : section));
+    setSections(next);
     commit(listText, next);
   }
 
+  function removeSection(index: number) {
+    const next = sections.filter((_section, sectionIndex) => sectionIndex !== index);
+    setSections(next);
+    commit(listText, next);
+    setPendingDeleteSectionIndex(null);
+  }
+
+  function requestRemoveSection(index: number) {
+    const section = sections[index];
+    if (!section) return;
+    if (bypassSectionIsEmpty(section)) removeSection(index);
+    else setPendingDeleteSectionIndex(index);
+  }
+
   return (
-    <div className={`supplemental-list-content-item${showListName ? ' supplemental-list-content-item-all' : ''}`}>
+    <div ref={rootRef} className={`supplemental-list-content-item${showListName ? ' supplemental-list-content-item-all' : ''}`}>
       {showListName && <h4 className="supplemental-list-content-name">{list.name}</h4>}
       <p className="help-block">
         {message('options_bypassListHelp', 'Servers for which you do not want to use any proxy: (One server on each line.)')}
@@ -79,75 +98,57 @@ function SupplementalListContentEditor({
         </a>
       </p>
       <textarea
+        ref={listEditorRef}
         className="monospace form-control width-limit"
         rows={10}
         spellCheck={false}
         value={listText}
-        onChange={(event) => setListText(event.currentTarget.value)}
+        onChange={(event) => {
+          const nextText = event.currentTarget.value;
+          setListText(nextText);
+          commit(nextText);
+        }}
         onBlur={() => commit()}
       />
-      {showGroups &&
-        groups.map((group, index) => (
-          <div className="fixed-bypass-group" key={index}>
-            <div className="fixed-bypass-group-header width-limit">
-              <label htmlFor={`supplemental-list-${list.id}-group-name-${index}`}>{message('options_bypassGroupName', 'Group name')}</label>
-              <input
-                id={`supplemental-list-${list.id}-group-name-${index}`}
-                className="form-control"
-                spellCheck={false}
-                type="text"
-                value={group.name}
-                onChange={(event) => updateGroup(index, {name: event.currentTarget.value})}
-              />
-              <button
-                type="button"
-                className="btn btn-danger"
-                title={message('options_deleteBypassGroup', 'Delete group')}
-                onClick={() => {
-                  const next = groups.filter((_item, i) => i !== index);
-                  setGroups(next);
-                  commit(listText, next);
-                }}
-              >
-                <span className="glyphicon glyphicon-trash" />
-              </button>
-            </div>
-            <label className="profile-switch-label fixed-bypass-group-switch">
-              <input
-                type="checkbox"
-                role="switch"
-                checked={group.enabled}
-                onChange={(event) => updateGroup(index, {enabled: event.currentTarget.checked})}
-              />
-              <span className="profile-switch" aria-hidden="true">
-                <span className="profile-switch-knob" />
-              </span>
-              <span>{message('options_enableBypassGroup', 'Enable this list group')}</span>
-            </label>
-            <textarea
-              className="monospace form-control width-limit fixed-bypass-group-textarea"
-              rows={10}
-              spellCheck={false}
-              value={group.text}
-              onChange={(event) => setGroups(groups.map((item, i) => (i === index ? {...item, text: event.currentTarget.value} : item)))}
-              onBlur={() => commit()}
-            />
-          </div>
+      {showSections &&
+        sections.map((section, index) => (
+          <BypassSectionEditor
+            id={`supplemental-list-${list.id}-section-name-${index}`}
+            key={index}
+            section={section}
+            onChange={(changes) => updateSection(index, changes)}
+            onRemove={() => requestRemoveSection(index)}
+          />
         ))}
-      {showGroups && (
-        <p className="fixed-bypass-group-add">
+      {showSections && (
+        <p className="fixed-bypass-section-add">
           <button
             type="button"
             className="btn btn-default"
             onClick={() => {
-              const next = groups.concat({enabled: true, name: '', text: ''});
-              setGroups(next);
+              const next = sections.concat({enabled: true, name: '', text: ''});
+              setSections(next);
               commit(listText, next);
             }}
           >
-            <span className="glyphicon glyphicon-plus" /> <span>{message('options_addBypassGroup', 'Add a new list group')}</span>
+            <span className="glyphicon glyphicon-plus" /> <span>{message('options_addBypassSection', 'Add a new list section')}</span>
           </button>
         </p>
+      )}
+      {showSections && pendingDeleteSectionIndex != null && (
+        <>
+          <div className="modal-backdrop fade in" />
+          <div className="modal fade in options-modal" role="dialog" style={{display: 'flex'}} tabIndex={-1}>
+            <div className="modal-dialog">
+              <ConfirmModal
+                sectionName={sections[pendingDeleteSectionIndex]?.name}
+                kind="bypassSectionRemove"
+                onClose={() => removeSection(pendingDeleteSectionIndex)}
+                onDismiss={() => setPendingDeleteSectionIndex(null)}
+              />
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
@@ -438,8 +439,9 @@ export function ProxyExceptionsPage({options, onOptionsChange}: {options: Option
   const [deleteListState, setDeleteListState] = useState<SupplementalBypassList | null>(null);
   const [profileLinksList, setProfileLinksList] = useState<SupplementalBypassList | null>(null);
   const [groupLinksList, setGroupLinksList] = useState<SupplementalBypassList | null>(null);
-  const showGroups = Boolean(options['-showProxyExceptionsBypassListGroups']);
+  const showSections = Boolean(options['-showProxyExceptionsBypassListSections']);
   const selectedList = lists.find((list) => list.id === selectedListId) || lists[0];
+  const resolvedSelectedListId = selectedList?.id || '';
   const globalListId = lists.some((list) => list.id === options['-globalBypassListId'])
     ? (options['-globalBypassListId'] as string)
     : lists[0]?.id || '';
@@ -455,12 +457,11 @@ export function ProxyExceptionsPage({options, onOptionsChange}: {options: Option
     const next = cloneOptions(options);
     ensureDefaultSupplementalList(next);
     onOptionsChange(next);
-  }, [lists.length, onOptionsChange, options]);
+  }, [lists, onOptionsChange, options]);
 
   useEffect(() => {
-    if (!selectedList) setSelectedListId('');
-    else if (selectedList.id !== selectedListId) setSelectedListId(selectedList.id);
-  }, [selectedList?.id]);
+    if (resolvedSelectedListId !== selectedListId) setSelectedListId(resolvedSelectedListId);
+  }, [resolvedSelectedListId, selectedListId]);
 
   function updateOptions(updater: (next: Options) => void) {
     const next = cloneOptions(options);
@@ -502,7 +503,6 @@ export function ProxyExceptionsPage({options, onOptionsChange}: {options: Option
 
   function deleteList(list: SupplementalBypassList) {
     if (list.id === DEFAULT_SUPPLEMENTAL_LIST_ID) return;
-    const index = lists.findIndex((candidate) => candidate.id === list.id);
     const remaining = lists.filter((candidate) => candidate.id !== list.id);
     const fallback = remaining.find((candidate) => candidate.id === DEFAULT_SUPPLEMENTAL_LIST_ID);
     updateOptions((next) => {
@@ -696,11 +696,17 @@ export function ProxyExceptionsPage({options, onOptionsChange}: {options: Option
         {showAllLists ? (
           <div className="supplemental-list-content-all">
             {lists.map((list) => (
-              <SupplementalListContentEditor key={list.id} list={list} showGroups={showGroups} showListName onChange={updateListContent} />
+              <SupplementalListContentEditor
+                key={list.id}
+                list={list}
+                showSections={showSections}
+                showListName
+                onChange={updateListContent}
+              />
             ))}
           </div>
         ) : selectedList ? (
-          <SupplementalListContentEditor list={selectedList} showGroups={showGroups} onChange={updateListContent} />
+          <SupplementalListContentEditor list={selectedList} showSections={showSections} onChange={updateListContent} />
         ) : (
           <p className="text-muted">{message('options_supplementalListSelectHelp', 'Create a Supplemental List to edit its content.')}</p>
         )}

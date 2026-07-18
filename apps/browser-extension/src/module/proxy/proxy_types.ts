@@ -34,7 +34,7 @@ export type ProxyCondition = Record<string, unknown> & {
   pattern?: string;
 };
 
-export type ProxyBypassGroup = {
+export type ProxyBypassSection = {
   bypassList?: ProxyCondition[];
   enabled?: boolean;
   name?: string;
@@ -42,7 +42,7 @@ export type ProxyBypassGroup = {
 
 export type ProxyProfile = Record<string, unknown> & {
   auth?: Record<string, ProxyCredentials | undefined>;
-  bypassGroups?: ProxyBypassGroup[];
+  bypassSections?: ProxyBypassSection[];
   bypassList?: ProxyCondition[];
   defaultProfileName?: string;
   fallbackProxy?: ProxyServer;

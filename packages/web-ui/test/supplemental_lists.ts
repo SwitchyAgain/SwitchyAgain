@@ -16,7 +16,7 @@ describe('supplemental lists', () => {
       id: 'supplemental-list-default',
       name: 'Default',
       bypassList: [],
-      bypassGroups: []
+      bypassSections: []
     });
     expect(options['-globalBypassListId']).toBe(list.id);
     expect(supplementalListsForOptions(options)).toEqual([list]);

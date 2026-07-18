@@ -2339,7 +2339,7 @@ describe('options app', () => {
         value: 'next-pass'
       }
     });
-    fireEvent.click(within(dialog).getByRole('button', {name: 'Save changes'}));
+    fireEvent.click(within(dialog).getByRole('button', {name: 'Save'}));
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     await waitFor(() =>
