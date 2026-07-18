@@ -1993,19 +1993,28 @@ msgid "options_supplementalListColumnList"
 msgstr "Liste"
 
 msgid "options_supplementalListColumnDirectProfiles"
-msgstr "Direkte tilknyttede profiler"
+msgstr "Direkte profiltilknytninger"
 
 msgid "options_supplementalListColumnProfileGroups"
-msgstr "Profilgrupper"
+msgstr "Profilgruppetilknytninger"
+
+msgid "options_supplementalListColumnLink"
+msgstr "Koble"
+
+msgid "options_supplementalListColumnProxyProfile"
+msgstr "Mellomtjenerprofil"
+
+msgid "options_supplementalListColumnProfileGroup"
+msgstr "Profilgruppe"
 
 msgid "options_supplementalListGlobalLabel"
 msgstr "Global"
 
 msgid "options_supplementalListManageProfiles"
-msgstr "Administrer profiler"
+msgstr "Administrer mellomtjenerprofiltilknytninger"
 
 msgid "options_supplementalListManageGroups"
-msgstr "Administrer profilgrupper"
+msgstr "Administrer profilgruppetilknytninger"
 
 msgid "options_defaultSupplementalListCannotDelete"
 msgstr "Standardtilleggslisten kan ikke slettes."
@@ -2050,13 +2059,13 @@ msgid "options_supplementalListRenameTitle"
 msgstr "Gi tilleggslisten nytt navn"
 
 msgid "options_supplementalListProfilesTitle"
-msgstr "Mellomtjenerprofiler for $1:LIST$"
+msgstr "Administrer mellomtjenerprofiltilknytninger for «$1:LIST$»"
 
 msgid "options_supplementalListNoProfiles"
 msgstr "Ingen mellomtjenerprofiler er tilgjengelige."
 
 msgid "options_supplementalListGroupsTitle"
-msgstr "Profilgrupper for $1:LIST$"
+msgstr "Administrer profilgruppetilknytninger for «$1:LIST$»"
 
 msgid "options_supplementalListNoGroups"
 msgstr "Ingen profilgrupper er tilgjengelige."
@@ -2089,7 +2098,7 @@ msgid "options_profileSupplementalListsHelp"
 msgstr "Tilleggslister som er koblet til denne profilen eller arvet fra profilgruppen, vises nedenfor. Samsvarende forespørsler omgår mellomtjeneren."
 
 msgid "options_enableProxyExceptions"
-msgstr "Aktiver mellomtjenerunntak som kan brukes globalt eller på utvalgte mellomtjenerprofiler."
+msgstr "Aktiver globale og profilspesifikke mellomtjenerunntak."
 
 msgid "options_showProxyExceptionsBypassListGroups"
 msgstr "Vis grupper av omgåelseslister i mellomtjenerunntak."

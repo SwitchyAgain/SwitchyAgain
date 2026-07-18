@@ -1972,16 +1972,25 @@ msgid "options_supplementalListColumnDirectProfiles"
 msgstr "直接關聯的情境模式"
 
 msgid "options_supplementalListColumnProfileGroups"
+msgstr "關聯的情境模式分組"
+
+msgid "options_supplementalListColumnLink"
+msgstr "關聯"
+
+msgid "options_supplementalListColumnProxyProfile"
+msgstr "代理情境模式"
+
+msgid "options_supplementalListColumnProfileGroup"
 msgstr "情境模式分組"
 
 msgid "options_supplementalListGlobalLabel"
 msgstr "全域"
 
 msgid "options_supplementalListManageProfiles"
-msgstr "管理情境模式"
+msgstr "管理代理情境模式關聯"
 
 msgid "options_supplementalListManageGroups"
-msgstr "管理情境模式分組"
+msgstr "管理情境模式分組關聯"
 
 msgid "options_defaultSupplementalListCannotDelete"
 msgstr "無法刪除預設補充清單。"
@@ -2026,13 +2035,13 @@ msgid "options_supplementalListRenameTitle"
 msgstr "重新命名補充清單"
 
 msgid "options_supplementalListProfilesTitle"
-msgstr "「$1:LIST$」的代理情境模式"
+msgstr "管理「$1:LIST$」的代理情境模式關聯"
 
 msgid "options_supplementalListNoProfiles"
 msgstr "沒有可用的代理情境模式。"
 
 msgid "options_supplementalListGroupsTitle"
-msgstr "「$1:LIST$」的情境模式分組"
+msgstr "管理「$1:LIST$」的情境模式分組關聯"
 
 msgid "options_supplementalListNoGroups"
 msgstr "沒有可用的情境模式分組。"

@@ -2137,19 +2137,28 @@ msgid "options_supplementalListColumnList"
 msgstr "Seznam"
 
 msgid "options_supplementalListColumnDirectProfiles"
-msgstr "Přímo propojené profily"
+msgstr "Přímá propojení profilů"
 
 msgid "options_supplementalListColumnProfileGroups"
-msgstr "Skupiny profilů"
+msgstr "Propojení skupin profilů"
+
+msgid "options_supplementalListColumnLink"
+msgstr "Propojit"
+
+msgid "options_supplementalListColumnProxyProfile"
+msgstr "Profil serveru proxy"
+
+msgid "options_supplementalListColumnProfileGroup"
+msgstr "Skupina profilů"
 
 msgid "options_supplementalListGlobalLabel"
 msgstr "Globální"
 
 msgid "options_supplementalListManageProfiles"
-msgstr "Spravovat profily"
+msgstr "Spravovat propojení profilů serveru proxy"
 
 msgid "options_supplementalListManageGroups"
-msgstr "Spravovat skupiny profilů"
+msgstr "Spravovat propojení skupin profilů"
 
 msgid "options_defaultSupplementalListCannotDelete"
 msgstr "Výchozí doplňkový seznam nelze odstranit."
@@ -2194,13 +2203,13 @@ msgid "options_supplementalListRenameTitle"
 msgstr "Přejmenovat doplňkový seznam"
 
 msgid "options_supplementalListProfilesTitle"
-msgstr "Profily serveru proxy pro $1:LIST$"
+msgstr "Spravovat propojení profilů serveru proxy pro „$1:LIST$“"
 
 msgid "options_supplementalListNoProfiles"
 msgstr "Nejsou k dispozici žádné profily serveru proxy."
 
 msgid "options_supplementalListGroupsTitle"
-msgstr "Skupiny profilů pro $1:LIST$"
+msgstr "Spravovat propojení skupin profilů pro „$1:LIST$“"
 
 msgid "options_supplementalListNoGroups"
 msgstr "Nejsou k dispozici žádné skupiny profilů."
@@ -2233,7 +2242,7 @@ msgid "options_profileSupplementalListsHelp"
 msgstr "Níže jsou zobrazeny doplňkové seznamy propojené s tímto profilem nebo zděděné z jeho skupiny profilů. Odpovídající požadavky vynechají server proxy."
 
 msgid "options_enableProxyExceptions"
-msgstr "Povolit výjimky proxy, které lze použít globálně nebo pro vybrané profily serveru proxy."
+msgstr "Povolit globální výjimky proxy a výjimky pro jednotlivé profily."
 
 msgid "options_showProxyExceptionsBypassListGroups"
 msgstr "Zobrazit skupiny seznamů vynechaných serverů ve výjimkách proxy."

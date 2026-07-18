@@ -2146,19 +2146,28 @@ msgid "options_supplementalListColumnList"
 msgstr "فهرست"
 
 msgid "options_supplementalListColumnDirectProfiles"
-msgstr "پروفایل‌های با پیوند مستقیم"
+msgstr "پیوندهای مستقیم پروفایل"
 
 msgid "options_supplementalListColumnProfileGroups"
-msgstr "گروه‌های نمایه"
+msgstr "پیوندهای گروه نمایه"
+
+msgid "options_supplementalListColumnLink"
+msgstr "پیوند"
+
+msgid "options_supplementalListColumnProxyProfile"
+msgstr "پروفایل پروکسی"
+
+msgid "options_supplementalListColumnProfileGroup"
+msgstr "گروه نمایه"
 
 msgid "options_supplementalListGlobalLabel"
 msgstr "سراسری"
 
 msgid "options_supplementalListManageProfiles"
-msgstr "مدیریت پروفایل‌ها"
+msgstr "مدیریت پیوندهای پروفایل پروکسی"
 
 msgid "options_supplementalListManageGroups"
-msgstr "مدیریت گروه‌های نمایه"
+msgstr "مدیریت پیوندهای گروه نمایه"
 
 msgid "options_defaultSupplementalListCannotDelete"
 msgstr "فهرست تکمیلی پیش‌فرض را نمی‌توان حذف کرد."
@@ -2203,13 +2212,13 @@ msgid "options_supplementalListRenameTitle"
 msgstr "تغییر نام فهرست تکمیلی"
 
 msgid "options_supplementalListProfilesTitle"
-msgstr "پروفایل‌های پروکسی برای $1:LIST$"
+msgstr "مدیریت پیوندهای پروفایل پروکسی برای «$1:LIST$»"
 
 msgid "options_supplementalListNoProfiles"
 msgstr "هیچ پروفایل پروکسی در دسترس نیست."
 
 msgid "options_supplementalListGroupsTitle"
-msgstr "گروه‌های نمایه برای $1:LIST$"
+msgstr "مدیریت پیوندهای گروه نمایه برای «$1:LIST$»"
 
 msgid "options_supplementalListNoGroups"
 msgstr "هیچ گروه نمایه‌ای در دسترس نیست."
@@ -2242,7 +2251,7 @@ msgid "options_profileSupplementalListsHelp"
 msgstr "فهرست‌های تکمیلی پیوندشده به این پروفایل یا به‌ارث‌رسیده از گروه نمایهٔ آن در زیر نشان داده می‌شوند. درخواست‌های منطبق پروکسی را دور می‌زنند."
 
 msgid "options_enableProxyExceptions"
-msgstr "استثناهای پروکسی را که می‌توانند به‌صورت سراسری یا برای پروفایل‌های پروکسی انتخاب‌شده اعمال شوند، فعال کنید."
+msgstr "استثناهای پروکسی سراسری و ویژهٔ هر پروفایل را فعال کنید."
 
 msgid "options_showProxyExceptionsBypassListGroups"
 msgstr "نمایش گروه‌های فهرست دور زدن در استثناهای پروکسی."

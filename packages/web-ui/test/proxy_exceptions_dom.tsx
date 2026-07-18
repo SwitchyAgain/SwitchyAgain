@@ -26,7 +26,9 @@ function options(): Options {
     '-profileGroupsEnabled': true,
     '-profileGroups': [
       {
+        color: '#99dd99',
         id: 'group-work',
+        icon: 'glyphicon-home',
         name: 'Work Group',
         supplementalListIds: ['supplemental-list-work']
       }
@@ -79,8 +81,8 @@ describe('Proxy Exceptions page', () => {
     render(<Harness onChange={onChange} />);
 
     expect(screen.getByRole('heading', {name: 'Proxy Exceptions'})).toBeTruthy();
-    expect(screen.getByRole('columnheader', {name: 'Direct Profiles'})).toBeTruthy();
-    expect(screen.getByRole('columnheader', {name: 'Profile Groups'})).toBeTruthy();
+    expect(screen.getByRole('columnheader', {name: 'Direct Profile Links'})).toBeTruthy();
+    expect(screen.getByRole('columnheader', {name: 'Profile Group Links'})).toBeTruthy();
     expect(within(listRow('Default')).getByText('Global')).toBeTruthy();
     expect(listRow('Work').cells[1].textContent).toBe('1');
     expect(listRow('Work').cells[2].textContent).toBe('1');
@@ -107,18 +109,34 @@ describe('Proxy Exceptions page', () => {
     const onChange = vi.fn();
     render(<Harness onChange={onChange} />);
 
-    fireEvent.click(within(listRow('Work')).getByTitle('Manage Profiles'));
+    fireEvent.click(within(listRow('Work')).getByTitle('Manage Proxy Profile Links'));
     let dialog = screen.getByRole('dialog');
-    fireEvent.click(within(dialog).getByRole('checkbox', {name: 'proxy'}));
+    expect(within(dialog).getByRole('heading', {name: 'Manage Proxy Profile Links for “Work”'})).toBeTruthy();
+    expect(within(dialog).getByRole('columnheader', {name: 'Link'})).toBeTruthy();
+    expect(within(dialog).getByRole('columnheader', {name: 'Proxy Profile'})).toBeTruthy();
+    const profileCheckbox = within(dialog).getByRole('checkbox', {name: 'proxy'}) as HTMLInputElement;
+    expect(profileCheckbox.closest('tr')?.querySelector('.glyphicon-globe')).toBeTruthy();
+    fireEvent.click(within(dialog).getByText('proxy'));
+    expect(profileCheckbox.checked).toBe(true);
+    fireEvent.click(profileCheckbox);
     fireEvent.click(within(dialog).getByRole('button', {name: 'Save'}));
 
     let updated = onChange.mock.calls[onChange.mock.calls.length - 1][0] as Options;
     expect((updated['+proxy'] as {supplementalListIds?: string[]}).supplementalListIds).toEqual([]);
     expect(listRow('Work').cells[1].textContent).toBe('0');
 
-    fireEvent.click(within(listRow('Work')).getByTitle('Manage Profile Groups'));
+    fireEvent.click(within(listRow('Work')).getByTitle('Manage Profile Group Links'));
     dialog = screen.getByRole('dialog');
-    fireEvent.click(within(dialog).getByRole('checkbox', {name: 'Work Group'}));
+    expect(within(dialog).getByRole('heading', {name: 'Manage Profile Group Links for “Work”'})).toBeTruthy();
+    expect(within(dialog).getByRole('columnheader', {name: 'Link'})).toBeTruthy();
+    expect(within(dialog).getByRole('columnheader', {name: 'Profile Group'})).toBeTruthy();
+    const groupCheckbox = within(dialog).getByRole('checkbox', {name: 'Work Group'});
+    const groupIcon = groupCheckbox.closest('tr')?.querySelector('.glyphicon-home') as HTMLElement;
+    expect(groupIcon).toBeTruthy();
+    expect(groupIcon.style.color).toBe('rgb(153, 221, 153)');
+    fireEvent.click(within(dialog).getByText('Work Group'));
+    expect((groupCheckbox as HTMLInputElement).checked).toBe(true);
+    fireEvent.click(groupCheckbox);
     fireEvent.click(within(dialog).getByRole('button', {name: 'Save'}));
 
     updated = onChange.mock.calls[onChange.mock.calls.length - 1][0] as Options;

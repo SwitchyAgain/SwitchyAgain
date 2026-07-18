@@ -2138,19 +2138,28 @@ msgid "options_supplementalListColumnList"
 msgstr "List"
 
 msgid "options_supplementalListColumnDirectProfiles"
-msgstr "Direct Profiles"
+msgstr "Direct Profile Links"
 
 msgid "options_supplementalListColumnProfileGroups"
-msgstr "Profile Groups"
+msgstr "Profile Group Links"
+
+msgid "options_supplementalListColumnLink"
+msgstr "Link"
+
+msgid "options_supplementalListColumnProxyProfile"
+msgstr "Proxy Profile"
+
+msgid "options_supplementalListColumnProfileGroup"
+msgstr "Profile Group"
 
 msgid "options_supplementalListGlobalLabel"
 msgstr "Global"
 
 msgid "options_supplementalListManageProfiles"
-msgstr "Manage Profiles"
+msgstr "Manage Proxy Profile Links"
 
 msgid "options_supplementalListManageGroups"
-msgstr "Manage Profile Groups"
+msgstr "Manage Profile Group Links"
 
 msgid "options_defaultSupplementalListCannotDelete"
 msgstr "The Default Supplemental List cannot be deleted."
@@ -2195,13 +2204,13 @@ msgid "options_supplementalListRenameTitle"
 msgstr "Rename Supplemental List"
 
 msgid "options_supplementalListProfilesTitle"
-msgstr "Proxy Profiles for $1:LIST$"
+msgstr "Manage Proxy Profile Links for “$1:LIST$”"
 
 msgid "options_supplementalListNoProfiles"
 msgstr "No Proxy Profiles are available."
 
 msgid "options_supplementalListGroupsTitle"
-msgstr "Profile Groups for $1:LIST$"
+msgstr "Manage Profile Group Links for “$1:LIST$”"
 
 msgid "options_supplementalListNoGroups"
 msgstr "No Profile Groups are available."
@@ -2234,7 +2243,7 @@ msgid "options_profileSupplementalListsHelp"
 msgstr "Supplemental Lists linked to this profile or inherited from its Profile Group are shown below. Matching requests will bypass the proxy."
 
 msgid "options_enableProxyExceptions"
-msgstr "Enable Proxy Exceptions that can be applied globally or to selected Proxy Profiles."
+msgstr "Enable global and per-profile Proxy Exceptions."
 
 msgid "options_showProxyExceptionsBypassListGroups"
 msgstr "Show bypass list groups in Proxy Exceptions."

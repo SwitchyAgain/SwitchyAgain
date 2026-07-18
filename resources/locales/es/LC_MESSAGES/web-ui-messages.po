@@ -2188,19 +2188,28 @@ msgid "options_supplementalListColumnList"
 msgstr "Lista"
 
 msgid "options_supplementalListColumnDirectProfiles"
-msgstr "Perfiles vinculados directamente"
+msgstr "Vínculos directos de perfiles"
 
 msgid "options_supplementalListColumnProfileGroups"
-msgstr "Grupos de perfiles"
+msgstr "Vínculos de grupos de perfiles"
+
+msgid "options_supplementalListColumnLink"
+msgstr "Vincular"
+
+msgid "options_supplementalListColumnProxyProfile"
+msgstr "Perfil de proxy"
+
+msgid "options_supplementalListColumnProfileGroup"
+msgstr "Grupo de perfiles"
 
 msgid "options_supplementalListGlobalLabel"
 msgstr "Global"
 
 msgid "options_supplementalListManageProfiles"
-msgstr "Administrar perfiles"
+msgstr "Administrar vínculos de perfiles de proxy"
 
 msgid "options_supplementalListManageGroups"
-msgstr "Administrar grupos de perfiles"
+msgstr "Administrar vínculos de grupos de perfiles"
 
 msgid "options_defaultSupplementalListCannotDelete"
 msgstr "La lista complementaria predeterminada no se puede eliminar."
@@ -2245,13 +2254,13 @@ msgid "options_supplementalListRenameTitle"
 msgstr "Renombrar lista complementaria"
 
 msgid "options_supplementalListProfilesTitle"
-msgstr "Perfiles de proxy para $1:LIST$"
+msgstr "Administrar vínculos de perfiles de proxy para «$1:LIST$»"
 
 msgid "options_supplementalListNoProfiles"
 msgstr "No hay perfiles de proxy disponibles."
 
 msgid "options_supplementalListGroupsTitle"
-msgstr "Grupos de perfiles para $1:LIST$"
+msgstr "Administrar vínculos de grupos de perfiles para «$1:LIST$»"
 
 msgid "options_supplementalListNoGroups"
 msgstr "No hay grupos de perfiles disponibles."
@@ -2284,7 +2293,7 @@ msgid "options_profileSupplementalListsHelp"
 msgstr "A continuación se muestran las listas complementarias vinculadas a este perfil o heredadas de su grupo de perfiles. Las solicitudes coincidentes omitirán el proxy."
 
 msgid "options_enableProxyExceptions"
-msgstr "Activar las excepciones del proxy que pueden aplicarse globalmente o a los perfiles de proxy seleccionados."
+msgstr "Activar excepciones del proxy globales y por perfil."
 
 msgid "options_showProxyExceptionsBypassListGroups"
 msgstr "Mostrar grupos de listas de omisión en las excepciones del proxy."

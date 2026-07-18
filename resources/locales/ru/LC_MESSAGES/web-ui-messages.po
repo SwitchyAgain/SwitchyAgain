@@ -2169,19 +2169,28 @@ msgid "options_supplementalListColumnList"
 msgstr "Список"
 
 msgid "options_supplementalListColumnDirectProfiles"
-msgstr "Профили с прямой привязкой"
+msgstr "Прямые привязки профилей"
 
 msgid "options_supplementalListColumnProfileGroups"
-msgstr "Группы профилей"
+msgstr "Привязки групп профилей"
+
+msgid "options_supplementalListColumnLink"
+msgstr "Привязать"
+
+msgid "options_supplementalListColumnProxyProfile"
+msgstr "Профиль прокси"
+
+msgid "options_supplementalListColumnProfileGroup"
+msgstr "Группа профилей"
 
 msgid "options_supplementalListGlobalLabel"
 msgstr "Глобальный"
 
 msgid "options_supplementalListManageProfiles"
-msgstr "Управление профилями"
+msgstr "Управление привязками профилей прокси"
 
 msgid "options_supplementalListManageGroups"
-msgstr "Управление группами профилей"
+msgstr "Управление привязками групп профилей"
 
 msgid "options_defaultSupplementalListCannotDelete"
 msgstr "Дополнительный список по умолчанию нельзя удалить."
@@ -2226,13 +2235,13 @@ msgid "options_supplementalListRenameTitle"
 msgstr "Переименовать дополнительный список"
 
 msgid "options_supplementalListProfilesTitle"
-msgstr "Профили прокси для $1:LIST$"
+msgstr "Управление привязками профилей прокси для «$1:LIST$»"
 
 msgid "options_supplementalListNoProfiles"
 msgstr "Нет доступных профилей прокси."
 
 msgid "options_supplementalListGroupsTitle"
-msgstr "Группы профилей для $1:LIST$"
+msgstr "Управление привязками групп профилей для «$1:LIST$»"
 
 msgid "options_supplementalListNoGroups"
 msgstr "Нет доступных групп профилей."
@@ -2265,7 +2274,7 @@ msgid "options_profileSupplementalListsHelp"
 msgstr "Ниже показаны дополнительные списки, привязанные к этому профилю или унаследованные от его группы профилей. Соответствующие запросы будут обходить прокси."
 
 msgid "options_enableProxyExceptions"
-msgstr "Включить исключения прокси, которые можно применять глобально или к выбранным профилям прокси."
+msgstr "Включить глобальные исключения прокси и исключения для отдельных профилей."
 
 msgid "options_showProxyExceptionsBypassListGroups"
 msgstr "Показывать группы списков исключений в разделе исключений прокси."

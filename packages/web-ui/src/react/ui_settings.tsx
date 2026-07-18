@@ -734,13 +734,7 @@ export function UiSettings({
               checked={Boolean(draftOptions['-proxyExceptionsEnabled'])}
               onChange={(event) => updateProxyExceptionsEnabled(event.currentTarget.checked)}
             />
-            <span>
-              {' '}
-              {message(
-                'options_enableProxyExceptions',
-                'Enable Proxy Exceptions that can be applied globally or to selected Proxy Profiles.'
-              )}
-            </span>
+            <span> {message('options_enableProxyExceptions', 'Enable global and per-profile Proxy Exceptions.')}</span>
           </label>
         </div>
         <div className="checkbox">

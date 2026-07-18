@@ -1986,19 +1986,28 @@ msgid "options_supplementalListColumnList"
 msgstr "Liste"
 
 msgid "options_supplementalListColumnDirectProfiles"
-msgstr "Doğrudan Bağlı Profiller"
+msgstr "Doğrudan Profil Bağlantıları"
 
 msgid "options_supplementalListColumnProfileGroups"
-msgstr "Profil Grupları"
+msgstr "Profil Grubu Bağlantıları"
+
+msgid "options_supplementalListColumnLink"
+msgstr "Bağla"
+
+msgid "options_supplementalListColumnProxyProfile"
+msgstr "Proxy Profili"
+
+msgid "options_supplementalListColumnProfileGroup"
+msgstr "Profil Grubu"
 
 msgid "options_supplementalListGlobalLabel"
 msgstr "Genel"
 
 msgid "options_supplementalListManageProfiles"
-msgstr "Profilleri Yönet"
+msgstr "Proxy Profili Bağlantılarını Yönet"
 
 msgid "options_supplementalListManageGroups"
-msgstr "Profil Gruplarını Yönet"
+msgstr "Profil Grubu Bağlantılarını Yönet"
 
 msgid "options_defaultSupplementalListCannotDelete"
 msgstr "Varsayılan Ek Liste silinemez."
@@ -2043,13 +2052,13 @@ msgid "options_supplementalListRenameTitle"
 msgstr "Ek Listeyi Yeniden Adlandır"
 
 msgid "options_supplementalListProfilesTitle"
-msgstr "$1:LIST$ için Proxy Profilleri"
+msgstr "“$1:LIST$” için Proxy Profili Bağlantılarını Yönet"
 
 msgid "options_supplementalListNoProfiles"
 msgstr "Kullanılabilir Proxy Profili yok."
 
 msgid "options_supplementalListGroupsTitle"
-msgstr "$1:LIST$ için Profil Grupları"
+msgstr "“$1:LIST$” için Profil Grubu Bağlantılarını Yönet"
 
 msgid "options_supplementalListNoGroups"
 msgstr "Kullanılabilir Profil Grubu yok."
@@ -2082,7 +2091,7 @@ msgid "options_profileSupplementalListsHelp"
 msgstr "Bu profile bağlı veya Profil Grubundan devralınan Ek Listeler aşağıda gösterilir. Eşleşen istekler proxy'yi baypas eder."
 
 msgid "options_enableProxyExceptions"
-msgstr "Genel olarak veya seçili Proxy Profillerine uygulanabilen Proxy İstisnalarını etkinleştir."
+msgstr "Genel ve profil bazlı Proxy İstisnalarını etkinleştir."
 
 msgid "options_showProxyExceptionsBypassListGroups"
 msgstr "Proxy İstisnalarında baypas listesi gruplarını göster."

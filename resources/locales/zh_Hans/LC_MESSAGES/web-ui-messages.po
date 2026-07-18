@@ -1985,16 +1985,25 @@ msgid "options_supplementalListColumnDirectProfiles"
 msgstr "直接关联的情景模式"
 
 msgid "options_supplementalListColumnProfileGroups"
+msgstr "关联的情景模式分组"
+
+msgid "options_supplementalListColumnLink"
+msgstr "关联"
+
+msgid "options_supplementalListColumnProxyProfile"
+msgstr "代理情景模式"
+
+msgid "options_supplementalListColumnProfileGroup"
 msgstr "情景模式分组"
 
 msgid "options_supplementalListGlobalLabel"
 msgstr "全局"
 
 msgid "options_supplementalListManageProfiles"
-msgstr "管理情景模式"
+msgstr "管理代理情景模式关联"
 
 msgid "options_supplementalListManageGroups"
-msgstr "管理情景模式分组"
+msgstr "管理情景模式分组关联"
 
 msgid "options_defaultSupplementalListCannotDelete"
 msgstr "不能删除默认补充列表。"
@@ -2039,13 +2048,13 @@ msgid "options_supplementalListRenameTitle"
 msgstr "重命名补充列表"
 
 msgid "options_supplementalListProfilesTitle"
-msgstr "「$1:LIST$」的代理情景模式"
+msgstr "管理「$1:LIST$」的代理情景模式关联"
 
 msgid "options_supplementalListNoProfiles"
 msgstr "没有可用的代理情景模式。"
 
 msgid "options_supplementalListGroupsTitle"
-msgstr "「$1:LIST$」的情景模式分组"
+msgstr "管理「$1:LIST$」的情景模式分组关联"
 
 msgid "options_supplementalListNoGroups"
 msgstr "没有可用的情景模式分组。"

@@ -293,28 +293,44 @@ function ProfileLinksModal({
                 <span aria-hidden="true">{'×'}</span>
               </button>
               <h4 className="modal-title">
-                {message('options_supplementalListProfilesTitle', `Proxy Profiles for ${list.name}`, list.name)}
+                {message('options_supplementalListProfilesTitle', `Manage Proxy Profile Links for “${list.name}”`, list.name)}
               </h4>
             </div>
-            <div className="modal-body supplemental-list-profile-links">
-              {profiles.map((profile) => (
-                <div className="checkbox" key={profile.name}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={selected.has(profile.name)}
-                      onChange={(event) => {
-                        const next = new Set(selected);
-                        if (event.currentTarget.checked) next.add(profile.name);
-                        else next.delete(profile.name);
-                        setSelected(next);
-                      }}
-                    />{' '}
-                    <ProfileInline profile={profile} />
-                  </label>
-                </div>
-              ))}
-              {!profiles.length && (
+            <div className="modal-body">
+              {profiles.length ? (
+                <table className="table table-striped supplemental-list-links-table">
+                  <thead>
+                    <tr>
+                      <th>{message('options_supplementalListColumnLink', 'Link')}</th>
+                      <th>{message('options_supplementalListColumnProxyProfile', 'Proxy Profile')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {profiles.map((profile) => {
+                      return (
+                        <tr key={profile.name}>
+                          <td className="supplemental-list-links-check-cell">
+                            <input
+                              type="checkbox"
+                              aria-label={profile.name}
+                              checked={selected.has(profile.name)}
+                              onChange={(event) => {
+                                const next = new Set(selected);
+                                if (event.currentTarget.checked) next.add(profile.name);
+                                else next.delete(profile.name);
+                                setSelected(next);
+                              }}
+                            />
+                          </td>
+                          <td>
+                            <ProfileInline profile={profile} />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              ) : (
                 <p className="text-muted">{message('options_supplementalListNoProfiles', 'No Proxy Profiles are available.')}</p>
               )}
             </div>
@@ -358,28 +374,44 @@ function GroupLinksModal({
                 <span aria-hidden="true">{'×'}</span>
               </button>
               <h4 className="modal-title">
-                {message('options_supplementalListGroupsTitle', `Profile Groups for ${list.name}`, list.name)}
+                {message('options_supplementalListGroupsTitle', `Manage Profile Group Links for “${list.name}”`, list.name)}
               </h4>
             </div>
             <div className="modal-body">
-              {groups.map((group) => (
-                <div className="checkbox" key={group.id}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={selected.has(group.id)}
-                      onChange={(event) => {
-                        const next = new Set(selected);
-                        if (event.currentTarget.checked) next.add(group.id);
-                        else next.delete(group.id);
-                        setSelected(next);
-                      }}
-                    />{' '}
-                    {group.name}
-                  </label>
-                </div>
-              ))}
-              {!groups.length && (
+              {groups.length ? (
+                <table className="table table-striped supplemental-list-links-table">
+                  <thead>
+                    <tr>
+                      <th>{message('options_supplementalListColumnLink', 'Link')}</th>
+                      <th>{message('options_supplementalListColumnProfileGroup', 'Profile Group')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {groups.map((group) => {
+                      return (
+                        <tr key={group.id}>
+                          <td className="supplemental-list-links-check-cell">
+                            <input
+                              type="checkbox"
+                              aria-label={group.name}
+                              checked={selected.has(group.id)}
+                              onChange={(event) => {
+                                const next = new Set(selected);
+                                if (event.currentTarget.checked) next.add(group.id);
+                                else next.delete(group.id);
+                                setSelected(next);
+                              }}
+                            />
+                          </td>
+                          <td>
+                            <ProfileGroupInline group={group} />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              ) : (
                 <p className="text-muted">{message('options_supplementalListNoGroups', 'No Profile Groups are available.')}</p>
               )}
             </div>
@@ -565,8 +597,8 @@ export function ProxyExceptionsPage({options, onOptionsChange}: {options: Option
             <thead>
               <tr>
                 <th>{message('options_supplementalListColumnList', 'List')}</th>
-                <th>{message('options_supplementalListColumnDirectProfiles', 'Direct Profiles')}</th>
-                {groupsEnabled && <th>{message('options_supplementalListColumnProfileGroups', 'Profile Groups')}</th>}
+                <th>{message('options_supplementalListColumnDirectProfiles', 'Direct Profile Links')}</th>
+                {groupsEnabled && <th>{message('options_supplementalListColumnProfileGroups', 'Profile Group Links')}</th>}
                 <th>{message('options_profileGroupColumnActions', 'Actions')}</th>
               </tr>
             </thead>
@@ -596,7 +628,7 @@ export function ProxyExceptionsPage({options, onOptionsChange}: {options: Option
                       <button
                         className="btn btn-default btn-sm"
                         type="button"
-                        title={message('options_supplementalListManageProfiles', 'Manage Profiles')}
+                        title={message('options_supplementalListManageProfiles', 'Manage Proxy Profile Links')}
                         onClick={() => setProfileLinksList(list)}
                       >
                         <span className="glyphicon glyphicon-arrow-right" aria-hidden="true" />
@@ -605,7 +637,7 @@ export function ProxyExceptionsPage({options, onOptionsChange}: {options: Option
                         <button
                           className="btn btn-default btn-sm"
                           type="button"
-                          title={message('options_supplementalListManageGroups', 'Manage Profile Groups')}
+                          title={message('options_supplementalListManageGroups', 'Manage Profile Group Links')}
                           onClick={() => setGroupLinksList(list)}
                         >
                           <span className="glyphicon glyphicon-folder-close" aria-hidden="true" />

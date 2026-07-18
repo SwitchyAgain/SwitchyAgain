@@ -1704,8 +1704,7 @@ main .profile-header {
 }
 
 .profile-group-color-custom-swatch-rainbow {
-  background:
-    linear-gradient(135deg, #9ce 0 16%, #9d9 16% 32%, #fe9 32% 48%, #fa8 48% 64%, #d497ee 64% 80%, #47b 80% 100%);
+  background: linear-gradient(135deg, #9ce 0 16%, #9d9 16% 32%, #fe9 32% 48%, #fa8 48% 64%, #d497ee 64% 80%, #47b 80% 100%);
 }
 
 .profile-name-input-group {
@@ -1734,8 +1733,7 @@ main .profile-header {
 
 .profile-new-color-swatch-auto,
 .profile-new-color-auto-swatch {
-  background:
-    linear-gradient(135deg, #9ce 0 16%, #9d9 16% 32%, #fe9 32% 48%, #fa8 48% 64%, #d497ee 64% 80%, #47b 80% 100%);
+  background: linear-gradient(135deg, #9ce 0 16%, #9d9 16% 32%, #fe9 32% 48%, #fa8 48% 64%, #d497ee 64% 80%, #47b 80% 100%);
 }
 
 .profile-new-color-popover {
@@ -2208,6 +2206,24 @@ main .profile-header {
 
 .profile-supplemental-lists-empty {
   margin-bottom: 0;
+}
+
+.supplemental-list-links-table {
+  table-layout: fixed;
+  margin-bottom: 0;
+}
+
+.supplemental-list-links-table td {
+  vertical-align: middle !important;
+}
+
+.supplemental-list-links-table > thead > tr > th:first-child {
+  width: 108px;
+  text-align: center;
+}
+
+.supplemental-list-links-check-cell {
+  text-align: center;
 }
 
 .supplemental-list-delete-links {
