@@ -575,8 +575,8 @@ msgid "options_exportPacFileHelp"
 msgstr ""
 "خروجی گرفتن پروفایل کنونی به صورت فایل PAC ، برای استفاده در دیگر مرورگرها ."
 
-msgid "options_group_importExportSettings"
-msgstr "تنظیمات"
+msgid "options_group_importExportBackup"
+msgstr "پشتیبان‌گیری"
 
 msgid "options_makeBackup"
 msgstr "پشتیبان‌گیری"
@@ -599,7 +599,7 @@ msgstr "تنظیمات آدرس فایل ( به طور مثال 'http://example.
 msgid "options_restoreOnlineSubmit"
 msgstr "بازگردانی"
 
-msgid "options_group_sync"
+msgid "options_group_importExportSync"
 msgstr "همگام‌سازی"
 
 msgid "options_syncProviderHelp"

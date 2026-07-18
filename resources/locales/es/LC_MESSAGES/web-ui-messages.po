@@ -588,8 +588,8 @@ msgstr ""
 "Exporta el perfil actual como un archivo PAC, para poder utilizarlo en otros "
 "navegadores."
 
-msgid "options_group_importExportSettings"
-msgstr "Ajustes"
+msgid "options_group_importExportBackup"
+msgstr "Copia de seguridad"
 
 msgid "options_makeBackup"
 msgstr "Crear copia de seguridad"
@@ -614,7 +614,7 @@ msgstr "URL del archivo de opciones (p.e. 'http://example.com/switchy.bak')"
 msgid "options_restoreOnlineSubmit"
 msgstr "Restaurar"
 
-msgid "options_group_sync"
+msgid "options_group_importExportSync"
 msgstr "Sincronización"
 
 msgid "options_syncProviderHelp"

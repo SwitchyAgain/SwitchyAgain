@@ -570,8 +570,8 @@ msgstr ""
 "Exportujte aktuální profil jako soubor PAC, takže můžete použít v jiných "
 "prohlížečích."
 
-msgid "options_group_importExportSettings"
-msgstr "Nastavení"
+msgid "options_group_importExportBackup"
+msgstr "Záloha"
 
 msgid "options_makeBackup"
 msgstr "Provést zálohu"
@@ -596,7 +596,7 @@ msgstr "URL souboru nastavení (e.g. 'http://example.com/switchy.bak')"
 msgid "options_restoreOnlineSubmit"
 msgstr "Obnovit"
 
-msgid "options_group_sync"
+msgid "options_group_importExportSync"
 msgstr "Synchronizace"
 
 msgid "options_syncProviderHelp"

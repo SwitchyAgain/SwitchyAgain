@@ -514,8 +514,8 @@ msgstr ""
 "Geçerli profili PAC dosyası olarak dışa aktar, böylece diğer tarayıcılarda "
 "kullanabilirsin."
 
-msgid "options_group_importExportSettings"
-msgstr "Ayarlar"
+msgid "options_group_importExportBackup"
+msgstr "Yedekleme"
 
 msgid "options_makeBackup"
 msgstr "Yedek oluştur"
@@ -540,7 +540,7 @@ msgstr "Seçenekler dosyası bağlantısı (ör. 'http://example.com/switchy.bak
 msgid "options_restoreOnlineSubmit"
 msgstr "Eski haline getir"
 
-msgid "options_group_sync"
+msgid "options_group_importExportSync"
 msgstr "Eşitleme"
 
 msgid "options_syncProviderHelp"

@@ -582,8 +582,8 @@ msgstr ""
 "Экспортируйте текущий профиль как PAC-файл, чтобы использовать его в других "
 "браузерах."
 
-msgid "options_group_importExportSettings"
-msgstr "Настройки"
+msgid "options_group_importExportBackup"
+msgstr "Резервное копирование"
 
 msgid "options_makeBackup"
 msgstr "Создать резервную копию"
@@ -609,7 +609,7 @@ msgstr "URL-адрес файла параметров (например, http:/
 msgid "options_restoreOnlineSubmit"
 msgstr "Восстановить"
 
-msgid "options_group_sync"
+msgid "options_group_importExportSync"
 msgstr "Синхронизация"
 
 msgid "options_syncProviderHelp"

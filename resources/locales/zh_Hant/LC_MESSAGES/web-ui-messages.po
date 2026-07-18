@@ -516,8 +516,8 @@ msgstr "匯出 PAC 檔案"
 msgid "options_exportPacFileHelp"
 msgstr "匯出 PAC（代理自動設定）檔案，以便在其它瀏覽器使用。"
 
-msgid "options_group_importExportSettings"
-msgstr "選項"
+msgid "options_group_importExportBackup"
+msgstr "備份"
 
 msgid "options_makeBackup"
 msgstr "輸出備份檔案"
@@ -540,7 +540,7 @@ msgstr "備份檔案位址 (如：http://example.com/switchy.bak)"
 msgid "options_restoreOnlineSubmit"
 msgstr "還原"
 
-msgid "options_group_sync"
+msgid "options_group_importExportSync"
 msgstr "同步"
 
 msgid "options_syncProviderHelp"

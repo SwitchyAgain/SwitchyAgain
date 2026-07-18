@@ -686,7 +686,7 @@ describe('import export component', () => {
   it('shows settings and sync without a profile export section', () => {
     render(<ImportExport embedded options={optionsFixture()} />);
 
-    expect(screen.getByRole('heading', {name: 'Settings'})).toBeTruthy();
+    expect(screen.getByRole('heading', {name: 'Backup'})).toBeTruthy();
     expect(screen.getByRole('heading', {name: 'Sync'})).toBeTruthy();
     expect(screen.queryByRole('heading', {name: 'Profile'})).toBeNull();
   });

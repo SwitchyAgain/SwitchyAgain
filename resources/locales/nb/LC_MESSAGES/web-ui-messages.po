@@ -516,8 +516,8 @@ msgstr ""
 "Eksporter gjeldende profil som PAC-fil, slik at du kan bruke den i andre "
 "nettlesere."
 
-msgid "options_group_importExportSettings"
-msgstr "Innstillinger"
+msgid "options_group_importExportBackup"
+msgstr "Sikkerhetskopi"
 
 msgid "options_makeBackup"
 msgstr "Ta sikkerhetskopi"
@@ -541,7 +541,7 @@ msgstr "URL til valg-fil (f.eks. 'http://eksempel.no/switchy.bak')"
 msgid "options_restoreOnlineSubmit"
 msgstr "Gjenopprett"
 
-msgid "options_group_sync"
+msgid "options_group_importExportSync"
 msgstr "Synkronisering"
 
 msgid "options_syncProviderHelp"

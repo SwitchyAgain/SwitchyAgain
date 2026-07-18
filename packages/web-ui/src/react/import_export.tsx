@@ -706,7 +706,7 @@ export function ImportExport({
         </div>
       )}
 
-      <h3>{message('options_group_importExportSettings', 'Settings')}</h3>
+      <h3>{message('options_group_importExportBackup', 'Backup')}</h3>
       <p className="react-action-row">
         <button type="button" className="btn btn-default" disabled={!options || busy} onClick={exportOptions}>
           <span className="glyphicon glyphicon-floppy-save" /> {message('options_makeBackup', 'Make backup')}
@@ -756,7 +756,7 @@ export function ImportExport({
 
   const syncSection = (
     <section className="settings-group">
-      <h3>{message('options_group_sync', 'Sync')}</h3>
+      <h3>{message('options_group_importExportSync', 'Sync')}</h3>
       <div className="help-block">
         <div className="text-info">
           <span className="glyphicon glyphicon-info-sign" />{' '}
