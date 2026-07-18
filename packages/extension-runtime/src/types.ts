@@ -158,12 +158,15 @@ export type ProxyEngineModule = {
 export type OptionsSyncLike = {
   copyTo(storage: StorageLike): RuntimePromise<unknown>;
   enabled: boolean;
+  onPullError?: (error: unknown) => unknown;
   onPushError?: (error: unknown) => unknown;
   preserveSyncEnabledState?: boolean;
   pushRetryDelay?: number;
   requestPush(changes: StorageChanges): unknown;
   storage: StorageLike;
   transformValue?: (value: StorageValue, key?: string) => StorageValue;
+  validateRemoteChanges?: (changes: StorageChanges) => boolean;
+  validateRemoteOptions?: (options: OptionsData) => boolean;
   watchAndPull(storage: StorageLike): StopWatching;
 };
 

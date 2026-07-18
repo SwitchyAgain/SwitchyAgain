@@ -1,6 +1,7 @@
 import assert from 'assert';
 import Promise from '../src/promise';
 import LogClass from '../src/log';
+import {isCurrentOrEmptySyncOptions} from '../src/options_schema';
 import OptionsSyncClass from '../src/options_sync';
 import StorageClass from '../src/storage';
 import {assertCalledOnce, assertCalledTwice, assertCalledWith, createSpy, spyOn, stubOn} from './helpers/test_helpers';
@@ -170,6 +171,26 @@ describe('OptionsSync', function () {
         });
       });
     });
+    it('should reject pushes to incompatible remote options without modifying them', async function () {
+      const storage = new Storage();
+      await storage.set({schemaVersion: 3, oldOption: true});
+      const sync = new OptionsSync(storage, unlimited);
+      sync.enabled = false;
+      sync.validateRemoteOptions = isCurrentOrEmptySyncOptions;
+      sync.requestPush({
+        schema: 'SwitchyAgainOptions',
+        version: 1,
+        currentOption: true
+      });
+      sync.enabled = true;
+
+      await assert.rejects(sync._doPush(), /Incompatible options sync format/);
+
+      assert.deepStrictEqual(await storage.get(null), {
+        schemaVersion: 3,
+        oldOption: true
+      });
+    });
     it('should combine multiple write operations', function () {
       return new Promise<void>((resolve, reject) => {
         let check: () => void, storage: any, sync: any;
@@ -318,6 +339,17 @@ describe('OptionsSync', function () {
     });
   });
   describe('#copyTo', function () {
+    it('should reject incompatible remote option formats when validation is enabled', async function () {
+      const remote = new Storage();
+      await remote.set({schemaVersion: 3, customOption: true});
+      const local = new Storage();
+      const sync = new OptionsSync(remote);
+      sync.validateRemoteOptions = isCurrentOrEmptySyncOptions;
+
+      await assert.rejects(sync.copyTo(local), /Incompatible options sync format/);
+      assert.deepStrictEqual(await local.get(null), {});
+    });
+
     it('should fetch all items from remote storage', function () {
       return new Promise<void>((resolve, reject) => {
         let remote: any, storage: any, sync: any;

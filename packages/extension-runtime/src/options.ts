@@ -5,7 +5,18 @@ import {Buffer} from 'buffer';
 import {patch as patchJson} from 'jsondiffpatch';
 import ProxyEngineImpl from '@switchyagain/proxy-engine';
 import defaultOptions from './default_options';
+import {IncompatibleOptionsSyncError} from './errors';
 import Log from './log';
+import {
+  areCompatibleSyncChanges,
+  isCurrentOptions,
+  isCurrentOrEmptySyncOptions,
+  isEmptyOptions,
+  isLegacyOptions,
+  migrateLegacyOptions,
+  OPTIONS_SCHEMA,
+  OPTIONS_VERSION
+} from './options_schema';
 import Promise from './promise';
 import Storage from './storage';
 import type {
@@ -240,41 +251,6 @@ type SetOptionsSyncArgs = {
   force?: boolean;
 };
 
-type BypassConditionLike = {
-  conditionType?: string;
-  pattern?: string;
-};
-
-function migrateLocalBypassList(profile: ProfileLike): boolean {
-  if (profile.profileType !== 'FixedProfile' || !Array.isArray(profile.bypassList)) {
-    return false;
-  }
-  const bypassList = profile.bypassList as BypassConditionLike[];
-  const bypassPatterns = new Set(
-    bypassList.map((condition) => {
-      if (condition.conditionType === 'BypassCondition') {
-        return ProxyEngine.Conditions.str(condition).replace(/^Bypass:\s*/, '');
-      }
-      return condition.pattern;
-    })
-  );
-  if (!bypassPatterns.has('<local>')) {
-    return false;
-  }
-  let changed = false;
-  for (const pattern of ProxyEngine.Conditions.localHosts) {
-    if (bypassPatterns.has(pattern)) {
-      continue;
-    }
-    bypassList.push({
-      conditionType: 'BypassCondition',
-      pattern
-    });
-    changed = true;
-  }
-  return changed;
-}
-
 type AvailableProfile = {
   builtin?: boolean;
   color?: unknown;
@@ -363,6 +339,16 @@ type RequestExplanation = {
 class Options {
   static ProfileNotExistError = ProfileNotExistError;
   static NoOptionsError = NoOptionsError;
+  static schema = OPTIONS_SCHEMA;
+  static version = OPTIONS_VERSION;
+
+  static validateSyncOptions(options: OptionsData) {
+    return isCurrentOrEmptySyncOptions(options);
+  }
+
+  static validateSyncChanges(changes: StorageChanges) {
+    return areCompatibleSyncChanges(changes);
+  }
 
   _options: OptionsData = {};
   _storage: StorageLike;
@@ -479,10 +465,15 @@ class Options {
         this._state.set({
           syncOptions: 'sync'
         });
-        this._syncWatchStop = sync.watchAndPull(this._storage);
         loadRaw = sync
           .copyTo(this._storage)
           .catch((error: unknown) => {
+            if (error instanceof IncompatibleOptionsSyncError) {
+              sync.enabled = false;
+              return this._state.set({
+                syncOptions: 'conflict'
+              });
+            }
             if (!(error instanceof Storage.StorageUnavailableError)) {
               return Promise.reject(error);
             }
@@ -515,6 +506,10 @@ class Options {
       .then((loadedOptions: OptionsData) => {
         this._options = loadedOptions;
         this._watchStop = this._watch();
+        const activeSync = this.sync;
+        if (activeSync?.enabled && this._syncWatchStop == null) {
+          this._syncWatchStop = activeSync.watchAndPull(this._storage);
+        }
         return this._state
           .get({
             syncOptions: ''
@@ -531,9 +526,8 @@ class Options {
             this._state.set({
               syncOptions: 'conflict'
             });
-            return sync.storage.get('schemaVersion').then((arg2) => {
-              const schemaVersion = arg2.schemaVersion;
-              if (!schemaVersion) {
+            return sync.storage.get(['schema', 'version']).then((remoteOptions) => {
+              if (!isCurrentOptions(remoteOptions)) {
                 if (preserveSyncEnabledState()) {
                   return this._state.set({
                     syncOptions: 'sync'
@@ -576,8 +570,8 @@ class Options {
                 }
                 return sync.storage
                   .get(null)
-                  .then((options) => {
-                    if (!options['schemaVersion']) {
+                  .then((remoteOptions) => {
+                    if (!isCurrentOptions(remoteOptions)) {
                       if (preserveSyncEnabledState()) {
                         this._state.set({
                           syncOptions: 'sync'
@@ -593,8 +587,8 @@ class Options {
                         syncOptions: 'sync'
                       });
                       sync.enabled = true;
-                      this.log.log('Options#loadOptions::fromSync', options);
-                      return options;
+                      this.log.log('Options#loadOptions::fromSync', remoteOptions);
+                      return remoteOptions;
                     }
                   })
                   .catch((): null => {
@@ -718,14 +712,9 @@ class Options {
   }
 
   /**
-   * Upgrade options from previous versions.
-   * For now, this method supports schemaVersion 1, 2, and 3. It upgrades older
-   * options to version 3 (the latest version). Otherwise it rejects.
-   * It is recommended for the derived classes to call super() two times in the
-   * beginning and in the end of the implementation to check the schemaVersion
-   * and to apply future upgrades, respectively.
-   * Example: super(options).catch -> super(doCustomUpgrades(options), changes)
-   * @param {?OmegaOptions} options The legacy options to upgrade
+   * Validate current SwitchyAgain options and migrate legacy schemaVersion 3
+   * options to the SwitchyAgain options schema.
+   * @param {?OmegaOptions} options The options to validate or migrate
    * @param {{}={}} changes Previous pending changes to be applied. Default to
    * an empty dictionary. Please provide this argument when calling super().
    * @returns {Promise<[OmegaOptions, {}]>} The new options and the changes.
@@ -735,71 +724,54 @@ class Options {
     if (changes == null) {
       changes = {};
     }
-    if (options == null) {
+    if (isEmptyOptions(options)) {
       return Promise.reject(new NoOptionsError());
     }
-    let version = options != null ? options['schemaVersion'] : void 0;
-    if (version === 1) {
-      let autoDetectUsed = false;
-      ProxyEngine.Profiles.each(options, (_key, profile) => {
-        if (!autoDetectUsed) {
-          const refs = ProxyEngine.Profiles.directReferenceSet(profile);
-          if (refs['+auto_detect']) {
-            return (autoDetectUsed = true);
-          }
-        }
-      });
-      if (autoDetectUsed) {
-        options['+auto_detect'] = ProxyEngine.Profiles.create({
-          name: 'auto_detect',
-          profileType: 'PacProfile',
-          pacUrl: 'http://wpad/wpad.dat',
-          color: '#00cccc'
-        });
-      }
-      version = changes['schemaVersion'] = options['schemaVersion'] = 2;
+    if (options!['schemaVersion'] != null && !isLegacyOptions(options)) {
+      return Promise.reject(new Error('Invalid schemaVersion ' + options!['schemaVersion'] + '!'));
     }
-    if (version === 2) {
-      ProxyEngine.Profiles.each(options, (key, profile) => {
-        if (migrateLocalBypassList(profile)) {
-          ProxyEngine.Profiles.updateRevision(profile);
-          changes[key] = profile;
-        }
-      });
-      version = changes['schemaVersion'] = options['schemaVersion'] = 3;
+    if (isLegacyOptions(options)) {
+      migrateLegacyOptions(options!, changes);
     }
-    if (version === 3) {
-      const uiLocale = this.normalizeUiLocale(options['-uiLocale']);
-      if (options['-uiLocale'] !== uiLocale) {
-        changes['-uiLocale'] = uiLocale;
-        options['-uiLocale'] = uiLocale;
-      }
-      const uiTheme = this.normalizeUiTheme(options['-uiTheme']);
-      if (options['-uiTheme'] !== uiTheme) {
-        changes['-uiTheme'] = uiTheme;
-        options['-uiTheme'] = uiTheme;
-      }
-      const profileScopes = normalizeProfileScopes(options['-profileScopes']);
-      if (
-        !profileScopeSettingsEqual(normalizeProfileScopes(options['-profileScopes']), options['-profileScopes'] as ProfileScopeSettings)
-      ) {
-        changes['-profileScopes'] = profileScopes;
-        options['-profileScopes'] = profileScopes;
-      }
-      const profileScopeAssignments = normalizeProfileScopeAssignments(options['-profileScopeAssignments']);
-      if (!profileScopeAssignmentsEqual(profileScopeAssignments, options['-profileScopeAssignments'] as ProfileScopeAssignments)) {
-        changes['-profileScopeAssignments'] = profileScopeAssignments;
-        options['-profileScopeAssignments'] = profileScopeAssignments;
-      }
-      const contextMenuOptions = normalizeContextMenuOptions(options['-contextMenuOptions']);
-      if (!contextMenuOptionsEqual(contextMenuOptions, options['-contextMenuOptions'])) {
-        changes['-contextMenuOptions'] = contextMenuOptions;
-        options['-contextMenuOptions'] = contextMenuOptions;
-      }
-      return Promise.resolve([options, changes]);
-    } else {
-      return Promise.reject(new Error('Invalid schemaVersion ' + version + '!'));
+    if (!isCurrentOptions(options)) {
+      return Promise.reject(new Error('Invalid options schema or version!'));
     }
+    if (hasProp.call(options, 'schemaVersion')) {
+      delete options!['schemaVersion'];
+      changes['schemaVersion'] = undefined;
+    }
+    const currentOptions = options!;
+    const uiLocale = this.normalizeUiLocale(currentOptions['-uiLocale']);
+    if (currentOptions['-uiLocale'] !== uiLocale) {
+      changes['-uiLocale'] = uiLocale;
+      currentOptions['-uiLocale'] = uiLocale;
+    }
+    const uiTheme = this.normalizeUiTheme(currentOptions['-uiTheme']);
+    if (currentOptions['-uiTheme'] !== uiTheme) {
+      changes['-uiTheme'] = uiTheme;
+      currentOptions['-uiTheme'] = uiTheme;
+    }
+    const profileScopes = normalizeProfileScopes(currentOptions['-profileScopes']);
+    if (
+      !profileScopeSettingsEqual(
+        normalizeProfileScopes(currentOptions['-profileScopes']),
+        currentOptions['-profileScopes'] as ProfileScopeSettings
+      )
+    ) {
+      changes['-profileScopes'] = profileScopes;
+      currentOptions['-profileScopes'] = profileScopes;
+    }
+    const profileScopeAssignments = normalizeProfileScopeAssignments(currentOptions['-profileScopeAssignments']);
+    if (!profileScopeAssignmentsEqual(profileScopeAssignments, currentOptions['-profileScopeAssignments'] as ProfileScopeAssignments)) {
+      changes['-profileScopeAssignments'] = profileScopeAssignments;
+      currentOptions['-profileScopeAssignments'] = profileScopeAssignments;
+    }
+    const contextMenuOptions = normalizeContextMenuOptions(currentOptions['-contextMenuOptions']);
+    if (!contextMenuOptionsEqual(contextMenuOptions, currentOptions['-contextMenuOptions'])) {
+      changes['-contextMenuOptions'] = contextMenuOptions;
+      currentOptions['-contextMenuOptions'] = contextMenuOptions;
+    }
+    return Promise.resolve([currentOptions, changes]);
   }
 
   /**
@@ -824,19 +796,13 @@ class Options {
         options = undefined;
       }
     }
-    if (importedBackup && isRecordValue(options) && hasProp.call(options, 'schema')) {
-      if (
-        options['schema'] !== switchyAgainBackupSchema ||
-        options['version'] !== switchyAgainBackupVersion ||
-        !isRecordValue(options['options']) ||
-        Array.isArray(options['options'])
-      ) {
+    if (importedBackup && isRecordValue(options) && options['schema'] === switchyAgainBackupSchema) {
+      if (options['version'] !== switchyAgainBackupVersion || !isRecordValue(options['options']) || Array.isArray(options['options'])) {
         throw new Error('Invalid backup file!');
       }
-      options = {
-        ...options['options'],
-        schemaVersion: 3
-      };
+      options = {...options['options']};
+    } else if (importedBackup && isRecordValue(options) && hasProp.call(options, 'schema') && options['schema'] !== OPTIONS_SCHEMA) {
+      throw new Error('Invalid backup file!');
     }
     if (importedBackup && isRecordValue(options) && (options['schemaVersion'] === 1 || options['schemaVersion'] === 2)) {
       throw new Error('Invalid schemaVersion ' + options['schemaVersion'] + '!');
@@ -2289,26 +2255,31 @@ class Options {
         if (syncOptions === 'sync') {
           return;
         }
-        return this._state
-          .set({
-            syncOptions: 'sync'
-          })
-          .then(() => {
-            if (syncOptions === 'conflict') {
-              sync.enabled = false;
-              return this._storage.remove().then(() => {
+        return sync.storage.get(null).then((remoteOptions) => {
+          if (sync.validateRemoteOptions?.(remoteOptions) === false) {
+            return Promise.reject(new IncompatibleOptionsSyncError());
+          }
+          return this._state
+            .set({
+              syncOptions: 'sync'
+            })
+            .then(() => {
+              if (syncOptions === 'conflict') {
+                sync.enabled = false;
+                return this._storage.remove().then(() => {
+                  sync.enabled = true;
+                  return this.init();
+                });
+              } else {
                 sync.enabled = true;
-                return this.init();
-              });
-            } else {
-              sync.enabled = true;
-              if (typeof this._syncWatchStop === 'function') {
-                this._syncWatchStop();
+                if (typeof this._syncWatchStop === 'function') {
+                  this._syncWatchStop();
+                }
+                sync.requestPush(this._options);
+                this._syncWatchStop = sync.watchAndPull(this._storage);
               }
-              sync.requestPush(this._options);
-              this._syncWatchStop = sync.watchAndPull(this._storage);
-            }
-          });
+            });
+        });
       });
   }
 

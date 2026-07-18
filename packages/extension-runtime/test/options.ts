@@ -1,6 +1,8 @@
 import assert from 'assert';
 import Promise from '../src/promise';
 import OptionsClass from '../src/options';
+import {isCurrentOrEmptySyncOptions} from '../src/options_schema';
+import Storage from '../src/storage';
 import {assertCalledOnce, assertCalledWith, stubReturns} from './helpers/test_helpers';
 
 describe('Options', function () {
@@ -20,6 +22,8 @@ describe('Options', function () {
             extensionVersion: '1.3.0'
           },
           options: {
+            schema: 'SwitchyAgainOptions',
+            version: 1,
             '+proxy': {
               name: 'proxy',
               profileType: 'FixedProfile'
@@ -29,7 +33,8 @@ describe('Options', function () {
       );
 
       assert.deepStrictEqual(parsed, {
-        schemaVersion: 3,
+        schema: 'SwitchyAgainOptions',
+        version: 1,
         '+proxy': {
           name: 'proxy',
           profileType: 'FixedProfile'
@@ -67,102 +72,58 @@ describe('Options', function () {
   });
 
   describe('#upgrade', function () {
-    it('should preserve loopback bypass behavior when upgrading <local> from schemaVersion 2', function () {
+    it('should migrate legacy schemaVersion 3 options to the SwitchyAgain schema', function () {
       const options = Object.create(Options.prototype);
       return options
         .upgrade({
-          schemaVersion: 2,
-          '+proxy': {
-            name: 'proxy',
-            profileType: 'FixedProfile',
-            bypassList: [
-              {
-                conditionType: 'BypassCondition',
-                pattern: '<local>'
-              }
-            ]
-          }
+          schemaVersion: 3,
+          customOption: true
         })
         .then(([upgraded, changes]: any[]) => {
-          assert.strictEqual(upgraded.schemaVersion, 3);
-          assert.strictEqual(changes.schemaVersion, 3);
-          assert.deepStrictEqual(
-            upgraded['+proxy'].bypassList.map((condition: any) => condition.pattern),
-            ['<local>', '127.0.0.1', '[::1]', 'localhost']
-          );
-          assert.strictEqual(changes['+proxy'], upgraded['+proxy']);
+          assert.deepStrictEqual(upgraded, {
+            schema: 'SwitchyAgainOptions',
+            version: 1,
+            customOption: true,
+            '-uiLocale': 'en',
+            '-uiTheme': 'light',
+            '-profileScopes': {
+              container: false,
+              group: false,
+              tab: false,
+              window: false
+            },
+            '-profileScopeAssignments': {
+              containers: {}
+            },
+            '-contextMenuOptions': {
+              switchProfile: true,
+              tabProfile: false,
+              groupProfile: false,
+              containerProfile: false,
+              windowProfile: false,
+              linkProfileNewTab: false,
+              linkProfileNewWindow: false,
+              linkProfileNewPrivateWindow: false
+            }
+          });
+          assert.strictEqual(changes.schema, 'SwitchyAgainOptions');
+          assert.strictEqual(changes.version, 1);
+          assert.strictEqual(changes.schemaVersion, undefined);
         });
     });
 
-    it('should not duplicate explicit local bypass entries when upgrading schemaVersion 2', function () {
+    it('should reject legacy schemaVersion 1 and 2 options', async function () {
       const options = Object.create(Options.prototype);
-      return options
-        .upgrade({
-          schemaVersion: 2,
-          '+proxy': {
-            name: 'proxy',
-            profileType: 'FixedProfile',
-            bypassList: [
-              {
-                conditionType: 'BypassCondition',
-                pattern: '<local>'
-              },
-              {
-                conditionType: 'BypassCondition',
-                pattern: '127.0.0.1'
-              },
-              {
-                conditionType: 'BypassCondition',
-                pattern: '[::1]'
-              },
-              {
-                conditionType: 'BypassCondition',
-                pattern: 'localhost'
-              }
-            ]
-          }
-        })
-        .then(([upgraded]: any[]) => {
-          assert.deepStrictEqual(
-            upgraded['+proxy'].bypassList.map((condition: any) => condition.pattern),
-            ['<local>', '127.0.0.1', '[::1]', 'localhost']
-          );
-        });
-    });
-
-    it('should recognize unbracketed IPv6 loopback when upgrading schemaVersion 2', function () {
-      const options = Object.create(Options.prototype);
-      return options
-        .upgrade({
-          schemaVersion: 2,
-          '+proxy': {
-            name: 'proxy',
-            profileType: 'FixedProfile',
-            bypassList: [
-              {
-                conditionType: 'BypassCondition',
-                pattern: '<local>'
-              },
-              {
-                conditionType: 'BypassCondition',
-                pattern: '::1'
-              }
-            ]
-          }
-        })
-        .then(([upgraded]: any[]) => {
-          assert.deepStrictEqual(
-            upgraded['+proxy'].bypassList.map((condition: any) => condition.pattern),
-            ['<local>', '::1', '127.0.0.1', 'localhost']
-          );
-        });
+      await assert.rejects(options.upgrade({schemaVersion: 1}), /Invalid schemaVersion 1/);
+      await assert.rejects(options.upgrade({schemaVersion: 2}), /Invalid schemaVersion 2/);
     });
 
     it('should add a default UI locale when upgrading existing options', function () {
       const options = Object.create(Options.prototype);
       return options
         .upgrade({
-          schemaVersion: 3
+          schema: 'SwitchyAgainOptions',
+          version: 1
         })
         .then(([upgraded, changes]: any[]) => {
           assert.strictEqual(upgraded['-uiLocale'], 'en');
@@ -177,7 +138,8 @@ describe('Options', function () {
       options.defaultUiLocale = () => 'es';
       return options
         .upgrade({
-          schemaVersion: 3,
+          schema: 'SwitchyAgainOptions',
+          version: 1,
           '-uiLocale': 'de',
           '-uiTheme': 'unknown'
         })
@@ -193,7 +155,8 @@ describe('Options', function () {
       const options = Object.create(Options.prototype);
       return options
         .upgrade({
-          schemaVersion: 3,
+          schema: 'SwitchyAgainOptions',
+          version: 1,
           '-uiLocale': 'en',
           '-uiTheme': 'system'
         })
@@ -207,7 +170,8 @@ describe('Options', function () {
       const options = Object.create(Options.prototype);
       return options
         .upgrade({
-          schemaVersion: 3,
+          schema: 'SwitchyAgainOptions',
+          version: 1,
           '-uiLocale': 'en',
           '-uiTheme': 'light',
           '-profileScopes': {
@@ -232,7 +196,8 @@ describe('Options', function () {
       const options = Object.create(Options.prototype);
       return options
         .upgrade({
-          schemaVersion: 3,
+          schema: 'SwitchyAgainOptions',
+          version: 1,
           '-uiLocale': 'en',
           '-uiTheme': 'light'
         })
@@ -279,9 +244,38 @@ describe('Options', function () {
     });
   });
 
+  describe('#setOptionsSync', function () {
+    it('should reject incompatible remote options before replacing local options', async function () {
+      const options = Object.create(Options.prototype);
+      const local = new Storage();
+      const remote = new Storage();
+      const state = new Storage();
+      await local.set({schema: 'SwitchyAgainOptions', version: 1, localOption: true});
+      await remote.set({schemaVersion: 3, remoteOption: true});
+      await state.set({syncOptions: 'conflict'});
+      options._storage = local;
+      options._state = state;
+      options.log = {method() {}};
+      options.sync = {
+        enabled: false,
+        storage: remote,
+        validateRemoteOptions: isCurrentOrEmptySyncOptions
+      };
+
+      await assert.rejects(options.setOptionsSync(true, {force: true}), /Incompatible options sync format/);
+
+      assert.deepStrictEqual(await local.get(null), {
+        schema: 'SwitchyAgainOptions',
+        version: 1,
+        localOption: true
+      });
+      assert.deepStrictEqual(await state.get('syncOptions'), {syncOptions: 'conflict'});
+    });
+  });
+
   describe('#applied profile dependencies', function () {
     it('should reapply the current profile when a subclass option affects proxy behavior', async function () {
-      const options = new Options({schemaVersion: 3});
+      const options = new Options({schema: 'SwitchyAgainOptions', version: 1});
       await options.ready;
       options._options = {};
       options._watchingProfiles = {};

@@ -58,7 +58,8 @@ type WebDavSyncPublicConfig = Omit<WebDavSyncConfig, 'password'> & {
 type WebDavSyncTestResult = {
   exists: boolean;
   ok: boolean;
-  schemaVersion?: unknown;
+  schema?: unknown;
+  version?: unknown;
 };
 
 type WebDavSyncStatusState = 'success' | 'retrying' | 'error';
@@ -149,6 +150,7 @@ type BackgroundRespond = (response: BackgroundRuntimeResponse) => void;
 type BackgroundSync = {
   enabled: boolean;
   copyTo(local: unknown): RuntimePromise<unknown>;
+  onPullError?: (error: unknown) => unknown;
   onPushError?: (error: unknown) => unknown;
   preserveSyncEnabledState?: boolean;
   pushRetryDelay?: number;
@@ -160,6 +162,8 @@ type BackgroundSync = {
     watchCallback?: (changes: Record<string, unknown | undefined>) => unknown;
   };
   transformValue?: unknown;
+  validateRemoteChanges?: (changes: Record<string, unknown | undefined>) => boolean;
+  validateRemoteOptions?: (options: Record<string, unknown>) => boolean;
   watchAndPull(local: unknown): () => unknown;
   _pending?: Record<string, unknown>;
   _retryTimeout?: ReturnType<typeof setTimeout> | null;
@@ -319,6 +323,8 @@ type BackgroundExtensionRuntime = {
     proxyImpl: BackgroundProxyImpl
   ) => BackgroundOptions) & {
     transformValueForSync(value: unknown, key: string): unknown;
+    validateSyncChanges(changes: Record<string, unknown | undefined>): boolean;
+    validateSyncOptions(options: Record<string, unknown>): boolean;
   };
   OptionsSync: new (storage: unknown) => BackgroundSync;
   Promise: BackgroundPromiseStatic;
@@ -1202,6 +1208,8 @@ type BackgroundExtensionRuntime = {
   function createOptionsSync(syncStorage: unknown) {
     const sync = new ExtensionRuntimeCurrent.OptionsSync(syncStorage) as BackgroundSync;
     sync.transformValue = ExtensionRuntimeCurrent.Options.transformValueForSync;
+    sync.validateRemoteChanges = ExtensionRuntimeCurrent.Options.validateSyncChanges;
+    sync.validateRemoteOptions = ExtensionRuntimeCurrent.Options.validateSyncOptions;
     return sync;
   }
 
@@ -1217,6 +1225,7 @@ type BackgroundExtensionRuntime = {
       onWriteSuccess: () => recordWebDavSyncSuccess('upload', true)
     });
     sync = createOptionsSync(storage);
+    sync.onPullError = (error: unknown) => recordWebDavSyncFailure('download', error, true);
     sync.onPushError = (error: unknown) => recordWebDavSyncFailure('upload', error, true);
     sync.preserveSyncEnabledState = true;
     sync.pushRetryDelay = WEBDAV_PUSH_RETRY_DELAY_MS;
@@ -1503,10 +1512,11 @@ type BackgroundExtensionRuntime = {
             ok: true
           });
         }
-        return storage.get('schemaVersion').then((items) => ({
+        return storage.get(['schema', 'version']).then((items) => ({
           exists: true,
           ok: true,
-          schemaVersion: items.schemaVersion
+          schema: items.schema,
+          version: items.version
         }));
       });
     });

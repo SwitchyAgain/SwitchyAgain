@@ -43,3 +43,11 @@ export class ContentTypeRejectedError extends Error {
     this.name = 'ContentTypeRejectedError';
   }
 }
+
+export class IncompatibleOptionsSyncError extends Error {
+  constructor() {
+    super('Incompatible options sync format.');
+    this.name = 'IncompatibleOptionsSyncError';
+    Object.setPrototypeOf(this, IncompatibleOptionsSyncError.prototype);
+  }
+}

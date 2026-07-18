@@ -293,7 +293,9 @@ type RequestMonitorLike = {
 type ChromePortLike = InstanceType<typeof ChromePort>;
 
 type UpgradeOptions = Record<string, unknown> & {
+  schema?: unknown;
   schemaVersion?: unknown;
+  version?: unknown;
 };
 
 function normalizeSocks5LocalDnsProfile(profile: Profile) {
@@ -2988,7 +2990,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
   }
 
   upgrade(options: UpgradeOptions | null | undefined, changes?: Record<string, unknown>) {
-    if (options == null || Object.keys(options).length === 0 || options.schemaVersion == null) {
+    if (options == null || Object.keys(options).length === 0 || (options.schema == null && options.schemaVersion == null)) {
       return RuntimePromise.reject(new ExtensionRuntime.Options.NoOptionsError());
     }
     return super.upgrade(options, changes).then((upgradeResult: unknown) => {

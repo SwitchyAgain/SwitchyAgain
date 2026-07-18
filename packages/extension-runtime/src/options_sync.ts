@@ -3,6 +3,7 @@
 import {create as createJsonDiffPatch} from 'jsondiffpatch';
 import {TokenBucket} from 'limiter';
 import ProxyEngine from '@switchyagain/proxy-engine';
+import {IncompatibleOptionsSyncError} from './errors';
 import Log from './log';
 import Promise from './promise';
 import StorageClass from './storage';
@@ -87,6 +88,10 @@ class OptionsSync {
   enabled: boolean = true;
 
   onPushError?: (error: unknown) => unknown;
+  onPullError?: (error: unknown) => unknown;
+
+  validateRemoteChanges?: (changes: StorageChanges) => boolean;
+  validateRemoteOptions?: (options: StorageItems) => boolean;
 
   constructor(storage?: StorageLike | null, _bucket?: TokenBucketLike) {
     this.storage = storage ?? new StorageClass();
@@ -214,6 +219,12 @@ class OptionsSync {
         return this.storage.get(null);
       })
       .then((base: StorageItems) => {
+        if (this.validateRemoteOptions?.(base) === false) {
+          throw new IncompatibleOptionsSyncError();
+        }
+        return base;
+      })
+      .then((base: StorageItems) => {
         const changes = this._pending;
         this._pending = {};
         this._waiting = false;
@@ -307,6 +318,9 @@ class OptionsSync {
     return Promise.all([local.get(null), this.storage.get(null)]).then((values) => {
       const base = values[0] as StorageItems;
       const changes = values[1] as StorageChanges;
+      if (this.validateRemoteOptions?.(changes) === false) {
+        throw new IncompatibleOptionsSyncError();
+      }
       for (const key in base) {
         if (!Object.prototype.hasOwnProperty.call(base, key)) continue;
         if (!(key in changes)) {
@@ -355,6 +369,10 @@ class OptionsSync {
         });
     };
     return this.storage.watch(null, (changes: StorageChanges) => {
+      if (this.validateRemoteChanges?.(changes) === false) {
+        this.onPullError?.(new IncompatibleOptionsSyncError());
+        return;
+      }
       for (const key in changes) {
         if (!Object.prototype.hasOwnProperty.call(changes, key)) continue;
         const value = changes[key];

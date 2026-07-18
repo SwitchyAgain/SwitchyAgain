@@ -109,7 +109,8 @@ export function readJson(filePath) {
 
 export function defaultOptions() {
   return {
-    schemaVersion: 3,
+    schema: 'SwitchyAgainOptions',
+    version: 1,
     '-enableQuickSwitch': false,
     '-refreshOnProfileChange': false,
     '-uiLocale': 'en',

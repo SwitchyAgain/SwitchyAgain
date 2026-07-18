@@ -1,6 +1,9 @@
+import {OPTIONS_SCHEMA, OPTIONS_VERSION} from './options_schema';
+
 export default function defaultOptions() {
   return {
-    schemaVersion: 3,
+    schema: OPTIONS_SCHEMA,
+    version: OPTIONS_VERSION,
     '-enableQuickSwitch': false,
     '-refreshOnProfileChange': false,
     '-uiLocale': 'en',

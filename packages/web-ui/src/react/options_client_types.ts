@@ -104,7 +104,8 @@ export type WebDavSyncManualAction = 'downloadNow' | 'uploadNow';
 export type WebDavSyncTestResult = {
   exists: boolean;
   ok: boolean;
-  schemaVersion?: unknown;
+  schema?: unknown;
+  version?: unknown;
 };
 
 export type WebDavSyncStatus = {

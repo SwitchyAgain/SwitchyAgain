@@ -21,7 +21,8 @@ describe('import export logic', () => {
 
   it('serializes options through the SwitchyAgain backup envelope', () => {
     const options: Options = {
-      schemaVersion: 3,
+      schema: 'SwitchyAgainOptions',
+      version: 1,
       '+proxy': {
         name: 'proxy',
         profileType: 'FixedProfile'
@@ -36,6 +37,8 @@ describe('import export logic', () => {
         version: 1,
         metadata,
         options: {
+          schema: 'SwitchyAgainOptions',
+          version: 1,
           '+proxy': {
             name: 'proxy',
             profileType: 'FixedProfile'
@@ -48,6 +51,8 @@ describe('import export logic', () => {
 
   it('omits downloaded online rule-list content from backup when requested', () => {
     const options: Options = {
+      schema: 'SwitchyAgainOptions',
+      version: 1,
       '+online': {
         defaultProfileName: 'direct',
         lastUpdate: '2024-01-01T00:00:00.000Z',
@@ -87,6 +92,8 @@ describe('import export logic', () => {
         version: 1,
         metadata,
         options: {
+          schema: 'SwitchyAgainOptions',
+          version: 1,
           '+online': {
             defaultProfileName: 'direct',
             matchProfileName: 'proxy',

@@ -29,6 +29,7 @@ for (const name of Object.keys(errorExports)) {
 export {BrowserStorage, Log, Options, OptionsSync, Storage, ProxyEngine};
 
 export * from './errors';
+export * from './options_schema';
 export * from './utils';
 
 export default extensionRuntime;

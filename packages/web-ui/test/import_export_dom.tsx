@@ -74,6 +74,8 @@ vi.mock('../src/react/i18n_client', () => ({
 
 function optionsFixture(): Options {
   return {
+    schema: 'SwitchyAgainOptions',
+    version: 1,
     '+proxy': {
       name: 'proxy',
       profileType: 'FixedProfile'
