@@ -1,4 +1,4 @@
-import {downloadBlob, manifestVersion, openManage, openOptions, openShortcutConfig, shouldAutoMount} from '../src/react/navigation_client';
+import {downloadBlob, manifestVersion, openManage, openOptions, openShortcutConfig} from '../src/react/navigation_client';
 
 type BrowserTab = {
   id?: number;
@@ -17,7 +17,6 @@ const browserEnvMock = vi.hoisted(() => ({
     return true;
   }),
   setLocationHref: vi.fn((_url: string) => {}),
-  shouldAutoMountScript: vi.fn((_scriptName: string) => false),
   updateTab: vi.fn((_tabId: number | undefined, _props: {active?: boolean; url?: string}) => {})
 }));
 
@@ -40,23 +39,18 @@ beforeEach(() => {
     return true;
   });
   browserEnvMock.setLocationHref.mockClear();
-  browserEnvMock.shouldAutoMountScript.mockReset();
-  browserEnvMock.shouldAutoMountScript.mockReturnValue(false);
   browserEnvMock.updateTab.mockClear();
 });
 
 describe('navigation client', () => {
-  it('wraps manifest version, automount checks, and downloads', () => {
+  it('wraps manifest version and downloads', () => {
     const blob = new Blob(['backup']);
-    browserEnvMock.shouldAutoMountScript.mockReturnValue(true);
 
     expect(manifestVersion()).toBe('1.2.3');
-    expect(shouldAutoMount('options.js')).toBe(true);
-    downloadBlob(blob, 'OmegaOptions.bak');
+    downloadBlob(blob, 'backup.json');
 
     expect(browserEnvMock.extensionManifestVersion).toHaveBeenCalled();
-    expect(browserEnvMock.shouldAutoMountScript).toHaveBeenCalledWith('options.js');
-    expect(browserEnvMock.downloadBlobFile).toHaveBeenCalledWith(blob, 'OmegaOptions.bak');
+    expect(browserEnvMock.downloadBlobFile).toHaveBeenCalledWith(blob, 'backup.json');
   });
 
   it('opens the extension management page for the current extension id', () => {

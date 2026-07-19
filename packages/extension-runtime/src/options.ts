@@ -95,8 +95,7 @@ const DEFAULT_BACKUP_FILENAME_OPTIONS = {
 
 function normalizeBackupFilenameOptions(value: unknown) {
   const current = isRecordValue(value) ? value : {};
-  const scheme =
-    current.scheme === 'dateTime' || current.scheme === 'dateVersion' || current.scheme === 'custom' ? current.scheme : 'date';
+  const scheme = current.scheme === 'dateTime' || current.scheme === 'dateVersion' || current.scheme === 'custom' ? current.scheme : 'date';
   return {
     enabled: current.enabled === true,
     scheme,

@@ -67,8 +67,6 @@ describe('options client helpers', () => {
     expect(optionsClient.openManage).toBe(navigationClient.openManage);
     expect(optionsClient.openOptions).toBe(navigationClient.openOptions);
     expect(optionsClient.openShortcutConfig).toBe(navigationClient.openShortcutConfig);
-    expect(optionsClient.shouldAutoMount).toBe(navigationClient.shouldAutoMount);
-
     expect(optionsClient.optionPatch).toBe(optionPatchClient.optionPatch);
   });
 

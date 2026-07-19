@@ -1,6 +1,4 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {flushSync} from 'react-dom';
-import {createRoot} from 'react-dom/client';
 import {
   clearWindowTimeout,
   confirmDialog,
@@ -11,7 +9,7 @@ import {
   setWindowTimeout
 } from './browser_env';
 import {message} from './i18n_client';
-import {downloadBlob, shouldAutoMount} from './navigation_client';
+import {downloadBlob} from './navigation_client';
 import {
   getWebDavSyncConfig,
   loadOptions,
@@ -781,92 +779,92 @@ export function ImportExport({
         <label>{message('options_localBackupRestore', 'Local backup and restore')}</label>
         <div className="backup-filename-settings">
           <div className="checkbox">
-          <label>
-            <input
-              type="checkbox"
-              checked={filenameOptions.enabled}
-              disabled={!options || busy}
-              onChange={(event) => updateBackupFilename({...filenameOptions, enabled: event.currentTarget.checked})}
-            />{' '}
-            {message('options_backupFilenameCustom', 'Use a custom backup filename')}
-          </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={filenameOptions.enabled}
+                disabled={!options || busy}
+                onChange={(event) => updateBackupFilename({...filenameOptions, enabled: event.currentTarget.checked})}
+              />{' '}
+              {message('options_backupFilenameCustom', 'Use a custom backup filename')}
+            </label>
           </div>
           {filenameOptions.enabled && (
             <div className="backup-filename-options">
-            <div className="radio">
-              <label>
-                <input
-                  type="radio"
-                  name="backup-filename-scheme"
-                  checked={filenameOptions.scheme === 'date'}
-                  onChange={() => updateBackupFilenameScheme('date')}
-                />{' '}
-                {message('options_backupFilenameDate', 'Date')}
-              </label>
-            </div>
-            <div className="radio">
-              <label>
-                <input
-                  type="radio"
-                  name="backup-filename-scheme"
-                  checked={filenameOptions.scheme === 'dateTime'}
-                  onChange={() => updateBackupFilenameScheme('dateTime')}
-                />{' '}
-                {message('options_backupFilenameDateTime', 'Date and time')}
-              </label>
-            </div>
-            <div className="radio">
-              <label>
-                <input
-                  type="radio"
-                  name="backup-filename-scheme"
-                  checked={filenameOptions.scheme === 'dateVersion'}
-                  onChange={() => updateBackupFilenameScheme('dateVersion')}
-                />{' '}
-                {message('options_backupFilenameDateVersion', 'Date and version')}
-              </label>
-            </div>
-            <div className="radio">
-              <label>
-                <input
-                  type="radio"
-                  name="backup-filename-scheme"
-                  checked={filenameOptions.scheme === 'custom'}
-                  onChange={() => updateBackupFilenameScheme('custom')}
-                />{' '}
-                {message('options_backupFilenameTemplate', 'Custom template')}
-              </label>
-            </div>
-            {filenameOptions.scheme === 'custom' && (
-              <div className="backup-filename-template">
-                <div className={filenameValidation?.error ? 'has-error' : ''}>
-                  <label htmlFor="backup-filename-template">{message('options_backupFilenameTemplateLabel', 'Template')}</label>
+              <div className="radio">
+                <label>
                   <input
-                    id="backup-filename-template"
-                    type="text"
-                    className="form-control width-limit"
-                    value={filenameOptions.template}
-                    disabled={busy}
-                    onChange={(event) => updateBackupFilename({...filenameOptions, template: event.currentTarget.value})}
-                  />
-                  {filenameValidation?.error && <p className="help-block">{filenameValidation.error}</p>}
-                </div>
-                <p className="help-block">
-                  {message(
-                    'options_backupFilenameFields',
-                    'Available fields: {date}, {time}, {year}, {month}, {monthName}, {monthShort}, {day}, {hour24}, {hour12}, {minute}, {second}, {ampm}, {version}, {browser}, {browserVersion}. The .json extension is added automatically.'
-                  )}
-                </p>
-                <p className="help-block">
-                  {message('options_backupFilenameEscaping', 'Use \\{ and \\} to include literal braces in the filename.')}
-                </p>
+                    type="radio"
+                    name="backup-filename-scheme"
+                    checked={filenameOptions.scheme === 'date'}
+                    onChange={() => updateBackupFilenameScheme('date')}
+                  />{' '}
+                  {message('options_backupFilenameDate', 'Date')}
+                </label>
               </div>
-            )}
-            {!filenameValidation?.error && (
-              <p className="help-block backup-filename-preview">
-                <strong>{message('options_backupFilenamePreview', 'Preview:')}</strong> <code>{filenamePreview}</code>
-              </p>
-            )}
+              <div className="radio">
+                <label>
+                  <input
+                    type="radio"
+                    name="backup-filename-scheme"
+                    checked={filenameOptions.scheme === 'dateTime'}
+                    onChange={() => updateBackupFilenameScheme('dateTime')}
+                  />{' '}
+                  {message('options_backupFilenameDateTime', 'Date and time')}
+                </label>
+              </div>
+              <div className="radio">
+                <label>
+                  <input
+                    type="radio"
+                    name="backup-filename-scheme"
+                    checked={filenameOptions.scheme === 'dateVersion'}
+                    onChange={() => updateBackupFilenameScheme('dateVersion')}
+                  />{' '}
+                  {message('options_backupFilenameDateVersion', 'Date and version')}
+                </label>
+              </div>
+              <div className="radio">
+                <label>
+                  <input
+                    type="radio"
+                    name="backup-filename-scheme"
+                    checked={filenameOptions.scheme === 'custom'}
+                    onChange={() => updateBackupFilenameScheme('custom')}
+                  />{' '}
+                  {message('options_backupFilenameTemplate', 'Custom template')}
+                </label>
+              </div>
+              {filenameOptions.scheme === 'custom' && (
+                <div className="backup-filename-template">
+                  <div className={filenameValidation?.error ? 'has-error' : ''}>
+                    <label htmlFor="backup-filename-template">{message('options_backupFilenameTemplateLabel', 'Template')}</label>
+                    <input
+                      id="backup-filename-template"
+                      type="text"
+                      className="form-control width-limit"
+                      value={filenameOptions.template}
+                      disabled={busy}
+                      onChange={(event) => updateBackupFilename({...filenameOptions, template: event.currentTarget.value})}
+                    />
+                    {filenameValidation?.error && <p className="help-block">{filenameValidation.error}</p>}
+                  </div>
+                  <p className="help-block">
+                    {message(
+                      'options_backupFilenameFields',
+                      'Available fields: {date}, {time}, {year}, {month}, {monthName}, {monthShort}, {day}, {hour24}, {hour12}, {minute}, {second}, {ampm}, {version}, {browser}, {browserVersion}. The .json extension is added automatically.'
+                    )}
+                  </p>
+                  <p className="help-block">
+                    {message('options_backupFilenameEscaping', 'Use \\{ and \\} to include literal braces in the filename.')}
+                  </p>
+                </div>
+              )}
+              {!filenameValidation?.error && (
+                <p className="help-block backup-filename-preview">
+                  <strong>{message('options_backupFilenamePreview', 'Preview:')}</strong> <code>{filenamePreview}</code>
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -892,9 +890,7 @@ export function ImportExport({
               ? message('options_restoreOnlineSubmit', 'Restore') + '...'
               : message('options_restoreLocal', 'Restore from file')}
           </button>{' '}
-          <span className="help-inline">
-            {message('options_restoreLocalHelp', 'Restore your SwitchyAgain options from a local file.')}
-          </span>
+          <span className="help-inline">{message('options_restoreLocalHelp', 'Restore your SwitchyAgain options from a local file.')}</span>
         </p>
       </div>
 
@@ -1258,25 +1254,4 @@ export function ImportExport({
       {webDavConfirmModal}
     </main>
   );
-}
-
-export function mount(element: Element, props: ImportExportProps = {}) {
-  const root = createRoot(element);
-  function render(nextProps: ImportExportProps = props) {
-    props = nextProps;
-    flushSync(() => {
-      root.render(<ImportExport {...props} />);
-    });
-  }
-  render(props);
-  return {
-    render,
-    unmount: () => root.unmount()
-  };
-}
-
-const rootElement = document.getElementById('react-root');
-
-if (rootElement && shouldAutoMount('import_export.js')) {
-  mount(rootElement);
 }

@@ -1,7 +1,6 @@
 import React, {useEffect} from 'react';
-import {createRoot} from 'react-dom/client';
 import {message} from './i18n_client';
-import {manifestVersion, shouldAutoMount} from './navigation_client';
+import {manifestVersion} from './navigation_client';
 import {loadOptions} from './options_api_client';
 
 export type AboutProps = {
@@ -110,23 +109,4 @@ export function About({embedded = false, version, onDownloadLog, onResetOptions}
       {content}
     </main>
   );
-}
-
-export function mount(element: Element, props: AboutProps = {}) {
-  const root = createRoot(element);
-  root.render(<About {...props} />);
-  return {
-    render(nextProps: AboutProps = {}) {
-      root.render(<About {...nextProps} />);
-    },
-    unmount() {
-      root.unmount();
-    }
-  };
-}
-
-const rootElement = document.getElementById('react-root');
-
-if (rootElement && shouldAutoMount('about.js')) {
-  mount(rootElement);
 }

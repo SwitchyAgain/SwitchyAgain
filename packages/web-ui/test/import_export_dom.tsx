@@ -32,13 +32,11 @@ const optionsClientMock = vi.hoisted(() => ({
   setOptionsSync: vi.fn(),
   setWebDavOptionsSync: vi.fn(),
   setWebDavSyncConfig: vi.fn(),
-  shouldAutoMount: vi.fn(() => false),
   testWebDavSync: vi.fn()
 }));
 
 vi.mock('../src/react/navigation_client', () => ({
-  downloadBlob: optionsClientMock.downloadBlob,
-  shouldAutoMount: optionsClientMock.shouldAutoMount
+  downloadBlob: optionsClientMock.downloadBlob
 }));
 
 vi.mock('../src/react/browser_env', () => ({
@@ -155,7 +153,6 @@ beforeEach(() => {
   optionsClientMock.setOptionsSync.mockReset();
   optionsClientMock.setWebDavOptionsSync.mockReset();
   optionsClientMock.setWebDavSyncConfig.mockReset();
-  optionsClientMock.shouldAutoMount.mockClear();
   optionsClientMock.testWebDavSync.mockReset();
   optionsClientMock.getLocalState.mockImplementation((key: string) => (key === 'syncOptions' ? 'disabled' : ''));
   optionsClientMock.getState.mockResolvedValue('');

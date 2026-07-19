@@ -37,29 +37,6 @@ function scriptTag(src: string, type = '') {
   return `  <script${type ? ` type="${type}"` : ''} src="${src}"></script>`;
 }
 
-async function writeReactHtml(dest: string, title: string, script: string, extraScripts: string[] = [], scriptType = '') {
-  const html = [
-    '<!doctype html>',
-    '<html>',
-    '<head>',
-    '  <meta charset="utf-8">',
-    '  <link rel="stylesheet" href="../lib/bootstrap/css/bootstrap.min.css">',
-    '  <link rel="stylesheet" href="../css/options.css">',
-    '  <link rel="stylesheet" href="react_options.css">',
-    `  <title>${title}</title>`,
-    '</head>',
-    '<body>',
-    '  <div id="react-root"></div>',
-    ...extraScripts.map((src) => scriptTag(src)),
-    scriptTag(script, scriptType),
-    '</body>',
-    '</html>',
-    ''
-  ].join('\n');
-  await ensureDir(path.join(root, dest));
-  await fs.writeFile(path.join(root, dest), html);
-}
-
 async function writeRootReactHtml(dest: string, title: string, script: string, extraScripts: string[] = [], scriptType = '') {
   const html = [
     '<!doctype html>',
@@ -180,18 +157,10 @@ async function main() {
     'js/log_error.js',
     'js/proxy_engine.min.js'
   ], 'module');
-  await writeReactHtml('build/react/general.html', 'SwitchyAgain General', 'general.js', [], 'module');
-  await writeReactHtml('build/react/ui.html', 'SwitchyAgain Interface', 'ui.js', [], 'module');
-  await writeReactHtml('build/react/about.html', 'SwitchyAgain About', 'about.js', [], 'module');
-  await writeReactHtml('build/react/import_export.html', 'SwitchyAgain Import / Export', 'import_export.js', [], 'module');
   await bundleReactEntries({
-    about: 'src/react/about.tsx',
-    general: 'src/react/general_settings.tsx',
-    import_export: 'src/react/import_export.tsx',
     options_app: 'src/react/options_entry.tsx',
     popup_app: 'src/react/popup_app.tsx',
     proxy_not_controllable: 'src/react/proxy_not_controllable.tsx',
-    ui: 'src/react/ui_settings.tsx'
   });
   await disableRawHtmlAssignments(path.join(root, 'build/react'));
 

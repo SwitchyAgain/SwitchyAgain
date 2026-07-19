@@ -324,26 +324,6 @@ const pages = [
     text: messageForKey('options_tab_importExport') || 'Import/Export'
   },
   {
-    label: 'standalone about page',
-    url: extensionServer.url('react/about.html'),
-    text: messageForKey('about_title') || 'About'
-  },
-  {
-    label: 'standalone ui page',
-    url: extensionServer.url('react/ui.html'),
-    text: messageForKey('options_tab_ui') || 'Interface'
-  },
-  {
-    label: 'standalone general page',
-    url: extensionServer.url('react/general.html'),
-    text: messageForKey('options_tab_general') || 'General'
-  },
-  {
-    label: 'standalone import/export page',
-    url: extensionServer.url('react/import_export.html'),
-    text: messageForKey('options_tab_importExport') || 'Import/Export'
-  },
-  {
     label: 'popup menu page',
     popup: true,
     url: extensionServer.url('popup/index.html'),

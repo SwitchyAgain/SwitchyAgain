@@ -211,6 +211,8 @@ export function popupPageInfo() {
   return {
     domain: 'www.example.com',
     errorCount: 0,
+    routeInfoEnabled: true,
+    routeInfoRequestDetailsEnabled: true,
     requestExplanations: [
       {
         currentProfile: {

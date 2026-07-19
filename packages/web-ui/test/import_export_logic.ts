@@ -28,28 +28,24 @@ describe('import export logic', () => {
         date: new Date(2000, 0, 2),
         extensionVersion: '0.0.1'
       })
-    ).toBe(
-      'SwitchyAgainBackup.json'
-    );
+    ).toBe('SwitchyAgainBackup.json');
   });
 
   it('formats date and version backup filenames', () => {
     const date = new Date(2000, 0, 2);
-    expect(backupFilename({enabled: true, scheme: 'date', template: 'ignored'}, {browser: 'firefox', date, extensionVersion: '0.0.1'})).toBe(
-      'SwitchyAgainBackup_2000-01-02.json'
-    );
+    expect(
+      backupFilename({enabled: true, scheme: 'date', template: 'ignored'}, {browser: 'firefox', date, extensionVersion: '0.0.1'})
+    ).toBe('SwitchyAgainBackup_2000-01-02.json');
     expect(
       backupFilename({enabled: true, scheme: 'dateVersion', template: 'ignored'}, {browser: 'firefox', date, extensionVersion: '0.0.1'})
-    ).toBe(
-      'SwitchyAgainBackup_2000-01-02_v0.0.1.json'
-    );
+    ).toBe('SwitchyAgainBackup_2000-01-02_v0.0.1.json');
   });
 
   it('formats date and time backup filenames and expands all custom fields', () => {
     const date = new Date(2000, 0, 2, 5, 6, 7);
-    expect(backupFilename({enabled: true, scheme: 'dateTime', template: 'ignored'}, {browser: 'firefox', date, extensionVersion: '0.0.1'})).toBe(
-      'SwitchyAgainBackup_2000-01-02_05-06-07.json'
-    );
+    expect(
+      backupFilename({enabled: true, scheme: 'dateTime', template: 'ignored'}, {browser: 'firefox', date, extensionVersion: '0.0.1'})
+    ).toBe('SwitchyAgainBackup_2000-01-02_05-06-07.json');
     expect(
       backupFilename(
         {enabled: true, scheme: 'custom', template: 'Backup_{date}_{time}_{version}_{browser}_{browserVersion}'},
@@ -85,15 +81,9 @@ describe('import export logic', () => {
 
   it('formats 12-hour boundaries and AM/PM markers', () => {
     const template = {enabled: true, scheme: 'custom' as const, template: '{hour24}_{hour12}_{ampm}'};
-    expect(backupFilename(template, {browser: 'firefox', date: new Date(2000, 0, 2, 0), extensionVersion: '0.0.1'})).toBe(
-      '00_12_AM.json'
-    );
-    expect(backupFilename(template, {browser: 'firefox', date: new Date(2000, 0, 2, 12), extensionVersion: '0.0.1'})).toBe(
-      '12_12_PM.json'
-    );
-    expect(backupFilename(template, {browser: 'firefox', date: new Date(2000, 0, 2, 23), extensionVersion: '0.0.1'})).toBe(
-      '23_11_PM.json'
-    );
+    expect(backupFilename(template, {browser: 'firefox', date: new Date(2000, 0, 2, 0), extensionVersion: '0.0.1'})).toBe('00_12_AM.json');
+    expect(backupFilename(template, {browser: 'firefox', date: new Date(2000, 0, 2, 12), extensionVersion: '0.0.1'})).toBe('12_12_PM.json');
+    expect(backupFilename(template, {browser: 'firefox', date: new Date(2000, 0, 2, 23), extensionVersion: '0.0.1'})).toBe('23_11_PM.json');
   });
 
   it('preserves unknown fields and supports escaped braces in custom templates', () => {
@@ -107,12 +97,12 @@ describe('import export logic', () => {
 
   it('reports invalid characters and final UTF-8 filename length', () => {
     const context = {browser: 'firefox', date: new Date(2000, 0, 2), extensionVersion: '0.0.1'};
-    expect(
-      backupFilenameValidation({enabled: true, scheme: 'custom', template: 'Backup:{date}'}, context)?.error
-    ).toBe('The filename contains invalid characters: :');
-    expect(
-      backupFilenameValidation({enabled: true, scheme: 'custom', template: 'x'.repeat(176)}, context)?.error
-    ).toBe('The filename is too long: 181/180 bytes.');
+    expect(backupFilenameValidation({enabled: true, scheme: 'custom', template: 'Backup:{date}'}, context)?.error).toBe(
+      'The filename contains invalid characters: :'
+    );
+    expect(backupFilenameValidation({enabled: true, scheme: 'custom', template: 'x'.repeat(176)}, context)?.error).toBe(
+      'The filename is too long: 181/180 bytes.'
+    );
   });
 
   it('formats import/export errors from message, reason, or primitive values', () => {

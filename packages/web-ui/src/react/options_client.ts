@@ -48,6 +48,6 @@ export {
 
 export {getLocalState, getState, lastUrl, setLocalState, setState} from './state_client';
 
-export {downloadBlob, manifestVersion, openManage, openOptions, openShortcutConfig, shouldAutoMount} from './navigation_client';
+export {downloadBlob, manifestVersion, openManage, openOptions, openShortcutConfig} from './navigation_client';
 
 export {optionPatch} from './option_patch';

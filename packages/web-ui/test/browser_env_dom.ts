@@ -94,9 +94,7 @@ describe('browser environment adapter', () => {
     );
 
     delete testGlobal().browser;
-    expect(extensionBrowserName('Mozilla/5.0 Chrome/1.0.0.0 Safari/537.36', [{brand: 'Chromium'}, {brand: 'Microsoft Edge'}])).toBe(
-      'edge'
-    );
+    expect(extensionBrowserName('Mozilla/5.0 Chrome/1.0.0.0 Safari/537.36', [{brand: 'Chromium'}, {brand: 'Microsoft Edge'}])).toBe('edge');
     expect(extensionBrowserName('Mozilla/5.0 Chrome/1.0.0.0 Safari/537.36', [{brand: 'Chromium'}, {brand: 'Google Chrome'}])).toBe(
       'chrome'
     );

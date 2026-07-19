@@ -7,16 +7,11 @@ import {
   extensionUrl,
   queryTabsByUrl,
   setLocationHref,
-  shouldAutoMountScript,
   updateTab
 } from './browser_env';
 
 export function manifestVersion() {
   return extensionManifestVersion();
-}
-
-export function shouldAutoMount(scriptName: string) {
-  return shouldAutoMountScript(scriptName);
 }
 
 export function openShortcutConfig() {

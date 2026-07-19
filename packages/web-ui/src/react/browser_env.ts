@@ -252,18 +252,6 @@ export function applyRootLocale(locale: string) {
   globalThis.document.documentElement.removeAttribute('dir');
 }
 
-export function shouldAutoMountScript(scriptName: string) {
-  const script = globalThis.document.currentScript as HTMLScriptElement | null;
-  const src = script?.src || '';
-  if (src.endsWith(`/${scriptName}`) || src.endsWith(scriptName)) {
-    return true;
-  }
-  return Array.from(globalThis.document.scripts).some((candidate) => {
-    const candidateSrc = candidate.src || candidate.getAttribute('src') || '';
-    return candidate.type === 'module' && (candidateSrc.endsWith(`/${scriptName}`) || candidateSrc.endsWith(scriptName));
-  });
-}
-
 export function downloadBlobFile(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const link = globalThis.document.createElement('a');

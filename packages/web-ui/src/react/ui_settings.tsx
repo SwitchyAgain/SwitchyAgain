@@ -1,8 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {flushSync} from 'react-dom';
-import {createRoot} from 'react-dom/client';
 import {UI_LOCALES, message, uiLocaleForOptions} from './i18n_client';
-import {openShortcutConfig as openDefaultShortcutConfig, shouldAutoMount} from './navigation_client';
+import {openShortcutConfig as openDefaultShortcutConfig} from './navigation_client';
 import {loadOptions, patchOptions} from './options_api_client';
 import type {Options} from './options_client_types';
 import {getState} from './state_client';
@@ -1100,25 +1098,4 @@ export function UiSettings({
       {settings}
     </main>
   );
-}
-
-export function mount(element: Element, props: UiSettingsProps = {}) {
-  const root = createRoot(element);
-  flushSync(() => {
-    root.render(<UiSettings {...props} />);
-  });
-  return {
-    render(nextProps: UiSettingsProps = {}) {
-      root.render(<UiSettings {...nextProps} />);
-    },
-    unmount() {
-      root.unmount();
-    }
-  };
-}
-
-const rootElement = document.getElementById('react-root');
-
-if (rootElement && shouldAutoMount('ui.js')) {
-  mount(rootElement);
 }

@@ -1,8 +1,5 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {flushSync} from 'react-dom';
-import {createRoot} from 'react-dom/client';
 import {message} from './i18n_client';
-import {shouldAutoMount} from './navigation_client';
 import {optionPatch} from './option_patch';
 import {applyProfile as applyBackgroundProfile, loadOptions, patchOptions} from './options_api_client';
 import type {Options} from './options_client_types';
@@ -409,25 +406,4 @@ export function GeneralSettings({
       {settings}
     </main>
   );
-}
-
-export function mount(element: Element, props: GeneralSettingsProps = {}) {
-  const root = createRoot(element);
-  flushSync(() => {
-    root.render(<GeneralSettings {...props} />);
-  });
-  return {
-    render(nextProps: GeneralSettingsProps = {}) {
-      root.render(<GeneralSettings {...nextProps} />);
-    },
-    unmount() {
-      root.unmount();
-    }
-  };
-}
-
-const rootElement = document.getElementById('react-root');
-
-if (rootElement && shouldAutoMount('general.js')) {
-  mount(rootElement);
 }
