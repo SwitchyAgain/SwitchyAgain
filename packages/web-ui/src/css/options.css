@@ -2208,6 +2208,11 @@ main .profile-header {
   margin-bottom: 0;
 }
 
+.supplemental-list-content-item > .fixed-bypass-section {
+  margin-left: -30px;
+  margin-right: 30px;
+}
+
 .supplemental-list-links-table {
   table-layout: fixed;
   margin-bottom: 0;

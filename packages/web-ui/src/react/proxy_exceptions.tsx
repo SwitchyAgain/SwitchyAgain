@@ -140,12 +140,14 @@ function SupplementalListContentEditor({
           <div className="modal-backdrop fade in" />
           <div className="modal fade in options-modal" role="dialog" style={{display: 'flex'}} tabIndex={-1}>
             <div className="modal-dialog">
-              <ConfirmModal
-                sectionName={sections[pendingDeleteSectionIndex]?.name}
-                kind="bypassSectionRemove"
-                onClose={() => removeSection(pendingDeleteSectionIndex)}
-                onDismiss={() => setPendingDeleteSectionIndex(null)}
-              />
+              <div className="modal-content">
+                <ConfirmModal
+                  sectionName={sections[pendingDeleteSectionIndex]?.name}
+                  kind="bypassSectionRemove"
+                  onClose={() => removeSection(pendingDeleteSectionIndex)}
+                  onDismiss={() => setPendingDeleteSectionIndex(null)}
+                />
+              </div>
             </div>
           </div>
         </>
