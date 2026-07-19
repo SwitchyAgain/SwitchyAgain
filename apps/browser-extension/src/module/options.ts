@@ -601,9 +601,9 @@ function pageRequestsFromTabInfo(tabInfo?: TabRequestInfo, pageUrl?: string, ign
   };
 }
 
-// ChromeOptions merges the runtime class with the legacy OmegaOptionsBase shape.
+// ChromeOptions merges the runtime class with its declared base shape.
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type, @typescript-eslint/no-unsafe-declaration-merging
-interface ChromeOptions extends OmegaOptionsBase {}
+interface ChromeOptions extends RuntimeOptionsBase {}
 
 function defaultUiLocaleFromBrowser(language?: string) {
   if (language == null) {

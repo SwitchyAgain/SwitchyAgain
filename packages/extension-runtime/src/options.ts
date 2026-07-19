@@ -417,11 +417,6 @@ class Options {
     return value;
   }
 
-  /**
-   * The entire set of options including profiles and other settings.
-   * @typedef OmegaOptions
-   * @type {object}
-   */
   constructor(
     options?: OptionsData | null,
     _storage?: StorageLike | null,
@@ -451,7 +446,7 @@ class Options {
    * Attempt to load options from local and remote storage.
    * @param {?{}} args Extra arguments
    * @param {number=3} args.retry Number of retries before giving up.
-   * @returns {Promise<OmegaOptions>} The loaded options
+   * @returns {Promise<OptionsData>} The loaded options
    */
 
   loadOptions(arg?: LoadOptionsArgs): RuntimePromise<unknown> {
@@ -656,7 +651,7 @@ class Options {
 
   /**
    * Attempt to initialize (or reinitialize) options.
-   * @returns {Promise<OmegaOptions>} A promise that is fulfilled on ready.
+   * @returns {Promise<OptionsData>} A promise that is fulfilled on ready.
    */
 
   init(): RuntimePromise<unknown> {
@@ -734,10 +729,10 @@ class Options {
 
   /**
    * Validate and normalize current SwitchyAgain options.
-   * @param {?OmegaOptions} options The options to validate
+   * @param {?OptionsData} options The options to validate
    * @param {{}={}} changes Previous pending changes to be applied. Default to
    * an empty dictionary. Please provide this argument when calling super().
-   * @returns {Promise<[OmegaOptions, {}]>} The new options and the changes.
+   * @returns {Promise<[OptionsData, {}]>} The new options and the changes.
    */
 
   upgrade(options: OptionsData | null | undefined, changes?: StorageChanges): RuntimePromise<[OptionsData, StorageChanges]> {
@@ -791,8 +786,8 @@ class Options {
 
   /**
    * Reset the options to the given options or initial options.
-   * @param {?OmegaOptions} options The options to set. Defaults to initial.
-   * @returns {Promise<OmegaOptions>} The options just applied
+   * @param {?OptionsData} options The options to set. Defaults to initial.
+   * @returns {Promise<OptionsData>} The options just applied
    */
 
   reset(options?: OptionsData | null): RuntimePromise<unknown> {
@@ -835,7 +830,7 @@ class Options {
 
   /**
    * Return the default options used initially and on resets.
-   * @returns {?OmegaOptions} The default options.
+   * @returns {?OptionsData} The default options.
    */
 
   getDefaultOptions(): OptionsData {
@@ -876,7 +871,7 @@ class Options {
 
   /**
    * Return all options.
-   * @returns {?OmegaOptions} The options.
+   * @returns {?OptionsData} The options.
    */
 
   getAll(): OptionsData | null {
@@ -895,7 +890,7 @@ class Options {
   /**
    * Apply the patch to the current options.
    * @param {jsondiffpatch} patch The patch to apply
-   * @returns {Promise<OmegaOptions>} The updated options
+   * @returns {Promise<OptionsData>} The updated options
    */
 
   patch(patch: Record<string, any> | null | undefined): RuntimePromise<unknown> | void {
@@ -1572,7 +1567,7 @@ class Options {
    * Replace all references of profile fromName to toName.
    * @param {String} fromName The original profile name
    * @param {String} toname The target profile name
-   * @returns {Promise<OmegaOptions>} The updated options
+   * @returns {Promise<OptionsData>} The updated options
    */
 
   replaceRef(fromName: string, toName: string): RuntimePromise<unknown> {
@@ -1601,7 +1596,7 @@ class Options {
    * Rename a profile and update references and options
    * @param {String} fromName The original profile name
    * @param {String} toname The target profile name
-   * @returns {Promise<OmegaOptions>} The updated options
+   * @returns {Promise<OptionsData>} The updated options
    */
 
   renameProfile(fromName: string, toName: string): RuntimePromise<unknown> {

@@ -14,7 +14,7 @@ type BackgroundMethodArgs = {
   patch: [patch: Record<string, unknown>];
   renameProfile: [fromName: string, toName: string];
   replaceRef: [fromName: string, toName: string];
-  reset: [options?: OmegaOptionsData | string];
+  reset: [options?: RuntimeOptionsData | string];
   resetOptionsSync: [];
   refreshProfileScopeContainerNames: [];
   resolveOptionsHandoff: [handoffId: string, action: OptionsHandoffAction];
@@ -171,7 +171,7 @@ type BackgroundSync = {
   [key: string]: unknown;
 };
 
-type BackgroundLog = OmegaOptionsBase['log'] & {
+type BackgroundLog = RuntimeOptionsBase['log'] & {
   method(name: string, self: unknown, args: IArguments | unknown[]): void;
   str(obj: unknown): string;
 };
@@ -207,7 +207,7 @@ type BackgroundTabs = {
 
 type BackgroundProxyImpl = {
   features: string[];
-  parseExternalProfile(details: ProxyChangeDetails, options?: OmegaOptionsData): BackgroundProfile | null | undefined;
+  parseExternalProfile(details: ProxyChangeDetails, options?: RuntimeOptionsData): BackgroundProfile | null | undefined;
   watchProxyChange(callback: (details: ProxyChangeDetails | null | undefined) => unknown): void | null;
 };
 
@@ -237,7 +237,7 @@ type BackgroundOptions = BackgroundOptionMethods & {
   setProxyNotControllable(reason: string | null): unknown;
   _storage: unknown;
   _syncWatchStop: (() => unknown) | null;
-  _options: OmegaOptionsData;
+  _options: RuntimeOptionsData;
 };
 
 type BackgroundCallable = (...args: unknown[]) => unknown;
@@ -327,7 +327,7 @@ type BackgroundExtensionRuntime = {
     validateSyncOptions(options: Record<string, unknown>): boolean;
   };
   OptionsImport: {
-    parseImportedOptions(content: string): OmegaOptionsData;
+    parseImportedOptions(content: string): RuntimeOptionsData;
   };
   OptionsSync: new (storage: unknown) => BackgroundSync;
   Promise: BackgroundPromiseStatic;
@@ -1316,7 +1316,7 @@ type BackgroundExtensionRuntime = {
     return value;
   }
 
-  function syncPayloadForOptions(optionsData: OmegaOptionsData) {
+  function syncPayloadForOptions(optionsData: RuntimeOptionsData) {
     const payload: Record<string, unknown> = {};
     for (const key of Object.keys(optionsData)) {
       const value = optionsData[key];
@@ -1968,7 +1968,7 @@ type BackgroundExtensionRuntime = {
   };
 
   const optionsImportApi = {
-    reset(optionsData?: OmegaOptionsData | string) {
+    reset(optionsData?: RuntimeOptionsData | string) {
       const importedOptions =
         typeof optionsData === 'string' ? ExtensionRuntimeCurrent.OptionsImport.parseImportedOptions(optionsData) : optionsData;
       return options.reset(importedOptions);

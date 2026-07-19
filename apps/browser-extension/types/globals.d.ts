@@ -355,13 +355,13 @@ interface RuntimePromiseStatic {
   [key: string]: unknown;
 }
 
-interface OmegaOptionsState {
+interface RuntimeOptionsState {
   get<T extends Record<string, unknown>>(defaults: T): RuntimePromise<T>;
   remove(keys: string[]): RuntimePromise<unknown>;
   set(items: Record<string, unknown>): RuntimePromise<unknown>;
 }
 
-interface OmegaOptionsData extends Record<string, unknown> {
+interface RuntimeOptionsData extends Record<string, unknown> {
   '-enableQuickSwitch'?: boolean;
   '-networkRequestIgnoreList'?: string[];
   '-profileScopeAssignments'?: {
@@ -381,13 +381,13 @@ interface OmegaOptionsData extends Record<string, unknown> {
   '-uiTheme'?: string;
 }
 
-interface OmegaOptionsBase {
+interface RuntimeOptionsBase {
   _currentProfileName: string;
   _isSystem: boolean;
-  _options: OmegaOptionsData;
+  _options: RuntimeOptionsData;
   _setAvailableProfiles(): Promise<unknown>;
   _setOptions(changes: Record<string, unknown>): RuntimePromise<unknown>;
-  _state: OmegaOptionsState;
+  _state: RuntimeOptionsState;
   fallbackProfileName: string;
   log: {
     error(...args: unknown[]): void;
@@ -402,12 +402,12 @@ interface OmegaOptionsBase {
   upgrade(options?: unknown, ...args: unknown[]): Promise<unknown>;
 }
 
-interface OmegaOptionsConstructor {
-  new (...args: unknown[]): OmegaOptionsBase;
+interface RuntimeOptionsConstructor {
+  new (...args: unknown[]): RuntimeOptionsBase;
   NoOptionsError: new () => Error;
 }
 
-interface OmegaStorageError extends Error {
+interface RuntimeStorageError extends Error {
   maxItems?: boolean;
   perHour?: boolean;
   perItem?: boolean;
@@ -415,11 +415,11 @@ interface OmegaStorageError extends Error {
   sustained?: number;
 }
 
-interface OmegaStorageConstructor {
+interface RuntimeStorageConstructor {
   new (...args: unknown[]): Record<string, unknown>;
-  QuotaExceededError: new () => OmegaStorageError;
-  RateLimitExceededError: new () => OmegaStorageError;
-  StorageUnavailableError: new () => OmegaStorageError;
+  QuotaExceededError: new () => RuntimeStorageError;
+  RateLimitExceededError: new () => RuntimeStorageError;
+  StorageUnavailableError: new () => RuntimeStorageError;
 }
 
 interface ExtensionRuntimeModule extends Record<string, unknown> {
@@ -429,9 +429,9 @@ interface ExtensionRuntimeModule extends Record<string, unknown> {
   HttpServerError: new (error?: unknown) => Error;
   NetworkError: new (error?: unknown) => Error;
   ProxyEngine: ProxyEngineApi;
-  Options: OmegaOptionsConstructor;
+  Options: RuntimeOptionsConstructor;
   Promise: RuntimePromiseStatic;
-  Storage: OmegaStorageConstructor;
+  Storage: RuntimeStorageConstructor;
 }
 
 type PopupApiCallback<T = unknown> = (error?: unknown, result?: T) => void;
