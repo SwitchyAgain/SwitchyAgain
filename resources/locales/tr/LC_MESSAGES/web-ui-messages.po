@@ -517,6 +517,51 @@ msgstr ""
 msgid "options_group_importExportBackup"
 msgstr "Yedekleme"
 
+msgid "options_localBackupRestore"
+msgstr "Yerel yedekleme ve geri yükleme"
+
+msgid "options_backupFilenameCustom"
+msgstr "Özel yedekleme dosyası adı kullan"
+
+msgid "options_backupFilenameDate"
+msgstr "Tarih"
+
+msgid "options_backupFilenameDateTime"
+msgstr "Tarih ve saat"
+
+msgid "options_backupFilenameDateVersion"
+msgstr "Tarih ve sürüm"
+
+msgid "options_backupFilenameTemplate"
+msgstr "Özel şablon"
+
+msgid "options_backupFilenameTemplateLabel"
+msgstr "Şablon"
+
+msgid "options_backupFilenameFields"
+msgstr "Kullanılabilir alanlar: {date}, {time}, {year}, {month}, {monthName}, {monthShort}, {day}, {hour24}, {hour12}, {minute}, {second}, {ampm}, {version}, {browser}, {browserVersion}. .json uzantısı otomatik olarak eklenir."
+
+msgid "options_backupFilenameEscaping"
+msgstr "Dosya adına gerçek küme parantezleri eklemek için \\{ ve \\} kullanın."
+
+msgid "options_backupFilenamePreview"
+msgstr "Önizleme:"
+
+msgid "options_backupFilenameRequired"
+msgstr "Dosya adı gereklidir."
+
+msgid "options_backupFilenameInvalidCharacters"
+msgstr "Dosya adı geçersiz karakterler içeriyor: $1"
+
+msgid "options_backupFilenameTrailingCharacter"
+msgstr "Dosya adı boşluk veya nokta ile bitemez."
+
+msgid "options_backupFilenameJsonExtension"
+msgstr ".json uzantısını eklemeyin."
+
+msgid "options_backupFilenameTooLong"
+msgstr "Dosya adı çok uzun: $1/$2 bayt."
+
 msgid "options_makeBackup"
 msgstr "Yedek oluştur"
 

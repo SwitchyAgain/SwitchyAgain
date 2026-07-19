@@ -591,6 +591,51 @@ msgstr ""
 msgid "options_group_importExportBackup"
 msgstr "Copia de seguridad"
 
+msgid "options_localBackupRestore"
+msgstr "Copia de seguridad y restauración local"
+
+msgid "options_backupFilenameCustom"
+msgstr "Usar un nombre de archivo de copia de seguridad personalizado"
+
+msgid "options_backupFilenameDate"
+msgstr "Fecha"
+
+msgid "options_backupFilenameDateTime"
+msgstr "Fecha y hora"
+
+msgid "options_backupFilenameDateVersion"
+msgstr "Fecha y versión"
+
+msgid "options_backupFilenameTemplate"
+msgstr "Plantilla personalizada"
+
+msgid "options_backupFilenameTemplateLabel"
+msgstr "Plantilla"
+
+msgid "options_backupFilenameFields"
+msgstr "Campos disponibles: {date}, {time}, {year}, {month}, {monthName}, {monthShort}, {day}, {hour24}, {hour12}, {minute}, {second}, {ampm}, {version}, {browser}, {browserVersion}. La extensión .json se añade automáticamente."
+
+msgid "options_backupFilenameEscaping"
+msgstr "Usa \\{ y \\} para incluir llaves literales en el nombre de archivo."
+
+msgid "options_backupFilenamePreview"
+msgstr "Vista previa:"
+
+msgid "options_backupFilenameRequired"
+msgstr "Se necesita un nombre de archivo."
+
+msgid "options_backupFilenameInvalidCharacters"
+msgstr "El nombre de archivo contiene caracteres no válidos: $1"
+
+msgid "options_backupFilenameTrailingCharacter"
+msgstr "El nombre de archivo no puede terminar con un espacio o un punto."
+
+msgid "options_backupFilenameJsonExtension"
+msgstr "No incluyas la extensión .json."
+
+msgid "options_backupFilenameTooLong"
+msgstr "El nombre de archivo es demasiado largo: $1/$2 bytes."
+
 msgid "options_makeBackup"
 msgstr "Crear copia de seguridad"
 

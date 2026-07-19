@@ -569,6 +569,51 @@ msgstr "Export the current profile as a PAC file, so you can use it in other bro
 msgid "options_group_importExportBackup"
 msgstr "Backup"
 
+msgid "options_localBackupRestore"
+msgstr "Local backup and restore"
+
+msgid "options_backupFilenameCustom"
+msgstr "Use a custom backup filename"
+
+msgid "options_backupFilenameDate"
+msgstr "Date"
+
+msgid "options_backupFilenameDateTime"
+msgstr "Date and time"
+
+msgid "options_backupFilenameDateVersion"
+msgstr "Date and version"
+
+msgid "options_backupFilenameTemplate"
+msgstr "Custom template"
+
+msgid "options_backupFilenameTemplateLabel"
+msgstr "Template"
+
+msgid "options_backupFilenameFields"
+msgstr "Available fields: {date}, {time}, {year}, {month}, {monthName}, {monthShort}, {day}, {hour24}, {hour12}, {minute}, {second}, {ampm}, {version}, {browser}, {browserVersion}. The .json extension is added automatically."
+
+msgid "options_backupFilenameEscaping"
+msgstr "Use \\{ and \\} to include literal braces in the filename."
+
+msgid "options_backupFilenamePreview"
+msgstr "Preview:"
+
+msgid "options_backupFilenameRequired"
+msgstr "A filename is required."
+
+msgid "options_backupFilenameInvalidCharacters"
+msgstr "The filename contains invalid characters: $1"
+
+msgid "options_backupFilenameTrailingCharacter"
+msgstr "The filename cannot end with a space or period."
+
+msgid "options_backupFilenameJsonExtension"
+msgstr "Do not include the .json extension."
+
+msgid "options_backupFilenameTooLong"
+msgstr "The filename is too long: $1/$2 bytes."
+
 msgid "options_makeBackup"
 msgstr "Make backup"
 

@@ -21,7 +21,10 @@ const optionsClientMock = vi.hoisted(() => ({
   getState: vi.fn(),
   getWebDavSyncConfig: vi.fn(),
   loadOptions: vi.fn(),
-  message: vi.fn((_key: string, fallback = '') => fallback),
+  message: vi.fn((_key: string, fallback = '', substitutions?: string | string[]) => {
+    const values = Array.isArray(substitutions) ? substitutions : substitutions == null ? [] : [substitutions];
+    return values.reduce((text, value, index) => text.replaceAll(`$${index + 1}`, value), fallback);
+  }),
   patchOptions: vi.fn(),
   reloadLocation: vi.fn(),
   resetOptions: vi.fn(),

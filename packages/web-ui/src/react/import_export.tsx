@@ -34,7 +34,13 @@ import {
   importExportErrorMessage,
   syncBusy
 } from './import_export_logic';
-import type {BackupFilenameOptions, BackupFilenameScheme, ImportExportStatus, SyncStatus} from './import_export_logic';
+import type {
+  BackupFilenameOptions,
+  BackupFilenameScheme,
+  BackupFilenameValidation,
+  ImportExportStatus,
+  SyncStatus
+} from './import_export_logic';
 import {optionPatch} from './option_patch';
 import {formatMediumDate} from './profile_content_logic';
 import {richMessage} from './rich_message';
@@ -48,6 +54,24 @@ export type ImportExportProps = {
   options?: Options | null;
   optionsDirty?: boolean;
 };
+
+function backupFilenameValidationMessage(error: NonNullable<BackupFilenameValidation['error']>) {
+  switch (error.code) {
+    case 'invalidCharacters':
+      return message('options_backupFilenameInvalidCharacters', 'The filename contains invalid characters: $1', error.characters || '');
+    case 'jsonExtension':
+      return message('options_backupFilenameJsonExtension', 'Do not include the .json extension.');
+    case 'required':
+      return message('options_backupFilenameRequired', 'A filename is required.');
+    case 'tooLong':
+      return message('options_backupFilenameTooLong', 'The filename is too long: $1/$2 bytes.', [
+        String(error.byteLength || 0),
+        String(error.maxByteLength || 0)
+      ]);
+    default:
+      return message('options_backupFilenameTrailingCharacter', 'The filename cannot end with a space or period.');
+  }
+}
 
 function readTextFile(file: File) {
   return new Promise<string>((resolve, reject) => {
@@ -847,7 +871,7 @@ export function ImportExport({
                       disabled={busy}
                       onChange={(event) => updateBackupFilename({...filenameOptions, template: event.currentTarget.value})}
                     />
-                    {filenameValidation?.error && <p className="help-block">{filenameValidation.error}</p>}
+                  {filenameValidation?.error && <p className="help-block">{backupFilenameValidationMessage(filenameValidation.error)}</p>}
                   </div>
                   <p className="help-block">
                     {message(

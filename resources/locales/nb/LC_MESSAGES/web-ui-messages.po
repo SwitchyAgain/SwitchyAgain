@@ -519,6 +519,51 @@ msgstr ""
 msgid "options_group_importExportBackup"
 msgstr "Sikkerhetskopi"
 
+msgid "options_localBackupRestore"
+msgstr "Lokal sikkerhetskopiering og gjenoppretting"
+
+msgid "options_backupFilenameCustom"
+msgstr "Bruk et egendefinert navn på sikkerhetskopifilen"
+
+msgid "options_backupFilenameDate"
+msgstr "Dato"
+
+msgid "options_backupFilenameDateTime"
+msgstr "Dato og klokkeslett"
+
+msgid "options_backupFilenameDateVersion"
+msgstr "Dato og versjon"
+
+msgid "options_backupFilenameTemplate"
+msgstr "Egendefinert mal"
+
+msgid "options_backupFilenameTemplateLabel"
+msgstr "Mal"
+
+msgid "options_backupFilenameFields"
+msgstr "Tilgjengelige felt: {date}, {time}, {year}, {month}, {monthName}, {monthShort}, {day}, {hour24}, {hour12}, {minute}, {second}, {ampm}, {version}, {browser}, {browserVersion}. .json-utvidelsen legges til automatisk."
+
+msgid "options_backupFilenameEscaping"
+msgstr "Bruk \\{ og \\} for å inkludere bokstavelige krøllparenteser i filnavnet."
+
+msgid "options_backupFilenamePreview"
+msgstr "Forhåndsvisning:"
+
+msgid "options_backupFilenameRequired"
+msgstr "Et filnavn kreves."
+
+msgid "options_backupFilenameInvalidCharacters"
+msgstr "Filnavnet inneholder ugyldige tegn: $1"
+
+msgid "options_backupFilenameTrailingCharacter"
+msgstr "Filnavnet kan ikke slutte med mellomrom eller punktum."
+
+msgid "options_backupFilenameJsonExtension"
+msgstr "Ikke ta med .json-utvidelsen."
+
+msgid "options_backupFilenameTooLong"
+msgstr "Filnavnet er for langt: $1/$2 byte."
+
 msgid "options_makeBackup"
 msgstr "Ta sikkerhetskopi"
 

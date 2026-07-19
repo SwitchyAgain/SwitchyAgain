@@ -16,7 +16,12 @@ export type BackupFilenameOptions = {
 
 export type BackupFilenameValidation = {
   byteLength: number;
-  error: string;
+  error: {
+    byteLength?: number;
+    characters?: string;
+    code: 'invalidCharacters' | 'jsonExtension' | 'required' | 'tooLong' | 'trailingCharacter';
+    maxByteLength?: number;
+  } | null;
   filename: string;
   maxByteLength: number;
 };
@@ -199,19 +204,23 @@ export function backupFilenameValidation(
   const filename = backupFilename(options, context);
   const base = filename.slice(0, -'.json'.length);
   const byteLength = utf8ByteLength(filename);
-  let error = '';
+  let error: BackupFilenameValidation['error'] = null;
   if (!base.trim()) {
-    error = 'A filename is required.';
+    error = {code: 'required'};
   } else {
     const invalidCharacters = Array.from(new Set(base.match(INVALID_FILENAME_CHARACTERS) || []));
     if (invalidCharacters.length) {
-      error = `The filename contains invalid characters: ${invalidCharacters.join(' ')}`;
+      error = {characters: invalidCharacters.join(' '), code: 'invalidCharacters'};
     } else if (/[. ]$/.test(base)) {
-      error = 'The filename cannot end with a space or period.';
+      error = {code: 'trailingCharacter'};
     } else if (/\.json$/i.test(base)) {
-      error = 'Do not include the .json extension.';
+      error = {code: 'jsonExtension'};
     } else if (byteLength > MAX_BACKUP_FILENAME_BYTES) {
-      error = `The filename is too long: ${byteLength}/${MAX_BACKUP_FILENAME_BYTES} bytes.`;
+      error = {
+        byteLength,
+        code: 'tooLong',
+        maxByteLength: MAX_BACKUP_FILENAME_BYTES
+      };
     }
   }
   return {

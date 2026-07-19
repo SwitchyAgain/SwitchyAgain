@@ -97,12 +97,15 @@ describe('import export logic', () => {
 
   it('reports invalid characters and final UTF-8 filename length', () => {
     const context = {browser: 'firefox', date: new Date(2000, 0, 2), extensionVersion: '0.0.1'};
-    expect(backupFilenameValidation({enabled: true, scheme: 'custom', template: 'Backup:{date}'}, context)?.error).toBe(
-      'The filename contains invalid characters: :'
-    );
-    expect(backupFilenameValidation({enabled: true, scheme: 'custom', template: 'x'.repeat(176)}, context)?.error).toBe(
-      'The filename is too long: 181/180 bytes.'
-    );
+    expect(backupFilenameValidation({enabled: true, scheme: 'custom', template: 'Backup:{date}'}, context)?.error).toEqual({
+      characters: ':',
+      code: 'invalidCharacters'
+    });
+    expect(backupFilenameValidation({enabled: true, scheme: 'custom', template: 'x'.repeat(176)}, context)?.error).toEqual({
+      byteLength: 181,
+      code: 'tooLong',
+      maxByteLength: 180
+    });
   });
 
   it('formats import/export errors from message, reason, or primitive values', () => {

@@ -585,6 +585,51 @@ msgstr ""
 msgid "options_group_importExportBackup"
 msgstr "Резервное копирование"
 
+msgid "options_localBackupRestore"
+msgstr "Локальное резервное копирование и восстановление"
+
+msgid "options_backupFilenameCustom"
+msgstr "Использовать собственное имя файла резервной копии"
+
+msgid "options_backupFilenameDate"
+msgstr "Дата"
+
+msgid "options_backupFilenameDateTime"
+msgstr "Дата и время"
+
+msgid "options_backupFilenameDateVersion"
+msgstr "Дата и версия"
+
+msgid "options_backupFilenameTemplate"
+msgstr "Пользовательский шаблон"
+
+msgid "options_backupFilenameTemplateLabel"
+msgstr "Шаблон"
+
+msgid "options_backupFilenameFields"
+msgstr "Доступные поля: {date}, {time}, {year}, {month}, {monthName}, {monthShort}, {day}, {hour24}, {hour12}, {minute}, {second}, {ampm}, {version}, {browser}, {browserVersion}. Расширение .json добавляется автоматически."
+
+msgid "options_backupFilenameEscaping"
+msgstr "Используйте \\{ и \\}, чтобы добавить в имя файла литеральные фигурные скобки."
+
+msgid "options_backupFilenamePreview"
+msgstr "Предварительный просмотр:"
+
+msgid "options_backupFilenameRequired"
+msgstr "Введите имя файла."
+
+msgid "options_backupFilenameInvalidCharacters"
+msgstr "Имя файла содержит недопустимые символы: $1"
+
+msgid "options_backupFilenameTrailingCharacter"
+msgstr "Имя файла не может заканчиваться пробелом или точкой."
+
+msgid "options_backupFilenameJsonExtension"
+msgstr "Не добавляйте расширение .json."
+
+msgid "options_backupFilenameTooLong"
+msgstr "Имя файла слишком длинное: $1/$2 байт."
+
 msgid "options_makeBackup"
 msgstr "Создать резервную копию"
 

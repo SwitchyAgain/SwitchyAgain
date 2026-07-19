@@ -573,6 +573,51 @@ msgstr ""
 msgid "options_group_importExportBackup"
 msgstr "Záloha"
 
+msgid "options_localBackupRestore"
+msgstr "Místní záloha a obnovení"
+
+msgid "options_backupFilenameCustom"
+msgstr "Použít vlastní název souboru zálohy"
+
+msgid "options_backupFilenameDate"
+msgstr "Datum"
+
+msgid "options_backupFilenameDateTime"
+msgstr "Datum a čas"
+
+msgid "options_backupFilenameDateVersion"
+msgstr "Datum a verze"
+
+msgid "options_backupFilenameTemplate"
+msgstr "Vlastní šablona"
+
+msgid "options_backupFilenameTemplateLabel"
+msgstr "Šablona"
+
+msgid "options_backupFilenameFields"
+msgstr "Dostupná pole: {date}, {time}, {year}, {month}, {monthName}, {monthShort}, {day}, {hour24}, {hour12}, {minute}, {second}, {ampm}, {version}, {browser}, {browserVersion}. Přípona .json se přidá automaticky."
+
+msgid "options_backupFilenameEscaping"
+msgstr "Pomocí \\{ a \\} vložíte do názvu souboru doslovné složené závorky."
+
+msgid "options_backupFilenamePreview"
+msgstr "Náhled:"
+
+msgid "options_backupFilenameRequired"
+msgstr "Název souboru je povinný."
+
+msgid "options_backupFilenameInvalidCharacters"
+msgstr "Název souboru obsahuje neplatné znaky: $1"
+
+msgid "options_backupFilenameTrailingCharacter"
+msgstr "Název souboru nesmí končit mezerou nebo tečkou."
+
+msgid "options_backupFilenameJsonExtension"
+msgstr "Příponu .json neuvádějte."
+
+msgid "options_backupFilenameTooLong"
+msgstr "Název souboru je příliš dlouhý: $1/$2 bajtů."
+
 msgid "options_makeBackup"
 msgstr "Provést zálohu"
 

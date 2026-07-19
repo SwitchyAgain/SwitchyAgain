@@ -578,6 +578,51 @@ msgstr ""
 msgid "options_group_importExportBackup"
 msgstr "پشتیبان‌گیری"
 
+msgid "options_localBackupRestore"
+msgstr "پشتیبان‌گیری و بازیابی محلی"
+
+msgid "options_backupFilenameCustom"
+msgstr "استفاده از نام سفارشی برای فایل پشتیبان"
+
+msgid "options_backupFilenameDate"
+msgstr "تاریخ"
+
+msgid "options_backupFilenameDateTime"
+msgstr "تاریخ و زمان"
+
+msgid "options_backupFilenameDateVersion"
+msgstr "تاریخ و نسخه"
+
+msgid "options_backupFilenameTemplate"
+msgstr "قالب سفارشی"
+
+msgid "options_backupFilenameTemplateLabel"
+msgstr "قالب"
+
+msgid "options_backupFilenameFields"
+msgstr "فیلدهای موجود: {date}, {time}, {year}, {month}, {monthName}, {monthShort}, {day}, {hour24}, {hour12}, {minute}, {second}, {ampm}, {version}, {browser}, {browserVersion}. پسوند .json به‌طور خودکار اضافه می‌شود."
+
+msgid "options_backupFilenameEscaping"
+msgstr "برای افزودن آکولادهای واقعی به نام فایل، از \\{ و \\} استفاده کنید."
+
+msgid "options_backupFilenamePreview"
+msgstr "پیش‌نمایش:"
+
+msgid "options_backupFilenameRequired"
+msgstr "وارد کردن نام فایل الزامی است."
+
+msgid "options_backupFilenameInvalidCharacters"
+msgstr "نام فایل دارای نویسه‌های نامعتبر است: $1"
+
+msgid "options_backupFilenameTrailingCharacter"
+msgstr "نام فایل نمی‌تواند با فاصله یا نقطه تمام شود."
+
+msgid "options_backupFilenameJsonExtension"
+msgstr "پسوند .json را وارد نکنید."
+
+msgid "options_backupFilenameTooLong"
+msgstr "نام فایل بیش از حد طولانی است: $1/$2 بایت."
+
 msgid "options_makeBackup"
 msgstr "پشتیبان‌گیری"
 
