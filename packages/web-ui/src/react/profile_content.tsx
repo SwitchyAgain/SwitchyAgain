@@ -563,7 +563,7 @@ export function ProfileShell({
           {profileGroupsEnabled && (
             <>
               <div className="profile-group-control-row">
-                <label className="profile-switch-label">
+                <label className="toggle-switch-label">
                   <input
                     type="checkbox"
                     role="switch"
@@ -583,8 +583,8 @@ export function ProfileShell({
                       }
                     }}
                   />
-                  <span className="profile-switch" aria-hidden="true">
-                    <span className="profile-switch-knob" />
+                  <span className="toggle-switch" aria-hidden="true">
+                    <span className="toggle-switch-knob" />
                   </span>
                   <span>{message('options_useProfileGroup', 'Group this profile')}</span>
                 </label>
@@ -611,13 +611,13 @@ export function ProfileShell({
                   <option value="__new__">{message('options_profileGroupNewInline', 'New group...')}</option>
                 </select>
               </div>
-              <p className="help-block profile-switch-help">
+              <p className="help-block">
                 {message('options_useProfileGroupHelp', 'When enabled, this profile is moved into the selected profile group.')}
               </p>
             </>
           )}
           <label
-            className={`profile-switch-label ${profileGroupActive ? 'profile-switch-label-disabled' : ''}`}
+            className={`toggle-switch-label ${profileGroupActive ? 'toggle-switch-label-disabled' : ''}`}
             title={hiddenOptionsDisabledTitle}
           >
             <input
@@ -628,19 +628,19 @@ export function ProfileShell({
               title={hiddenOptionsDisabledTitle}
               onChange={(event) => onPopupHiddenChange?.(event.currentTarget.checked)}
             />
-            <span className="profile-switch" aria-hidden="true">
-              <span className="profile-switch-knob" />
+            <span className="toggle-switch" aria-hidden="true">
+              <span className="toggle-switch-knob" />
             </span>
             <span title={hiddenOptionsDisabledTitle}>{message('options_hideFromPopupMenu', 'Hide from popup menu')}</span>
           </label>
-          <p className="help-block profile-switch-help">
+          <p className="help-block">
             {message(
               'options_hideFromPopupMenuHelp',
               'When enabled, this profile is moved to the hidden profiles section in the popup menu.'
             )}
           </p>
           <label
-            className={`profile-switch-label ${profileGroupActive ? 'profile-switch-label-disabled' : ''}`}
+            className={`toggle-switch-label ${profileGroupActive ? 'toggle-switch-label-disabled' : ''}`}
             title={hiddenOptionsDisabledTitle}
           >
             <input
@@ -651,19 +651,19 @@ export function ProfileShell({
               title={hiddenOptionsDisabledTitle}
               onChange={(event) => onContextMenuHiddenChange?.(event.currentTarget.checked)}
             />
-            <span className="profile-switch" aria-hidden="true">
-              <span className="profile-switch-knob" />
+            <span className="toggle-switch" aria-hidden="true">
+              <span className="toggle-switch-knob" />
             </span>
             <span title={hiddenOptionsDisabledTitle}>{message('options_hideFromContextMenu', 'Hide from context menu')}</span>
           </label>
-          <p className="help-block profile-switch-help">
+          <p className="help-block">
             {message(
               'options_hideFromContextMenuHelp',
               'When enabled, this profile is moved to the hidden profiles section in profile context menus.'
             )}
           </p>
           <label
-            className={`profile-switch-label ${profileGroupActive ? 'profile-switch-label-disabled' : ''}`}
+            className={`toggle-switch-label ${profileGroupActive ? 'toggle-switch-label-disabled' : ''}`}
             title={hiddenOptionsDisabledTitle}
           >
             <input
@@ -674,12 +674,12 @@ export function ProfileShell({
               title={hiddenOptionsDisabledTitle}
               onChange={(event) => onOptionsSidebarHiddenChange?.(event.currentTarget.checked)}
             />
-            <span className="profile-switch" aria-hidden="true">
-              <span className="profile-switch-knob" />
+            <span className="toggle-switch" aria-hidden="true">
+              <span className="toggle-switch-knob" />
             </span>
             <span title={hiddenOptionsDisabledTitle}>{message('options_hideFromOptionsSidebar', 'Hide from options sidebar')}</span>
           </label>
-          <p className="help-block profile-switch-help">
+          <p className="help-block">
             {message(
               'options_hideFromOptionsSidebarHelp',
               'When enabled, this profile is moved to the hidden profiles section in the options sidebar.'
@@ -1260,7 +1260,7 @@ function RuleListExportContentSwitch({
 }) {
   return (
     <>
-      <label className="profile-switch-label">
+      <label className="toggle-switch-label">
         <input
           type="checkbox"
           role="switch"
@@ -1268,12 +1268,12 @@ function RuleListExportContentSwitch({
           disabled={disabled}
           onChange={(event) => onChange(event.currentTarget.checked)}
         />
-        <span className="profile-switch" aria-hidden="true">
-          <span className="profile-switch-knob" />
+        <span className="toggle-switch" aria-hidden="true">
+          <span className="toggle-switch-knob" />
         </span>
         <span>{message('options_ruleListOmitDownloadedContent', 'Exclude downloaded rule list content from exported config.')}</span>
       </label>
-      <p className="help-block profile-switch-help">
+      <p className="help-block">
         {message(
           'options_ruleListOmitDownloadedContentHelp',
           'This can significantly reduce exported config size for large rule lists. Download the rules again after import.'
@@ -1498,7 +1498,7 @@ function fixedProfileAuthTitle(protocol?: string, supported = false) {
 
 function fixedProfileBypassSectionHasFocus() {
   const activeElement = document.activeElement;
-  return activeElement instanceof HTMLElement && !!activeElement.closest('.fixed-bypass-section');
+  return activeElement instanceof HTMLElement && !!activeElement.closest('.bypass-section');
 }
 
 function fixedProfileSchemeGroupVisible(
@@ -1893,14 +1893,14 @@ export function FixedProfileContent({
           <>
             {draftBypassSections.map((section, index) => (
               <BypassSectionEditor
-                id={`fixed-bypass-section-name-${index}`}
+                id={`bypass-section-name-${index}`}
                 key={index}
                 section={section}
                 onChange={(changes) => updateBypassSection(index, changes)}
                 onRemove={() => requestRemoveBypassSection(index)}
               />
             ))}
-            <p className="fixed-bypass-section-add">
+            <p className="bypass-section-add">
               <button type="button" className="btn btn-default" onClick={addBypassSection}>
                 <span className="glyphicon glyphicon-plus" /> <span>{message('options_addBypassSection', 'Add a new list section')}</span>
               </button>

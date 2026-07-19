@@ -41,8 +41,8 @@ export function BypassSectionEditor({
   onRemove: () => void;
 }) {
   return (
-    <div className="fixed-bypass-section">
-      <div className="fixed-bypass-section-header width-limit">
+    <div className="bypass-section">
+      <div className="bypass-section-header width-limit">
         <label htmlFor={id}>{message('options_bypassSectionName', 'Section name')}</label>
         <input
           id={id}
@@ -61,20 +61,20 @@ export function BypassSectionEditor({
           <span className="glyphicon glyphicon-trash" />
         </button>
       </div>
-      <label className="profile-switch-label fixed-bypass-section-switch">
+      <label className="toggle-switch-label bypass-section-switch">
         <input
           type="checkbox"
           role="switch"
           checked={section.enabled}
           onChange={(event) => onChange({enabled: event.currentTarget.checked})}
         />
-        <span className="profile-switch" aria-hidden="true">
-          <span className="profile-switch-knob" />
+        <span className="toggle-switch" aria-hidden="true">
+          <span className="toggle-switch-knob" />
         </span>
         <span>{message('options_enableBypassSection', 'Enable this list section')}</span>
       </label>
       <textarea
-        className="monospace form-control width-limit fixed-bypass-section-textarea"
+        className="monospace form-control width-limit bypass-section-textarea"
         rows={10}
         spellCheck={false}
         value={section.text}

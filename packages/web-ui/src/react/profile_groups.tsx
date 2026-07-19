@@ -740,7 +740,7 @@ export function ProfileGroupsPage({onOptionsChange, options}: {onOptionsChange: 
         <h2>{message('options_tab_profileGroups', 'Profile Groups')}</h2>
       </div>
 
-      <section className="settings-group profile-groups-settings-group">
+      <section className="settings-group">
         <div className="settings-section-heading">
           <h3>{message('options_profileGroupsGroupsSection', 'Groups')}</h3>
           <button className="btn btn-default profile-groups-add-button" type="button" onClick={() => setCreateOpen(true)}>
@@ -764,8 +764,8 @@ export function ProfileGroupsPage({onOptionsChange, options}: {onOptionsChange: 
                     <td>
                       <ProfileGroupInline group={group} />
                     </td>
-                    <td className="settings-count-cell">{members.length}</td>
-                    <td className="settings-actions-cell">
+                    <td>{members.length}</td>
+                    <td>
                       <span className="settings-actions">
                         <button
                           className="btn btn-default btn-sm"
@@ -806,7 +806,7 @@ export function ProfileGroupsPage({onOptionsChange, options}: {onOptionsChange: 
         )}
       </section>
 
-      <section className="settings-group profile-groups-settings-group">
+      <section className="settings-group">
         <h3>{message('options_profileGroupsMoveSection', 'Move Profiles')}</h3>
         {profiles.length ? (
           <div className="profile-groups-move-body">

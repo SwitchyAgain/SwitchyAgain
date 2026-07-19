@@ -51,7 +51,7 @@ function SupplementalListContentEditor({
     }
     const activeElement = document.activeElement;
     const sectionFocused =
-      activeElement instanceof HTMLElement && rootRef.current?.contains(activeElement) && !!activeElement.closest('.fixed-bypass-section');
+      activeElement instanceof HTMLElement && rootRef.current?.contains(activeElement) && !!activeElement.closest('.bypass-section');
     if (listChanged || !sectionFocused) {
       setSections(bypassSectionDrafts(list.bypassSections));
       setPendingDeleteSectionIndex(null);
@@ -121,7 +121,7 @@ function SupplementalListContentEditor({
           />
         ))}
       {showSections && (
-        <p className="fixed-bypass-section-add">
+        <p className="bypass-section-add">
           <button
             type="button"
             className="btn btn-default"
@@ -615,9 +615,9 @@ export function ProxyExceptionsPage({options, onOptionsChange}: {options: Option
                       </span>
                     )}
                   </td>
-                  <td className="settings-count-cell">{linkedProfiles(list.id).length}</td>
-                  {groupsEnabled && <td className="settings-count-cell">{linkedGroups(list.id).length}</td>}
-                  <td className="settings-actions-cell">
+                  <td>{linkedProfiles(list.id).length}</td>
+                  {groupsEnabled && <td>{linkedGroups(list.id).length}</td>}
+                  <td>
                     <span className="settings-actions">
                       <button
                         className="btn btn-default btn-sm"
