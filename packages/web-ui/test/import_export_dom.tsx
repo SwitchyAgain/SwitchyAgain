@@ -280,16 +280,16 @@ describe('import export component', () => {
 
     fireEvent.change(screen.getByLabelText('Restore from online'), {
       target: {
-        value: 'https://example.com/options.bak'
+        value: 'https://example.com/backup.json'
       }
     });
-    expect(optionsClientMock.setLocalState).toHaveBeenCalledWith(RESTORE_URL_STATE, 'https://example.com/options.bak');
+    expect(optionsClientMock.setLocalState).toHaveBeenCalledWith(RESTORE_URL_STATE, 'https://example.com/backup.json');
 
     fireEvent.click(screen.getByRole('button', {name: 'Restore'}));
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
-        'https://example.com/options.bak',
+        'https://example.com/backup.json',
         expect.objectContaining({
           cache: 'no-store',
           signal: expect.any(AbortSignal)
@@ -316,7 +316,7 @@ describe('import export component', () => {
 
     fireEvent.change(screen.getByLabelText('Restore from online'), {
       target: {
-        value: 'https://example.com/missing.bak'
+        value: 'https://example.com/missing.json'
       }
     });
     fireEvent.click(screen.getByRole('button', {name: 'Restore'}));

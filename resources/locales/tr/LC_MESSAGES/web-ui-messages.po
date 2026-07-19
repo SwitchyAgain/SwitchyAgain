@@ -534,9 +534,6 @@ msgstr "SwitchyAgain seçeneklerini bir dosyadan eski haline getir."
 msgid "options_restoreOnline"
 msgstr "Çevirimiçi eski haline getir"
 
-msgid "options_restoreOnlinePlaceholder"
-msgstr "Seçenekler dosyası bağlantısı (ör. 'http://example.com/switchy.bak')"
-
 msgid "options_restoreOnlineSubmit"
 msgstr "Eski haline getir"
 

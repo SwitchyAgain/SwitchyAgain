@@ -590,9 +590,6 @@ msgstr "Obnovit Vaše SwitchyAgain nastavení z lokálního souboru."
 msgid "options_restoreOnline"
 msgstr "Obnovit z online"
 
-msgid "options_restoreOnlinePlaceholder"
-msgstr "URL souboru nastavení (e.g. 'http://example.com/switchy.bak')"
-
 msgid "options_restoreOnlineSubmit"
 msgstr "Obnovit"
 

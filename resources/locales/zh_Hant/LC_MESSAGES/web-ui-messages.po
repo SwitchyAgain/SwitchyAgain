@@ -534,9 +534,6 @@ msgstr "匯入本機的備份檔案以還原所有選項。"
 msgid "options_restoreOnline"
 msgstr "線上還原"
 
-msgid "options_restoreOnlinePlaceholder"
-msgstr "備份檔案位址 (如：http://example.com/switchy.bak)"
-
 msgid "options_restoreOnlineSubmit"
 msgstr "還原"
 

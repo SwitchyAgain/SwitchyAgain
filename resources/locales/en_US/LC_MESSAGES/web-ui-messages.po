@@ -584,9 +584,6 @@ msgstr "Restore your SwitchyAgain options from a local file."
 msgid "options_restoreOnline"
 msgstr "Restore from online"
 
-msgid "options_restoreOnlinePlaceholder"
-msgstr "Options file URL (e.g. 'http://example.com/switchy.bak')"
-
 msgid "options_restoreOnlineSubmit"
 msgstr "Restore"
 

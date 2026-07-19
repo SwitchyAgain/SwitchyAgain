@@ -603,9 +603,6 @@ msgstr ""
 msgid "options_restoreOnline"
 msgstr "Восстановить по сети"
 
-msgid "options_restoreOnlinePlaceholder"
-msgstr "URL-адрес файла параметров (например, http://example.com/switchy.bak)"
-
 msgid "options_restoreOnlineSubmit"
 msgstr "Восстановить"
 

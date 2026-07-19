@@ -2057,12 +2057,12 @@ describe('options app', () => {
     await screen.findByRole('heading', {name: 'Import/Export'});
     fireEvent.change(screen.getByLabelText('Restore from online'), {
       target: {
-        value: 'https://example.com/options.bak'
+        value: 'https://example.com/backup.json'
       }
     });
     fireEvent.click(screen.getByRole('button', {name: 'Restore'}));
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('https://example.com/options.bak', expect.any(Object)));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('https://example.com/backup.json', expect.any(Object)));
     await waitFor(() =>
       expect(requests).toContainEqual({
         args: ['backup-content'],

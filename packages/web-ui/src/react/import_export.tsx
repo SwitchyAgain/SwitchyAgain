@@ -902,7 +902,7 @@ export function ImportExport({
             className="form-control"
             type="url"
             value={restoreUrl}
-            placeholder={message('options_restoreOnlinePlaceholder', "Options file URL (e.g. 'http://example.com/switchy.bak')")}
+            placeholder="https://example.com/backup.json"
             onChange={(event) => {
               const url = event.currentTarget.value;
               setRestoreUrl(url);

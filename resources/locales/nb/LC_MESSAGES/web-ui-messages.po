@@ -535,9 +535,6 @@ msgstr "Gjennopprett dine SwitchyAgain-valg fra ei lokal fil."
 msgid "options_restoreOnline"
 msgstr "Gjenopprett fra nett"
 
-msgid "options_restoreOnlinePlaceholder"
-msgstr "URL til valg-fil (f.eks. 'http://eksempel.no/switchy.bak')"
-
 msgid "options_restoreOnlineSubmit"
 msgstr "Gjenopprett"
 

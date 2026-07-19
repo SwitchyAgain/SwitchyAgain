@@ -545,9 +545,6 @@ msgstr "导入本地的备份文件以恢复所有选项。"
 msgid "options_restoreOnline"
 msgstr "在线恢复"
 
-msgid "options_restoreOnlinePlaceholder"
-msgstr "备份文件地址 (如：http://example.com/switchy.bak)"
-
 msgid "options_restoreOnlineSubmit"
 msgstr "恢复"
 
