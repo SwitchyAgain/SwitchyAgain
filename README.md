@@ -36,11 +36,11 @@ Changes from SwitchyOmega
 | Interface settings | Browser-locale dependent UI | In-app language, light/dark theme, and configurable sidebar, popup, and menu options |
 | Popup experience | Classic profile menu | Extended popup with profile scope controls, route info, and hidden profiles |
 | Profile organization | Flat profile list | Profile groups, hidden profiles, and profile browser |
-| Proxy exceptions | Profile-level bypass lists | Profile-level bypass lists + a global bypass list and supplemental lists linked to proxy profiles or profile groups |
 | Profile scopes | Global profile switching | Scope-aware profile assignments for tabs, tab groups, containers, and normal/private browsing modes |
+| Proxy exceptions | Profile-level bypass lists | Profile-level bypass lists + a global bypass list and supplemental lists linked to proxy profiles or profile groups |
 | Context menus | Original context menu implementation | New MV3-compatible context menu implementation with profile switching and scope menus |
 | Diagnostics | Limited routing visibility | Request Lens diagnostics for inspecting route traces, matched profiles, request results, and ignored requests |
-| Backup and restore | Legacy options export and import | SwitchyAgain backup format with metadata, legacy import compatibility, and configurable backup filenames |
+| Backup and restore | Legacy options export and import | Backup format with metadata, legacy import compatibility, and custom backup filenames |
 | Options sync | Browser Sync | Browser Sync + WebDAV Sync |
 | Build tooling | Legacy npm, Browserify, and Bower-era extension build tooling | npm workspaces with TypeScript and esbuild-based bundling |
 
