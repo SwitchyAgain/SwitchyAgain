@@ -4,6 +4,7 @@ import {createRoot} from 'react-dom/client';
 import {
   clearWindowTimeout,
   confirmDialog,
+  extensionBrowserMajorVersion,
   extensionBrowserName,
   extensionManifestVersion,
   reloadLocation,
@@ -17,6 +18,7 @@ import {
   resetOptions,
   resetOptionsSync,
   runWebDavSyncAction,
+  patchOptions,
   setOptionsSync,
   setWebDavOptionsSync,
   setWebDavSyncConfig,
@@ -24,8 +26,18 @@ import {
 } from './options_api_client';
 import type {Options, WebDavSyncConfig, WebDavSyncManualAction, WebDavSyncStatus} from './options_client_types';
 import {getLocalState, getState, setLocalState} from './state_client';
-import {RESTORE_URL_STATE, backupOptionsText, importExportBusy, importExportErrorMessage, syncBusy} from './import_export_logic';
-import type {ImportExportStatus, SyncStatus} from './import_export_logic';
+import {
+  RESTORE_URL_STATE,
+  backupFilename,
+  backupFilenameOptions,
+  backupFilenameValidation,
+  backupOptionsText,
+  importExportBusy,
+  importExportErrorMessage,
+  syncBusy
+} from './import_export_logic';
+import type {BackupFilenameOptions, BackupFilenameScheme, ImportExportStatus, SyncStatus} from './import_export_logic';
+import {optionPatch} from './option_patch';
 import {formatMediumDate} from './profile_content_logic';
 import {richMessage} from './rich_message';
 
@@ -33,6 +45,7 @@ export type ImportExportProps = {
   embedded?: boolean;
   onApplyOptions?: () => Promise<unknown> | unknown;
   onImportSuccess?: () => Promise<unknown> | unknown;
+  onOptionsChange?: (nextOptions: Options) => void;
   onOptionsReplace?: (nextOptions: Options, options?: {dirty?: boolean}) => void;
   options?: Options | null;
   optionsDirty?: boolean;
@@ -178,6 +191,7 @@ export function ImportExport({
   embedded = false,
   onApplyOptions,
   onImportSuccess,
+  onOptionsChange,
   onOptionsReplace,
   options: initialOptions,
   optionsDirty = false
@@ -219,6 +233,16 @@ export function ImportExport({
   });
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const filenameOptions = backupFilenameOptions(options?.['-backupFilename']);
+  const filenameContext = {
+    browser: extensionBrowserName(),
+    browserVersion: extensionBrowserMajorVersion(),
+    date: new Date(),
+    extensionVersion: extensionManifestVersion()
+  };
+  const filenamePreview = backupFilename(filenameOptions, filenameContext);
+  const filenameValidation = backupFilenameValidation(filenameOptions, filenameContext);
 
   useEffect(() => {
     setSyncOptions(getLocalState('syncOptions'));
@@ -289,7 +313,7 @@ export function ImportExport({
   }
 
   function exportOptions() {
-    if (!options) {
+    if (!options || filenameValidation?.error) {
       return;
     }
     setStatus('exporting');
@@ -308,12 +332,42 @@ export function ImportExport({
             type: 'text/plain;charset=utf-8'
           }
         );
-        downloadBlob(blob, 'SwitchyAgainBackup.json');
+        downloadBlob(
+          blob,
+          backupFilename(backupFilenameOptions(exportOptions['-backupFilename']), {
+            browser: extensionBrowserName(),
+            browserVersion: extensionBrowserMajorVersion(),
+            date: new Date(),
+            extensionVersion: extensionManifestVersion()
+          })
+        );
       })
       .catch(() => {})
       .finally(() => {
         setStatus('ready');
       });
+  }
+
+  function updateBackupFilename(nextFilenameOptions: BackupFilenameOptions) {
+    if (!options) {
+      return;
+    }
+    const nextOptions = {
+      ...options,
+      '-backupFilename': nextFilenameOptions
+    };
+    setOptions(nextOptions);
+    if (embedded) {
+      onOptionsChange?.(nextOptions);
+      return;
+    }
+    patchOptions(optionPatch(options, nextOptions, ['-backupFilename']))
+      .then(setOptions)
+      .catch(() => {});
+  }
+
+  function updateBackupFilenameScheme(scheme: BackupFilenameScheme) {
+    updateBackupFilename({...filenameOptions, scheme});
   }
 
   function restoreFromContent(content: string, restoringStatus: 'restoringLocal' | 'restoringOnline') {
@@ -723,25 +777,126 @@ export function ImportExport({
       )}
 
       <h3>{message('options_group_importExportBackup', 'Backup')}</h3>
-      <p className="react-action-row">
-        <button type="button" className="btn btn-default" disabled={!options || busy} onClick={exportOptions}>
-          <span className="glyphicon glyphicon-floppy-save" /> {message('options_makeBackup', 'Make backup')}
-        </button>{' '}
-        <span className="help-inline">
-          {message('options_makeBackupHelp', 'Make a full backup of your options (including profiles and all other options).')}
-        </span>
-      </p>
+      <div className="form-group">
+        <label>{message('options_localBackupRestore', 'Local backup and restore')}</label>
+        <div className="backup-filename-settings">
+          <div className="checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={filenameOptions.enabled}
+              disabled={!options || busy}
+              onChange={(event) => updateBackupFilename({...filenameOptions, enabled: event.currentTarget.checked})}
+            />{' '}
+            {message('options_backupFilenameCustom', 'Use a custom backup filename')}
+          </label>
+          </div>
+          {filenameOptions.enabled && (
+            <div className="backup-filename-options">
+            <div className="radio">
+              <label>
+                <input
+                  type="radio"
+                  name="backup-filename-scheme"
+                  checked={filenameOptions.scheme === 'date'}
+                  onChange={() => updateBackupFilenameScheme('date')}
+                />{' '}
+                {message('options_backupFilenameDate', 'Date')}
+              </label>
+            </div>
+            <div className="radio">
+              <label>
+                <input
+                  type="radio"
+                  name="backup-filename-scheme"
+                  checked={filenameOptions.scheme === 'dateTime'}
+                  onChange={() => updateBackupFilenameScheme('dateTime')}
+                />{' '}
+                {message('options_backupFilenameDateTime', 'Date and time')}
+              </label>
+            </div>
+            <div className="radio">
+              <label>
+                <input
+                  type="radio"
+                  name="backup-filename-scheme"
+                  checked={filenameOptions.scheme === 'dateVersion'}
+                  onChange={() => updateBackupFilenameScheme('dateVersion')}
+                />{' '}
+                {message('options_backupFilenameDateVersion', 'Date and version')}
+              </label>
+            </div>
+            <div className="radio">
+              <label>
+                <input
+                  type="radio"
+                  name="backup-filename-scheme"
+                  checked={filenameOptions.scheme === 'custom'}
+                  onChange={() => updateBackupFilenameScheme('custom')}
+                />{' '}
+                {message('options_backupFilenameTemplate', 'Custom template')}
+              </label>
+            </div>
+            {filenameOptions.scheme === 'custom' && (
+              <div className="backup-filename-template">
+                <div className={filenameValidation?.error ? 'has-error' : ''}>
+                  <label htmlFor="backup-filename-template">{message('options_backupFilenameTemplateLabel', 'Template')}</label>
+                  <input
+                    id="backup-filename-template"
+                    type="text"
+                    className="form-control width-limit"
+                    value={filenameOptions.template}
+                    disabled={busy}
+                    onChange={(event) => updateBackupFilename({...filenameOptions, template: event.currentTarget.value})}
+                  />
+                  {filenameValidation?.error && <p className="help-block">{filenameValidation.error}</p>}
+                </div>
+                <p className="help-block">
+                  {message(
+                    'options_backupFilenameFields',
+                    'Available fields: {date}, {time}, {year}, {month}, {monthName}, {monthShort}, {day}, {hour24}, {hour12}, {minute}, {second}, {ampm}, {version}, {browser}, {browserVersion}. The .json extension is added automatically.'
+                  )}
+                </p>
+                <p className="help-block">
+                  {message('options_backupFilenameEscaping', 'Use \\{ and \\} to include literal braces in the filename.')}
+                </p>
+              </div>
+            )}
+            {!filenameValidation?.error && (
+              <p className="help-block backup-filename-preview">
+                <strong>{message('options_backupFilenamePreview', 'Preview:')}</strong> <code>{filenamePreview}</code>
+              </p>
+            )}
+            </div>
+          )}
+        </div>
+        <p className="react-action-row">
+          <button
+            type="button"
+            className="btn btn-default"
+            disabled={!options || busy || Boolean(filenameValidation?.error)}
+            onClick={exportOptions}
+          >
+            <span className="glyphicon glyphicon-floppy-save" /> {message('options_makeBackup', 'Make backup')}
+          </button>{' '}
+          <span className="help-inline">
+            {message('options_makeBackupHelp', 'Make a full backup of your options (including profiles and all other options).')}
+          </span>
+        </p>
 
-      <p className="react-action-row">
-        <input ref={fileInputRef} id="react-restore-local-file" type="file" style={{display: 'none'}} onChange={restoreLocal} />
-        <button type="button" className="btn btn-default" disabled={busy} onClick={() => fileInputRef.current?.click()}>
-          <span className="glyphicon glyphicon-folder-open" />{' '}
-          {status === 'restoringLocal'
-            ? message('options_restoreOnlineSubmit', 'Restore') + '...'
-            : message('options_restoreLocal', 'Restore from file')}
-        </button>{' '}
-        <span className="help-inline">{message('options_restoreLocalHelp', 'Restore your SwitchyAgain options from a local file.')}</span>
-      </p>
+        <p className="react-action-row">
+          <input ref={fileInputRef} id="react-restore-local-file" type="file" style={{display: 'none'}} onChange={restoreLocal} />
+          <button type="button" className="btn btn-default" disabled={busy} onClick={() => fileInputRef.current?.click()}>
+            <span className="glyphicon glyphicon-folder-open" />{' '}
+            {status === 'restoringLocal'
+              ? message('options_restoreOnlineSubmit', 'Restore') + '...'
+              : message('options_restoreLocal', 'Restore from file')}
+          </button>{' '}
+          <span className="help-inline">
+            {message('options_restoreLocalHelp', 'Restore your SwitchyAgain options from a local file.')}
+          </span>
+        </p>
+      </div>
 
       <div className="form-group">
         <label htmlFor="react-restore-online-url">{message('options_restoreOnline', 'Restore from online')}</label>

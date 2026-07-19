@@ -87,6 +87,33 @@ function isRecordValue(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object';
 }
 
+const DEFAULT_BACKUP_FILENAME_OPTIONS = {
+  enabled: false,
+  scheme: 'date',
+  template: 'SwitchyAgainBackup_{date}'
+};
+
+function normalizeBackupFilenameOptions(value: unknown) {
+  const current = isRecordValue(value) ? value : {};
+  const scheme =
+    current.scheme === 'dateTime' || current.scheme === 'dateVersion' || current.scheme === 'custom' ? current.scheme : 'date';
+  return {
+    enabled: current.enabled === true,
+    scheme,
+    template: typeof current.template === 'string' ? current.template : DEFAULT_BACKUP_FILENAME_OPTIONS.template
+  };
+}
+
+function backupFilenameOptionsEqual(left: ReturnType<typeof normalizeBackupFilenameOptions>, right: unknown) {
+  return (
+    isRecordValue(right) &&
+    Object.keys(right).length === 3 &&
+    right.enabled === left.enabled &&
+    right.scheme === left.scheme &&
+    right.template === left.template
+  );
+}
+
 function normalizeProfileScopes(value: unknown): ProfileScopeSettings {
   const scopes = isRecordValue(value) ? value : {};
   return {
@@ -734,6 +761,11 @@ class Options {
     if (currentOptions['-uiTheme'] !== uiTheme) {
       changes['-uiTheme'] = uiTheme;
       currentOptions['-uiTheme'] = uiTheme;
+    }
+    const backupFilename = normalizeBackupFilenameOptions(currentOptions['-backupFilename']);
+    if (!backupFilenameOptionsEqual(backupFilename, currentOptions['-backupFilename'])) {
+      changes['-backupFilename'] = backupFilename;
+      currentOptions['-backupFilename'] = backupFilename;
     }
     const profileScopes = normalizeProfileScopes(currentOptions['-profileScopes']);
     if (

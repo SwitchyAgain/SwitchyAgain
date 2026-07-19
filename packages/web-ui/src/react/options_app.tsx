@@ -1674,6 +1674,7 @@ export function OptionsApp() {
             optionsDirty={dirty || pendingSourceDraftDirty}
             onApplyOptions={applyOptions}
             onImportSuccess={() => showAlert({type: 'success', i18n: 'options_importSuccess'})}
+            onOptionsChange={updateOptions}
             onOptionsReplace={replaceOptions}
           />
         </div>

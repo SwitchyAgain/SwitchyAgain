@@ -51,7 +51,7 @@ export type ExtensionBrowserApi = {
 
 type NavigatorWithUserAgentData = Navigator & {
   userAgentData?: {
-    brands?: Array<{brand?: string}>;
+    brands?: Array<{brand?: string; version?: string}>;
   };
 };
 
@@ -142,6 +142,27 @@ export function extensionBrowserName(
   }
   if (/Chrome\//.test(userAgent)) {
     return 'chrome';
+  }
+  return 'unknown';
+}
+
+export function extensionBrowserMajorVersion(
+  userAgent = globalThis.navigator?.userAgent || '',
+  brands = (globalThis.navigator as NavigatorWithUserAgentData | undefined)?.userAgentData?.brands || []
+) {
+  const userAgentPatterns = [/Edg\/(\d+)/, /Firefox\/(\d+)/, /Chromium\/(\d+)/, /Chrome\/(\d+)/];
+  for (const pattern of userAgentPatterns) {
+    const match = userAgent.match(pattern);
+    if (match?.[1]) {
+      return match[1];
+    }
+  }
+  for (const brandName of ['Microsoft Edge', 'Google Chrome', 'Chromium']) {
+    const version = brands.find((entry) => entry.brand === brandName)?.version;
+    const match = version?.match(/^\d+/);
+    if (match) {
+      return match[0];
+    }
   }
   return 'unknown';
 }

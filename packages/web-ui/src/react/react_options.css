@@ -26,6 +26,24 @@
   margin-right: 8px;
 }
 
+.backup-filename-options {
+  margin-left: 20px;
+  max-width: 620px;
+}
+
+.backup-filename-settings > .checkbox {
+  margin-top: 0;
+}
+
+.backup-filename-template {
+  margin: 8px 0 10px 20px;
+}
+
+.backup-filename-preview {
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+}
+
 .ui-locale-select,
 .ui-theme-select {
   display: inline-block;

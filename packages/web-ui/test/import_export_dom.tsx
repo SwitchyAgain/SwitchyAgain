@@ -14,8 +14,9 @@ const optionsClientMock = vi.hoisted(() => ({
   }),
   confirmDialog: vi.fn((messageText: string) => window.confirm(messageText)),
   downloadBlob: vi.fn(),
+  extensionBrowserMajorVersion: vi.fn(() => '1'),
   extensionBrowserName: vi.fn(() => 'firefox'),
-  extensionManifestVersion: vi.fn(() => '1.3.0'),
+  extensionManifestVersion: vi.fn(() => '0.0.1'),
   getLocalState: vi.fn(),
   getState: vi.fn(),
   getWebDavSyncConfig: vi.fn(),
@@ -43,6 +44,7 @@ vi.mock('../src/react/navigation_client', () => ({
 vi.mock('../src/react/browser_env', () => ({
   clearWindowTimeout: optionsClientMock.clearWindowTimeout,
   confirmDialog: optionsClientMock.confirmDialog,
+  extensionBrowserMajorVersion: optionsClientMock.extensionBrowserMajorVersion,
   extensionBrowserName: optionsClientMock.extensionBrowserName,
   extensionManifestVersion: optionsClientMock.extensionManifestVersion,
   reloadLocation: optionsClientMock.reloadLocation,
@@ -195,11 +197,70 @@ describe('import export component', () => {
       metadata: {
         browser: 'firefox',
         exportedAt: expect.any(String),
-        extensionVersion: '1.3.0'
+        extensionVersion: '0.0.1'
       },
       options: appliedOptions
     });
     expect(new Date(backup.metadata.exportedAt).toISOString()).toBe(backup.metadata.exportedAt);
+  });
+
+  it('stores backup filename choices in options and uses them for downloads', async () => {
+    const onOptionsChange = vi.fn();
+    const configuredOptions: Options = {
+      ...optionsFixture(),
+      '-backupFilename': {
+        enabled: true,
+        scheme: 'custom',
+        template: 'MyBackup_{version}'
+      }
+    };
+
+    render(<ImportExport embedded onOptionsChange={onOptionsChange} options={configuredOptions} />);
+
+    expect(screen.getByText('MyBackup_0.0.1.json')).toBeTruthy();
+    fireEvent.click(screen.getByRole('radio', {name: 'Date and version'}));
+    expect(onOptionsChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        '-backupFilename': {
+          enabled: true,
+          scheme: 'dateVersion',
+          template: 'MyBackup_{version}'
+        }
+      })
+    );
+
+    fireEvent.click(screen.getByRole('radio', {name: 'Custom template'}));
+    fireEvent.change(screen.getByRole('textbox', {name: 'Template'}), {target: {value: 'Archive_{date}_{version}'}});
+    fireEvent.click(screen.getByRole('button', {name: /Make backup/}));
+
+    await waitFor(() =>
+      expect(optionsClientMock.downloadBlob).toHaveBeenCalledWith(
+        expect.any(Blob),
+        expect.stringMatching(/^Archive_\d{4}-\d{2}-\d{2}_0\.0\.1\.json$/)
+      )
+    );
+  });
+
+  it('validates custom filenames as they are edited', () => {
+    const invalidOptions: Options = {
+      ...optionsFixture(),
+      '-backupFilename': {
+        enabled: true,
+        scheme: 'custom',
+        template: 'Bad:{date}'
+      }
+    };
+
+    render(<ImportExport embedded options={invalidOptions} />);
+
+    const template = screen.getByRole('textbox', {name: 'Template'});
+    expect(template.closest('.has-error')).not.toBeNull();
+    expect(screen.getByText('The filename contains invalid characters: :')).toBeTruthy();
+    expect((screen.getByRole('button', {name: /Make backup/}) as HTMLButtonElement).disabled).toBe(true);
+
+    fireEvent.change(template, {target: {value: 'Good_{date}'}});
+    expect(template.closest('.has-error')).toBeNull();
+    expect((screen.getByRole('button', {name: /Make backup/}) as HTMLButtonElement).disabled).toBe(false);
   });
 
   it('restores options from an online backup URL', async () => {

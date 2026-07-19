@@ -8,6 +8,11 @@ export default function defaultOptions() {
     '-refreshOnProfileChange': false,
     '-uiLocale': 'en',
     '-uiTheme': 'light',
+    '-backupFilename': {
+      enabled: false,
+      scheme: 'date',
+      template: 'SwitchyAgainBackup_{date}'
+    },
     '-profileScopes': {
       tab: false,
       group: false,

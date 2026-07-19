@@ -28,6 +28,34 @@ describe('Options', function () {
           assert.strictEqual(changes['-uiLocale'], 'en');
           assert.strictEqual(upgraded['-uiTheme'], 'light');
           assert.strictEqual(changes['-uiTheme'], 'light');
+          assert.deepStrictEqual(upgraded['-backupFilename'], {
+            enabled: false,
+            scheme: 'date',
+            template: 'SwitchyAgainBackup_{date}'
+          });
+          assert.deepStrictEqual(changes['-backupFilename'], upgraded['-backupFilename']);
+        });
+    });
+
+    it('should normalize backup filename options during upgrade', function () {
+      const options = Object.create(Options.prototype);
+      return options
+        .upgrade({
+          schema: 'SwitchyAgainOptions',
+          version: 1,
+          '-backupFilename': {
+            enabled: true,
+            scheme: 'custom',
+            template: 'backup_{date}'
+          }
+        })
+        .then(([upgraded, changes]: any[]) => {
+          assert.deepStrictEqual(upgraded['-backupFilename'], {
+            enabled: true,
+            scheme: 'custom',
+            template: 'backup_{date}'
+          });
+          assert.strictEqual(changes['-backupFilename'], undefined);
         });
     });
 

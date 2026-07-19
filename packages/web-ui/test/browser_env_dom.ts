@@ -2,6 +2,7 @@
 
 import {
   createTab,
+  extensionBrowserMajorVersion,
   extensionBrowserName,
   extensionId,
   extensionManifestVersion,
@@ -57,7 +58,7 @@ describe('browser environment adapter', () => {
       runtime: {
         getManifest: () => ({
           manifest_version: 3,
-          version: '1.2.3'
+          version: '0.0.1'
         }),
         getURL: (path: string) => `moz-extension://id/${path}`,
         id: 'extension-id',
@@ -74,7 +75,7 @@ describe('browser environment adapter', () => {
     expect(sendMessage).toHaveBeenCalledWith({method: 'getAll'}, expect.any(Function));
     expect(callback).toHaveBeenCalledWith({result: 'ok'});
     expect(runtimeLastErrorMessage()).toBe('runtime failed');
-    expect(extensionManifestVersion()).toBe('1.2.3');
+    expect(extensionManifestVersion()).toBe('0.0.1');
     expect(extensionManifestVersionNumber()).toBe(3);
     expect(extensionId()).toBe('extension-id');
     expect(extensionUrl('options.html')).toBe('moz-extension://id/options.html');
@@ -88,25 +89,34 @@ describe('browser environment adapter', () => {
         getBrowserInfo: vi.fn()
       }
     };
-    expect(extensionBrowserName('Mozilla/5.0 Chrome/140.0.0.0 Safari/537.36', [{brand: 'Chromium'}, {brand: 'Google Chrome'}])).toBe(
+    expect(extensionBrowserName('Mozilla/5.0 Chrome/1.0.0.0 Safari/537.36', [{brand: 'Chromium'}, {brand: 'Google Chrome'}])).toBe(
       'firefox'
     );
 
     delete testGlobal().browser;
-    expect(extensionBrowserName('Mozilla/5.0 Chrome/140.0.0.0 Safari/537.36', [{brand: 'Chromium'}, {brand: 'Microsoft Edge'}])).toBe(
+    expect(extensionBrowserName('Mozilla/5.0 Chrome/1.0.0.0 Safari/537.36', [{brand: 'Chromium'}, {brand: 'Microsoft Edge'}])).toBe(
       'edge'
     );
-    expect(extensionBrowserName('Mozilla/5.0 Chrome/140.0.0.0 Safari/537.36', [{brand: 'Chromium'}, {brand: 'Google Chrome'}])).toBe(
+    expect(extensionBrowserName('Mozilla/5.0 Chrome/1.0.0.0 Safari/537.36', [{brand: 'Chromium'}, {brand: 'Google Chrome'}])).toBe(
       'chrome'
     );
-    expect(extensionBrowserName('Mozilla/5.0 Chrome/140.0.0.0 Safari/537.36', [{brand: 'Chromium'}])).toBe('chromium');
+    expect(extensionBrowserName('Mozilla/5.0 Chrome/1.0.0.0 Safari/537.36', [{brand: 'Chromium'}])).toBe('chromium');
 
-    expect(extensionBrowserName('Mozilla/5.0 Edg/140.0.0.0')).toBe('edge');
-    expect(extensionBrowserName('Mozilla/5.0 Firefox/140.0')).toBe('firefox');
-    expect(extensionBrowserName('Mozilla/5.0 Chrome/140.0.0.0 Safari/537.36')).toBe('chrome');
-    expect(extensionBrowserName('Mozilla/5.0 Chromium/140.0.0.0 Safari/537.36')).toBe('chromium');
-    expect(extensionBrowserName('Mozilla/5.0 Chrome/140.0.0.0 Safari/537.36 Vivaldi/7.0')).toBe('chromium');
+    expect(extensionBrowserName('Mozilla/5.0 Edg/1.0.0.0')).toBe('edge');
+    expect(extensionBrowserName('Mozilla/5.0 Firefox/1.0')).toBe('firefox');
+    expect(extensionBrowserName('Mozilla/5.0 Chrome/1.0.0.0 Safari/537.36')).toBe('chrome');
+    expect(extensionBrowserName('Mozilla/5.0 Chromium/1.0.0.0 Safari/537.36')).toBe('chromium');
+    expect(extensionBrowserName('Mozilla/5.0 Chrome/1.0.0.0 Safari/537.36 Vivaldi/2.0')).toBe('chromium');
     expect(extensionBrowserName('unknown')).toBe('unknown');
+  });
+
+  it('extracts stable browser major version fixtures', () => {
+    expect(extensionBrowserMajorVersion('Mozilla/5.0 Firefox/1.0')).toBe('1');
+    expect(extensionBrowserMajorVersion('Mozilla/5.0 Chrome/1.0.0.0 Safari/537.36')).toBe('1');
+    expect(extensionBrowserMajorVersion('Mozilla/5.0 Chromium/1.0.0.0 Safari/537.36')).toBe('1');
+    expect(extensionBrowserMajorVersion('Mozilla/5.0 Chrome/1.0.0.0 Edg/2.0.0.0')).toBe('2');
+    expect(extensionBrowserMajorVersion('', [{brand: 'Google Chrome', version: '1.0.0.0'}])).toBe('1');
+    expect(extensionBrowserMajorVersion('unknown')).toBe('unknown');
   });
 
   it('wraps tab APIs and reports missing query support', () => {

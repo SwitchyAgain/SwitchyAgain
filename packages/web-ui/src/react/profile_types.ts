@@ -79,6 +79,11 @@ export type ProfileGroup = {
 export type OptionsData = {
   [key: string]: unknown;
   '-addConditionsToBottom'?: boolean;
+  '-backupFilename'?: {
+    enabled?: boolean;
+    scheme?: 'custom' | 'date' | 'dateTime' | 'dateVersion';
+    template?: string;
+  };
   '-confirmDeletion'?: boolean;
   '-contextMenuOptions'?: {
     containerProfile?: boolean;
