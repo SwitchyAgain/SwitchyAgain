@@ -741,14 +741,14 @@ export function ProfileGroupsPage({onOptionsChange, options}: {onOptionsChange: 
       </div>
 
       <section className="settings-group profile-groups-settings-group">
-        <div className="profile-scope-section-heading">
+        <div className="settings-section-heading">
           <h3>{message('options_profileGroupsGroupsSection', 'Groups')}</h3>
           <button className="btn btn-default profile-groups-add-button" type="button" onClick={() => setCreateOpen(true)}>
             <span className="glyphicon glyphicon-plus" aria-hidden="true" /> {message('options_profileGroupNew', 'New Group')}
           </button>
         </div>
         {groups.length ? (
-          <table className="table table-striped profile-groups-table profile-groups-list-table">
+          <table className="table table-striped settings-table-fixed profile-groups-list-table">
             <thead>
               <tr>
                 <th>{message('options_profileGroupColumnGroup', 'Group')}</th>
@@ -764,9 +764,9 @@ export function ProfileGroupsPage({onOptionsChange, options}: {onOptionsChange: 
                     <td>
                       <ProfileGroupInline group={group} />
                     </td>
-                    <td className="profile-groups-count-cell">{members.length}</td>
-                    <td className="profile-groups-actions-cell">
-                      <span className="profile-groups-actions">
+                    <td className="settings-count-cell">{members.length}</td>
+                    <td className="settings-actions-cell">
+                      <span className="settings-actions">
                         <button
                           className="btn btn-default btn-sm"
                           type="button"
@@ -852,7 +852,7 @@ export function ProfileGroupsPage({onOptionsChange, options}: {onOptionsChange: 
             <div className="profile-groups-assignments-toggle">
               <button
                 type="button"
-                className="btn btn-link profile-groups-advanced-toggle"
+                className="btn btn-link settings-advanced-toggle"
                 aria-expanded={advancedAssignmentsOpen}
                 onClick={() => setAdvancedAssignmentsOpen(!advancedAssignmentsOpen)}
               >
@@ -866,7 +866,7 @@ export function ProfileGroupsPage({onOptionsChange, options}: {onOptionsChange: 
               </button>
             </div>
             {advancedAssignmentsOpen && (
-              <table className="table table-striped profile-groups-table profile-groups-assignment-table">
+              <table className="table table-striped settings-table-fixed profile-groups-assignment-table">
                 <thead>
                   <tr>
                     <th>{message('options_profileGroupColumnProfile', 'Profile')}</th>

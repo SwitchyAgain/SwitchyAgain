@@ -303,7 +303,7 @@ export function ProfileScopeSettingsPage({
 
       {visible.container && (
         <section className="settings-group profile-scope-settings-group">
-          <div className="profile-scope-section-heading">
+          <div className="settings-section-heading">
             <h3>{message('options_profileScopeContainersSection', 'Containers')}</h3>
             {showRefreshButton && (
               <button className="btn btn-default btn-xs" type="button" onClick={onRefreshContainers}>

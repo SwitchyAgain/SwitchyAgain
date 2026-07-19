@@ -1863,11 +1863,11 @@ main .profile-header {
   max-width: 900px;
 }
 
-.profile-groups-table {
+.settings-table-fixed {
   table-layout: fixed;
 }
 
-.profile-groups-table td {
+.settings-table-fixed td {
   vertical-align: middle !important;
 }
 
@@ -1899,7 +1899,7 @@ main .profile-header {
   white-space: nowrap;
 }
 
-.profile-groups-actions {
+.settings-actions {
   display: inline-flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -2083,15 +2083,15 @@ main .profile-header {
   margin: 8px 0;
 }
 
-.profile-groups-advanced-toggle {
+.settings-advanced-toggle {
   padding-left: 0;
 }
 
-.profile-groups-advanced-toggle:focus {
+.settings-advanced-toggle:focus {
   outline: none;
 }
 
-.profile-groups-advanced-toggle:focus-visible {
+.settings-advanced-toggle:focus-visible {
   outline: 2px solid var(--sa-focus);
   outline-offset: 2px;
 }
@@ -2130,27 +2130,27 @@ main .profile-header {
   }
 }
 
-.settings-group > .profile-scope-section-heading {
+.settings-group > .settings-section-heading {
   margin-left: 0;
 }
 
-.profile-scope-section-heading {
+.settings-section-heading {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
 }
 
-.profile-scope-section-heading > h3 {
+.settings-section-heading > h3 {
   margin-bottom: 10px;
   margin-top: 20px;
 }
 
-.profile-scope-section-heading > .btn {
+.settings-section-heading > .btn {
   margin-top: 10px;
 }
 
-.profile-scope-section-heading > .supplemental-list-select {
+.settings-section-heading > .supplemental-list-select {
   margin-top: 10px;
 }
 

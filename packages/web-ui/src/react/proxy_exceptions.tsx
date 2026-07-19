@@ -581,8 +581,8 @@ export function ProxyExceptionsPage({options, onOptionsChange}: {options: Option
         </div>
       </section>
 
-      <section className="settings-group profile-groups-settings-group">
-        <div className="profile-scope-section-heading">
+      <section className="settings-group">
+        <div className="settings-section-heading">
           <h3>{message('options_supplementalListsHeading', 'Supplemental Lists')}</h3>
           <button className="btn btn-default" type="button" onClick={() => setListModal({kind: 'create'})}>
             <span className="glyphicon glyphicon-plus" aria-hidden="true" /> {message('options_supplementalListNew', 'New List')}
@@ -595,7 +595,7 @@ export function ProxyExceptionsPage({options, onOptionsChange}: {options: Option
           )}
         </p>
         {lists.length ? (
-          <table className="table table-striped profile-groups-table supplemental-lists-table">
+          <table className="table table-striped settings-table-fixed supplemental-lists-table">
             <thead>
               <tr>
                 <th>{message('options_supplementalListColumnList', 'List')}</th>
@@ -615,10 +615,10 @@ export function ProxyExceptionsPage({options, onOptionsChange}: {options: Option
                       </span>
                     )}
                   </td>
-                  <td className="profile-groups-count-cell">{linkedProfiles(list.id).length}</td>
-                  {groupsEnabled && <td className="profile-groups-count-cell">{linkedGroups(list.id).length}</td>}
-                  <td className="profile-groups-actions-cell">
-                    <span className="profile-groups-actions">
+                  <td className="settings-count-cell">{linkedProfiles(list.id).length}</td>
+                  {groupsEnabled && <td className="settings-count-cell">{linkedGroups(list.id).length}</td>}
+                  <td className="settings-actions-cell">
+                    <span className="settings-actions">
                       <button
                         className="btn btn-default btn-sm"
                         type="button"
@@ -684,7 +684,7 @@ export function ProxyExceptionsPage({options, onOptionsChange}: {options: Option
           {lists.length > 0 && (
             <button
               type="button"
-              className="btn btn-link profile-groups-advanced-toggle supplemental-lists-show-all-toggle"
+              className="btn btn-link settings-advanced-toggle supplemental-lists-show-all-toggle"
               aria-expanded={showAllLists}
               onClick={() => setShowAllLists(!showAllLists)}
             >
