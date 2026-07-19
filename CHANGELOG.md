@@ -1,5 +1,22 @@
 # Changelog
 
+## v1.4.0
+
+Proxy exceptions, backup format, and runtime cleanup.
+
+- Added Proxy Exceptions with a global bypass list and supplemental bypass
+  lists linked to proxy profiles and profile groups.
+- Added the SwitchyAgain backup format with metadata, legacy import
+  compatibility, custom backup filenames, and updated import/export flows.
+- Adopted the SwitchyAgain options schema and moved legacy import
+  compatibility out of the core runtime.
+- Removed the legacy Firefox experimental mode and obsolete SSRL support,
+  including their unused translations.
+- Preserved profile groups in profile scope menus and improved profile scope
+  behavior.
+- Improved localized fallback consistency, Persian UI display direction, and
+  extension icon rendering.
+
 ## v1.3.0
 
 Profile organization, Request Lens diagnostics, and WebDAV sync updates.
