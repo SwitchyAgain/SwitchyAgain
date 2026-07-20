@@ -1,25 +1,8 @@
 export type StorageValue = unknown;
 
-export type RuntimePromise<T> = {
-  catch<TResult = never>(onRejected?: ((reason: unknown) => TResult | PromiseLike<TResult>) | null): RuntimePromise<T | TResult>;
-  finally(onFinally?: (() => void) | null): RuntimePromise<T>;
-  then<TResult1 = T, TResult2 = never>(
-    onFulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | null,
-    onRejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null
-  ): RuntimePromise<TResult1 | TResult2>;
-};
+export type RuntimePromise<T> = Promise<T>;
 
-export type RuntimePromiseStatic = {
-  new <T = unknown>(
-    executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: unknown) => void) => void
-  ): RuntimePromise<T>;
-  all<T>(values: Array<T | PromiseLike<T>>): RuntimePromise<T[]>;
-  onPossiblyUnhandledRejection(callback: (reason: unknown, promise: unknown) => unknown): void;
-  onUnhandledRejectionHandled(callback: (promise: unknown) => unknown): void;
-  reject<T = never>(reason?: unknown): RuntimePromise<T>;
-  resolve<T = void>(value?: T | PromiseLike<T>): RuntimePromise<T>;
-  try<T = unknown>(fn: () => T | PromiseLike<T>): RuntimePromise<T>;
-};
+export type RuntimePromiseStatic = PromiseConstructor;
 
 export type LogLike = {
   error: (...args: unknown[]) => void;

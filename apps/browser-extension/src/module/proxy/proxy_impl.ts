@@ -61,7 +61,7 @@ class ProxyImpl {
   }
 
   setProxyAuth(profile: ProxyProfile, options: unknown, extraProfileNames: string[] = []) {
-    return RuntimePromise.try(() => {
+    return RuntimePromise.resolve().then(() => {
       if (this._proxyAuth == null) {
         this._proxyAuth = new ProxyAuth(this.log);
       }

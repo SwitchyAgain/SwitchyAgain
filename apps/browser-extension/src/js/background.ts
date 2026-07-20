@@ -176,11 +176,6 @@ type BackgroundLog = RuntimeOptionsBase['log'] & {
   str(obj: unknown): string;
 };
 
-type BackgroundPromiseStatic = RuntimePromiseStatic & {
-  onPossiblyUnhandledRejection(callback: (reason: unknown, promise: unknown) => unknown): void;
-  onUnhandledRejectionHandled(callback: (promise: unknown) => unknown): void;
-};
-
 type BackgroundExternalApi = {
   disabled: boolean;
   listen(): unknown;
@@ -329,7 +324,7 @@ type BackgroundExtensionRuntime = {
     parseImportedOptions(content: string): RuntimeOptionsData;
   };
   OptionsSync: new (storage: unknown) => BackgroundSync;
-  Promise: BackgroundPromiseStatic;
+  Promise: RuntimePromiseStatic;
   Storage: new (areaName: string) => unknown;
   Url: UrlModule;
   proxy: {
@@ -387,7 +382,9 @@ type BackgroundExtensionRuntime = {
 
   let unhandledPromisesNextId = 1;
 
-  Promise.onPossiblyUnhandledRejection((reason: unknown, promise: unknown) => {
+  globalThis.addEventListener('unhandledrejection', (event) => {
+    const rejection = event as PromiseRejectionEvent;
+    const {promise, reason} = rejection;
     const id = unhandledPromisesNextId++;
     unhandledPromises.push(promise);
     unhandledPromisesId.push(id);
@@ -398,7 +395,8 @@ type BackgroundExtensionRuntime = {
     }, 0);
   });
 
-  Promise.onUnhandledRejectionHandled((promise: unknown) => {
+  globalThis.addEventListener('rejectionhandled', (event) => {
+    const {promise} = event as PromiseRejectionEvent;
     const index = unhandledPromises.indexOf(promise);
     Log.log(`[${unhandledPromisesId[index]}] Rejection handled!`, promise);
     unhandledPromises.splice(index, 1);

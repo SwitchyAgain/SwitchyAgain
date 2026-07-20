@@ -33,8 +33,8 @@ describe('BrowserStorage', function () {
     it('should wait for storage readiness before reading values', function () {
       let data: Record<string, any>, getResult: any, ready: any, resolveReady: () => void, storage: any;
       data = {};
-      ready = new Promise(function (resolve: () => void) {
-        resolveReady = resolve;
+      ready = new Promise<void>(function (resolve) {
+        resolveReady = () => resolve();
       });
       storage = new BrowserStorage(createStorage(data, ready), 'state.');
       getResult = storage.get({

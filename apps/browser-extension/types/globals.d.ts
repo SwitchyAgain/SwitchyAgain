@@ -339,16 +339,7 @@ interface UrlModule {
 
 type RuntimePromise<T = unknown> = Promise<T>;
 
-interface RuntimePromiseStatic {
-  new <T = unknown>(
-    executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: unknown) => void) => void
-  ): RuntimePromise<T>;
-  all<T>(values: Array<T | PromiseLike<T>>): RuntimePromise<T[]>;
-  reject<T = never>(reason?: unknown): RuntimePromise<T>;
-  resolve<T = unknown>(value?: T | PromiseLike<T>): RuntimePromise<T>;
-  try<T = unknown>(fn: () => T | PromiseLike<T>): RuntimePromise<T>;
-  [key: string]: unknown;
-}
+type RuntimePromiseStatic = PromiseConstructor;
 
 interface RuntimeOptionsState {
   get<T extends Record<string, unknown>>(defaults: T): RuntimePromise<T>;
