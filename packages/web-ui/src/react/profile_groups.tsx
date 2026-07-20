@@ -196,10 +196,6 @@ export function splitProfilesByGroup<TProfile extends ProfileGroupProfile>(
   };
 }
 
-export function profileGroupDisplayName(group?: ProfileGroup | null) {
-  return group?.name || '';
-}
-
 export function profileGroupIcon(group?: ProfileGroup | null) {
   return cleanProfileGroupIcon(group?.icon);
 }

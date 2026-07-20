@@ -347,11 +347,6 @@ a[role='button'] {
   font-family: Menlo, Monaco, Consolas, 'Courier New', monospace !important;
 }
 
-.width-initial {
-  width: auto !important;
-  width: initial !important;
-}
-
 .width-limit {
   max-width: 600px;
 }
@@ -384,14 +379,6 @@ textarea.width-limit {
 .align-initial {
   text-align: left;
   text-align: initial;
-}
-
-.opacity-half {
-  opacity: 0.5 !important;
-}
-
-.opacity-0 {
-  opacity: 0 !important;
 }
 
 ul.list-style-none,
@@ -526,15 +513,6 @@ li.list-style-none {
 
 .options-guide-target.fixed-servers {
   background-color: #fff;
-}
-
-.fixed-top-right {
-  position: fixed !important;
-  top: 0 !important;
-  right: 0 !important;
-  left: auto !important;
-  bottom: auto !important;
-  transform: none !important;
 }
 
 .welcome-modal-footer .btn + .btn {

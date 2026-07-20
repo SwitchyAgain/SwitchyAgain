@@ -256,18 +256,6 @@ export function createAttachedOptions(profile: NamedSwitchProfileModel, attached
   };
 }
 
-export function syncAttachedOptionsFromProfile(
-  profile: SwitchProfileModel,
-  attached: RuleListProfileModel | null | undefined,
-  attachedName: string,
-  attachedOptions: AttachedOptions
-) {
-  attachedOptions.enabled = profile.defaultProfileName === attachedName;
-  if (!attached || !attachedOptions.enabled) {
-    attachedOptions.defaultProfileName = profile.defaultProfileName;
-  }
-}
-
 export function setAttachedEnabled(
   profile: SwitchProfileModel,
   attached: RuleListProfileModel | null | undefined,
@@ -294,14 +282,6 @@ export function setAttachedEnabled(
   profile.defaultProfileName = defaultProfileName;
   attachedOptions.defaultProfileName = defaultProfileName;
   return true;
-}
-
-export function syncDefaultFromAttached(attachedOptions: AttachedOptions, enabled: boolean | undefined, name?: string) {
-  if (name && enabled) {
-    attachedOptions.defaultProfileName = name;
-    return true;
-  }
-  return false;
 }
 
 export function setDefaultProfile(
@@ -498,12 +478,6 @@ export function composeSource(profile: SwitchProfileModel, defaultProfileName?: 
       withResult: true
     }
   );
-}
-
-export function createSource(profile: SwitchProfileModel, attachedOptions: AttachedOptions): SwitchRuleSourceState {
-  return {
-    code: composeSource(profile, attachedOptions.defaultProfileName)
-  };
 }
 
 function optionProfileName(value: unknown) {
