@@ -1589,42 +1589,39 @@ msgstr "Save error log"
 msgid "options_resultProfileForSelectedDomains"
 msgstr "Use this profile for all selected domains"
 
-msgid "browserAction_profileDetails_PacProfile"
+msgid "toolbarIconTooltip_profileDetails_PacProfile"
 msgstr "(PAC script)"
 
-msgid "browserAction_profileDetails_SystemProfile"
+msgid "toolbarIconTooltip_profileDetails_SystemProfile"
 msgstr "(controlled by other extensions or environment)"
 
-msgid "browserAction_profileDetails_DirectProfile"
+msgid "toolbarIconTooltip_profileDetails_DirectProfile"
 msgstr "(not using any proxy)"
 
-msgid "browserAction_profileDetails_SwitchProfile"
+msgid "toolbarIconTooltip_profileDetails_SwitchProfile"
 msgstr "(switching based on conditions)"
 
-msgid "browserAction_profileDetails_RuleListProfile"
+msgid "toolbarIconTooltip_profileDetails_RuleListProfile"
 msgstr "(switching based on rule list)"
 
-msgid "browserAction_titleWithResult"
+msgid "toolbarIconTooltip_withResult"
 msgstr ""
 "SwitchyAgain:: $1:PROFILE$\n"
 "$3:DETAILS$"
 
-msgid "browserAction_titleDownloadFail"
-msgstr "Warning: Failed to download PAC scripts and/or rule lists."
-
-msgid "browserAction_titleExternalProxy"
+msgid "toolbarIconTooltip_externalProxy"
 msgstr "Note: The proxy settings are currently controlled by other app(s)."
 
-msgid "browserAction_defaultRuleDetails"
+msgid "toolbarIconTooltip_defaultRuleDetails"
 msgstr "(default)"
 
-msgid "browserAction_directResult"
+msgid "toolbarIconTooltip_directResult"
 msgstr "DIRECT"
 
-msgid "browserAction_attachedPrefix"
+msgid "toolbarIconTooltip_attachedPrefix"
 msgstr "(RL) "
 
-msgid "browserAction_tempRulePrefix"
+msgid "toolbarIconTooltip_tempRulePrefix"
 msgstr "(TEMP) "
 
 msgid "contextMenu_enableQuickSwitch"

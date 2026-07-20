@@ -1426,42 +1426,39 @@ msgstr "儲存錯誤記錄"
 msgid "options_resultProfileForSelectedDomains"
 msgstr "對所有選取網域使用此情境模式："
 
-msgid "browserAction_profileDetails_PacProfile"
+msgid "toolbarIconTooltip_profileDetails_PacProfile"
 msgstr "(PAC 指令碼)"
 
-msgid "browserAction_profileDetails_SystemProfile"
+msgid "toolbarIconTooltip_profileDetails_SystemProfile"
 msgstr "(由其他擴充功能或系統環境控制)"
 
-msgid "browserAction_profileDetails_DirectProfile"
+msgid "toolbarIconTooltip_profileDetails_DirectProfile"
 msgstr "(不使用任何代理)"
 
-msgid "browserAction_profileDetails_SwitchProfile"
+msgid "toolbarIconTooltip_profileDetails_SwitchProfile"
 msgstr "(依據條件切換)"
 
-msgid "browserAction_profileDetails_RuleListProfile"
+msgid "toolbarIconTooltip_profileDetails_RuleListProfile"
 msgstr "(依據規則清單切換)"
 
-msgid "browserAction_titleWithResult"
+msgid "toolbarIconTooltip_withResult"
 msgstr ""
 "SwitchyAgain:: $1:PROFILE$\n"
 "$3:DETAILS$"
 
-msgid "browserAction_titleDownloadFail"
-msgstr "警告：更新 PAC 檔案或規則清單失敗。"
-
-msgid "browserAction_titleExternalProxy"
+msgid "toolbarIconTooltip_externalProxy"
 msgstr "注意：其他應用正在控制目前代理設定。"
 
-msgid "browserAction_defaultRuleDetails"
+msgid "toolbarIconTooltip_defaultRuleDetails"
 msgstr "(預設)"
 
-msgid "browserAction_directResult"
+msgid "toolbarIconTooltip_directResult"
 msgstr "直接連線"
 
-msgid "browserAction_attachedPrefix"
+msgid "toolbarIconTooltip_attachedPrefix"
 msgstr "(清單) "
 
-msgid "browserAction_tempRulePrefix"
+msgid "toolbarIconTooltip_tempRulePrefix"
 msgstr "(臨時) "
 
 msgid "contextMenu_enableQuickSwitch"

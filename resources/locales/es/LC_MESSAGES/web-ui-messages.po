@@ -1635,45 +1635,41 @@ msgstr "Guardar registro de errores"
 msgid "options_resultProfileForSelectedDomains"
 msgstr "Usar este perfil para todos los dominios seleccionados"
 
-msgid "browserAction_profileDetails_PacProfile"
+msgid "toolbarIconTooltip_profileDetails_PacProfile"
 msgstr "(Script PAC)"
 
-msgid "browserAction_profileDetails_SystemProfile"
+msgid "toolbarIconTooltip_profileDetails_SystemProfile"
 msgstr "(controllado por otras extensiones o entorno)"
 
-msgid "browserAction_profileDetails_DirectProfile"
+msgid "toolbarIconTooltip_profileDetails_DirectProfile"
 msgstr "(sin usar ningún proxy)"
 
-msgid "browserAction_profileDetails_SwitchProfile"
+msgid "toolbarIconTooltip_profileDetails_SwitchProfile"
 msgstr "(cambio basado en condiciones)"
 
-msgid "browserAction_profileDetails_RuleListProfile"
+msgid "toolbarIconTooltip_profileDetails_RuleListProfile"
 msgstr "(cambio basado en la lista de reglas)"
 
-msgid "browserAction_titleWithResult"
+msgid "toolbarIconTooltip_withResult"
 msgstr ""
 "SwitchyAgain:: $1:PROFILE$\n"
 "$3:DETAILS$"
 
-msgid "browserAction_titleDownloadFail"
-msgstr ""
-"Advertencia: Error al descargar los scripts PAC y/o las listas de reglas."
-
-msgid "browserAction_titleExternalProxy"
+msgid "toolbarIconTooltip_externalProxy"
 msgstr ""
 "Nota: La configuración del proxy está actualmente controlada por otra(s) "
 "aplicación(es)."
 
-msgid "browserAction_defaultRuleDetails"
+msgid "toolbarIconTooltip_defaultRuleDetails"
 msgstr "(por defecto)"
 
-msgid "browserAction_directResult"
+msgid "toolbarIconTooltip_directResult"
 msgstr "DIRECTO"
 
-msgid "browserAction_attachedPrefix"
+msgid "toolbarIconTooltip_attachedPrefix"
 msgstr "(RL) "
 
-msgid "browserAction_tempRulePrefix"
+msgid "toolbarIconTooltip_tempRulePrefix"
 msgstr "(TEMP) "
 
 msgid "contextMenu_enableQuickSwitch"

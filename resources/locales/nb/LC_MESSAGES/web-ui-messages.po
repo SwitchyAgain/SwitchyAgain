@@ -1438,44 +1438,41 @@ msgstr "Lagre feilrettingslogg"
 msgid "options_resultProfileForSelectedDomains"
 msgstr "Bruk denne profilen for alle valgte domener"
 
-msgid "browserAction_profileDetails_PacProfile"
+msgid "toolbarIconTooltip_profileDetails_PacProfile"
 msgstr "(PAC-skript)"
 
-msgid "browserAction_profileDetails_SystemProfile"
+msgid "toolbarIconTooltip_profileDetails_SystemProfile"
 msgstr "(styrt av andre tillegg eller miljø)"
 
-msgid "browserAction_profileDetails_DirectProfile"
+msgid "toolbarIconTooltip_profileDetails_DirectProfile"
 msgstr "(bruker ikke noen mellomtjener)"
 
-msgid "browserAction_profileDetails_SwitchProfile"
+msgid "toolbarIconTooltip_profileDetails_SwitchProfile"
 msgstr ""
 
-msgid "browserAction_profileDetails_RuleListProfile"
+msgid "toolbarIconTooltip_profileDetails_RuleListProfile"
 msgstr ""
 
-msgid "browserAction_titleWithResult"
+msgid "toolbarIconTooltip_withResult"
 msgstr ""
 "SwitchyAgain:: $1:PROFILE$\n"
 "$3:DETAILS$"
 
-msgid "browserAction_titleDownloadFail"
-msgstr "Advarsel: Kunne ikke laste ned PAC-skript og/eller regellister."
-
-msgid "browserAction_titleExternalProxy"
+msgid "toolbarIconTooltip_externalProxy"
 msgstr ""
 
-msgid "browserAction_defaultRuleDetails"
+msgid "toolbarIconTooltip_defaultRuleDetails"
 msgstr "(forvalg)"
 
 #, fuzzy
 
-msgid "browserAction_directResult"
+msgid "toolbarIconTooltip_directResult"
 msgstr "DIREKTE"
 
-msgid "browserAction_attachedPrefix"
+msgid "toolbarIconTooltip_attachedPrefix"
 msgstr ""
 
-msgid "browserAction_tempRulePrefix"
+msgid "toolbarIconTooltip_tempRulePrefix"
 msgstr "(MIDLERTIDIG) "
 
 msgid "contextMenu_enableQuickSwitch"

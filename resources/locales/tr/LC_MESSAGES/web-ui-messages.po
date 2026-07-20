@@ -1437,42 +1437,39 @@ msgstr "Hata kayıtlarını kaydet"
 msgid "options_resultProfileForSelectedDomains"
 msgstr "Bu profili seçilen alan adları için kullan"
 
-msgid "browserAction_profileDetails_PacProfile"
+msgid "toolbarIconTooltip_profileDetails_PacProfile"
 msgstr "(PAC betiği)"
 
-msgid "browserAction_profileDetails_SystemProfile"
+msgid "toolbarIconTooltip_profileDetails_SystemProfile"
 msgstr "(diğer uzantılar veya çevre değişkenleri tarafından kontrol ediliyor)"
 
-msgid "browserAction_profileDetails_DirectProfile"
+msgid "toolbarIconTooltip_profileDetails_DirectProfile"
 msgstr "(hiçbir proxy kullanmıyor)"
 
-msgid "browserAction_profileDetails_SwitchProfile"
+msgid "toolbarIconTooltip_profileDetails_SwitchProfile"
 msgstr "(şart temelli geçiş yapma)"
 
-msgid "browserAction_profileDetails_RuleListProfile"
+msgid "toolbarIconTooltip_profileDetails_RuleListProfile"
 msgstr "(kural listesi temelli geçiş yapma)"
 
-msgid "browserAction_titleWithResult"
+msgid "toolbarIconTooltip_withResult"
 msgstr ""
 "SwitchyAgain:: $1:PROFILE$\n"
 "$3:DETAILS$"
 
-msgid "browserAction_titleDownloadFail"
+msgid "toolbarIconTooltip_externalProxy"
 msgstr ""
 
-msgid "browserAction_titleExternalProxy"
-msgstr ""
-
-msgid "browserAction_defaultRuleDetails"
+msgid "toolbarIconTooltip_defaultRuleDetails"
 msgstr "(default)"
 
-msgid "browserAction_directResult"
+msgid "toolbarIconTooltip_directResult"
 msgstr "DIRECT"
 
-msgid "browserAction_attachedPrefix"
+msgid "toolbarIconTooltip_attachedPrefix"
 msgstr "(RL) "
 
-msgid "browserAction_tempRulePrefix"
+msgid "toolbarIconTooltip_tempRulePrefix"
 msgstr "(TEMP) "
 
 msgid "contextMenu_enableQuickSwitch"

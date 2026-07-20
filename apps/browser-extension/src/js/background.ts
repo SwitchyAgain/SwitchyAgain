@@ -1116,12 +1116,12 @@ type BackgroundExtensionRuntime = {
               if (isHidden(name)) {
                 attached = true;
               } else if (name !== realCurrentName) {
-                details += chrome.i18n.getMessage('browserAction_defaultRuleDetails');
+                details += chrome.i18n.getMessage('toolbarIconTooltip_defaultRuleDetails');
                 details += ` => ${dispName(name)}\n`;
               }
             } else if (result[1].length === 0) {
               if (result[0] === 'DIRECT') {
-                details += chrome.i18n.getMessage('browserAction_directResult');
+                details += chrome.i18n.getMessage('toolbarIconTooltip_directResult');
                 details += '\n';
                 direct = true;
               } else {
@@ -1139,7 +1139,7 @@ type BackgroundExtensionRuntime = {
               }
               details += `${condition} => `;
               if (result[0] === 'DIRECT') {
-                details += chrome.i18n.getMessage('browserAction_directResult');
+                details += chrome.i18n.getMessage('toolbarIconTooltip_directResult');
                 details += '\n';
                 direct = true;
               } else {
@@ -1148,9 +1148,9 @@ type BackgroundExtensionRuntime = {
             }
           } else if (result.profileName) {
             if (result.isTempRule) {
-              details += chrome.i18n.getMessage('browserAction_tempRulePrefix');
+              details += chrome.i18n.getMessage('toolbarIconTooltip_tempRulePrefix');
             } else if (attached) {
-              details += chrome.i18n.getMessage('browserAction_attachedPrefix');
+              details += chrome.i18n.getMessage('toolbarIconTooltip_attachedPrefix');
               attached = false;
             }
             condition = result.source != null ? String(result.source) : condition2Str(result.condition);
@@ -1184,7 +1184,7 @@ type BackgroundExtensionRuntime = {
           shortTitle += ' => ' + profile.name;
         }
         return {
-          title: chrome.i18n.getMessage('browserAction_titleWithResult', [currentName, dispName(profile.name), details]),
+          title: chrome.i18n.getMessage('toolbarIconTooltip_withResult', [currentName, dispName(profile.name), details]),
           shortTitle,
           icon,
           resultColor,
@@ -1745,14 +1745,14 @@ type BackgroundExtensionRuntime = {
     let title;
     let shortTitle;
     if (currentName) {
-      title = chrome.i18n.getMessage('browserAction_titleWithResult', [currentName, '', details]);
+      title = chrome.i18n.getMessage('toolbarIconTooltip_withResult', [currentName, '', details]);
       shortTitle = 'Again: ' + currentName;
     } else {
       title = details;
       shortTitle = 'Again: ' + details;
     }
     if (external && current.profileType !== 'SystemProfile') {
-      const message = chrome.i18n.getMessage('browserAction_titleExternalProxy');
+      const message = chrome.i18n.getMessage('toolbarIconTooltip_externalProxy');
       title = message + '\n' + title;
       shortTitle = 'Again-Extern: ' + details;
       options.setBadge();

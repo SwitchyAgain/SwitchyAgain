@@ -2658,29 +2658,6 @@ class ChromeOptions extends ExtensionRuntime.Options {
     return Promise.resolve();
   }
 
-  updateProfile(...args: unknown[]) {
-    return super.updateProfile(...args).then((results: Record<string, unknown>) => {
-      let error = false;
-      for (const profileName of Object.keys(results)) {
-        const result = results[profileName];
-        if (result instanceof Error) {
-          error = true;
-          break;
-        }
-      }
-      if (error) {
-        /*
-        this.setBadge({
-          text: '!',
-          color: '#faa732',
-          title: chrome.i18n.getMessage('browserAction_titleDownloadFail')
-        });
-         */
-      }
-      return results;
-    });
-  }
-
   proxyNotControllable() {
     return this._proxyNotControllable;
   }
@@ -2964,7 +2941,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
         result += `${pacResult}\n`;
       }
     }
-    result || (result = chrome.i18n.getMessage('browserAction_profileDetails_DirectProfile'));
+    result || (result = chrome.i18n.getMessage('toolbarIconTooltip_profileDetails_DirectProfile'));
     return result;
   }
 
@@ -2979,7 +2956,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
     if (type === 'PacProfile' && profile.pacUrl) {
       return profile.pacUrl;
     }
-    return chrome.i18n.getMessage(`browserAction_profileDetails_${type}`) || null;
+    return chrome.i18n.getMessage(`toolbarIconTooltip_profileDetails_${type}`) || null;
   }
 
   upgrade(options: UpgradeOptions | null | undefined, changes?: Record<string, unknown>) {
