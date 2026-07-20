@@ -12,7 +12,6 @@ import type {
 } from './proxy_types';
 
 const ProxyEngine = ExtensionRuntime.ProxyEngine;
-const NativePromise = typeof Promise !== 'undefined' && Promise !== null ? Promise : null;
 
 type MatchedProxyServer = ProxyServer & {
   host: string;
@@ -54,7 +53,7 @@ class ListenerProxyImpl extends ProxyImpl {
       socks5: true
     };
     this._optionsReadyCallback = null;
-    this._optionsReady = new (NativePromise as PromiseConstructor)((resolve) => {
+    this._optionsReady = new Promise((resolve) => {
       this._optionsReadyCallback = resolve;
     });
     this._profileResolver = null;
@@ -63,7 +62,7 @@ class ListenerProxyImpl extends ProxyImpl {
   }
 
   static isSupported() {
-    return typeof Promise !== 'undefined' && Promise !== null && typeof browser !== 'undefined' && browser?.proxy?.onRequest != null;
+    return typeof browser !== 'undefined' && browser?.proxy?.onRequest != null;
   }
 
   private _initRequestListeners() {
@@ -94,7 +93,7 @@ class ListenerProxyImpl extends ProxyImpl {
   }
 
   onRequest(requestDetails: ProxyRequestDetails) {
-    return (NativePromise as PromiseConstructor).resolve(
+    return Promise.resolve(
       this._optionsReady.then(() => {
         const request = ProxyEngine.Conditions.requestFromUrl(requestDetails.url);
         const resolvedProfile = this._profileResolver?.(requestDetails);
