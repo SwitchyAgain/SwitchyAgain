@@ -270,9 +270,8 @@ interface BrowserContextualIdentitiesApi {
 }
 
 interface ChromeGlobal {
-  action?: ChromeActionApi;
+  action: ChromeActionApi;
   alarms: ChromeAlarmsApi;
-  browserAction?: ChromeActionApi;
   contextMenus?: ChromeContextMenusApi;
   downloads?: ChromeDownloadsApi;
   i18n: ChromeI18nApi;

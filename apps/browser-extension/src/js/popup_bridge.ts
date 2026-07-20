@@ -146,7 +146,6 @@ function callBackgroundWithRefresh<M extends PopupBackgroundMethod>(
   );
 }
 
-const isManifestV3 = chrome.runtime.getManifest && (chrome.runtime.getManifest().manifest_version ?? 2) >= 3;
 const localStatePrefix = 'state.';
 
 function cacheActivePageInfo(info?: PopupApiPageInfo | null) {
@@ -210,21 +209,7 @@ function removeOptionsTab(tabId: number | undefined, callback: () => void) {
 
 (globalThis as typeof globalThis & {PopupBridge: PopupBridgeApi}).PopupBridge = {
   getState(keys: PopupApiStateKey[], cb?: PopupCallback<PopupApiState>) {
-    if (isManifestV3 || typeof localStorage === 'undefined' || !localStorage.length) {
-      callBackground('getState', [keys], cb);
-      return;
-    }
-    const results: Partial<PopupApiState> = {};
-    keys.forEach((key: PopupApiStateKey) => {
-      try {
-        Object.assign(results, {
-          [key]: JSON.parse(localStorage[localStatePrefix + key])
-        });
-      } catch (_) {
-        return null;
-      }
-    });
-    if (cb) cb(null, results);
+    callBackground('getState', [keys], cb);
   },
   applyProfile(name: string, cb?: PopupCallback) {
     callBackgroundNoReply('applyProfile', [name], cb);

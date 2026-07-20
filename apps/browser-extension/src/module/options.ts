@@ -324,11 +324,6 @@ type PageInfoArgs = {
 
 const MAX_PAGE_EXPLAIN_REQUESTS = 100;
 
-function actionApi(): ChromeActionApi {
-  const legacyKey = 'browser' + 'Action';
-  return (chrome.action || chrome[legacyKey]) as ChromeActionApi;
-}
-
 function ignoreChromeLastError() {
   chrome.runtime.lastError;
 }
@@ -2719,13 +2714,13 @@ class ChromeOptions extends ExtensionRuntime.Options {
             color: '#49afcd'
           };
     }
-    actionApi().setBadgeText(
+    chrome.action.setBadgeText(
       {
         text: options.text
       },
       ignoreChromeLastError
     );
-    actionApi().setBadgeBackgroundColor(
+    chrome.action.setBadgeBackgroundColor(
       {
         color: options.color
       },
@@ -2733,7 +2728,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
     );
     if (options.title) {
       this._badgeTitle = options.title;
-      return actionApi().setTitle(
+      return chrome.action.setTitle(
         {
           title: options.title
         },
@@ -2753,7 +2748,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
     if (this._proxyNotControllable) {
       this.setBadge();
     } else {
-      const api = actionApi();
+      const api = chrome.action;
       if (typeof api.setBadgeText === 'function') {
         api.setBadgeText(
           {
@@ -2782,7 +2777,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
         }
       };
     }
-    const api = actionApi();
+    const api = chrome.action;
     if (quickSwitch || api.setPopup == null) {
       if (typeof api.setPopup === 'function') {
         api.setPopup({
@@ -2791,7 +2786,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
       }
       if (!this._quickSwitchInit) {
         this._quickSwitchInit = true;
-        actionApi().onClicked.addListener((tab: ChromeTab) => {
+        chrome.action.onClicked.addListener((tab: ChromeTab) => {
           this.clearBadge();
           if (!this._options['-enableQuickSwitch']) {
             chrome.tabs.create({
@@ -2866,14 +2861,14 @@ class ChromeOptions extends ExtensionRuntime.Options {
             text: filteredInfo.errorCount.toString(),
             color: '#f0ad4e'
           };
-          actionApi().setBadgeText(
+          chrome.action.setBadgeText(
             {
               text: badge.text,
               tabId
             },
             ignoreChromeLastError
           );
-          actionApi().setBadgeBackgroundColor(
+          chrome.action.setBadgeBackgroundColor(
             {
               color: badge.color,
               tabId
@@ -2882,7 +2877,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
           );
         } else if (info.badgeSet) {
           info.badgeSet = false;
-          actionApi().setBadgeText(
+          chrome.action.setBadgeText(
             {
               text: '',
               tabId

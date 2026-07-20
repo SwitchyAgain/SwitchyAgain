@@ -110,10 +110,6 @@ export function extensionManifestVersion() {
   return extensionManifest()?.version || 'unknown';
 }
 
-export function extensionManifestVersionNumber() {
-  return extensionManifest()?.manifest_version;
-}
-
 export function extensionBrowserName(
   userAgent = globalThis.navigator?.userAgent || '',
   brands = (globalThis.navigator as NavigatorWithUserAgentData | undefined)?.userAgentData?.brands || []

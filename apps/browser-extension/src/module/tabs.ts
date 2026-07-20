@@ -20,11 +20,6 @@ export function tabUrl(tab?: Pick<ChromeTab, 'pendingUrl' | 'url'> | null) {
   return tab?.pendingUrl || tab?.url;
 }
 
-function actionApi(): ChromeActionApi {
-  const legacyKey = 'browser' + 'Action';
-  return (chrome.action || chrome[legacyKey]) as ChromeActionApi;
-}
-
 class ChromeTabs {
   actionForUrl: (tab: ChromeTab, url: string) => Promise<TabAction | null | undefined>;
   private _badgeTab: Record<number, boolean> | null;
@@ -70,15 +65,15 @@ class ChromeTabs {
         }
       });
     });
-    if (actionApi().setPopup != null) {
-      actionApi().setTitle(
+    if (chrome.action.setPopup != null) {
+      chrome.action.setTitle(
         {
           title: action.title
         },
         this.ignoreError
       );
     } else {
-      actionApi().setTitle(
+      chrome.action.setTitle(
         {
           title: action.shortTitle
         },
@@ -101,7 +96,7 @@ class ChromeTabs {
     if (this._badgeTab) {
       for (const id of Object.keys(this._badgeTab)) {
         try {
-          const api = actionApi();
+          const api = chrome.action;
           if (typeof api.setBadgeText === 'function') {
             api.setBadgeText(
               {
@@ -118,7 +113,7 @@ class ChromeTabs {
     const url = tabUrl(tab);
     if (url == null || url.indexOf('chrome') === 0) {
       if (this._defaultAction) {
-        actionApi().setTitle(
+        chrome.action.setTitle(
           {
             title: this._defaultAction.title,
             tabId: tab.id
@@ -135,8 +130,8 @@ class ChromeTabs {
         return;
       }
       this.setIcon(action.icon, tab.id);
-      if (actionApi().setPopup != null) {
-        return actionApi().setTitle(
+      if (chrome.action.setPopup != null) {
+        return chrome.action.setTitle(
           {
             title: action.title,
             tabId: tab.id
@@ -144,7 +139,7 @@ class ChromeTabs {
           this.ignoreError
         );
       }
-      return actionApi().setTitle(
+      return chrome.action.setTitle(
         {
           title: action.shortTitle,
           tabId: tab.id
@@ -162,7 +157,7 @@ class ChromeTabs {
       this._badgeTab = {};
     }
     this._badgeTab[tab.id] = true;
-    const api = actionApi();
+    const api = chrome.action;
     if (typeof api.setBadgeText === 'function') {
       api.setBadgeText(
         {
@@ -172,7 +167,7 @@ class ChromeTabs {
         this.ignoreError
       );
     }
-    const apiForColor = actionApi();
+    const apiForColor = chrome.action;
     if (typeof apiForColor.setBadgeBackgroundColor === 'function') {
       return apiForColor.setBadgeBackgroundColor(
         {
@@ -202,7 +197,7 @@ class ChromeTabs {
 
   private _chromeSetIcon(params: {imageData: ActionIcon; tabId?: number}) {
     try {
-      const api = actionApi();
+      const api = chrome.action;
       if (typeof api.setIcon === 'function') {
         return api.setIcon(params, this.ignoreError);
       }
@@ -211,7 +206,7 @@ class ChromeTabs {
         19: params.imageData[19],
         38: params.imageData[38]
       };
-      const api = actionApi();
+      const api = chrome.action;
       if (typeof api.setIcon === 'function') {
         return api.setIcon(params, this.ignoreError);
       }

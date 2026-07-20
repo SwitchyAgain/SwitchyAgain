@@ -6,7 +6,6 @@ import {
   extensionBrowserName,
   extensionId,
   extensionManifestVersion,
-  extensionManifestVersionNumber,
   extensionMessage,
   extensionUiLanguage,
   extensionUrl,
@@ -76,7 +75,6 @@ describe('browser environment adapter', () => {
     expect(callback).toHaveBeenCalledWith({result: 'ok'});
     expect(runtimeLastErrorMessage()).toBe('runtime failed');
     expect(extensionManifestVersion()).toBe('0.0.1');
-    expect(extensionManifestVersionNumber()).toBe(3);
     expect(extensionId()).toBe('extension-id');
     expect(extensionUrl('options.html')).toBe('moz-extension://id/options.html');
     expect(extensionMessage('appName', 'fallback')).toBe('message:appName');

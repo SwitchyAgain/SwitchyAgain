@@ -44,11 +44,6 @@ type ExternalPort = ChromePort & {
   };
 };
 
-function actionApi(): ChromeActionApi {
-  const legacyKey = 'browser' + 'Action';
-  return (chrome.action || chrome[legacyKey]) as ChromeActionApi;
-}
-
 class ExternalApi {
   disabled: boolean;
   knownExts: Record<string, number>;
@@ -82,7 +77,7 @@ class ExternalApi {
       return;
     }
     this.options.setProxyNotControllable(null);
-    const api = actionApi();
+    const api = chrome.action;
     if (typeof api.setPopup === 'function') {
       api.setPopup({
         popup: 'popup/index.html'
@@ -129,7 +124,7 @@ class ExternalApi {
             color: '#5ab432'
           });
         });
-        const api = actionApi();
+        const api = chrome.action;
         if (typeof api.setPopup === 'function') {
           api.setPopup({
             popup: 'popup/index.html'

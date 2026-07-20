@@ -14,13 +14,9 @@ function testGlobal() {
   return globalThis as TestGlobal;
 }
 
-function installChromeMock(manifestVersion: number, sendMessage?: RuntimeSendMessage) {
+function installChromeMock(sendMessage?: RuntimeSendMessage) {
   testGlobal().chrome = {
     runtime: {
-      getManifest: () => ({
-        manifest_version: manifestVersion,
-        version: '0.0.0'
-      }),
       sendMessage
     }
   };
@@ -33,7 +29,7 @@ function installBackgroundResponses(responses: RuntimeResponse[]) {
     const response = responses.shift();
     callback(typeof response === 'function' ? response(message) : response);
   });
-  installChromeMock(3, sendMessage);
+  installChromeMock(sendMessage);
   return {
     messages,
     sendMessage
@@ -56,27 +52,7 @@ describe('state client', () => {
     });
   });
 
-  it('reads state from localStorage for legacy manifest versions', async () => {
-    installChromeMock(2);
-    setLocalState('currentProfileName', 'proxy');
-    setLocalState('isSystemProfile', false);
-
-    await expect(getState('currentProfileName')).resolves.toBe('proxy');
-    await expect(getState(['currentProfileName', 'isSystemProfile', 'missing'])).resolves.toEqual(['proxy', false, undefined]);
-  });
-
-  it('writes state to localStorage for legacy manifest versions', async () => {
-    installChromeMock(2);
-    const value = {
-      expanded: ['proxy', 'auto']
-    };
-
-    await expect(setState('web.expandedProfiles', value)).resolves.toBe(value);
-
-    expect(getLocalState('web.expandedProfiles')).toEqual(value);
-  });
-
-  it('reads single state values through the background API for manifest v3', async () => {
+  it('reads single state values through the background API', async () => {
     const {messages} = installBackgroundResponses([
       {
         result: {
@@ -95,7 +71,7 @@ describe('state client', () => {
     ]);
   });
 
-  it('maps multiple state values through the background API for manifest v3', async () => {
+  it('maps multiple state values through the background API', async () => {
     const {messages} = installBackgroundResponses([
       {
         result: {
@@ -115,7 +91,7 @@ describe('state client', () => {
     ]);
   });
 
-  it('writes state through the background API for manifest v3 and resolves the input value', async () => {
+  it('writes state through the background API and resolves the input value', async () => {
     const value = {
       containers: {
         firefox: 'proxy'
@@ -143,15 +119,7 @@ describe('state client', () => {
     ]);
   });
 
-  it('keeps lastUrl compatible with local state storage', async () => {
-    installChromeMock(2);
-
-    expect(lastUrl('https://example.com/options')).toBe('https://example.com/options');
-    await expect(getState('web.last_url')).resolves.toBe('https://example.com/options');
-    expect(lastUrl()).toBe('https://example.com/options');
-  });
-
-  it('keeps lastUrl synchronously readable after manifest v3 writes', () => {
+  it('keeps lastUrl synchronously readable after background writes', () => {
     const {messages} = installBackgroundResponses([
       {
         result: {}
