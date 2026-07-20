@@ -40,7 +40,7 @@ describe('BrowserStorage', function () {
       getResult = storage.get({
         currentProfileName: 'system'
       });
-      return Promise.delay(0)
+      return new Promise<void>((resolve) => setTimeout(resolve, 0))
         .then(function () {
           data['state.currentProfileName'] = '"proxy"';
           resolveReady();

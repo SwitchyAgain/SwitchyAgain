@@ -27,14 +27,6 @@ type RuntimeGlobal = typeof globalThis & {
 
 const NativePromiseImpl = (globalThis as RuntimeGlobal).Promise;
 
-class TimeoutError extends Error {
-  constructor(milliseconds: number) {
-    super('operation timed out after ' + milliseconds + ' ms');
-    this.name = 'TimeoutError';
-    Object.setPrototypeOf(this, TimeoutError.prototype);
-  }
-}
-
 function augment<T>(promise: NativePromise<T>): RuntimePromise<T> {
   const runtimePromise = promise as RuntimePromise<T> & {
     __extensionRuntimePromise?: boolean;
@@ -82,37 +74,6 @@ function augment<T>(promise: NativePromise<T>): RuntimePromise<T> {
     }
   });
 
-  Object.defineProperty(runtimePromise, 'timeout', {
-    configurable: true,
-    value(milliseconds: number) {
-      return new Promise<T>((resolve, reject) => {
-        let settled = false;
-        const timer = setTimeout(() => {
-          if (!settled) {
-            settled = true;
-            reject(new TimeoutError(milliseconds));
-          }
-        }, milliseconds);
-        runtimePromise.then(
-          (value) => {
-            if (!settled) {
-              settled = true;
-              clearTimeout(timer);
-              resolve(value);
-            }
-          },
-          (reason) => {
-            if (!settled) {
-              settled = true;
-              clearTimeout(timer);
-              reject(reason);
-            }
-          }
-        );
-      });
-    }
-  });
-
   return runtimePromise;
 }
 
@@ -147,62 +108,12 @@ Promise.all = function <T>(values: Array<T | PromiseLike<T>>): RuntimePromise<T[
   return augment(NativePromiseImpl.all(values));
 };
 
-Promise.delay = function (milliseconds?: number): RuntimePromise<void> {
-  return new Promise<void>((resolve) => {
-    setTimeout(() => resolve(), milliseconds || 0);
-  });
-};
-
-Promise.join = function <T1, T2, TResult>(
-  first: T1 | PromiseLike<T1>,
-  second: T2 | PromiseLike<T2>,
-  handler: (first: T1, second: T2) => TResult | PromiseLike<TResult>
-): RuntimePromise<TResult> {
-  return Promise.all([first, second] as Array<T1 | T2>).then((values) => {
-    return handler(values[0] as T1, values[1] as T2);
-  });
-};
-
-Promise.longStackTraces = function (): void {};
-
 Promise.onPossiblyUnhandledRejection = function (callback: (reason: unknown, promise: unknown) => unknown): void {
   addUnhandledRejectionListener('unhandledrejection', 'unhandledRejection', callback);
 };
 
 Promise.onUnhandledRejectionHandled = function (callback: (promise: unknown) => unknown): void {
   addUnhandledRejectionListener('rejectionhandled', 'rejectionHandled', callback);
-};
-
-Promise.promisify = function (fn: unknown): (...args: unknown[]) => RuntimePromise<unknown> {
-  return function (this: unknown, ...args: unknown[]) {
-    return new Promise<unknown>((resolve, reject) => {
-      if (typeof fn !== 'function') {
-        reject(new TypeError('Expected a function to promisify.'));
-        return;
-      }
-      (fn as (...args: unknown[]) => unknown).apply(
-        this,
-        args.concat((error: unknown, value: unknown) => {
-          if (error != null) {
-            reject(error);
-            return;
-          }
-          resolve(value);
-        })
-      );
-    });
-  };
-};
-
-Promise.props = function <T extends Record<string, unknown>>(values: T): RuntimePromise<Record<keyof T, unknown>> {
-  const keys = Object.keys(values) as Array<keyof T>;
-  return Promise.all(keys.map((key) => values[key])).then((resolvedValues) => {
-    const result = {} as Record<keyof T, unknown>;
-    for (let i = 0; i < keys.length; i++) {
-      result[keys[i]] = resolvedValues[i];
-    }
-    return result;
-  });
 };
 
 Promise.reject = function <T = never>(reason?: unknown): RuntimePromise<T> {
@@ -217,5 +128,4 @@ Promise.try = function <T = unknown>(fn: () => T | PromiseLike<T>): RuntimePromi
   return Promise.resolve().then(fn);
 };
 
-export {TimeoutError};
 export default Promise;

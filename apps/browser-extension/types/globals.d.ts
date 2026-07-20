@@ -337,20 +337,16 @@ interface UrlModule {
   };
 }
 
-interface RuntimePromise<T = unknown> extends Promise<T> {
-  timeout(milliseconds: number): RuntimePromise<T>;
-}
+type RuntimePromise<T = unknown> = Promise<T>;
 
 interface RuntimePromiseStatic {
   new <T = unknown>(
     executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: unknown) => void) => void
   ): RuntimePromise<T>;
   all<T>(values: Array<T | PromiseLike<T>>): RuntimePromise<T[]>;
-  promisify(fn: unknown): DynamicGlobalValue;
   reject<T = never>(reason?: unknown): RuntimePromise<T>;
   resolve<T = unknown>(value?: T | PromiseLike<T>): RuntimePromise<T>;
   try<T = unknown>(fn: () => T | PromiseLike<T>): RuntimePromise<T>;
-  join<A, B, R>(a: A | PromiseLike<A>, b: B | PromiseLike<B>, handler: (a: A, b: B) => R): RuntimePromise<R>;
   [key: string]: unknown;
 }
 

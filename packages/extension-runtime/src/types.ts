@@ -7,7 +7,6 @@ export type RuntimePromise<T> = {
     onFulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | null,
     onRejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null
   ): RuntimePromise<TResult1 | TResult2>;
-  timeout(milliseconds: number): RuntimePromise<T>;
 };
 
 export type RuntimePromiseStatic = {
@@ -15,17 +14,8 @@ export type RuntimePromiseStatic = {
     executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: unknown) => void) => void
   ): RuntimePromise<T>;
   all<T>(values: Array<T | PromiseLike<T>>): RuntimePromise<T[]>;
-  delay(milliseconds?: number): RuntimePromise<void>;
-  join<T1, T2, TResult>(
-    first: T1 | PromiseLike<T1>,
-    second: T2 | PromiseLike<T2>,
-    handler: (first: T1, second: T2) => TResult | PromiseLike<TResult>
-  ): RuntimePromise<TResult>;
-  longStackTraces(): void;
   onPossiblyUnhandledRejection(callback: (reason: unknown, promise: unknown) => unknown): void;
   onUnhandledRejectionHandled(callback: (promise: unknown) => unknown): void;
-  promisify(fn: unknown): (...args: unknown[]) => RuntimePromise<unknown>;
-  props<T extends Record<string, unknown>>(values: T): RuntimePromise<Record<keyof T, unknown>>;
   reject<T = never>(reason?: unknown): RuntimePromise<T>;
   resolve<T = void>(value?: T | PromiseLike<T>): RuntimePromise<T>;
   try<T = unknown>(fn: () => T | PromiseLike<T>): RuntimePromise<T>;

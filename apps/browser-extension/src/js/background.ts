@@ -177,7 +177,6 @@ type BackgroundLog = RuntimeOptionsBase['log'] & {
 };
 
 type BackgroundPromiseStatic = RuntimePromiseStatic & {
-  longStackTraces(): void;
   onPossiblyUnhandledRejection(callback: (reason: unknown, promise: unknown) => unknown): void;
   onUnhandledRejectionHandled(callback: (promise: unknown) => unknown): void;
 };
@@ -356,8 +355,6 @@ type BackgroundExtensionRuntime = {
   const ExtensionRuntimeCurrent = Object.create(ExtensionRuntimeBase) as BackgroundExtensionRuntime;
 
   const Promise = ExtensionRuntimeCurrent.Promise;
-
-  Promise.longStackTraces();
 
   ExtensionRuntimeCurrent.Log = Object.create(ExtensionRuntimeCurrent.Log);
 
