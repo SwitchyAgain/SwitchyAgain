@@ -149,16 +149,16 @@ type BackgroundRespond = (response: BackgroundRuntimeResponse) => void;
 
 type BackgroundSync = {
   enabled: boolean;
-  copyTo(local: unknown): RuntimePromise<unknown>;
+  copyTo(local: unknown): Promise<unknown>;
   onPullError?: (error: unknown) => unknown;
   onPushError?: (error: unknown) => unknown;
   preserveSyncEnabledState?: boolean;
   pushRetryDelay?: number;
   requestPush(changes: Record<string, unknown>): unknown;
   storage?: {
-    get(keys: unknown): RuntimePromise<Record<string, unknown>>;
+    get(keys: unknown): Promise<Record<string, unknown>>;
     poll?(callback: (changes: Record<string, unknown | undefined>) => unknown): Promise<unknown>;
-    remove(keys?: unknown): RuntimePromise<unknown>;
+    remove(keys?: unknown): Promise<unknown>;
     watchCallback?: (changes: Record<string, unknown | undefined>) => unknown;
   };
   transformValue?: unknown;
@@ -182,9 +182,9 @@ type BackgroundExternalApi = {
 };
 
 type BackgroundState = {
-  get(keys: unknown): RuntimePromise<Record<string, unknown>>;
-  remove?(keys?: unknown): RuntimePromise<unknown>;
-  set(items: Record<string, unknown>): RuntimePromise<unknown>;
+  get(keys: unknown): Promise<Record<string, unknown>>;
+  remove?(keys?: unknown): Promise<unknown>;
+  set(items: Record<string, unknown>): Promise<unknown>;
 };
 
 type BackgroundTabBadge = {
@@ -211,23 +211,23 @@ type BackgroundOptions = BackgroundOptionMethods & {
   clearBadge(): unknown;
   currentProfile(): BackgroundProfile | null | undefined;
   externalApi: BackgroundExternalApi;
-  explainRequest(args: unknown): RuntimePromise<unknown>;
+  explainRequest(args: unknown): Promise<unknown>;
   getProfileScopeInfo(args: ProfileScopeInfoArgs): ProfileScopeInfo;
   isCurrentProfileStatic(): boolean;
-  matchProfileFromProfileName(profileName: string, request: unknown): RuntimePromise<BackgroundMatchResult>;
-  matchProfile(request: unknown): RuntimePromise<BackgroundMatchResult>;
+  matchProfileFromProfileName(profileName: string, request: unknown): Promise<BackgroundMatchResult>;
+  matchProfile(request: unknown): Promise<BackgroundMatchResult>;
   getMonitoredTabUrl(tabId: number, url?: string): string | undefined;
-  init(): RuntimePromise<unknown>;
-  optionsLoaded: RuntimePromise<unknown> | null;
+  init(): Promise<unknown>;
+  optionsLoaded: Promise<unknown> | null;
   printProfile(profile?: BackgroundProfile | null): unknown;
   profile(name?: unknown): BackgroundProfile;
   proxyNotControllable(): string | null;
   queryTempRule(domain: string): unknown;
-  ready: RuntimePromise<unknown>;
-  resetOptionsSync(): RuntimePromise<unknown>;
+  ready: Promise<unknown>;
+  resetOptionsSync(): Promise<unknown>;
   setBadge(): unknown;
   setExternalProfile(profile: BackgroundProfile, args?: {internal?: boolean; noRevert?: boolean}): Promise<unknown> | void;
-  setOptionsSync(enabled: boolean, args?: unknown): RuntimePromise<unknown>;
+  setOptionsSync(enabled: boolean, args?: unknown): Promise<unknown>;
   setProxyNotControllable(reason: string | null): unknown;
   _storage: unknown;
   _syncWatchStop: (() => unknown) | null;
@@ -324,7 +324,6 @@ type BackgroundExtensionRuntime = {
     parseImportedOptions(content: string): RuntimeOptionsData;
   };
   OptionsSync: new (storage: unknown) => BackgroundSync;
-  Promise: RuntimePromiseStatic;
   Storage: new (areaName: string) => unknown;
   Url: UrlModule;
   proxy: {
@@ -348,8 +347,6 @@ type BackgroundExtensionRuntime = {
   };
   const ExtensionRuntimeBase = BrowserExtensionRuntimeModule.default || BrowserExtensionRuntimeModule;
   const ExtensionRuntimeCurrent = Object.create(ExtensionRuntimeBase) as BackgroundExtensionRuntime;
-
-  const Promise = ExtensionRuntimeCurrent.Promise;
 
   ExtensionRuntimeCurrent.Log = Object.create(ExtensionRuntimeCurrent.Log);
 
@@ -1500,7 +1497,7 @@ type BackgroundExtensionRuntime = {
   function testWebDavSync(configInput?: WebDavSyncConfigInput) {
     return resolveWebDavConfig(configInput).then((config) => {
       const storage = new ExtensionRuntimeCurrent.WebDavStorage(config) as {
-        get(keys: unknown): RuntimePromise<Record<string, unknown>>;
+        get(keys: unknown): Promise<Record<string, unknown>>;
         remoteExists(): Promise<boolean>;
       };
       return Promise.resolve(storage.remoteExists()).then((exists): Promise<WebDavSyncTestResult> => {
@@ -1554,7 +1551,7 @@ type BackgroundExtensionRuntime = {
       .then((config) => {
         cancelPendingSyncPush(options.sync);
         const storage = new ExtensionRuntimeCurrent.WebDavStorage(config) as {
-          writeRemote(items: Record<string, unknown>): RuntimePromise<unknown>;
+          writeRemote(items: Record<string, unknown>): Promise<unknown>;
         };
         return Promise.resolve(storage.writeRemote(syncPayloadForOptions(options._options)));
       })
@@ -2060,18 +2057,18 @@ type BackgroundExtensionRuntime = {
     };
   }
 
-  function readinessForRequest(request: BackgroundRequest): RuntimePromise<unknown> {
+  function readinessForRequest(request: BackgroundRequest): Promise<unknown> {
     switch (request.method) {
       case 'getAll':
       case 'getPageInfo':
       case 'getState':
         return Promise.resolve(options.optionsLoaded || options.ready)
           .catch(() => undefined)
-          .then(() => Promise.resolve(restoreActiveWebDavSyncFromState())) as RuntimePromise<unknown>;
+          .then(() => restoreActiveWebDavSyncFromState());
       case 'getWebDavSyncConfig':
         return Promise.resolve(options.optionsLoaded || options.ready)
           .catch(() => undefined)
-          .then(() => Promise.resolve(restoreActiveWebDavSyncFromState())) as RuntimePromise<unknown>;
+          .then(() => restoreActiveWebDavSyncFromState());
       default:
         return options.ready;
     }

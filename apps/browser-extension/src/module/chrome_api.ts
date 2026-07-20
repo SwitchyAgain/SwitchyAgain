@@ -2,14 +2,6 @@ type ChromeApiCallback<T> = (...callbackArgs: T[]) => void;
 type ChromeApiMethod<T = unknown> = (...args: Array<unknown | ChromeApiCallback<T>>) => void;
 type ChromeApiTarget = Record<string, ChromeApiMethod | unknown>;
 
-type RuntimePromiseConstructor = new <T>(
-  executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: unknown) => void) => void
-) => Promise<T>;
-
-import ExtensionRuntime from '@switchyagain/extension-runtime';
-
-const RuntimePromise = ExtensionRuntime.Promise as RuntimePromiseConstructor;
-
 function chromeRuntimeError() {
   const error = new Error(chrome.runtime.lastError?.message || 'Unknown Chrome API error.');
   (error as Error & {original?: ChromeLastError}).original = chrome.runtime.lastError;
@@ -18,7 +10,7 @@ function chromeRuntimeError() {
 
 export function chromeApiPromisify<T = unknown>(target: ChromeApiTarget, method: string) {
   return (...args: unknown[]) => {
-    return new RuntimePromise<T | T[]>((resolve, reject) => {
+    return new Promise<T | T[]>((resolve, reject) => {
       const callback = (...callbackArgs: T[]) => {
         if (chrome.runtime.lastError != null) {
           reject(chromeRuntimeError());

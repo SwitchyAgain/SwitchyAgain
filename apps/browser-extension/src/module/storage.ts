@@ -41,8 +41,6 @@ type StorageError = Error & {
   sustained?: number;
 };
 
-const RuntimePromise = ExtensionRuntime.Promise;
-
 function normalizeWatchKeys(keys: WatchKeys): WatchKeyMap {
   if (keys == null) {
     return null;
@@ -93,7 +91,7 @@ class ChromeStorage extends ExtensionRuntime.Storage {
         err = new ExtensionRuntime.Storage.StorageUnavailableError();
       }
     }
-    return RuntimePromise.reject(err);
+    return Promise.reject(err);
   }
 
   constructor(areaName: StorageAreaName) {
@@ -113,7 +111,7 @@ class ChromeStorage extends ExtensionRuntime.Storage {
   }
 
   get(keys: StorageKeys = null) {
-    return RuntimePromise.resolve(this.storage.get(keys))
+    return Promise.resolve(this.storage.get(keys))
       .then((items) => {
         const storageItems = items as StorageItems;
         if (this.areaName !== 'local' || keys !== null) {
@@ -123,7 +121,7 @@ class ChromeStorage extends ExtensionRuntime.Storage {
         if (!migrated) {
           return storageItems;
         }
-        return RuntimePromise.resolve(
+        return Promise.resolve(
           this.storage.set({
             schema: migrated.schema,
             version: migrated.version
@@ -137,19 +135,19 @@ class ChromeStorage extends ExtensionRuntime.Storage {
 
   set(items: StorageItems) {
     if (Object.keys(items).length === 0) {
-      return RuntimePromise.resolve({});
+      return Promise.resolve({});
     }
-    return RuntimePromise.resolve(this.storage.set(items)).catch(ChromeStorage.parseStorageErrors);
+    return Promise.resolve(this.storage.set(items)).catch(ChromeStorage.parseStorageErrors);
   }
 
   remove(keys: WatchKeys) {
     if (keys == null) {
-      return RuntimePromise.resolve(this.storage.clear());
+      return Promise.resolve(this.storage.clear());
     }
     if (Array.isArray(keys) && keys.length === 0) {
-      return RuntimePromise.resolve({});
+      return Promise.resolve({});
     }
-    return RuntimePromise.resolve(this.storage.remove(keys)).catch(ChromeStorage.parseStorageErrors);
+    return Promise.resolve(this.storage.remove(keys)).catch(ChromeStorage.parseStorageErrors);
   }
 
   watch(keys: WatchKeys, callback: WatchCallback): WatchUnsubscribe {

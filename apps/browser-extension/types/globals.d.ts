@@ -337,14 +337,10 @@ interface UrlModule {
   };
 }
 
-type RuntimePromise<T = unknown> = Promise<T>;
-
-type RuntimePromiseStatic = PromiseConstructor;
-
 interface RuntimeOptionsState {
-  get<T extends Record<string, unknown>>(defaults: T): RuntimePromise<T>;
-  remove(keys: string[]): RuntimePromise<unknown>;
-  set(items: Record<string, unknown>): RuntimePromise<unknown>;
+  get<T extends Record<string, unknown>>(defaults: T): Promise<T>;
+  remove(keys: string[]): Promise<unknown>;
+  set(items: Record<string, unknown>): Promise<unknown>;
 }
 
 interface RuntimeOptionsData extends Record<string, unknown> {
@@ -372,17 +368,17 @@ interface RuntimeOptionsBase {
   _isSystem: boolean;
   _options: RuntimeOptionsData;
   _setAvailableProfiles(): Promise<unknown>;
-  _setOptions(changes: Record<string, unknown>): RuntimePromise<unknown>;
+  _setOptions(changes: Record<string, unknown>): Promise<unknown>;
   _state: RuntimeOptionsState;
   fallbackProfileName: string;
   log: {
     error(...args: unknown[]): void;
     log(...args: unknown[]): void;
   };
-  applyProfile(profileName: string, options?: Record<string, unknown>): RuntimePromise<unknown>;
+  applyProfile(profileName: string, options?: Record<string, unknown>): Promise<unknown>;
   currentProfile(): unknown;
   currentProfileChanged(reason: string): unknown;
-  explainRequest(args: unknown): RuntimePromise<PopupApiRequestExplanation>;
+  explainRequest(args: unknown): Promise<PopupApiRequestExplanation>;
   queryTempRule(domain: string): unknown;
   updateProfile(...args: unknown[]): Promise<Record<string, unknown>>;
   upgrade(options?: unknown, ...args: unknown[]): Promise<unknown>;
@@ -416,7 +412,6 @@ interface ExtensionRuntimeModule extends Record<string, unknown> {
   NetworkError: new (error?: unknown) => Error;
   ProxyEngine: ProxyEngineApi;
   Options: RuntimeOptionsConstructor;
-  Promise: RuntimePromiseStatic;
   Storage: RuntimeStorageConstructor;
 }
 

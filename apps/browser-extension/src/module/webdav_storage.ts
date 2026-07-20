@@ -237,7 +237,7 @@ class WebDavStorage extends ExtensionRuntime.Storage {
   }
 
   get(keys: StorageKeys = null) {
-    return ExtensionRuntime.Promise.resolve(this.readRemote(true)).then((snapshot) => {
+    return this.readRemote(true).then((snapshot) => {
       if (keys == null) {
         return snapshot.items;
       }
@@ -266,9 +266,9 @@ class WebDavStorage extends ExtensionRuntime.Storage {
 
   set(items: StorageItems) {
     if (Object.keys(items).length === 0) {
-      return ExtensionRuntime.Promise.resolve({});
+      return Promise.resolve({});
     }
-    return ExtensionRuntime.Promise.resolve(this.readRemote(true)).then((snapshot) => {
+    return this.readRemote(true).then((snapshot) => {
       return this.writeRemote(
         {
           ...snapshot.items,
@@ -282,7 +282,7 @@ class WebDavStorage extends ExtensionRuntime.Storage {
   remove(keys?: StorageRemoveKeys) {
     if (keys == null) {
       const url = this.fileUrl();
-      return ExtensionRuntime.Promise.resolve(this.request('DELETE', url)).then((response) => {
+      return this.request('DELETE', url).then((response) => {
         if (!response.ok && response.status !== 404) {
           throw statusError(response, 'DELETE', url);
         }
@@ -291,7 +291,7 @@ class WebDavStorage extends ExtensionRuntime.Storage {
         this.lastItems = {};
       });
     }
-    return ExtensionRuntime.Promise.resolve(this.readRemote(true)).then((snapshot) => {
+    return this.readRemote(true).then((snapshot) => {
       const nextItems = {...snapshot.items};
       const removeKeys = Array.isArray(keys) ? keys : [keys];
       for (const key of removeKeys) {

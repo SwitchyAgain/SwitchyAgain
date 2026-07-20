@@ -1,9 +1,7 @@
 /* @module @switchyagain/extension-runtime/storage */
 
 import Log from './log';
-import Promise from './promise';
 import type {
-  RuntimePromise,
   StorageApplyOperations,
   StorageChanges,
   StorageGetKeys,
@@ -83,7 +81,7 @@ class Storage {
    * or null for all.
    * @returns {Promise<(Object.<string, {}>)>} A map from keys to values
    */
-  get(keys: StorageGetKeys): RuntimePromise<StorageItems> {
+  get(keys: StorageGetKeys): Promise<StorageItems> {
     Log.method('Storage#get', this, arguments);
     if (!this._items) {
       return Promise.resolve({});
@@ -112,7 +110,7 @@ class Storage {
    * @param {(string|Object.<string,{}>)} items A map from key to value to set.
    * @returns {Promise<(Object.<string, {}>)>} A map of key-value pairs just set.
    */
-  set(items: StorageItems): RuntimePromise<StorageItems> {
+  set(items: StorageItems): Promise<StorageItems> {
     Log.method('Storage#set', this, arguments);
     if (this._items == null) {
       this._items = {};
@@ -129,7 +127,7 @@ class Storage {
    * @param {(string|string[]|null)} keys The keys to remove, or null for all.
    * @returns {Promise} A promise that fulfills on successful removal.
    */
-  remove(keys?: StorageRemoveKeys): RuntimePromise<void> {
+  remove(keys?: StorageRemoveKeys): Promise<void> {
     Log.method('Storage#remove', this, arguments);
     if (this._items != null) {
       if (keys == null) {
@@ -164,7 +162,7 @@ class Storage {
    * fields passed through as the second argument.
    * @returns {Promise} A promise that fulfills on operation success.
    */
-  apply(operations: StorageApplyOperations): RuntimePromise<StorageApplyOperations> {
+  apply(operations: StorageApplyOperations): Promise<StorageApplyOperations> {
     let writeOperations = operations as StorageApplyOperations & {
       remove: string[];
       set: StorageItems;

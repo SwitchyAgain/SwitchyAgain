@@ -1,5 +1,4 @@
 import assert from 'assert';
-import Promise from '../src/promise';
 import BrowserStorageClass from '../src/browser_storage';
 
 describe('BrowserStorage', function () {

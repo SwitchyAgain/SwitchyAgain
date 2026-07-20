@@ -5,7 +5,6 @@ import Log from './log';
 import Options from './options';
 import OptionsSync from './options_sync';
 import Storage from './storage';
-import * as utils from './utils';
 
 const extensionRuntime: Record<string, unknown> = {
   Log,
@@ -16,11 +15,6 @@ const extensionRuntime: Record<string, unknown> = {
   ProxyEngine
 };
 
-const utilExports = utils as Record<string, unknown>;
-for (const name of Object.keys(utilExports)) {
-  extensionRuntime[name] = utilExports[name];
-}
-
 const errorExports = errors as Record<string, unknown>;
 for (const name of Object.keys(errorExports)) {
   extensionRuntime[name] = errorExports[name];
@@ -30,6 +24,5 @@ export {BrowserStorage, Log, Options, OptionsSync, Storage, ProxyEngine};
 
 export * from './errors';
 export * from './options_schema';
-export * from './utils';
 
 export default extensionRuntime;

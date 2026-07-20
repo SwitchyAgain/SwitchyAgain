@@ -5,10 +5,8 @@ import {TokenBucket} from 'limiter';
 import ProxyEngine from '@switchyagain/proxy-engine';
 import {IncompatibleOptionsSyncError} from './errors';
 import Log from './log';
-import Promise from './promise';
 import StorageClass from './storage';
 import type {
-  RuntimePromise,
   StorageApplyOperations,
   StorageChanges,
   StorageItems,
@@ -314,7 +312,7 @@ class OptionsSync {
    * @param {Storage} local The local storage to be written to
    * @returns {function} Calling the returned function will stop watching.
    */
-  copyTo(local: StorageLike): RuntimePromise<unknown> {
+  copyTo(local: StorageLike): Promise<unknown> {
     return Promise.all([local.get(null), this.storage.get(null)]).then((values) => {
       const base = values[0] as StorageItems;
       const changes = values[1] as StorageChanges;

@@ -14,10 +14,8 @@ import {
   OPTIONS_SCHEMA,
   OPTIONS_VERSION
 } from './options_schema';
-import Promise from './promise';
 import Storage from './storage';
 import type {
-  RuntimePromise,
   LogLike,
   ProxyEngineModule,
   OptionsData,
@@ -390,8 +388,8 @@ class Options {
   log: LogLike = Log;
   sync: OptionsSyncLike | null = null;
   proxyImpl: ProxyImplLike | null = null;
-  optionsLoaded: RuntimePromise<unknown> | null = null;
-  ready: RuntimePromise<unknown> | null = null;
+  optionsLoaded: Promise<unknown> | null = null;
+  ready: Promise<unknown> | null = null;
 
   /**
    * Transform options values (especially profiles) for syncing.
@@ -449,7 +447,7 @@ class Options {
    * @returns {Promise<OptionsData>} The loaded options
    */
 
-  loadOptions(arg?: LoadOptionsArgs): RuntimePromise<unknown> {
+  loadOptions(arg?: LoadOptionsArgs): Promise<unknown> {
     let loadRaw;
     let retry = (arg != null ? arg : {}).retry;
     const preserveSyncEnabledState = () => this.sync?.preserveSyncEnabledState === true;
@@ -654,7 +652,7 @@ class Options {
    * @returns {Promise<OptionsData>} A promise that is fulfilled on ready.
    */
 
-  init(): RuntimePromise<unknown> {
+  init(): Promise<unknown> {
     this.ready = this.loadOptions()
       .then(() => {
         if (this._options['-startupProfileName']) {
@@ -735,7 +733,7 @@ class Options {
    * @returns {Promise<[OptionsData, {}]>} The new options and the changes.
    */
 
-  upgrade(options: OptionsData | null | undefined, changes?: StorageChanges): RuntimePromise<[OptionsData, StorageChanges]> {
+  upgrade(options: OptionsData | null | undefined, changes?: StorageChanges): Promise<[OptionsData, StorageChanges]> {
     if (changes == null) {
       changes = {};
     }
@@ -790,7 +788,7 @@ class Options {
    * @returns {Promise<OptionsData>} The options just applied
    */
 
-  reset(options?: OptionsData | null): RuntimePromise<unknown> {
+  reset(options?: OptionsData | null): Promise<unknown> {
     this.log.method('Options#reset', this, arguments);
     const preserveProfileName = options != null ? this._currentProfileName : null;
     if (options == null) {
@@ -893,7 +891,7 @@ class Options {
    * @returns {Promise<OptionsData>} The updated options
    */
 
-  patch(patch: Record<string, any> | null | undefined): RuntimePromise<unknown> | void {
+  patch(patch: Record<string, any> | null | undefined): Promise<unknown> | void {
     if (!patch) {
       return;
     }
@@ -912,7 +910,7 @@ class Options {
     return this._setOptions(changes);
   }
 
-  _setOptions = (changes: StorageChanges, args?: SetOptionsArgs): RuntimePromise<unknown> => {
+  _setOptions = (changes: StorageChanges, args?: SetOptionsArgs): Promise<unknown> => {
     const removed: string[] = [];
     const checkRev = args != null && args.checkRevision != null ? args.checkRevision : false;
     let profilesChanged = false;
@@ -1155,7 +1153,7 @@ class Options {
    * @returns {Promise} A promise which is fulfilled when the settings apply
    */
 
-  setMonitorWebRequests(enabled?: unknown): RuntimePromise<void> {
+  setMonitorWebRequests(enabled?: unknown): Promise<void> {
     return Promise.resolve();
   }
 
@@ -1190,7 +1188,7 @@ class Options {
    * @returns {string} The compiled
    */
 
-  pacForProfile(profile: string | ProfileLike, compress?: boolean): RuntimePromise<string> {
+  pacForProfile(profile: string | ProfileLike, compress?: boolean): Promise<string> {
     if (compress == null) {
       compress = false;
     }
@@ -1217,7 +1215,7 @@ class Options {
     return names;
   }
 
-  _setAvailableProfiles(): RuntimePromise<unknown> {
+  _setAvailableProfiles(): Promise<unknown> {
     const profile = this._currentProfileName ? this.currentProfile() : null;
     const profiles: Record<string, AvailableProfile> = {};
     const currentIncludable = profile && ProxyEngine.Profiles.isIncludable(profile);
@@ -1282,7 +1280,7 @@ class Options {
    * @returns {Promise} A promise which is fulfilled when the profile is applied.
    */
 
-  applyProfile(name: string | null | undefined, options?: ApplyProfileOptions): RuntimePromise<unknown> {
+  applyProfile(name: string | null | undefined, options?: ApplyProfileOptions): Promise<unknown> {
     this.log.method('Options#applyProfile', this, arguments);
     const profileName = name || this.fallbackProfileName;
     const profile = ProxyEngine.Profiles.byName(profileName, this._options);
@@ -1307,7 +1305,7 @@ class Options {
       return Promise.resolve();
     }
     this._tempProfileActive = false;
-    let applyProxy: RuntimePromise<unknown>;
+    let applyProxy: Promise<unknown>;
     if (this._tempProfile != null && ProxyEngine.Profiles.isIncludable(profile)) {
       const tempProfile = this._tempProfile;
       this._tempProfileActive = true;
@@ -1406,7 +1404,7 @@ class Options {
    * @returns {Promise} A promise which is fulfilled when the quick switch is set
    */
 
-  setQuickSwitch(quickSwitch: string[] | null, canEnable: boolean): RuntimePromise<void> {
+  setQuickSwitch(quickSwitch: string[] | null, canEnable: boolean): Promise<void> {
     return Promise.resolve();
   }
 
@@ -1420,7 +1418,7 @@ class Options {
    * @returns {Promise} A promise which is fulfilled when the schedule is set
    */
 
-  schedule(name: string, periodInMinutes: unknown, callback: () => unknown): RuntimePromise<void> {
+  schedule(name: string, periodInMinutes: unknown, callback: () => unknown): Promise<void> {
     return Promise.resolve();
   }
 
@@ -1457,9 +1455,9 @@ class Options {
    * updated profile.
    */
 
-  updateProfile(name?: string | string[] | null, opt_bypass_cache?: boolean): RuntimePromise<Record<string, unknown>> {
+  updateProfile(name?: string | string[] | null, opt_bypass_cache?: boolean): Promise<Record<string, unknown>> {
     this.log.method('Options#updateProfile', this, arguments);
-    const results: Record<string, RuntimePromise<unknown>> = {};
+    const results: Record<string, Promise<unknown>> = {};
     ProxyEngine.Profiles.each(this._options, (key, profile) => {
       if (name != null) {
         if (Array.isArray(name)) {
@@ -1523,7 +1521,7 @@ class Options {
    * @returns {Promise<String>} The text content fetched from the url
    */
 
-  fetchUrl(url: string, opt_bypass_cache?: boolean, opt_type_hints?: string[]): RuntimePromise<string> {
+  fetchUrl(url: string, opt_bypass_cache?: boolean, opt_type_hints?: string[]): Promise<string> {
     return Promise.reject(new Error('not implemented'));
   }
 
@@ -1570,7 +1568,7 @@ class Options {
    * @returns {Promise<OptionsData>} The updated options
    */
 
-  replaceRef(fromName: string, toName: string): RuntimePromise<unknown> {
+  replaceRef(fromName: string, toName: string): Promise<unknown> {
     this.log.method('Options#replaceRef', this, arguments);
     const profile = ProxyEngine.Profiles.byName(fromName, this._options);
     if (!profile) {
@@ -1599,7 +1597,7 @@ class Options {
    * @returns {Promise<OptionsData>} The updated options
    */
 
-  renameProfile(fromName: string, toName: string): RuntimePromise<unknown> {
+  renameProfile(fromName: string, toName: string): Promise<unknown> {
     this.log.method('Options#renameProfile', this, arguments);
     if (ProxyEngine.Profiles.byName(toName, this._options)) {
       return Promise.reject(new Error('Target name ' + name + ' already taken!'));
@@ -1636,7 +1634,7 @@ class Options {
    * @returns {Promise} A promise which is fulfilled when the rule is applied.
    */
 
-  addTempRule(domain: string, profileName: string): RuntimePromise<unknown> {
+  addTempRule(domain: string, profileName: string): Promise<unknown> {
     this.log.method('Options#addTempRule', this, arguments);
     if (!this._currentProfileName) {
       return Promise.resolve();
@@ -1723,7 +1721,7 @@ class Options {
     condition: Record<string, unknown> | Array<Record<string, unknown>>,
     profileName: string,
     addToBottom?: boolean
-  ): RuntimePromise<unknown> {
+  ): Promise<unknown> {
     this.log.method('Options#addCondition', this, arguments);
     if (!this._currentProfileName) {
       return Promise.resolve();
@@ -1782,7 +1780,7 @@ class Options {
    * @returns {Promise} A promise which is fulfilled when the profile is saved.
    */
 
-  setDefaultProfile(profileName: string, defaultProfileName: string): RuntimePromise<unknown> {
+  setDefaultProfile(profileName: string, defaultProfileName: string): Promise<unknown> {
     this.log.method('Options#setDefaultProfile', this, arguments);
     const profile = ProxyEngine.Profiles.byName(profileName, this._options);
     if (profile == null) {
@@ -1807,7 +1805,7 @@ class Options {
    * @returns {Promise<{}>} The saved profile
    */
 
-  addProfile(profile: ProfileLike): RuntimePromise<unknown> {
+  addProfile(profile: ProfileLike): Promise<unknown> {
     this.log.method('Options#addProfile', this, arguments);
     if (!profile.name) {
       return Promise.reject(new Error('Profile name is required!'));
@@ -2055,7 +2053,7 @@ class Options {
    * application; it does not mutate profile state.
    */
 
-  explainRequest(input?: string | ExplainRequestArgs): RuntimePromise<RequestExplanation> {
+  explainRequest(input?: string | ExplainRequestArgs): Promise<RequestExplanation> {
     const args = typeof input === 'string' ? {url: input} : input || {};
     const request = this._requestForExplanation(input);
     const explicitProfileName = args.profileName;
@@ -2092,7 +2090,7 @@ class Options {
    * and the matching details
    */
 
-  matchProfile(request: Record<string, unknown>): RuntimePromise<Record<string, unknown>> {
+  matchProfile(request: Record<string, unknown>): Promise<Record<string, unknown>> {
     if (!this._currentProfileName) {
       return Promise.resolve({
         profile: this._externalProfile,
@@ -2135,7 +2133,7 @@ class Options {
    * @returns {Promise} A promise which is fulfilled when the profile is set
    */
 
-  setExternalProfile(profile: ProfileLike, args?: ExternalProfileArgs): RuntimePromise<unknown> | void {
+  setExternalProfile(profile: ProfileLike, args?: ExternalProfileArgs): Promise<unknown> | void {
     if (this._options['-revertProxyChanges'] && !this._isSystem) {
       if (profile.name !== this._currentProfileName && this._currentProfileName) {
         if (!(args != null ? args.noRevert : void 0)) {
@@ -2191,7 +2189,7 @@ class Options {
    * @returns {Promise} A promise which is fulfilled when the syncing is switched
    */
 
-  setOptionsSync(enabled: boolean, args?: SetOptionsSyncArgs): RuntimePromise<unknown> {
+  setOptionsSync(enabled: boolean, args?: SetOptionsSyncArgs): Promise<unknown> {
     this.log.method('Options#setOptionsSync', this, arguments);
     if (this.sync == null) {
       return Promise.reject(new Error('Options syncing is unsupported.'));

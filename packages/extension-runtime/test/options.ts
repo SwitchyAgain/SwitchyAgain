@@ -1,5 +1,4 @@
 import assert from 'assert';
-import Promise from '../src/promise';
 import OptionsClass from '../src/options';
 import {isCurrentOrEmptySyncOptions} from '../src/options_schema';
 import Storage from '../src/storage';

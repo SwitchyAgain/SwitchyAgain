@@ -7,7 +7,6 @@ import {optionsWithProxyExceptions} from './proxy_exceptions';
 import type {ProxyImplInstance, ProxyProfile, ProxyRequestDetails} from './proxy/proxy_types';
 
 const ProxyEngine = ExtensionRuntime.ProxyEngine;
-const RuntimePromise = ExtensionRuntime.Promise;
 
 const LINK_PROFILE_CONTEXT_MENU_ROOT_ID = 'openLinkInNewTabWithProfile';
 const SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID = 'switchProfile';
@@ -2467,7 +2466,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
     const effectiveOptions = optionsWithProxyExceptions(this._options) as Record<string, unknown>;
     let profile = this.validProfileName(profileName) ? ProxyEngine.Profiles.byName(profileName, effectiveOptions) : null;
     if (!profile) {
-      return RuntimePromise.reject(new Error(`Profile ${profileName} does not exist!`));
+      return Promise.reject(new Error(`Profile ${profileName} does not exist!`));
     }
     const results: unknown[] = [];
     let currentProfile = profile;
@@ -2489,7 +2488,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
       }
       currentProfile = ProxyEngine.Profiles.byKey(next, effectiveOptions);
     }
-    return RuntimePromise.resolve({
+    return Promise.resolve({
       profile: lastProfile,
       results
     });
@@ -2585,11 +2584,11 @@ class ChromeOptions extends ExtensionRuntime.Options {
     const scopes = normalizeProfileScopes(this._options['-profileScopes']);
     const profileName = this.validProfileName(args.profileName);
     if (args.profileName && !profileName) {
-      return RuntimePromise.reject(new Error(`Profile ${args.profileName} does not exist!`));
+      return Promise.reject(new Error(`Profile ${args.profileName} does not exist!`));
     }
     if (args.scope === 'tab') {
       if (!capabilities.tab || !scopes.tab || args.tabId == null) {
-        return RuntimePromise.resolve();
+        return Promise.resolve();
       }
       if (profileName) {
         this._tabProfileNames[args.tabId] = profileName;
@@ -2597,15 +2596,15 @@ class ChromeOptions extends ExtensionRuntime.Options {
         delete this._tabProfileNames[args.tabId];
       }
       this.saveTabProfileToStorage(args.tabId, profileName);
-      return this._currentProfileName ? this.applyProfile(this._currentProfileName, {update: false}) : RuntimePromise.resolve();
+      return this._currentProfileName ? this.applyProfile(this._currentProfileName, {update: false}) : Promise.resolve();
     }
     if (args.scope === 'group') {
       if (!capabilities.group || !scopes.group) {
-        return RuntimePromise.resolve();
+        return Promise.resolve();
       }
       const groupKey = this.groupProfileKey(args.windowId, args.groupId);
       if (!groupKey) {
-        return RuntimePromise.resolve();
+        return Promise.resolve();
       }
       if (profileName) {
         this._groupProfileNames[groupKey] = profileName;
@@ -2613,11 +2612,11 @@ class ChromeOptions extends ExtensionRuntime.Options {
         delete this._groupProfileNames[groupKey];
       }
       this.saveGroupProfileToStorage(groupKey, profileName);
-      return this._currentProfileName ? this.applyProfile(this._currentProfileName, {update: false}) : RuntimePromise.resolve();
+      return this._currentProfileName ? this.applyProfile(this._currentProfileName, {update: false}) : Promise.resolve();
     }
     if (args.scope === 'container') {
       if (!capabilities.container || !scopes.container || !isFirefoxContainerId(args.cookieStoreId)) {
-        return RuntimePromise.resolve();
+        return Promise.resolve();
       }
       const assignments = this.profileScopeAssignments();
       if (profileName) {
@@ -2631,7 +2630,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
     }
     if (args.scope === 'normal' || args.scope === 'private') {
       if (!capabilities.window || !scopes.window) {
-        return RuntimePromise.resolve();
+        return Promise.resolve();
       }
       const assignments = this.profileScopeAssignments();
       if (args.scope === 'private') {
@@ -2656,7 +2655,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
       }
       return setOptions;
     }
-    return RuntimePromise.resolve();
+    return Promise.resolve();
   }
 
   updateProfile(...args: unknown[]) {
@@ -2834,7 +2833,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
     chrome.contextMenus?.update('enableQuickSwitch', {
       checked: !!quickSwitch
     });
-    return RuntimePromise.resolve();
+    return Promise.resolve();
   }
 
   setMonitorWebRequests(enabled: boolean) {
@@ -2946,7 +2945,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
         periodInMinutes
       });
     }
-    return RuntimePromise.resolve();
+    return Promise.resolve();
   }
 
   printFixedProfile(profile: Profile) {
@@ -2985,7 +2984,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
 
   upgrade(options: UpgradeOptions | null | undefined, changes?: Record<string, unknown>) {
     if (options == null || Object.keys(options).length === 0 || options.schema == null) {
-      return RuntimePromise.reject(new ExtensionRuntime.Options.NoOptionsError());
+      return Promise.reject(new ExtensionRuntime.Options.NoOptionsError());
     }
     return super.upgrade(options, changes).then((upgradeResult: unknown) => {
       const [upgradedOptions, upgradedChanges] = upgradeResult as [Record<string, unknown>, Record<string, unknown>];
@@ -3113,7 +3112,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
         warnings: [] as string[]
       }));
     });
-    return RuntimePromise.all(explanations).then((requestExplanations: PopupApiRequestExplanation[]) => ({
+    return Promise.all(explanations).then((requestExplanations: PopupApiRequestExplanation[]) => ({
       ...basePageInfo,
       requestExplanations
     }));

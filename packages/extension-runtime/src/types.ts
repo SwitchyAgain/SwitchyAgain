@@ -1,9 +1,5 @@
 export type StorageValue = unknown;
 
-export type RuntimePromise<T> = Promise<T>;
-
-export type RuntimePromiseStatic = PromiseConstructor;
-
 export type LogLike = {
   error: (...args: unknown[]) => void;
   log: (...args: unknown[]) => void;
@@ -37,10 +33,10 @@ export type StorageWatchCallback = (changes: StorageChanges) => void;
 export type StopWatching = () => unknown;
 
 export type StorageLike = {
-  apply: (operations: StorageApplyOperations) => RuntimePromise<StorageApplyOperations>;
-  get: (keys: StorageGetKeys) => RuntimePromise<StorageItems>;
-  remove: (keys?: StorageRemoveKeys) => RuntimePromise<unknown>;
-  set: (items: StorageItems) => RuntimePromise<StorageItems>;
+  apply: (operations: StorageApplyOperations) => Promise<StorageApplyOperations>;
+  get: (keys: StorageGetKeys) => Promise<StorageItems>;
+  remove: (keys?: StorageRemoveKeys) => Promise<unknown>;
+  set: (items: StorageItems) => Promise<StorageItems>;
   watch: (keys: StorageRemoveKeys, callback: StorageWatchCallback) => StopWatching;
 };
 
@@ -129,7 +125,7 @@ export type ProxyEngineModule = {
 };
 
 export type OptionsSyncLike = {
-  copyTo(storage: StorageLike): RuntimePromise<unknown>;
+  copyTo(storage: StorageLike): Promise<unknown>;
   enabled: boolean;
   onPullError?: (error: unknown) => unknown;
   onPushError?: (error: unknown) => unknown;
@@ -144,7 +140,7 @@ export type OptionsSyncLike = {
 };
 
 export type ProxyImplLike = {
-  applyProfile(profile: ProfileLike, meta?: ProfileLike, options?: OptionsData): RuntimePromise<unknown>;
+  applyProfile(profile: ProfileLike, meta?: ProfileLike, options?: OptionsData): Promise<unknown>;
 };
 
 export type SyncableProfileValue = {

@@ -1,6 +1,5 @@
-import Promise from './promise';
 import Storage from './storage';
-import type {RuntimePromise, StorageGetKeys, StorageItems, StorageRemoveKeys} from './types';
+import type {StorageGetKeys, StorageItems, StorageRemoveKeys} from './types';
 
 type BrowserStorageBackend = {
   ready?: unknown;
@@ -27,11 +26,11 @@ class BrowserStorage extends Storage {
     this.proto = Object.getPrototypeOf(this.storage) as BrowserStorageProto;
   }
 
-  ready(): RuntimePromise<unknown> {
+  ready(): Promise<unknown> {
     return Promise.resolve(this.storage.ready);
   }
 
-  get(keys: StorageGetKeys): RuntimePromise<StorageItems> {
+  get(keys: StorageGetKeys): Promise<StorageItems> {
     return this.ready().then(() => {
       let map: StorageItems = {};
       if (typeof keys === 'string') {
@@ -61,7 +60,7 @@ class BrowserStorage extends Storage {
     });
   }
 
-  set(items: StorageItems): RuntimePromise<StorageItems> {
+  set(items: StorageItems): Promise<StorageItems> {
     return this.ready().then(() => {
       for (const key in items) {
         if (!Object.prototype.hasOwnProperty.call(items, key)) continue;
@@ -74,7 +73,7 @@ class BrowserStorage extends Storage {
     });
   }
 
-  remove(keys?: StorageRemoveKeys): RuntimePromise<void> {
+  remove(keys?: StorageRemoveKeys): Promise<void> {
     return this.ready().then(() => {
       if (keys == null) {
         if (!this.prefix) {

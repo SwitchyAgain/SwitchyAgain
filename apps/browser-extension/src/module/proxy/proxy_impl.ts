@@ -12,7 +12,6 @@ import type {
 } from './proxy_types';
 
 const ProxyEngine = ExtensionRuntime.ProxyEngine;
-const RuntimePromise = ExtensionRuntime.Promise;
 
 class ProxyImpl {
   features: string[];
@@ -40,7 +39,7 @@ class ProxyImpl {
   }
 
   applyProfile(_profile: ProxyProfile, _meta?: ProxyProfile, _options?: unknown): Promise<unknown> {
-    return RuntimePromise.reject();
+    return Promise.reject();
   }
 
   watchProxyChange(_callback: ProxyChangeWatcher): void | null {
@@ -61,7 +60,7 @@ class ProxyImpl {
   }
 
   setProxyAuth(profile: ProxyProfile, options: unknown, extraProfileNames: string[] = []) {
-    return RuntimePromise.resolve().then(() => {
+    return Promise.resolve().then(() => {
       if (this._proxyAuth == null) {
         this._proxyAuth = new ProxyAuth(this.log);
       }

@@ -15,7 +15,8 @@ const packages = [
   {
     name: '@switchyagain/extension-runtime',
     packageJson: 'packages/extension-runtime/package.json',
-    exports: ['BrowserStorage', 'Options', 'OptionsSync', 'Promise', 'Storage']
+    exports: ['BrowserStorage', 'Options', 'OptionsSync', 'Storage'],
+    excludedExports: ['Promise']
   }
 ];
 
@@ -32,6 +33,12 @@ async function readJson(relativePath) {
 function assertExportShape(moduleValue, packageName, exportNames, label) {
   for (const exportName of exportNames) {
     assert(moduleValue?.[exportName] != null, `${packageName} ${label} is missing ${exportName}`);
+  }
+}
+
+function assertExportsExcluded(moduleValue, packageName, exportNames, label) {
+  for (const exportName of exportNames || []) {
+    assert(moduleValue?.[exportName] == null, `${packageName} ${label} should not export ${exportName}`);
   }
 }
 
@@ -60,9 +67,11 @@ for (const packageInfo of packages) {
     throw new Error(`${packageInfo.name} require failed. Run npm run build before checking package entrypoints. ${error.message}`);
   }
   assertExportShape(required, packageInfo.name, packageInfo.exports, 'require export');
+  assertExportsExcluded(required, packageInfo.name, packageInfo.excludedExports, 'require export');
 
   const imported = await import(packageInfo.name);
   assertExportShape(imported.default, packageInfo.name, packageInfo.exports, 'dynamic import default export');
+  assertExportsExcluded(imported.default, packageInfo.name, packageInfo.excludedExports, 'dynamic import default export');
   assertDeepImportBlocked(packageInfo.name);
 }
 
