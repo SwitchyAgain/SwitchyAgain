@@ -169,13 +169,8 @@ a[role='button'] {
   background-color: rgba(255, 255, 255, 0.03);
 }
 
-.theme-dark .table-hover > tbody > tr:hover {
-  background-color: var(--sa-hover-bg);
-}
-
 .theme-dark .modal-content,
 .theme-dark .well,
-.theme-dark .panel,
 .theme-dark .popover {
   background-color: var(--sa-panel-bg);
   border-color: var(--sa-border);
@@ -183,9 +178,7 @@ a[role='button'] {
 }
 
 .theme-dark .modal-header,
-.theme-dark .modal-footer,
-.theme-dark .panel-default > .panel-heading,
-.theme-dark .popover-title {
+.theme-dark .modal-footer {
   background-color: var(--sa-panel-muted-bg);
   border-color: var(--sa-border);
   color: var(--sa-text);
