@@ -1045,7 +1045,7 @@ export function PopupApp() {
                       addTempRule(pageInfo?.domain || '', profile.name);
                     }}
                   >
-                    <ProfileInline legacySpacing profile={profile} availableProfiles={state.availableProfiles} />
+                    <ProfileInline spacing="menu" profile={profile} availableProfiles={state.availableProfiles} />
                   </a>
                 </li>
               ))}
@@ -1149,7 +1149,7 @@ function MenuProfileItem({
           onClick();
         }}
       >
-        <ProfileInline legacySpacing profile={profile} availableProfiles={state.availableProfiles} label={text} />
+        <ProfileInline spacing="menu" profile={profile} availableProfiles={state.availableProfiles} label={text} />
         {keyboardKey && <span className="sa-popup-keyboard-help">{keyboardKey}</span>}
         {hasDefaultMenu && (
           <div
@@ -1180,7 +1180,7 @@ function MenuProfileItem({
                   onDefaultProfileChange?.(resultProfile.name);
                 }}
               >
-                <ProfileInline legacySpacing profile={resultProfile} availableProfiles={state.availableProfiles} />
+                <ProfileInline spacing="menu" profile={resultProfile} availableProfiles={state.availableProfiles} />
               </a>
             </li>
           ))}
@@ -1306,7 +1306,7 @@ function ProfileScopeMenuItem({
             onProfileChange(profile.name);
           }}
         >
-          <ProfileInline legacySpacing profile={profile} availableProfiles={state.availableProfiles} />
+          <ProfileInline spacing="menu" profile={profile} availableProfiles={state.availableProfiles} />
         </a>
       </li>
     );
@@ -1436,7 +1436,7 @@ function ProfileScopeGroupMenuItem({
                   onProfileChange(profile.name);
                 }}
               >
-                <ProfileInline legacySpacing profile={profile} availableProfiles={state.availableProfiles} />
+                <ProfileInline spacing="menu" profile={profile} availableProfiles={state.availableProfiles} />
               </a>
             </li>
           ))}
@@ -1901,7 +1901,7 @@ function ProfileSelect({
           onBlur={() => window.setTimeout(() => setOpen(false), 120)}
           onClick={() => setOpen(!open)}
         >
-          <ProfileInline legacySpacing profile={selected} availableProfiles={state.availableProfiles} />
+          <ProfileInline spacing="menu" profile={selected} availableProfiles={state.availableProfiles} />
           <span className="caret" />
         </button>
         {open && (
@@ -1916,7 +1916,7 @@ function ProfileSelect({
                     choose(profile.name);
                   }}
                 >
-                  <ProfileInline legacySpacing profile={profile} availableProfiles={state.availableProfiles} />
+                  <ProfileInline spacing="menu" profile={profile} availableProfiles={state.availableProfiles} />
                 </a>
               </li>
             ))}
@@ -1929,36 +1929,27 @@ function ProfileSelect({
 
 function ProfileInline({
   availableProfiles,
-  legacySpacing = false,
   label,
-  profile
+  profile,
+  spacing = 'inline'
 }: {
   availableProfiles?: ProfileMap;
-  legacySpacing?: boolean;
   label?: string;
   profile?: Profile;
+  spacing?: 'inline' | 'menu';
 }) {
   const targetProfile = profileTarget(profile, availableProfiles);
   const iconClass = targetProfile?.profileType
     ? iconForProfileType[targetProfile.profileType] || 'glyphicon-question-sign'
     : 'glyphicon-question-sign';
   const virtual = !!(profile && targetProfile && profile !== targetProfile);
-  const iconClasses = ['glyphicon', legacySpacing ? '' : 'sa-popup-profile-icon', iconClass, virtual ? 'sa-popup-virtual-profile-icon' : '']
+  const iconClasses = ['glyphicon', 'sa-popup-profile-icon', iconClass, virtual ? 'sa-popup-virtual-profile-icon' : '']
     .filter(Boolean)
     .join(' ');
-  const nameClass = legacySpacing ? 'sa-popup-profile-name sa-popup-profile-name-legacy' : 'sa-popup-profile-name';
-  if (legacySpacing) {
-    return (
-      <>
-        <span className={iconClasses} style={{color: targetProfile?.color || undefined}} />{' '}
-        <span className={nameClass}>{label || displayProfileName(profile)}</span>
-      </>
-    );
-  }
   return (
-    <span>
+    <span className={`sa-popup-profile-inline sa-popup-profile-inline-${spacing}`}>
       <span className={iconClasses} style={{color: targetProfile?.color || undefined}} />
-      <span className={nameClass}>{label || displayProfileName(profile)}</span>
+      <span className="sa-popup-profile-name">{label || displayProfileName(profile)}</span>
     </span>
   );
 }
