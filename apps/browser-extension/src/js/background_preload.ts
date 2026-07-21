@@ -21,8 +21,6 @@ type ContextMenuClickHandler = (info: ChromeContextMenuClickInfo, tab: ChromeTab
     window.ContextMenuClickHandlers = {};
   }
 
-  const actionContext = chrome.action != null ? 'action' : 'browser_action';
-
   const addContextMenu = (options: ContextMenuOptions, onclick?: ContextMenuClickHandler) => {
     const contextMenus = chrome.contextMenus;
     if (contextMenus == null) {
@@ -55,7 +53,7 @@ type ContextMenuClickHandler = (info: ChromeContextMenuClickInfo, tab: ChromeTab
             title: chrome.i18n.getMessage('contextMenu_enableQuickSwitch'),
             type: 'checkbox',
             checked: false,
-            contexts: [actionContext]
+            contexts: ['action']
           },
           (info: ChromeContextMenuClickInfo) => {
             return window.ContextMenuQuickSwitchHandler({checked: info.checked === true});

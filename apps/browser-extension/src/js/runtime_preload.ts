@@ -28,12 +28,6 @@ type LocalStorageShimConstructor = {
   }
 
   const chromeApi = global.chrome;
-  if (chromeApi) {
-    const actionAliasKey = 'browser' + 'Action';
-    if (!chromeApi[actionAliasKey] && chromeApi.action) {
-      chromeApi[actionAliasKey] = chromeApi.action;
-    }
-  }
 
   if (typeof global.localStorage === 'undefined') {
     let data: Record<string, string> = {};

@@ -2,12 +2,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import * as esbuild from 'esbuild';
-import postcss from 'postcss';
-import autoprefixer from 'autoprefixer';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const workspaceRoot = path.join(root, '../..');
-const autoprefixerTargets = ['chrome >= 131', 'firefox >= 140'];
 
 type StaticCopy = [src: string, dest: string];
 
@@ -108,22 +105,6 @@ async function disableRawHtmlAssignments(dir: string) {
   }
 }
 
-async function processCss(src: string, tmpDest: string, buildDest: string) {
-  const css = await fs.readFile(path.join(root, src), 'utf8');
-  const prefixed = await postcss([autoprefixer({
-    cascade: true,
-    overrideBrowserslist: autoprefixerTargets
-  })]).process(css, {
-    map: false,
-    from: path.join(root, tmpDest),
-    to: path.join(root, buildDest)
-  });
-  await ensureDir(path.join(root, tmpDest));
-  await fs.writeFile(path.join(root, tmpDest), css);
-  await ensureDir(path.join(root, buildDest));
-  await fs.writeFile(path.join(root, buildDest), prefixed.css);
-}
-
 async function clean() {
   await fs.rm(path.join(root, 'build'), {recursive: true, force: true});
   await fs.rm(path.join(root, 'tmp'), {recursive: true, force: true});
@@ -140,6 +121,7 @@ async function main() {
     ['vendor/bootstrap/3.3.7/LICENSE', 'build/lib/bootstrap/LICENSE'],
     ['img', 'build/img'],
     ['src/popup', 'build/popup'],
+    ['src/css/options.css', 'build/css/options.css'],
     ['src/react/react_options.css', 'build/react/react_options.css']
   ];
 
@@ -164,8 +146,6 @@ async function main() {
     proxy_not_controllable: 'src/react/proxy_not_controllable.tsx',
   });
   await disableRawHtmlAssignments(path.join(root, 'build/react'));
-
-  await processCss('src/css/options.css', 'tmp/css/options.css', 'build/css/options.css');
 }
 
 main().catch((error) => {
