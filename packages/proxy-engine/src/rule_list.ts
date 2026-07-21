@@ -1,5 +1,4 @@
 import type {Profile, ReferenceSet, RuleListComposeOptions, RuleListParseOptions, SwitchRule} from './types';
-import {Buffer} from 'buffer';
 import Conditions from './conditions';
 
 const hasProp = Object.prototype.hasOwnProperty;
@@ -26,6 +25,22 @@ const strStartsWith = (str: string, prefix: string): boolean => {
   return str.startsWith(prefix);
 };
 
+const decodeBase64Utf8 = (value: string): string => {
+  const paddingIndex = value.indexOf('=');
+  let normalized = (paddingIndex >= 0 ? value.slice(0, paddingIndex) : value)
+    .replace(/[^A-Za-z0-9+/_-]/g, '')
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+
+  if (normalized.length % 4 === 1) {
+    normalized = normalized.slice(0, -1);
+  }
+  normalized = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+
+  const binary = atob(normalized);
+  return new TextDecoder().decode(Uint8Array.from(binary, (char) => char.charCodeAt(0)));
+};
+
 export const AutoProxy = {
   magicPrefix: 'W0F1dG9Qcm94',
   detect(text: string) {
@@ -37,7 +52,7 @@ export const AutoProxy = {
   },
   preprocess(text: string): string {
     if (strStartsWith(text, AutoProxy.magicPrefix)) {
-      text = Buffer.from(text, 'base64').toString('utf8');
+      text = decodeBase64Utf8(text);
     }
     return text;
   },

@@ -5,6 +5,25 @@ describe('RuleList', function () {
   describe('AutoProxy', function () {
     let parse;
     parse = RuleList['AutoProxy'].parse;
+    it('should decode base64 rule lists without requiring padding', function () {
+      const encoded = 'W0F1dG9Qcm94eSAwLjIuOV0KfHxleGFtcGxlLmNvbQ';
+      assert.strictEqual(RuleList.AutoProxy.preprocess(encoded), '[AutoProxy 0.2.9]\n||example.com');
+    });
+    it('should preserve the permissive base64 decoding behavior', function () {
+      const encoded = 'W0F1dG9Qcm94eSAwLjIuOV0K\n!!fHxleGFtcGxlLmNvbQ==ignored';
+      assert.strictEqual(RuleList.AutoProxy.preprocess(encoded), '[AutoProxy 0.2.9]\n||example.com');
+    });
+    it('should decode truncated base64 rule lists', function () {
+      assert.strictEqual(RuleList.AutoProxy.preprocess('W0F1dG9Qcm94A'), '[AutoProx');
+    });
+    it('should decode UTF-8 rule lists', function () {
+      const encoded = 'W0F1dG9Qcm94eV0KISDkuK3mlocKfHxleGFtcGxlLmNvbQ==';
+      assert.strictEqual(RuleList.AutoProxy.preprocess(encoded), '[AutoProxy]\n! 中文\n||example.com');
+    });
+    it('should leave plain-text rule lists unchanged', function () {
+      const text = '[AutoProxy 0.2.9]\n||example.com';
+      assert.strictEqual(RuleList.AutoProxy.preprocess(text), text);
+    });
     it('should parse keyword conditions', function () {
       let line, result;
       line = 'example.com';

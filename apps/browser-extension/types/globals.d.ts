@@ -589,17 +589,6 @@ declare module '@switchyagain/extension-runtime' {
   export default value;
 }
 
-declare module 'buffer' {
-  export const Buffer: {
-    from(
-      value: string,
-      encoding?: string
-    ): {
-      toString(encoding?: string): string;
-    };
-  };
-}
-
 interface Window {
   FindProxyForURL: ProxyFindFunction;
   ContextMenuClickHandlers: Record<string, (info: ChromeContextMenuClickInfo, tab: ChromeTab) => unknown>;
