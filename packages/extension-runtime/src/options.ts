@@ -760,12 +760,7 @@ class Options {
       currentOptions['-backupFilename'] = backupFilename;
     }
     const profileScopes = normalizeProfileScopes(currentOptions['-profileScopes']);
-    if (
-      !profileScopeSettingsEqual(
-        normalizeProfileScopes(currentOptions['-profileScopes']),
-        currentOptions['-profileScopes'] as ProfileScopeSettings
-      )
-    ) {
+    if (!profileScopeSettingsEqual(profileScopes, currentOptions['-profileScopes'] as ProfileScopeSettings)) {
       changes['-profileScopes'] = profileScopes;
       currentOptions['-profileScopes'] = profileScopes;
     }

@@ -4,17 +4,11 @@ import {createServer} from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import {createRequire} from 'node:module';
-import {fileURLToPath, pathToFileURL} from 'node:url';
+import {fileURLToPath} from 'node:url';
 
 export const workspaceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const extensionBuildDir = path.join(workspaceRoot, 'apps/browser-extension/build');
 const require = createRequire(import.meta.url);
-
-export function extensionFileUrl(relativePath, hash = '') {
-  const url = pathToFileURL(path.join(extensionBuildDir, relativePath));
-  url.hash = hash;
-  return url.href;
-}
 
 function contentTypeForPath(filePath) {
   switch (path.extname(filePath)) {

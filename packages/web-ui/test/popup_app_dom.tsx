@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 
-import React from 'react';
 import {cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import {PopupApp} from '../src/react/popup_app';
 import type {PageInfo, PopupBridgeClient, PopupState} from '../src/react/popup_bridge_client';

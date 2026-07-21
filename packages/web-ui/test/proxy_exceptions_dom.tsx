@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import React, {useState} from 'react';
+import {useState} from 'react';
 import {cleanup, fireEvent, render, screen, within} from '@testing-library/react';
 import {ProxyExceptionsPage} from '../src/react/proxy_exceptions';
 import type {Options} from '../src/react/options_client_types';

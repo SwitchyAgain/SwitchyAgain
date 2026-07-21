@@ -16,7 +16,7 @@ describe('Profiles', function () {
     };
   };
   testProfile = function (profile: any, request: any, expected: any, expectedCompiled?: any): any {
-    let _, compileResult, compiled, matchResult, msg, o_request, printResult, ref;
+    let compileResult, compiled, matchResult, msg, o_request, printResult, ref;
     o_request = request;
     if (typeof request === 'string') {
       request = Conditions.requestFromUrl(request);
@@ -38,8 +38,7 @@ describe('Profiles', function () {
         } else {
           assert.deepStrictEqual(matchResult, expected);
         }
-      } catch (error) {
-        _ = error;
+      } catch {
         printResult = JSON.stringify(matchResult);
         msg = 'expect profile to return ' + JSON.stringify(expected) + ' ' + ('instead of ' + printResult + ' for request ' + o_request);
         assert.fail(msg);

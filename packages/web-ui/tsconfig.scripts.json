@@ -6,6 +6,7 @@
     "module": "none",
     "noEmit": false,
     "noImplicitAny": true,
+    "noUnusedLocals": true,
     "outDir": "build-ts/js",
     "rootDir": "src/js",
     "skipLibCheck": true,

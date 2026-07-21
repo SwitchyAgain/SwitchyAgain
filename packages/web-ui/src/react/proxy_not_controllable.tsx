@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import {setUiLocale} from './i18n_client';
 import {closePopup, popupMessage, popupBridge} from './popup_bridge_client';

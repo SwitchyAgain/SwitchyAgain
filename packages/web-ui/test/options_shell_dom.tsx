@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 
-import React from 'react';
 import {cleanup, fireEvent, render, screen, within} from '@testing-library/react';
 import {OptionsAlert, OptionsShell} from '../src/react/options_shell';
 import type {Options} from '../src/react/options_client_types';

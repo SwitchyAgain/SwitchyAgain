@@ -1,4 +1,3 @@
-import React from 'react';
 import {message} from './i18n_client';
 import {fixedProfileBypassList, fixedProfileBypassText} from './profile_content_logic';
 import type {FixedProfileBypassSection} from './profile_types';

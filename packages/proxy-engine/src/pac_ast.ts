@@ -388,10 +388,6 @@ export function symbol(name: string): Node {
   return create('Symbol', {name});
 }
 
-export function symbolVar(name: string): Node {
-  return symbol(name);
-}
-
 export function directive(value: string): Node {
   return create('Directive', {value});
 }

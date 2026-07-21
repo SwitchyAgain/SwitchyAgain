@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 
-import React from 'react';
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {ProfileInline, ProfileSelect} from '../src/react/profile_widgets';
 import type {Profile} from '../src/react/profile_widgets';

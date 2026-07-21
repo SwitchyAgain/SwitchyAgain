@@ -40,21 +40,6 @@ export type StorageLike = {
   watch: (keys: StorageRemoveKeys, callback: StorageWatchCallback) => StopWatching;
 };
 
-export type StorageConstructor = {
-  new (): StorageLike;
-  (): StorageLike;
-  operationsForChanges: (
-    changes: StorageChanges,
-    arg?: {
-      base?: StorageItems;
-      merge?: StorageMerge;
-    }
-  ) => StorageOperations;
-  QuotaExceededError: new () => Error;
-  RateLimitExceededError: new () => Error;
-  StorageUnavailableError: new () => Error;
-};
-
 export type OptionsData = Record<string, unknown>;
 
 export type ProfileLike = Record<string, unknown> & {

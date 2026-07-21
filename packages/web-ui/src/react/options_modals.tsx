@@ -1,4 +1,3 @@
-import React from 'react';
 import {message} from './i18n_client';
 
 export type WelcomeModalProps = {

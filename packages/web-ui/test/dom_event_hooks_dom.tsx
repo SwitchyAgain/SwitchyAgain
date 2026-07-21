@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import React, {useRef} from 'react';
+import {useRef} from 'react';
 import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {useOutsidePointer, useWindowEvent} from '../src/react/dom_event_hooks';
 

@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 
-import React from 'react';
 import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {RequestLens} from '../src/react/request_lens';
 import type {Options, RequestExplanation} from '../src/react/options_client_types';

@@ -69,6 +69,7 @@ async function bundleReactEntries(entries: Record<string, string>) {
     entryNames: '[name]',
     entryPoints: Object.fromEntries(Object.entries(entries).map(([name, entry]) => [name, path.join(root, entry)])),
     format: 'esm',
+    jsx: 'automatic',
     minify: true,
     outdir: path.join(root, 'build/react'),
     platform: 'browser',

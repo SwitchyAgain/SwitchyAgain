@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 
-import React from 'react';
 import {cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import {ImportExport} from '../src/react/import_export';
 import {RESTORE_URL_STATE} from '../src/react/import_export_logic';
