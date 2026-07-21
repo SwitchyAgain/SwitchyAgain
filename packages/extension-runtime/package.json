@@ -2,15 +2,6 @@
   "name": "@switchyagain/extension-runtime",
   "version": "0.0.1",
   "private": true,
-  "main": "./index.js",
-  "types": "./index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./index.d.ts",
-      "require": "./index.js",
-      "default": "./index.js"
-    }
-  },
   "dependencies": {
     "jsondiffpatch": "^0.7.6",
     "limiter": "^3.0.0",
@@ -20,7 +11,7 @@
     "@switchyagain/proxy-engine": "./build-ts/proxy_engine_shim.js"
   },
   "scripts": {
-    "build": "npm run clean:dist && npm run build:ts && node ../../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=index.js --format=cjs --platform=node --target=es2022 --external=jsondiffpatch,limiter,@switchyagain/proxy-engine && node ../../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=extension_runtime.min.js --global-name=ExtensionRuntime --target=es2022 --minify",
+    "build": "npm run clean:dist && npm run build:ts && node ../../scripts/bundle-esbuild.mjs --entry=src/index.ts --outfile=extension_runtime.min.js --global-name=ExtensionRuntime --target=es2022 --minify",
     "build:ts": "npm run clean:ts && tsc -p tsconfig.build.json",
     "clean:ts": "node --input-type=module -e \"import {rmSync} from 'node:fs'; rmSync('build-ts', {recursive: true, force: true})\"",
     "clean:dist": "node --input-type=module -e \"import {readdirSync, rmSync} from 'node:fs'; for (const file of readdirSync('.')) if (file === 'index.js' || file.endsWith('.min.js')) rmSync(file, {force: true})\"",

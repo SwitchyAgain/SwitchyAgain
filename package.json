@@ -8,12 +8,11 @@
     "apps/browser-extension"
   ],
   "scripts": {
-    "build": "npm run build --workspace @switchyagain/browser-extension && npm run check:package-entrypoints",
+    "build": "npm run build --workspace @switchyagain/browser-extension",
     "build:proxy-engine": "npm run build --workspace @switchyagain/proxy-engine",
     "build:extension-runtime": "npm run build --workspace @switchyagain/extension-runtime",
     "build:web": "npm run build --workspace @switchyagain/web-ui",
     "check:build-assumptions": "node scripts/generate-browser-entrypoints.mjs --check && node scripts/check-build-assumptions.mjs",
-    "check:package-entrypoints": "node scripts/check-package-entrypoints.mjs",
     "check:po": "node scripts/check-po.mjs",
     "format": "prettier --write \"packages/proxy-engine/{src,test}/**/*.ts\" \"packages/extension-runtime/{src,test}/**/*.ts\" \"apps/browser-extension/src/**/*.ts\" \"apps/browser-extension/types/**/*.d.ts\" \"packages/web-ui/src/js/**/*.ts\" \"packages/web-ui/src/react/**/*.{ts,tsx,css}\" \"packages/web-ui/test/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"packages/proxy-engine/{src,test}/**/*.ts\" \"packages/extension-runtime/{src,test}/**/*.ts\" \"apps/browser-extension/src/**/*.ts\" \"apps/browser-extension/types/**/*.d.ts\" \"packages/web-ui/src/js/**/*.ts\" \"packages/web-ui/src/react/**/*.{ts,tsx,css}\" \"packages/web-ui/test/**/*.{ts,tsx}\"",
@@ -21,7 +20,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "package:dist": "node scripts/package-dist.mjs",
-    "release": "npm run check:build-assumptions && npm run release --workspace @switchyagain/browser-extension && npm run check:package-entrypoints",
+    "release": "npm run check:build-assumptions && npm run release --workspace @switchyagain/browser-extension",
     "smoke": "npm run smoke:chromium",
     "smoke:chromium": "npm run build && npm run smoke:install:chromium && npm run smoke:ui:chromium && npm run smoke:extension:chromium",
     "smoke:extension": "npm run smoke:extension:chromium",

@@ -6,9 +6,7 @@ import tseslint from 'typescript-eslint';
 const generatedAndThirdParty = [
   '**/node_modules/**',
   'dist/**',
-  'packages/proxy-engine/index.js',
   'packages/proxy-engine/proxy_engine.min.js',
-  'packages/extension-runtime/index.js',
   'packages/extension-runtime/extension_runtime.min.js',
   'apps/browser-extension/index.js',
   'apps/browser-extension/browser_extension_runtime.min.js',

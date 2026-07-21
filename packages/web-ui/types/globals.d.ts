@@ -57,6 +57,7 @@ type ProxyEngineGlobal = {
   };
   Profiles: {
     byKey?: (key: string, options: ProxyEngineOptions) => ProxyEngineProfile | null | undefined;
+    byName: (name: string, options: object) => ProxyEngineProfile | null | undefined;
     create: <TProfile extends Partial<ProxyEngineProfile>>(profile: TProfile) => ProxyEngineProfile & TProfile;
     each: (options: ProxyEngineOptions, callback: (key: string, profile: ProxyEngineProfile) => void) => void;
     nameAsKey?: (profileOrName: Pick<ProxyEngineProfile, 'name'> | string) => string;
@@ -91,3 +92,10 @@ type ProxyEngineGlobal = {
 };
 
 declare var ProxyEngine: ProxyEngineGlobal;
+
+declare module '@switchyagain/extension-runtime' {
+  const value: {
+    ProxyEngine: ProxyEngineGlobal;
+  };
+  export default value;
+}
