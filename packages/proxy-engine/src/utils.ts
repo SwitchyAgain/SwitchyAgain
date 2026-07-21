@@ -1,9 +1,15 @@
-import tldModule from 'tldjs';
+import {getDomain} from 'tldts';
 import {parseUrlCompat} from './url_utils';
 
-const tld = tldModule as {
-  getDomain: (domain: string) => string | null;
+const DOMAIN_LOOKUP_OPTIONS = {
+  allowPrivateDomains: true,
+  extractHostname: false,
+  mixedInputs: false,
+  validateHostname: false
 };
+
+const DOMAIN_URL_PREFIX = /^(([a-z][a-z0-9+.-]*)?:)?\/\//;
+const DOMAIN_URL_BASE = 'http://switchyagain.invalid';
 
 export type CacheHost = Record<string, unknown>;
 
@@ -80,9 +86,78 @@ export function isIp(domain: string): boolean {
   return false;
 }
 
+function isValidHostnameForDomainLookup(hostname: string): boolean {
+  if (hostname.length === 0 || hostname.length > 255) {
+    return false;
+  }
+
+  const isLetter = (code: number) => code >= 97 && code <= 122;
+  const isDigit = (code: number) => code >= 48 && code <= 57;
+  const firstCharCode = hostname.charCodeAt(0);
+  if (!isLetter(firstCharCode) && !isDigit(firstCharCode)) {
+    return false;
+  }
+
+  let lastDotIndex = -1;
+  let lastCharCode = -1;
+  for (let index = 0; index < hostname.length; index++) {
+    const code = hostname.charCodeAt(index);
+    if (code === 46) {
+      if (index - lastDotIndex > 64 || lastCharCode === 46 || lastCharCode === 45) {
+        return false;
+      }
+      lastDotIndex = index;
+    } else if (!isLetter(code) && !isDigit(code) && code !== 45) {
+      return false;
+    }
+    lastCharCode = code;
+  }
+
+  return hostname.length - lastDotIndex - 1 <= 63 && lastCharCode !== 45;
+}
+
+function trimTrailingDot(value: string): string {
+  return value.endsWith('.') ? value.slice(0, -1) : value;
+}
+
+function hostnameForDomainLookup(value: string): string | null {
+  if (isValidHostnameForDomainLookup(value)) {
+    return trimTrailingDot(value);
+  }
+
+  let normalized = value;
+  if (normalized.length > 0 && (normalized.charCodeAt(0) <= 32 || normalized.charCodeAt(normalized.length - 1) <= 32)) {
+    normalized = normalized.trim();
+  }
+  if (/[A-Z]/.test(normalized)) {
+    normalized = normalized.toLowerCase();
+  }
+  if (isValidHostnameForDomainLookup(normalized)) {
+    return trimTrailingDot(normalized);
+  }
+
+  if (!DOMAIN_URL_PREFIX.test(normalized)) {
+    normalized = '//' + normalized;
+  }
+  try {
+    const hostname = new URL(normalized, DOMAIN_URL_BASE).hostname;
+    return hostname ? trimTrailingDot(hostname) : null;
+  } catch {
+    return null;
+  }
+}
+
+function registrableDomain(value: string): string | null {
+  const hostname = hostnameForDomainLookup(value);
+  if (hostname == null || !isValidHostnameForDomainLookup(hostname)) {
+    return null;
+  }
+  return getDomain(hostname, DOMAIN_LOOKUP_OPTIONS);
+}
+
 export function getBaseDomain(domain: string): string {
   if (isIp(domain)) return domain;
-  return tld.getDomain(domain) || domain;
+  return registrableDomain(domain) || domain;
 }
 
 export function wildcardForDomain(domain: string): string {
