@@ -7,6 +7,7 @@ type BackgroundMethodArgs = {
   cancelOptionsHandoff: [handoffId: string];
   explainRequest: [args: unknown];
   getAll: [];
+  getLog: [];
   getOptionsPageState: [tabId: number];
   getPageInfo: [args: PageInfoArgs];
   getState: [name: string | string[]];
@@ -183,7 +184,7 @@ type BackgroundExternalApi = {
 
 type BackgroundState = {
   get(keys: unknown): Promise<Record<string, unknown>>;
-  remove?(keys?: unknown): Promise<unknown>;
+  remove(keys?: unknown): Promise<unknown>;
   set(items: Record<string, unknown>): Promise<unknown>;
 };
 
@@ -304,7 +305,6 @@ type ProxyChangeDetails = Record<string, unknown> & {
 };
 
 type BackgroundExtensionRuntime = {
-  BrowserStorage: new (storage: Storage, prefix: string) => BackgroundState;
   ChromeTabs: new (actionForUrl: (tab: ChromeTab, url: string) => Promise<BackgroundActionInfo | null>) => BackgroundTabs;
   ExternalApi: new (options: BackgroundOptions) => BackgroundExternalApi;
   Log: BackgroundLog;
@@ -324,7 +324,7 @@ type BackgroundExtensionRuntime = {
     parseImportedOptions(content: string): RuntimeOptionsData;
   };
   OptionsSync: new (storage: unknown) => BackgroundSync;
-  Storage: new (areaName: string) => unknown;
+  Storage: new (areaName: string, namespace?: string) => BackgroundState;
   Url: UrlModule;
   proxy: {
     getProxyImpl(log: BackgroundLog): BackgroundProxyImpl;
@@ -339,7 +339,7 @@ type BackgroundExtensionRuntime = {
   ) => unknown;
 };
 
-(function () {
+(async function () {
   const hasProp = {}.hasOwnProperty;
 
   const BrowserExtensionRuntimeModule = BrowserExtensionRuntime as unknown as BackgroundExtensionRuntime & {
@@ -351,26 +351,59 @@ type BackgroundExtensionRuntime = {
   ExtensionRuntimeCurrent.Log = Object.create(ExtensionRuntimeCurrent.Log);
 
   const Log = ExtensionRuntimeCurrent.Log;
+  const MAX_PERSISTED_LOG_LENGTH = 256 * 1024;
+  const logStorage = new ExtensionRuntimeCurrent.Storage('local', 'log');
+  let persistedLog = '';
+  let persistedLogLastError = '';
+  let logWrite: Promise<unknown> = logStorage
+    .get({
+      content: '',
+      lastError: ''
+    })
+    .then((items) => {
+      persistedLog = typeof items.content === 'string' ? items.content : '';
+      persistedLogLastError = typeof items.lastError === 'string' ? items.lastError : '';
+    })
+    .catch((error: unknown) => {
+      console.error('Load background log failed:', error);
+    });
 
-  function writeLogToLocalStorage(content: string) {
-    try {
-      return (localStorage['log'] += content);
-    } catch (_) {
-      return (localStorage['log'] = content);
-    }
+  function trimPersistedLog(content: string) {
+    return content.length > MAX_PERSISTED_LOG_LENGTH ? content.slice(-MAX_PERSISTED_LOG_LENGTH) : content;
+  }
+
+  function writePersistentLog(content: string, lastError?: string) {
+    logWrite = logWrite
+      .then(() => {
+        persistedLog = trimPersistedLog(persistedLog + content);
+        if (typeof lastError === 'string') {
+          persistedLogLastError = lastError;
+        }
+        return logStorage.set({
+          content: persistedLog,
+          lastError: persistedLogLastError
+        });
+      })
+      .catch((error: unknown) => {
+        console.error('Persist background log failed:', error);
+      });
+    return content;
+  }
+
+  function getPersistedLog() {
+    return logWrite.then(() => persistedLog);
   }
 
   Log.log = (...args: unknown[]) => {
     console.log(...args);
     const content = args.map(Log.str.bind(Log)).join(' ') + '\n';
-    return writeLogToLocalStorage(content);
+    return writePersistentLog(content);
   };
 
   Log.error = (...args: unknown[]) => {
     console.error(...args);
     const content = args.map(Log.str.bind(Log)).join(' ');
-    localStorage['logLastError'] = content;
-    return writeLogToLocalStorage('ERROR: ' + content + '\n');
+    return writePersistentLog('ERROR: ' + content + '\n', content);
   };
 
   const unhandledPromises: unknown[] = [];
@@ -561,22 +594,20 @@ type BackgroundExtensionRuntime = {
   const WEBDAV_SYNC_FAILURE_LIMIT = 3;
   const WEBDAV_SYNC_BACKOFF_HOURS = [1, 3, 6, 12, 24];
   const WEBDAV_PUSH_RETRY_DELAY_MS = 60000;
-
-  function stateStorageKey(name: string) {
-    return `state.${name}`;
-  }
+  const localState: Record<string, unknown> = {};
 
   function getLocalState<T = unknown>(name: string): T | undefined {
-    try {
-      const raw = localStorage[stateStorageKey(name)];
-      return raw == null ? undefined : (JSON.parse(raw) as T);
-    } catch (_) {
-      return undefined;
-    }
+    return localState[name] as T | undefined;
   }
 
   function setLocalState(name: string, value: unknown) {
-    localStorage[stateStorageKey(name)] = JSON.stringify(value);
+    return state.set({
+      [name]: value
+    });
+  }
+
+  function removeLocalState(name: string) {
+    return state.remove(name);
   }
 
   function randomId() {
@@ -673,7 +704,7 @@ type BackgroundExtensionRuntime = {
   let proxyImpl: BackgroundProxyImpl;
   let activeSyncProvider: SyncProvider = '';
   let browserSync: BackgroundSync | undefined;
-  let webDavSyncFailureCount = getLocalState<WebDavSyncStatus>(WEBDAV_SYNC_STATUS_STATE)?.failureCount || 0;
+  let webDavSyncFailureCount = 0;
   let webDavSyncAlarmListenerInstalled = false;
   let webDavSyncRestorePromise: Promise<unknown> | null = null;
 
@@ -754,8 +785,7 @@ type BackgroundExtensionRuntime = {
 
   function clearWebDavSyncStatus() {
     webDavSyncFailureCount = 0;
-    localStorage.removeItem(stateStorageKey(WEBDAV_SYNC_STATUS_STATE));
-    state?.remove?.(WEBDAV_SYNC_STATUS_STATE);
+    removeLocalState(WEBDAV_SYNC_STATUS_STATE);
   }
 
   function preserveEnabledWebDavSyncState(config = savedWebDavConfig()) {
@@ -1197,8 +1227,57 @@ type BackgroundExtensionRuntime = {
   }
 
   const storage = new ExtensionRuntimeCurrent.Storage('local');
-
-  state = new ExtensionRuntimeCurrent.BrowserStorage(localStorage, 'state.');
+  const stateStorage = new ExtensionRuntimeCurrent.Storage('local', 'state');
+  Object.assign(localState, await stateStorage.get(null));
+  state = {
+    get(keys: unknown) {
+      const items: Record<string, unknown> = {};
+      if (keys == null) {
+        return Promise.resolve({...localState});
+      }
+      if (typeof keys === 'string') {
+        if (Object.prototype.hasOwnProperty.call(localState, keys)) {
+          items[keys] = localState[keys];
+        }
+        return Promise.resolve(items);
+      }
+      if (Array.isArray(keys)) {
+        for (const key of keys) {
+          if (typeof key === 'string' && Object.prototype.hasOwnProperty.call(localState, key)) {
+            items[key] = localState[key];
+          }
+        }
+        return Promise.resolve(items);
+      }
+      if (isRecord(keys)) {
+        for (const [key, defaultValue] of Object.entries(keys)) {
+          items[key] = Object.prototype.hasOwnProperty.call(localState, key) ? localState[key] : defaultValue;
+        }
+      }
+      return Promise.resolve(items);
+    },
+    remove(keys?: unknown) {
+      if (keys == null) {
+        for (const key of Object.keys(localState)) {
+          delete localState[key];
+        }
+      } else if (typeof keys === 'string') {
+        delete localState[keys];
+      } else if (Array.isArray(keys)) {
+        for (const key of keys) {
+          if (typeof key === 'string') {
+            delete localState[key];
+          }
+        }
+      }
+      return stateStorage.remove(keys);
+    },
+    set(items: Record<string, unknown>) {
+      Object.assign(localState, items);
+      return stateStorage.set(items);
+    }
+  };
+  webDavSyncFailureCount = getLocalState<WebDavSyncStatus>(WEBDAV_SYNC_STATUS_STATE)?.failureCount || 0;
 
   function createOptionsSync(syncStorage: unknown) {
     const sync = new ExtensionRuntimeCurrent.OptionsSync(syncStorage) as BackgroundSync;
@@ -1245,7 +1324,7 @@ type BackgroundExtensionRuntime = {
     sync = browserSync;
     activeSyncProvider = savedProvider === 'webdav' ? '' : sync ? 'browser' : '';
   }
-  if (sync && (savedProvider === 'webdav' || localStorage[stateStorageKey('syncOptions')] !== '"sync"')) {
+  if (sync && (savedProvider === 'webdav' || getLocalState<string>('syncOptions') !== 'sync')) {
     sync.enabled = false;
   }
 
@@ -1967,6 +2046,10 @@ type BackgroundExtensionRuntime = {
     }
   };
 
+  const logApi = {
+    getLog: getPersistedLog
+  };
+
   function isBackgroundMethod(method: unknown): method is BackgroundMethod {
     switch (method) {
       case 'addCondition':
@@ -1977,6 +2060,7 @@ type BackgroundExtensionRuntime = {
       case 'cancelOptionsHandoff':
       case 'explainRequest':
       case 'getAll':
+      case 'getLog':
       case 'getOptionsPageState':
       case 'getPageInfo':
       case 'getState':
@@ -2009,7 +2093,10 @@ type BackgroundExtensionRuntime = {
     }
     let method: unknown;
     let target: object;
-    if (request.method === 'getState') {
+    if (request.method === 'getLog') {
+      target = logApi;
+      method = logApi.getLog;
+    } else if (request.method === 'getState') {
       target = state;
       method = state.get;
     } else if (request.method === 'setState') {
@@ -2059,6 +2146,8 @@ type BackgroundExtensionRuntime = {
 
   function readinessForRequest(request: BackgroundRequest): Promise<unknown> {
     switch (request.method) {
+      case 'getLog':
+        return logWrite;
       case 'getAll':
       case 'getPageInfo':
       case 'getState':

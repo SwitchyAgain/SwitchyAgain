@@ -65,7 +65,31 @@ try {
   const optionsGuard = installBrowserErrorGuards(optionsPage, 'chromium extension options');
   await optionsPage.goto(`chrome-extension://${extensionId}/options.html#/about`, {waitUntil: 'domcontentloaded'});
   await expectText(optionsPage, messageForKey('about_title') || 'About', 'chromium extension options');
+  await callRuntime(optionsPage, 'patch', [{'-routeInfoRequestDetailsEnabled': [false, true]}]);
   await callRuntime(optionsPage, 'applyProfile', ['auto switch']);
+  await callRuntime(optionsPage, 'setState', [{smokePersisted: true}]);
+  const persistedState = await optionsPage.evaluate(() => {
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.get('__switchyagain_internal__.state.smokePersisted', (items) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message || 'Unknown storage error.'));
+          return;
+        }
+        resolve(items['__switchyagain_internal__.state.smokePersisted']);
+      });
+    });
+  });
+  if (persistedState !== true) {
+    throw new Error('Background state was not persisted through the namespaced storage backend.');
+  }
+  const storedOptions = await callRuntime(optionsPage, 'getAll');
+  if (Object.keys(storedOptions).some((key) => key.startsWith('__switchyagain_internal__.'))) {
+    throw new Error('Internal background storage leaked into extension options.');
+  }
+  const backgroundLog = await callRuntime(optionsPage, 'getLog');
+  if (typeof backgroundLog !== 'string' || backgroundLog.length === 0) {
+    throw new Error('Persistent background log is unavailable.');
+  }
   const [activeTab] = await optionsPage.evaluate(() => {
     return new Promise((resolve, reject) => {
       chrome.tabs.query({active: true, lastFocusedWindow: true}, (tabs) => {

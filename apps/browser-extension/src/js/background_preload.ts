@@ -9,10 +9,6 @@ type ContextMenuOptions = Record<string, unknown> & {
 type ContextMenuClickHandler = (info: ChromeContextMenuClickInfo, tab: ChromeTab) => unknown;
 
 (function () {
-  localStorage['log'] = '';
-
-  localStorage['logLastError'] = '';
-
   window.ContextMenuQuickSwitchHandler = () => {
     return null;
   };

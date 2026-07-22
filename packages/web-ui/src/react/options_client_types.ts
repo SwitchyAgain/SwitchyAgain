@@ -127,6 +127,7 @@ export type BackgroundMethodArgs = {
   cancelOptionsHandoff: [handoffId: string];
   explainRequest: [args: RequestExplainArgs | string];
   getAll: [];
+  getLog: [];
   getState: [name: string | string[]];
   getWebDavSyncConfig: [];
   patch: [patch: OptionsPatch];
@@ -150,6 +151,7 @@ export type BackgroundMethodResult = {
   cancelOptionsHandoff: void;
   explainRequest: RequestExplanation;
   getAll: Options;
+  getLog: string;
   getState: Record<string, unknown>;
   getWebDavSyncConfig: WebDavSyncConfig | null;
   patch: Options;

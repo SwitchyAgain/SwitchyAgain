@@ -10,6 +10,9 @@ type WatchCallback = (changes: StorageItems) => unknown;
 type StorageAreaName = 'local' | 'sync';
 type WatchUnsubscribe = () => void;
 
+const INTERNAL_STORAGE_PREFIX = '__switchyagain_internal__.';
+const LEGACY_LOCAL_STORAGE_PREFIX = '__localStorage__.';
+
 type ChromeStorageChange = {
   newValue?: unknown;
 };
@@ -61,6 +64,7 @@ class ChromeStorage extends ExtensionRuntime.Storage {
   static watchers: Record<string, Record<string, Watcher>> = {};
 
   areaName: StorageAreaName;
+  keyPrefix: string;
   storage: StorageArea;
 
   static parseStorageErrors(err: StorageError) {
@@ -94,9 +98,10 @@ class ChromeStorage extends ExtensionRuntime.Storage {
     return Promise.reject(err);
   }
 
-  constructor(areaName: StorageAreaName) {
+  constructor(areaName: StorageAreaName, namespace?: string) {
     super();
     this.areaName = areaName;
+    this.keyPrefix = namespace ? `${INTERNAL_STORAGE_PREFIX}${namespace}.` : '';
     if (typeof browser !== 'undefined' && browser?.storage?.[this.areaName]) {
       this.storage = browser.storage[this.areaName] as StorageArea;
     } else {
@@ -110,11 +115,53 @@ class ChromeStorage extends ExtensionRuntime.Storage {
     }
   }
 
+  private storageKeys(keys: StorageKeys): StorageKeys {
+    if (!this.keyPrefix || keys == null) {
+      return keys;
+    }
+    if (typeof keys === 'string') {
+      return this.keyPrefix + keys;
+    }
+    if (Array.isArray(keys)) {
+      return keys.map((key) => this.keyPrefix + key);
+    }
+    const mapped: StorageItems = {};
+    for (const [key, value] of Object.entries(keys)) {
+      mapped[this.keyPrefix + key] = value;
+    }
+    return mapped;
+  }
+
+  private storageItems(items: StorageItems) {
+    if (!this.keyPrefix) {
+      return items;
+    }
+    const mapped: StorageItems = {};
+    for (const [key, value] of Object.entries(items)) {
+      mapped[this.keyPrefix + key] = value;
+    }
+    return mapped;
+  }
+
+  private logicalItems(items: StorageItems) {
+    const mapped: StorageItems = {};
+    for (const [key, value] of Object.entries(items)) {
+      if (this.keyPrefix) {
+        if (key.startsWith(this.keyPrefix)) {
+          mapped[key.slice(this.keyPrefix.length)] = value;
+        }
+      } else if (!key.startsWith(INTERNAL_STORAGE_PREFIX) && !key.startsWith(LEGACY_LOCAL_STORAGE_PREFIX)) {
+        mapped[key] = value;
+      }
+    }
+    return mapped;
+  }
+
   get(keys: StorageKeys = null) {
-    return Promise.resolve(this.storage.get(keys))
+    return Promise.resolve(this.storage.get(this.storageKeys(keys)))
       .then((items) => {
-        const storageItems = items as StorageItems;
-        if (this.areaName !== 'local' || keys !== null) {
+        const storageItems = this.logicalItems(items as StorageItems);
+        if (this.keyPrefix || this.areaName !== 'local' || keys !== null) {
           return storageItems;
         }
         const migrated = migrateLegacyOptions(storageItems);
@@ -137,17 +184,23 @@ class ChromeStorage extends ExtensionRuntime.Storage {
     if (Object.keys(items).length === 0) {
       return Promise.resolve({});
     }
-    return Promise.resolve(this.storage.set(items)).catch(ChromeStorage.parseStorageErrors);
+    return Promise.resolve(this.storage.set(this.storageItems(items))).catch(ChromeStorage.parseStorageErrors);
   }
 
   remove(keys: WatchKeys) {
-    if (keys == null) {
+    if (keys == null && !this.keyPrefix) {
       return Promise.resolve(this.storage.clear());
+    }
+    if (keys == null) {
+      return Promise.resolve(this.storage.get(null))
+        .then((items) => Object.keys(items as StorageItems).filter((key) => key.startsWith(this.keyPrefix)))
+        .then((storageKeys) => (storageKeys.length === 0 ? undefined : this.storage.remove(storageKeys)))
+        .catch(ChromeStorage.parseStorageErrors);
     }
     if (Array.isArray(keys) && keys.length === 0) {
       return Promise.resolve({});
     }
-    return Promise.resolve(this.storage.remove(keys)).catch(ChromeStorage.parseStorageErrors);
+    return Promise.resolve(this.storage.remove(this.storageKeys(keys) as WatchKeys)).catch(ChromeStorage.parseStorageErrors);
   }
 
   watch(keys: WatchKeys, callback: WatchCallback): WatchUnsubscribe {
@@ -155,13 +208,19 @@ class ChromeStorage extends ExtensionRuntime.Storage {
       ChromeStorage.watchers[this.areaName] = {};
     }
     const area = ChromeStorage.watchers[this.areaName];
+    const storageKeys = this.storageKeys(keys) as WatchKeys;
     let id = Date.now().toString();
     while (area[id]) {
       id = Date.now().toString();
     }
     area[id] = {
-      keys: normalizeWatchKeys(keys),
-      callback
+      keys: normalizeWatchKeys(storageKeys),
+      callback: (changes) => {
+        const logicalChanges = this.logicalItems(changes);
+        if (Object.keys(logicalChanges).length > 0) {
+          callback(logicalChanges);
+        }
+      }
     };
     if (!ChromeStorage.onChangedListenerInstalled) {
       chrome.storage.onChanged.addListener(ChromeStorage.onChangedListener);

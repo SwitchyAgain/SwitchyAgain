@@ -1556,8 +1556,11 @@ export function OptionsApp() {
       });
   }
 
-  function downloadLog() {
-    const blob = new Blob([window.localStorage.getItem('log') || ''], {
+  async function downloadLog() {
+    const pageLog = window.localStorage.getItem('log') || '';
+    const backgroundLog = await callBackground('getLog').catch(() => '');
+    const content = [backgroundLog, pageLog].filter(Boolean).join('\n');
+    const blob = new Blob([content], {
       type: 'text/plain;charset=utf-8'
     });
     downloadBlob(blob, `OmegaLog_${Date.now()}.txt`);

@@ -1,5 +1,9 @@
 (function () {
   window.onerror = (message, url, line, col, err) => {
+    if (typeof localStorage === 'undefined') {
+      console.error(err || `${url}:${line}:${col}: ${message}`);
+      return;
+    }
     let log = localStorage['log'] || '';
     const stack = err instanceof Error ? err.stack : undefined;
     if (stack) {
