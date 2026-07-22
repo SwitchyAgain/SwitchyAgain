@@ -7,6 +7,7 @@ import {ProfileSelect, profileOrder, scopeAssignableProfilesForOptions} from './
 export type ProfileScopeCapabilities = {
   container?: boolean;
   group?: boolean;
+  site?: boolean;
   tab?: boolean;
   window?: boolean;
 };
@@ -23,6 +24,7 @@ export type ProfileScopeContainerInfo = {
 export type ProfileScopeSettings = {
   container: boolean;
   group: boolean;
+  site: boolean;
   tab: boolean;
   window: boolean;
 };
@@ -41,6 +43,7 @@ type ProfileScopeContainerRow = ProfileScopeContainerInfo & {
 export const DEFAULT_PROFILE_SCOPE_CAPABILITIES: ProfileScopeCapabilities = {
   container: false,
   group: false,
+  site: false,
   tab: false,
   window: false
 };
@@ -60,6 +63,7 @@ export function profileScopesForOptions(options?: Options | null): ProfileScopeS
     tab: scopes.tab === true,
     group: scopes.group === true,
     container: scopes.container === true,
+    site: scopes.site === true,
     window: scopes.window === true
   };
 }
@@ -71,13 +75,14 @@ export function visibleProfileScopes(options?: Options | null, capabilities?: Pr
     tab: scopes.tab && supported.tab === true,
     group: scopes.group && supported.group === true,
     container: scopes.container && supported.container === true,
+    site: scopes.site && supported.site === true,
     window: scopes.window && supported.window === true
   };
 }
 
 export function hasVisibleProfileScopes(options?: Options | null, capabilities?: ProfileScopeCapabilities | null) {
   const visible = visibleProfileScopes(options, capabilities);
-  return visible.tab || visible.group || visible.container || visible.window;
+  return visible.tab || visible.group || visible.container || visible.site || visible.window;
 }
 
 function assignmentsForOptions(options?: Options | null): ProfileScopeAssignments {
@@ -298,6 +303,18 @@ export function ProfileScopeSettingsPage({
               profiles={profiles}
             />
           </div>
+        </section>
+      )}
+
+      {visible.site && (
+        <section className="settings-group profile-scope-settings-group">
+          <h3>{message('options_profileScopeSitesSection', 'Sites')}</h3>
+          <p className="help-block">
+            {message(
+              'options_profileScopeSitesHelp',
+              'Site matching and profile assignment settings will be added here after the matching rules are finalized.'
+            )}
+          </p>
         </section>
       )}
 

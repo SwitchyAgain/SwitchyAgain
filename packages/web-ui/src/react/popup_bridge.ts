@@ -69,6 +69,7 @@ export type ProfileScopeInfo = {
   groupProfileName?: string;
   incognito?: boolean;
   isContainer?: boolean;
+  siteProfileName?: string;
   tabId?: number;
   tabProfileName?: string;
   windowId?: number;
@@ -78,6 +79,7 @@ export type ProfileScopeInfo = {
 export type ProfileScopeSettings = {
   container?: boolean;
   group?: boolean;
+  site?: boolean;
   tab?: boolean;
   window?: boolean;
 };
@@ -87,8 +89,9 @@ export type ProfileScopeSetRequest = {
   groupId?: number;
   incognito?: boolean;
   profileName?: string;
-  scope: 'container' | 'group' | 'normal' | 'private' | 'tab';
+  scope: 'container' | 'group' | 'normal' | 'private' | 'site' | 'tab';
   tabId?: number;
+  url?: string;
   windowId?: number;
 };
 

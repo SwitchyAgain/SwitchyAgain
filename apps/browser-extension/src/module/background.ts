@@ -100,8 +100,9 @@ type ProfileScopeSetArgs = {
   groupId?: number;
   incognito?: boolean;
   profileName?: string;
-  scope: 'container' | 'group' | 'normal' | 'private' | 'tab';
+  scope: 'container' | 'group' | 'normal' | 'private' | 'site' | 'tab';
   tabId?: number;
+  url?: string;
   windowId?: number;
 };
 
@@ -2264,71 +2265,73 @@ type BackgroundExtensionRuntime = {
       return;
     }
     const typedRequest = backgroundRequest as BackgroundRequest;
-    backgroundStartup.then(() => readinessForRequest(typedRequest)).then(
-      () => {
-        const dispatch = resolveBackgroundDispatch(backgroundRequest);
-        if (!dispatch) {
-          Log.error(`No such method ${backgroundRequest.method}!`);
-          respond({
-            error: {
-              reason: 'noSuchMethod'
-            }
+    backgroundStartup
+      .then(() => readinessForRequest(typedRequest))
+      .then(
+        () => {
+          const dispatch = resolveBackgroundDispatch(backgroundRequest);
+          if (!dispatch) {
+            Log.error(`No such method ${backgroundRequest.method}!`);
+            respond({
+              error: {
+                reason: 'noSuchMethod'
+              }
+            });
+            return;
+          }
+          const promise = Promise.resolve().then(() => {
+            return dispatch.method.apply(dispatch.target, backgroundRequest.args || []);
           });
-          return;
-        }
-        const promise = Promise.resolve().then(() => {
-          return dispatch.method.apply(dispatch.target, backgroundRequest.args || []);
-        });
-        if (backgroundRequest.noReply) {
+          if (backgroundRequest.noReply) {
+            return promise.then(
+              () => {
+                markWebDavSyncPendingUploadIfPaused(backgroundRequest.method);
+                if (backgroundRequest.refreshActivePage) {
+                  return refreshActivePageIfEnabled();
+                }
+              },
+              (error: unknown) => {
+                return Log.error(backgroundRequest.method + ' ==>', error);
+              }
+            );
+          }
           return promise.then(
-            () => {
+            (result: unknown) => {
               markWebDavSyncPendingUploadIfPaused(backgroundRequest.method);
               if (backgroundRequest.refreshActivePage) {
-                return refreshActivePageIfEnabled();
+                refreshActivePageIfEnabled();
               }
+              let responseResult: unknown = result;
+              if (backgroundRequest.method === 'updateProfile' && isRecord(result)) {
+                const encodedResult: Record<string, unknown> = {};
+                for (const key in result) {
+                  if (!hasProp.call(result, key)) continue;
+                  const value = result[key];
+                  encodedResult[key] = encodeError(value);
+                }
+                responseResult = encodedResult;
+              }
+              return respond({
+                result: responseResult
+              });
             },
             (error: unknown) => {
-              return Log.error(backgroundRequest.method + ' ==>', error);
+              Log.error(backgroundRequest.method + ' ==>', error);
+              return respond({
+                error: encodeError(error)
+              });
             }
           );
-        }
-        return promise.then(
-          (result: unknown) => {
-            markWebDavSyncPendingUploadIfPaused(backgroundRequest.method);
-            if (backgroundRequest.refreshActivePage) {
-              refreshActivePageIfEnabled();
-            }
-            let responseResult: unknown = result;
-            if (backgroundRequest.method === 'updateProfile' && isRecord(result)) {
-              const encodedResult: Record<string, unknown> = {};
-              for (const key in result) {
-                if (!hasProp.call(result, key)) continue;
-                const value = result[key];
-                encodedResult[key] = encodeError(value);
-              }
-              responseResult = encodedResult;
-            }
-            return respond({
-              result: responseResult
-            });
-          },
-          (error: unknown) => {
-            Log.error(backgroundRequest.method + ' ==>', error);
-            return respond({
+        },
+        (error: unknown) => {
+          Log.error(backgroundRequest.method + ' ==>', error);
+          if (!backgroundRequest.noReply) {
+            respond({
               error: encodeError(error)
             });
           }
-        );
-      },
-      (error: unknown) => {
-        Log.error(backgroundRequest.method + ' ==>', error);
-        if (!backgroundRequest.noReply) {
-          respond({
-            error: encodeError(error)
-          });
         }
-      }
-    );
+      );
     if (!backgroundRequest.noReply) {
       return true;
     }

@@ -216,6 +216,7 @@ type TabRequestInfo = {
 type ProfileScopeSettings = {
   container: boolean;
   group: boolean;
+  site: boolean;
   tab: boolean;
   window: boolean;
 };
@@ -251,8 +252,9 @@ type ProfileScopeSetArgs = {
   groupId?: number;
   incognito?: boolean;
   profileName?: string;
-  scope: 'container' | 'group' | 'normal' | 'private' | 'tab';
+  scope: 'container' | 'group' | 'normal' | 'private' | 'site' | 'tab';
   tabId?: number;
+  url?: string;
   windowId?: number;
 };
 
@@ -342,6 +344,7 @@ function normalizeProfileScopes(value: unknown): ProfileScopeSettings {
     tab: scopes.tab === true,
     group: scopes.group === true,
     container: scopes.container === true,
+    site: scopes.site === true,
     window: scopes.window === true
   };
 }
@@ -1014,6 +1017,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
       tab: features.indexOf('tabProfileScope') >= 0,
       group: features.indexOf('groupProfileScope') >= 0,
       container: features.indexOf('containerProfileScope') >= 0,
+      site: features.indexOf('siteProfileScope') >= 0,
       window: features.indexOf('windowProfileScope') >= 0
     };
   }
@@ -1025,6 +1029,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
       tab: scopes.tab && capabilities.tab,
       group: scopes.group && capabilities.group,
       container: scopes.container && capabilities.container,
+      site: scopes.site && capabilities.site,
       window: scopes.window && capabilities.window
     };
   }
@@ -2638,6 +2643,13 @@ class ChromeOptions extends ExtensionRuntime.Options {
       return this._setOptions({
         '-profileScopeAssignments': assignments
       });
+    }
+    if (args.scope === 'site') {
+      if (!capabilities.site || !scopes.site || !args.url) {
+        return Promise.resolve();
+      }
+      // Site assignment storage and matching will be added after the rule model is finalized.
+      return Promise.resolve();
     }
     if (args.scope === 'normal' || args.scope === 'private') {
       if (!capabilities.window || !scopes.window) {

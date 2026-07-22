@@ -60,6 +60,7 @@ const defaultEnabledOption = (value: unknown): boolean => value !== false;
 type ProfileScopeSettings = {
   container: boolean;
   group: boolean;
+  site: boolean;
   tab: boolean;
   window: boolean;
 };
@@ -117,6 +118,7 @@ function normalizeProfileScopes(value: unknown): ProfileScopeSettings {
     tab: scopes.tab === true,
     group: scopes.group === true,
     container: scopes.container === true,
+    site: scopes.site === true,
     window: scopes.window === true
   };
 }
@@ -158,11 +160,12 @@ function profileScopeSettingsEqual(left: ProfileScopeSettings, right: unknown) {
   if (!isRecordValue(right)) {
     return false;
   }
-  const validKeys = new Set(['tab', 'group', 'container', 'window']);
+  const validKeys = new Set(['tab', 'group', 'container', 'site', 'window']);
   return (
     left.tab === right.tab &&
     left.group === right.group &&
     left.container === right.container &&
+    left.site === right.site &&
     left.window === right.window &&
     Object.keys(right).every((key) => validKeys.has(key))
   );

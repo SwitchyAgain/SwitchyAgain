@@ -32,6 +32,7 @@ export type UiSettingsProps = {
 type ProfileScopeCapabilities = {
   container?: boolean;
   group?: boolean;
+  site?: boolean;
   tab?: boolean;
   window?: boolean;
 };
@@ -54,6 +55,7 @@ type ProfileActionMenuOptionKey = keyof Required<ProfileActionMenuOptions>;
 const DEFAULT_PROFILE_SCOPE_CAPABILITIES: ProfileScopeCapabilities = {
   container: false,
   group: false,
+  site: false,
   tab: false,
   window: false
 };
@@ -90,6 +92,7 @@ function profileScopesForOptions(options?: Options | null): Required<ProfileScop
     tab: scopes.tab === true,
     group: scopes.group === true,
     container: scopes.container === true,
+    site: scopes.site === true,
     window: scopes.window === true
   };
 }
@@ -672,6 +675,13 @@ export function UiSettings({
           fallback="Container profiles"
           helpKey="options_profileScopeContainerHelp"
           helpFallback="Allow assigning profiles to Firefox containers from the popup or page context menu. Firefox only."
+        />
+        <ProfileScopeCheckbox
+          scope="site"
+          messageKey="options_profileScopeSite"
+          fallback="Site profiles"
+          helpKey="options_profileScopeSiteHelp"
+          helpFallback="Allow assigning a profile to the current site from the popup. Firefox only."
         />
         <ProfileScopeCheckbox
           scope="window"

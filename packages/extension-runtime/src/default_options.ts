@@ -17,6 +17,7 @@ export default function defaultOptions() {
       tab: false,
       group: false,
       container: false,
+      site: false,
       window: false
     },
     '-profileScopeAssignments': {

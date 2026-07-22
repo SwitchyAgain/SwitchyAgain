@@ -1695,7 +1695,7 @@ export function OptionsApp() {
     }
     if (route.name === 'profileScope') {
       const visibleScopes = appliedVisibleProfileScopes;
-      if (!visibleScopes.tab && !visibleScopes.group && !visibleScopes.container && !visibleScopes.window) {
+      if (!visibleScopes.tab && !visibleScopes.group && !visibleScopes.container && !visibleScopes.site && !visibleScopes.window) {
         return (
           <div className="react-settings-host-profile-scope">
             <div className="page-header">
