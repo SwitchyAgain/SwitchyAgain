@@ -527,6 +527,16 @@ function filteredTabRequestInfo(tabInfo: TabRequestInfo | undefined, ignoreList:
   };
 }
 
+function effectiveFailedRequestInfo(options: Record<string, unknown>, tabInfo?: TabRequestInfo) {
+  if (!isFailedRequestDetectionEnabled(options)) {
+    return {
+      errorCount: 0,
+      summary: {}
+    };
+  }
+  return filteredTabRequestInfo(tabInfo, effectiveNetworkRequestIgnoreList(options));
+}
+
 function requestStartTime(request: MonitoredRequestInfo) {
   return typeof request._startTime === 'number' ? request._startTime : 0;
 }
@@ -2814,11 +2824,75 @@ class ChromeOptions extends ExtensionRuntime.Options {
     return Promise.resolve();
   }
 
+  private clearFailedRequestBadge(tabId: number, info: TabRequestInfo) {
+    if (!info.badgeSet) {
+      return;
+    }
+    info.badgeSet = false;
+    chrome.action.setBadgeText(
+      {
+        text: '',
+        tabId
+      },
+      ignoreChromeLastError
+    );
+  }
+
+  private clearFailedRequestBadges() {
+    const tabInfo = this._requestMonitor?.tabInfo || {};
+    for (const [tabIdText, info] of Object.entries(tabInfo)) {
+      const tabId = Number(tabIdText);
+      if (!info || !Number.isInteger(tabId)) {
+        continue;
+      }
+      this.clearFailedRequestBadge(tabId, info);
+    }
+  }
+
+  private updateFailedRequestBadge(tabId: number, info: TabRequestInfo, errorCount: number) {
+    if (!isFailedRequestDetectionEnabled(this._options) || errorCount <= 0) {
+      this.clearFailedRequestBadge(tabId, info);
+      return;
+    }
+    info.badgeSet = true;
+    chrome.action.setBadgeText(
+      {
+        text: errorCount.toString(),
+        tabId
+      },
+      ignoreChromeLastError
+    );
+    chrome.action.setBadgeBackgroundColor(
+      {
+        color: '#f0ad4e',
+        tabId
+      },
+      ignoreChromeLastError
+    );
+  }
+
+  private refreshFailedRequestBadges() {
+    const tabInfo = this._requestMonitor?.tabInfo || {};
+    for (const [tabIdText, info] of Object.entries(tabInfo)) {
+      const tabId = Number(tabIdText);
+      if (!info || !Number.isInteger(tabId)) {
+        continue;
+      }
+      const failedInfo = effectiveFailedRequestInfo(this._options, info);
+      this.updateFailedRequestBadge(tabId, info, failedInfo.errorCount);
+    }
+  }
+
   setMonitorWebRequests(enabled: boolean) {
+    if (!enabled || !isFailedRequestDetectionEnabled(this._options)) {
+      this.clearFailedRequestBadges();
+    }
     this._monitorWebRequests = enabled;
     this._requestMonitor?.setEnabled(enabled);
     if (!enabled) {
       this.clearBadge();
+    } else if (isFailedRequestDetectionEnabled(this._options)) {
+      this.refreshFailedRequestBadges();
     }
     if (enabled && this._requestMonitor == null) {
       this._tabRequestInfoPorts = {};
@@ -2831,37 +2905,8 @@ class ChromeOptions extends ExtensionRuntime.Options {
         if (!this._monitorWebRequests) {
           return;
         }
-        const filteredInfo = filteredTabRequestInfo(info, effectiveNetworkRequestIgnoreList(this._options));
-        if (filteredInfo.errorCount > 0) {
-          info.badgeSet = true;
-          const badge = {
-            text: filteredInfo.errorCount.toString(),
-            color: '#f0ad4e'
-          };
-          chrome.action.setBadgeText(
-            {
-              text: badge.text,
-              tabId
-            },
-            ignoreChromeLastError
-          );
-          chrome.action.setBadgeBackgroundColor(
-            {
-              color: badge.color,
-              tabId
-            },
-            ignoreChromeLastError
-          );
-        } else if (info.badgeSet) {
-          info.badgeSet = false;
-          chrome.action.setBadgeText(
-            {
-              text: '',
-              tabId
-            },
-            ignoreChromeLastError
-          );
-        }
+        const filteredInfo = effectiveFailedRequestInfo(this._options, info);
+        this.updateFailedRequestBadge(tabId, info, filteredInfo.errorCount);
         return this._tabRequestInfoPorts?.[tabId]?.postMessage({
           errorCount: filteredInfo.errorCount,
           summary: filteredInfo.summary
@@ -2886,7 +2931,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
           }
           const info = requestMonitor.tabInfo[tabId];
           if (info) {
-            const filteredInfo = filteredTabRequestInfo(info, effectiveNetworkRequestIgnoreList(this._options));
+            const filteredInfo = effectiveFailedRequestInfo(this._options, info);
             return port.postMessage({
               errorCount: filteredInfo.errorCount,
               summary: filteredInfo.summary
@@ -2998,9 +3043,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
     const networkRequestIgnoreList = normalizeNetworkRequestIgnoreList(this._options[NETWORK_REQUEST_IGNORE_LIST_KEY]);
     const networkRequestIgnoreListEnabled = failedRequestDetectionEnabled && isNetworkRequestIgnoreListEnabled(this._options);
     const effectiveIgnoreList = networkRequestIgnoreListEnabled ? networkRequestIgnoreList : [];
-    const filteredInfo = failedRequestDetectionEnabled
-      ? filteredTabRequestInfo(tabInfo, effectiveIgnoreList)
-      : {errorCount: 0, summary: {}};
+    const filteredInfo = effectiveFailedRequestInfo(this._options, tabInfo);
     const profileScope = this.getProfileScopeInfo({
       cookieStoreId,
       groupId,
