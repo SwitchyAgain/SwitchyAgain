@@ -10,14 +10,20 @@ import {
   PopupState,
   Profile,
   ProfileMap,
-  callbackPromise,
+  addPopupCondition,
+  addPopupProfile,
+  addPopupTempRule,
+  applyPopupProfile,
   closePopup,
   getPopupPageInfo,
   getPopupState,
+  openPopupOptions,
+  patchPopupOptions,
   popupMessage,
-  popupBridge,
-  waitForPopupBridge
-} from './popup_bridge_client';
+  setPopupDefaultProfile,
+  setPopupProfileScope,
+  setPopupState
+} from './popup_bridge';
 import {
   aggregateRouteInfo,
   compareProfile,
@@ -500,31 +506,28 @@ export function PopupApp() {
   const tempDropdown = useFloatingDropdown<HTMLLIElement>(tempMenuOpen);
 
   useEffect(() => {
-    waitForPopupBridge()
-      .then(() =>
-        Promise.all([
-          getPopupState([
-            'availableProfiles',
-            'currentProfileCanAddRule',
-            'currentProfileName',
-            'externalProfile',
-            'isSystemProfile',
-            'lastProfileNameForCondition',
-            'profileGroups',
-            'profileGroupsEnabled',
-            'proxyNotControllable',
-            'refreshOnProfileChange',
-            'scopeAssignableProfiles',
-            'showExternalProfile',
-            'showPopupAddCondition',
-            'showPopupAddTempRule',
-            'uiLocale',
-            'uiTheme',
-            'validResultProfiles'
-          ]),
-          getPopupPageInfo()
-        ])
-      )
+    Promise.all([
+      getPopupState([
+        'availableProfiles',
+        'currentProfileCanAddRule',
+        'currentProfileName',
+        'externalProfile',
+        'isSystemProfile',
+        'lastProfileNameForCondition',
+        'profileGroups',
+        'profileGroupsEnabled',
+        'proxyNotControllable',
+        'refreshOnProfileChange',
+        'scopeAssignableProfiles',
+        'showExternalProfile',
+        'showPopupAddCondition',
+        'showPopupAddTempRule',
+        'uiLocale',
+        'uiTheme',
+        'validResultProfiles'
+      ]),
+      getPopupPageInfo()
+    ])
       .then(([nextState, nextPageInfo]) => {
         if (nextState.proxyNotControllable) {
           location.href = 'proxy_not_controllable.html';
@@ -584,38 +587,43 @@ export function PopupApp() {
   }
 
   function applyProfile(profileName: string) {
-    popupBridge().applyProfile?.(profileName, closePopup);
+    applyPopupProfile(profileName)
+      .then(closePopup)
+      .catch((err: unknown) => setError(popupErrorMessage(err)));
   }
 
   function setDefaultProfile(profileName: string, defaultProfileName: string) {
-    popupBridge().setDefaultProfile?.(profileName, defaultProfileName, closePopup);
+    setPopupDefaultProfile(profileName, defaultProfileName)
+      .then(closePopup)
+      .catch((err: unknown) => setError(popupErrorMessage(err)));
   }
 
   function addTempRule(domain: string, profileName: string) {
-    popupBridge().addTempRule?.(domain, profileName, () => {
-      popupBridge().setState?.('lastProfileNameForCondition', profileName);
-      closePopup();
-    });
+    addPopupTempRule(domain, profileName)
+      .then(() => setPopupState('lastProfileNameForCondition', profileName))
+      .then(closePopup)
+      .catch((err: unknown) => setError(popupErrorMessage(err)));
   }
 
   function setProfileScope(scope: 'container' | 'group' | 'normal' | 'private' | 'tab', profileName?: string) {
     const info = pageInfo?.profileScope;
-    popupBridge().setProfileScope?.(
-      {
-        cookieStoreId: info?.cookieStoreId,
-        groupId: info?.groupId,
-        incognito: info?.incognito,
-        profileName,
-        scope,
-        tabId: info?.tabId,
-        windowId: info?.windowId
-      },
-      closePopup
-    );
+    setPopupProfileScope({
+      cookieStoreId: info?.cookieStoreId,
+      groupId: info?.groupId,
+      incognito: info?.incognito,
+      profileName,
+      scope,
+      tabId: info?.tabId,
+      windowId: info?.windowId
+    })
+      .then(closePopup)
+      .catch((err: unknown) => setError(popupErrorMessage(err)));
   }
 
   function showOptions() {
-    popupBridge().openOptions?.(null, closePopup);
+    openPopupOptions(null)
+      .then(closePopup)
+      .catch((err: unknown) => setError(popupErrorMessage(err)));
   }
 
   function clickById(id: string) {
@@ -1461,7 +1469,9 @@ function ConditionForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
 
   function openConditionHelp() {
     const currentProfileName = encodeURIComponent(state.currentProfileName || '');
-    popupBridge().openOptions?.(`#!/profile/${currentProfileName}?help=condition`, closePopup);
+    openPopupOptions(`#!/profile/${currentProfileName}?help=condition`)
+      .then(closePopup)
+      .catch((err: unknown) => setError(popupErrorMessage(err)));
   }
 
   async function submitCondition(event: React.FormEvent) {
@@ -1473,8 +1483,8 @@ function ConditionForm({pageInfo, state, onClose}: {pageInfo?: PageInfo; state: 
         conditionType,
         pattern
       };
-      await callbackPromise<void>((callback) => popupBridge().addCondition?.(condition, profile, true, callback));
-      popupBridge().setState?.('lastProfileNameForCondition', profile);
+      await addPopupCondition(condition, profile, true);
+      await setPopupState('lastProfileNameForCondition', profile);
       closePopup();
     } catch (err: unknown) {
       setError(popupErrorMessage(err));
@@ -1637,18 +1647,8 @@ function RouteInfoForm({
 
   async function patchNetworkRequestIgnoreList(nextList: string[], refreshPageInfo = false) {
     const currentList = detailPageInfo?.networkRequestIgnoreList || [];
-    await callbackPromise<unknown>((callback) => {
-      const patchOptions = popupBridge().patchOptions;
-      if (!patchOptions) {
-        callback(new Error('Popup bridge method unavailable: patchOptions.'));
-        return;
-      }
-      patchOptions(
-        {
-          [NETWORK_REQUEST_IGNORE_LIST_KEY]: [currentList, nextList]
-        },
-        callback
-      );
+    await patchPopupOptions({
+      [NETWORK_REQUEST_IGNORE_LIST_KEY]: [currentList, nextList]
     });
     if (!refreshPageInfo) {
       return;
@@ -1690,8 +1690,8 @@ function RouteInfoForm({
           conditionType: 'HostWildcardCondition',
           pattern: domain
         }));
-        await callbackPromise<void>((callback) => popupBridge().addCondition?.(conditions, profile, true, callback));
-        popupBridge().setState?.('lastProfileNameForCondition', profile);
+        await addPopupCondition(conditions, profile, true);
+        await setPopupState('lastProfileNameForCondition', profile);
         closePopup();
         return;
       }
@@ -1779,7 +1779,11 @@ function RouteInfoForm({
               <button
                 className="btn btn-default pull-right"
                 type="button"
-                onClick={() => popupBridge().openOptions?.('#/requestLens', closePopup)}
+                onClick={() => {
+                  openPopupOptions('#/requestLens')
+                    .then(closePopup)
+                    .catch((err: unknown) => setError(popupErrorMessage(err)));
+                }}
               >
                 {popupMessage('popup_configureNetworkRequests', 'Configure network requests')}
               </button>
@@ -1810,16 +1814,12 @@ function ExternalProfileForm({state, onClose}: {state: PopupState; onClose: () =
     setSaving(true);
     setError('');
     try {
-      await callbackPromise<void>((callback) =>
-        popupBridge().addProfile?.(
-          {
-            ...state.externalProfile,
-            name: externalName
-          },
-          callback
-        )
-      );
-      popupBridge().applyProfile?.(externalName, closePopup);
+      await addPopupProfile({
+        ...state.externalProfile,
+        name: externalName
+      });
+      await applyPopupProfile(externalName);
+      closePopup();
     } catch (err: unknown) {
       setError(popupErrorMessage(err));
       setSaving(false);

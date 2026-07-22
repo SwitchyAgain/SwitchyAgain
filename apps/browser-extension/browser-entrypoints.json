@@ -3,7 +3,7 @@
     "serviceWorkerScripts": ["js/background.js"]
   },
   "popupScripts": {
-    "packages/web-ui/src/popup/index.html": ["../js/popup_bridge.js", "../react/popup_app.js"],
-    "packages/web-ui/src/popup/proxy_not_controllable.html": ["../js/popup_bridge.js", "../react/proxy_not_controllable.js"]
+    "packages/web-ui/src/popup/index.html": ["../react/popup_app.js"],
+    "packages/web-ui/src/popup/proxy_not_controllable.html": ["../react/proxy_not_controllable.js"]
   }
 }

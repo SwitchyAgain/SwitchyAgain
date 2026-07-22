@@ -9,7 +9,6 @@ import {
   extensionMessage,
   extensionUiLanguage,
   extensionUrl,
-  getGlobalValue,
   getJsonLocalStorage,
   queryTabsByUrl,
   runtimeAvailable,
@@ -23,7 +22,6 @@ import {
 type TestGlobal = typeof globalThis & {
   browser?: any;
   chrome?: any;
-  PopupBridge?: unknown;
 };
 
 function testGlobal() {
@@ -33,7 +31,6 @@ function testGlobal() {
 afterEach(() => {
   localStorage.clear();
   delete testGlobal().browser;
-  delete testGlobal().PopupBridge;
 });
 
 describe('browser environment adapter', () => {
@@ -153,11 +150,7 @@ describe('browser environment adapter', () => {
     expect(getJsonLocalStorage('bad')).toBeUndefined();
   });
 
-  it('wraps simple global and document helpers', () => {
-    testGlobal().PopupBridge = {ready: true};
-
-    expect(getGlobalValue<{ready: boolean}>('PopupBridge')).toEqual({ready: true});
-
+  it('wraps document helpers', () => {
     setBodyOpacity('0.5');
     expect(document.body.style.opacity).toBe('0.5');
   });

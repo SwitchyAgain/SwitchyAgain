@@ -58,7 +58,6 @@ type NavigatorWithUserAgentData = Navigator & {
 type BrowserGlobal = typeof globalThis & {
   browser?: ExtensionBrowserApi;
   chrome?: ExtensionChromeApi;
-  PopupBridge?: unknown;
 };
 
 function browserGlobal() {
@@ -258,10 +257,6 @@ export function downloadBlobFile(blob: Blob, filename: string) {
   link.click();
   link.remove();
   globalThis.setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-export function getGlobalValue<T>(name: string) {
-  return browserGlobal()[name as keyof BrowserGlobal] as T | undefined;
 }
 
 export function closeWindow() {

@@ -376,7 +376,7 @@ interface RuntimeOptionsBase {
   applyProfile(profileName: string, options?: Record<string, unknown>): Promise<unknown>;
   currentProfile(): unknown;
   currentProfileChanged(reason: string): unknown;
-  explainRequest(args: unknown): Promise<PopupApiRequestExplanation>;
+  explainRequest(args: unknown): Promise<RuntimeRequestExplanation>;
   queryTempRule(domain: string): unknown;
   updateProfile(...args: unknown[]): Promise<Record<string, unknown>>;
   upgrade(options?: unknown, ...args: unknown[]): Promise<unknown>;
@@ -413,11 +413,7 @@ interface ExtensionRuntimeModule extends Record<string, unknown> {
   Storage: RuntimeStorageConstructor;
 }
 
-type PopupApiCallback<T = unknown> = (error?: unknown, result?: T) => void;
-
-type PopupApiProfileKey = `+${string}`;
-
-type PopupApiProfile = {
+type RuntimeRequestProfile = {
   builtin?: boolean;
   color?: string;
   defaultProfileName?: string;
@@ -428,10 +424,8 @@ type PopupApiProfile = {
   [key: string]: unknown;
 };
 
-type PopupApiProfileMap = Record<PopupApiProfileKey, PopupApiProfile | undefined>;
-
-type PopupApiRequestExplanation = {
-  currentProfile?: Partial<PopupApiProfile>;
+type RuntimeRequestExplanation = {
+  currentProfile?: Partial<RuntimeRequestProfile>;
   errors?: string[];
   final: {
     auth?: boolean;
@@ -439,139 +433,22 @@ type PopupApiRequestExplanation = {
     kind: string;
     limited?: boolean;
     pacResult?: string;
-    profile?: Partial<PopupApiProfile>;
+    profile?: Partial<RuntimeRequestProfile>;
     proxy?: unknown;
   };
-  finalProfile?: Partial<PopupApiProfile>;
+  finalProfile?: Partial<RuntimeRequestProfile>;
   request: Record<string, unknown>;
-  startProfile?: Partial<PopupApiProfile>;
+  startProfile?: Partial<RuntimeRequestProfile>;
   steps: Array<Record<string, unknown>>;
   tempRulesActive: boolean;
   warnings: string[];
 };
-
-type PopupApiPageInfo = {
-  domain?: string;
-  errorCount?: number;
-  failedRequestDetectionEnabled?: boolean;
-  networkRequestIgnoreList?: string[];
-  networkRequestIgnoreListEnabled?: boolean;
-  profileScope?: {
-    assignments?: {
-      containers?: Record<string, string>;
-      normalDefaultProfileName?: string;
-      privateDefaultProfileName?: string;
-    };
-    capabilities?: {
-      container?: boolean;
-      tab?: boolean;
-      window?: boolean;
-    };
-    containerProfileName?: string;
-    cookieStoreId?: string;
-    effectiveProfileName?: string;
-    effectiveScope?: string;
-    enabled?: {
-      container?: boolean;
-      tab?: boolean;
-      window?: boolean;
-    };
-    incognito?: boolean;
-    isContainer?: boolean;
-    tabId?: number;
-    tabProfileName?: string;
-    windowProfileName?: string;
-  };
-  requestExplanations?: PopupApiRequestExplanation[];
-  requestLimitExceeded?: boolean;
-  routeInfoEnabled?: boolean;
-  routeInfoRequestDetailsEnabled?: boolean;
-  requests?: Array<{
-    error?: string;
-    id: string;
-    ignored?: boolean;
-    ignoreMatches?: string[];
-    status?: string;
-    type?: string;
-    url: string;
-  }>;
-  summary?: Record<string, {errorCount?: number}>;
-  tempRuleProfileName?: string;
-  url?: string;
-  [key: string]: unknown;
-};
-
-type PopupApiPageInfoOptions = {
-  includeExplanations?: boolean;
-};
-
-type PopupApiState = {
-  availableProfiles?: PopupApiProfileMap;
-  currentProfileCanAddRule?: boolean;
-  currentProfileName?: string;
-  externalProfile?: PopupApiProfile;
-  isSystemProfile?: boolean;
-  lastProfileNameForCondition?: string;
-  proxyNotControllable?: string;
-  refreshOnProfileChange?: boolean;
-  showExternalProfile?: boolean;
-  showPopupAddCondition?: boolean;
-  showPopupAddTempRule?: boolean;
-  uiLocale?: string;
-  uiTheme?: string;
-  validResultProfiles?: string[];
-};
-
-type PopupApiStateKey = keyof PopupApiState;
-type PopupApiWritableStateKey = 'lastProfileNameForCondition';
-
-type PopupApiConditionType =
-  | 'HostRegexCondition'
-  | 'HostWildcardCondition'
-  | 'KeywordCondition'
-  | 'UrlRegexCondition'
-  | 'UrlWildcardCondition';
-
-type PopupApiCondition = {
-  conditionType: PopupApiConditionType;
-  pattern: string;
-};
-
-type PopupApiConditionInput = PopupApiCondition | PopupApiCondition[];
-
-interface PopupBridgeApi {
-  addCondition(condition: PopupApiConditionInput, profileName: string, addToBottom: boolean, cb?: PopupApiCallback): void;
-  addProfile(profile: PopupApiProfile, cb?: PopupApiCallback): void;
-  addTempRule(domain: string, profileName: string, cb?: PopupApiCallback): void;
-  applyProfile(name: string, cb?: PopupApiCallback): void;
-  getActivePageInfo(cb: PopupApiCallback<PopupApiPageInfo>): void;
-  getActivePageInfo(options: PopupApiPageInfoOptions, cb: PopupApiCallback<PopupApiPageInfo>): void;
-  getMessage(messageName: string, substitutions?: string | string[]): string;
-  getState(keys: PopupApiStateKey[], cb?: PopupApiCallback<PopupApiState>): void;
-  openManage(cb?: PopupApiCallback): void;
-  openManage(domain?: string, profileName?: string, cb?: PopupApiCallback): void;
-  openOptions(hash?: string | null, cb?: PopupApiCallback): void;
-  patchOptions(patch: Record<string, unknown>, cb?: PopupApiCallback): void;
-  setDefaultProfile(profileName: string, defaultProfileName: string, cb?: PopupApiCallback): void;
-  setProfileScope(
-    args: {
-      cookieStoreId?: string;
-      incognito?: boolean;
-      profileName?: string;
-      scope: 'container' | 'group' | 'normal' | 'private' | 'tab';
-      tabId?: number;
-    },
-    cb?: PopupApiCallback
-  ): void;
-  setState(name: PopupApiWritableStateKey, value: PopupApiState[PopupApiWritableStateKey], cb?: PopupApiCallback): void;
-}
 
 type ProxyFindFunction = (url: string, host: string, details?: unknown) => unknown;
 
 declare var chrome: ChromeGlobal;
 declare var browser: BrowserGlobal;
 declare var FindProxyForURL: ProxyFindFunction;
-declare var PopupBridge: PopupBridgeApi;
 declare function importScripts(...urls: string[]): void;
 
 declare module '@switchyagain/extension-runtime' {
@@ -581,5 +458,4 @@ declare module '@switchyagain/extension-runtime' {
 
 interface Window {
   FindProxyForURL: ProxyFindFunction;
-  PopupBridge: PopupBridgeApi;
 }

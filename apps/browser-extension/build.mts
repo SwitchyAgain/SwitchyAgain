@@ -308,7 +308,6 @@ async function main() {
   };
   const webBuildRoot = path.join(workspaceRoot, 'packages/web-ui/build');
   await copyTree(webBuildRoot, path.join(root, 'build'), fontFilter(webBuildRoot));
-  await copyFile(path.join(root, 'build-ts/js/popup_bridge.js'), path.join(root, 'build/js/popup_bridge.js'));
   await writeServiceWorker(path.join(root, 'build/service_worker.js'), browserEntrypoints.background.serviceWorkerScripts);
   await copyTree(path.join(root, 'overlay'), path.join(root, 'build'));
   await writeBackgroundHtml(path.join(root, 'build/background.html'), backgroundDocumentScripts(browserEntrypoints));

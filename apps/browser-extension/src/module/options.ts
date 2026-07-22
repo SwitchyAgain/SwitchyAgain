@@ -3075,22 +3075,22 @@ class ChromeOptions extends ExtensionRuntime.Options {
           ? {profileName: profileScope.effectiveProfileName, url: request.url}
           : {url: request.url};
       return this.explainRequest(explainArgs).catch((error: unknown) => ({
-        currentProfile: undefined as Partial<PopupApiProfile> | undefined,
+        currentProfile: undefined as Partial<RuntimeRequestProfile> | undefined,
         errors: [error instanceof Error ? error.message : String(error)],
         final: {
           kind: 'error'
         },
-        finalProfile: undefined as Partial<PopupApiProfile> | undefined,
+        finalProfile: undefined as Partial<RuntimeRequestProfile> | undefined,
         request: {
           url: request.url
         },
-        startProfile: undefined as Partial<PopupApiProfile> | undefined,
+        startProfile: undefined as Partial<RuntimeRequestProfile> | undefined,
         steps: [] as Array<Record<string, unknown>>,
         tempRulesActive: false,
         warnings: [] as string[]
       }));
     });
-    return Promise.all(explanations).then((requestExplanations: PopupApiRequestExplanation[]) => ({
+    return Promise.all(explanations).then((requestExplanations: RuntimeRequestExplanation[]) => ({
       ...basePageInfo,
       requestExplanations
     }));

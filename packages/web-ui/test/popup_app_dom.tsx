@@ -1,16 +1,29 @@
 // @vitest-environment jsdom
 
 import {cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
+import type {PageInfo, PopupState} from '../src/react/popup_bridge';
+
+const popupBridgeMock = vi.hoisted(() => ({
+  addPopupCondition: vi.fn(),
+  addPopupProfile: vi.fn(),
+  addPopupTempRule: vi.fn(),
+  applyPopupProfile: vi.fn(),
+  closePopup: vi.fn(),
+  getPopupPageInfo: vi.fn(),
+  getPopupState: vi.fn(),
+  openPopupOptions: vi.fn(),
+  patchPopupOptions: vi.fn(),
+  setPopupDefaultProfile: vi.fn(),
+  setPopupProfileScope: vi.fn(),
+  setPopupState: vi.fn()
+}));
+
+vi.mock('../src/react/popup_bridge', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../src/react/popup_bridge')>()),
+  ...popupBridgeMock
+}));
+
 import {PopupApp} from '../src/react/popup_app';
-import type {PageInfo, PopupBridgeClient, PopupState} from '../src/react/popup_bridge_client';
-
-type TestGlobal = typeof globalThis & {
-  PopupBridge?: PopupBridgeClient;
-};
-
-function testGlobal() {
-  return globalThis as TestGlobal;
-}
 
 function popupState(): PopupState {
   return {
@@ -86,35 +99,22 @@ function ignoredOnlyPageInfo(): PageInfo {
 
 let currentPageInfo: PageInfo;
 
-function getActivePageInfo(callback: (error?: unknown, result?: PageInfo) => void): void;
-function getActivePageInfo(_options: unknown, callback: (error?: unknown, result?: PageInfo) => void): void;
-function getActivePageInfo(callbackOrOptions: unknown, callback?: (error?: unknown, result?: PageInfo) => void) {
-  const cb = typeof callbackOrOptions === 'function' ? callbackOrOptions : callback;
-  cb?.(undefined, currentPageInfo);
-}
-
 describe('popup app', () => {
   beforeEach(() => {
+    for (const mock of Object.values(popupBridgeMock)) {
+      mock.mockReset();
+      mock.mockResolvedValue(undefined);
+    }
     window.location.hash = '#!routeInfo';
     document.body.style.opacity = '';
     currentPageInfo = failedPageInfo();
-    testGlobal().PopupBridge = {
-      getActivePageInfo,
-      getMessage() {
-        return '';
-      },
-      getState(_keys, callback) {
-        callback(undefined, popupState());
-      },
-      patchOptions(_patch, callback) {
-        callback?.(undefined, {});
-      }
-    };
+    popupBridgeMock.getPopupPageInfo.mockImplementation(() => Promise.resolve(currentPageInfo));
+    popupBridgeMock.getPopupState.mockResolvedValue(popupState());
+    popupBridgeMock.patchPopupOptions.mockResolvedValue({});
   });
 
   afterEach(() => {
     cleanup();
-    delete testGlobal().PopupBridge;
   });
 
   it('allows unchecked failed request domains without closing the popup', async () => {
@@ -146,14 +146,7 @@ describe('popup app', () => {
   });
 
   it('shows network request configuration when ignore list is disabled and rules cannot be added', async () => {
-    const openOptions = vi.fn();
-    testGlobal().PopupBridge = {
-      ...testGlobal().PopupBridge,
-      getState(_keys, callback) {
-        callback(undefined, nonSwitchPopupState());
-      },
-      openOptions
-    };
+    popupBridgeMock.getPopupState.mockResolvedValue(nonSwitchPopupState());
 
     render(<PopupApp />);
 
@@ -162,7 +155,7 @@ describe('popup app', () => {
     expect(screen.queryByText('Ignore list')).toBeNull();
 
     fireEvent.click(configureButton);
-    expect(openOptions).toHaveBeenCalledWith('#/requestLens', expect.any(Function));
+    expect(popupBridgeMock.openPopupOptions).toHaveBeenCalledWith('#/requestLens');
   });
 
   it('shows a request details notice while keeping failed request actions available', async () => {
@@ -182,7 +175,6 @@ describe('popup app', () => {
   });
 
   it('links to Request Lens when failed request detection is disabled', async () => {
-    const openOptions = vi.fn();
     currentPageInfo = {
       ...failedPageInfo(),
       errorCount: 0,
@@ -193,22 +185,16 @@ describe('popup app', () => {
       routeInfoRequestDetailsEnabled: false,
       summary: {}
     };
-    testGlobal().PopupBridge = {
-      ...testGlobal().PopupBridge,
-      openOptions
-    };
-
     render(<PopupApp />);
 
     expect(await screen.findByText('Request details are disabled.')).toBeTruthy();
     const configureButton = screen.getByRole('button', {name: 'Configure network requests'});
 
     fireEvent.click(configureButton);
-    expect(openOptions).toHaveBeenCalledWith('#/requestLens', expect.any(Function));
+    expect(popupBridgeMock.openPopupOptions).toHaveBeenCalledWith('#/requestLens');
   });
 
   it('links to Request Lens when no failed requests are available', async () => {
-    const openOptions = vi.fn();
     currentPageInfo = {
       ...failedPageInfo(),
       errorCount: 0,
@@ -218,18 +204,13 @@ describe('popup app', () => {
       routeInfoRequestDetailsEnabled: false,
       summary: {}
     };
-    testGlobal().PopupBridge = {
-      ...testGlobal().PopupBridge,
-      openOptions
-    };
-
     render(<PopupApp />);
 
     expect(await screen.findByText('Request details are disabled.')).toBeTruthy();
     const configureButton = screen.getByRole('button', {name: 'Configure network requests'});
 
     fireEvent.click(configureButton);
-    expect(openOptions).toHaveBeenCalledWith('#/requestLens', expect.any(Function));
+    expect(popupBridgeMock.openPopupOptions).toHaveBeenCalledWith('#/requestLens');
   });
 
   it('hides route info without hiding other page-domain popup actions', async () => {
@@ -258,30 +239,25 @@ describe('popup app', () => {
         tabId: 1
       }
     };
-    testGlobal().PopupBridge = {
-      ...testGlobal().PopupBridge,
-      getState(_keys, callback) {
-        callback(undefined, {
-          ...popupState(),
-          availableProfiles: {
-            ...popupState().availableProfiles,
-            '+grouped': {
-              name: 'grouped',
-              profileGroupEnabled: true,
-              profileGroupId: 'work',
-              profileType: 'FixedProfile'
-            },
-            '+plain': {
-              name: 'plain',
-              profileType: 'FixedProfile'
-            }
-          },
-          profileGroups: [{id: 'work', name: 'Work'}],
-          profileGroupsEnabled: true,
-          scopeAssignableProfiles: ['plain', 'grouped']
-        });
-      }
-    };
+    popupBridgeMock.getPopupState.mockResolvedValue({
+      ...popupState(),
+      availableProfiles: {
+        ...popupState().availableProfiles,
+        '+grouped': {
+          name: 'grouped',
+          profileGroupEnabled: true,
+          profileGroupId: 'work',
+          profileType: 'FixedProfile'
+        },
+        '+plain': {
+          name: 'plain',
+          profileType: 'FixedProfile'
+        }
+      },
+      profileGroups: [{id: 'work', name: 'Work'}],
+      profileGroupsEnabled: true,
+      scopeAssignableProfiles: ['plain', 'grouped']
+    });
 
     const {container} = render(<PopupApp />);
     await screen.findByText('This Tab');

@@ -66,7 +66,12 @@ async function installExtensionApi(page, initialState = {}) {
           const keys = message.args?.[0] || [];
           result = {};
           for (const key of Array.isArray(keys) ? keys : [keys]) {
-            result[key] = localState.has(key) ? localState.get(key) : mockPopupState[key];
+            result[key] =
+              key === 'proxyNotControllable' && window.location.pathname.includes('proxy_not_controllable')
+                ? 'app'
+                : localState.has(key)
+                  ? localState.get(key)
+                  : mockPopupState[key];
           }
         } else if (method === 'setState') {
           const values = message.args?.[0] || {};
@@ -143,73 +148,6 @@ async function installExtensionApi(page, initialState = {}) {
   }, messages);
 }
 
-async function installPopupBridge(page) {
-  await page.addInitScript(({mockMessages, mockPageInfo, mockPopupState}) => {
-    function pageInfoForRequest(options) {
-      const result = structuredClone(mockPageInfo);
-      if (!options?.includeExplanations) {
-        delete result.requestExplanations;
-      }
-      return result;
-    }
-    function getMessage(key, substitutions) {
-      const values = Array.isArray(substitutions)
-        ? substitutions
-        : substitutions == null
-          ? []
-          : [substitutions];
-      let text = mockMessages[key]?.message || key;
-      for (let i = 0; i < values.length; i++) {
-        text = text
-          .replaceAll(`$${i}$`, String(values[i]))
-          .replaceAll(`$${i + 1}$`, String(values[i]));
-      }
-      return text;
-    }
-    window.PopupBridge = {
-      addCondition(_condition, _profileName, _addToBottom, callback) {
-        callback?.(null);
-      },
-      addTempRule(_domain, _profileName, callback) {
-        callback?.(null);
-      },
-      applyProfile(_name, callback) {
-        callback?.(null);
-      },
-      getActivePageInfo(optionsOrCallback, callback) {
-        const options = typeof optionsOrCallback === 'function' ? {} : optionsOrCallback || {};
-        const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
-        cb?.(null, pageInfoForRequest(options));
-      },
-      getMessage,
-      getState(_keys, callback) {
-        callback?.(null, {
-          ...mockPopupState,
-          proxyNotControllable: window.location.pathname.includes('proxy_not_controllable')
-            ? 'app'
-            : mockPopupState.proxyNotControllable
-        });
-      },
-      openManage(callback) {
-        callback?.(null);
-      },
-      openOptions(_hash, callback) {
-        callback?.(null);
-      },
-      setDefaultProfile(_profileName, _defaultProfileName, callback) {
-        callback?.(null);
-      },
-      setState(_name, _value, callback) {
-        callback?.(null);
-      }
-    };
-  }, {
-    mockMessages: messages,
-    mockPageInfo: popupPageInfo(),
-    mockPopupState: popupStateForPath('')
-  });
-}
-
 async function pageSnapshot(page) {
   return page.evaluate(() => ({
     bodyClass: document.body.className,
@@ -240,17 +178,13 @@ async function expectSelectorWithSnapshot(page, selector, label) {
 async function runPage(page, target) {
   const guard = installBrowserErrorGuards(page, target.label);
   await installExtensionApi(page, target.state);
-  if (target.popup) {
-    await installPopupBridge(page);
-    await page.route('**/js/popup_bridge.js', (route) => {
-      route.fulfill({
-        body: '',
-        contentType: 'application/javascript',
-        status: 200
-      });
-    });
-  }
   await page.goto(target.url, {waitUntil: 'domcontentloaded'});
+  if (target.popup) {
+    const popupBridgeType = await page.evaluate(() => typeof window.PopupBridge);
+    if (popupBridgeType !== 'undefined') {
+      throw new Error(`Legacy popup global PopupBridge is still exposed as ${popupBridgeType}.`);
+    }
+  }
   if (target.selector) {
     await expectSelector(page, target.selector, target.label);
   }

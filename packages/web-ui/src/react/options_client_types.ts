@@ -123,11 +123,17 @@ export type WebDavSyncStatus = {
 };
 
 export type BackgroundMethodArgs = {
+  addCondition: [condition: unknown, profileName: string, addToBottom: boolean];
+  addProfile: [profile: unknown];
+  addTempRule: [domain: string, profileName: string];
   applyProfile: [name: string];
+  beginOptionsHandoff: [tabId: number];
   cancelOptionsHandoff: [handoffId: string];
   explainRequest: [args: RequestExplainArgs | string];
   getAll: [];
   getLog: [];
+  getOptionsPageState: [tabId: number];
+  getPageInfo: [args: Record<string, unknown>];
   getState: [name: string | string[]];
   getWebDavSyncConfig: [];
   patch: [patch: OptionsPatch];
@@ -138,7 +144,9 @@ export type BackgroundMethodArgs = {
   refreshProfileScopeContainerNames: [];
   resolveOptionsHandoff: [handoffId: string, action: 'apply' | 'discard'];
   runWebDavSyncAction: [action: WebDavSyncManualAction];
+  setDefaultProfile: [profileName: string, defaultProfileName: string];
   setOptionsSync: [enabled: boolean, args?: unknown];
+  setProfileScope: [args: Record<string, unknown>];
   setWebDavOptionsSync: [enabled: boolean, args?: WebDavSyncActionArgs];
   setWebDavSyncConfig: [config: WebDavSyncConfig];
   setState: [items: Record<string, unknown>];
@@ -147,11 +155,20 @@ export type BackgroundMethodArgs = {
 };
 
 export type BackgroundMethodResult = {
+  addCondition: unknown;
+  addProfile: unknown;
+  addTempRule: unknown;
   applyProfile: unknown;
+  beginOptionsHandoff: string;
   cancelOptionsHandoff: void;
   explainRequest: RequestExplanation;
   getAll: Options;
   getLog: string;
+  getOptionsPageState: {
+    dirty: boolean;
+    registered: boolean;
+  };
+  getPageInfo: unknown;
   getState: Record<string, unknown>;
   getWebDavSyncConfig: WebDavSyncConfig | null;
   patch: Options;
@@ -162,7 +179,9 @@ export type BackgroundMethodResult = {
   refreshProfileScopeContainerNames: ProfileScopeContainerInfo[];
   resolveOptionsHandoff: void;
   runWebDavSyncAction: void;
+  setDefaultProfile: unknown;
   setOptionsSync: void;
+  setProfileScope: unknown;
   setWebDavOptionsSync: void;
   setWebDavSyncConfig: WebDavSyncConfig;
   setState: Record<string, unknown>;
