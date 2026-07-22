@@ -109,4 +109,22 @@ describe('options handoff client', () => {
     await vi.advanceTimersByTimeAsync(100);
     expect(connect).toHaveBeenCalledTimes(2);
   });
+
+  it('drains runtime lastError when the port disconnects', () => {
+    const runtimePort = createRuntimePort();
+    const lastErrorRead = vi.fn(() => ({message: 'Receiving end does not exist.'}));
+    const runtime = {
+      connect: vi.fn(() => runtimePort.port)
+    };
+    Object.defineProperty(runtime, 'lastError', {
+      get: lastErrorRead
+    });
+    testGlobal().chrome = {runtime};
+
+    const connection = connectOptionsHandoff(vi.fn());
+    runtimePort.disconnectFromRuntime();
+
+    expect(lastErrorRead).toHaveBeenCalledOnce();
+    connection?.dispose();
+  });
 });

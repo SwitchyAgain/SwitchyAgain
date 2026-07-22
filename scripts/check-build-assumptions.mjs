@@ -142,10 +142,38 @@ async function checkClassicScriptEntrypoints() {
   }
 }
 
+async function checkBackgroundPersistentListeners() {
+  const file = 'apps/browser-extension/src/module/background.ts';
+  const source = await readText(file);
+  const stateRestore = source.indexOf('Object.assign(localState, await stateStorage.get(null));');
+  if (stateRestore < 0) {
+    fail(`${file}: background state restore was not found`);
+    return;
+  }
+  for (const listener of [
+    'chrome.runtime.onConnect.addListener(onOptionsHandoffConnect);',
+    'chrome.runtime.onMessage.addListener(onBackgroundMessage);'
+  ]) {
+    const registration = source.indexOf(listener);
+    if (registration < 0 || registration > stateRestore) {
+      fail(`${file}: ${listener} must be registered before the first asynchronous state restore`);
+    }
+  }
+  const startupGate = source.indexOf('backgroundStartup.then(() => readinessForRequest(typedRequest))');
+  const startupComplete = source.indexOf('resolveBackgroundStartup();');
+  if (startupGate < 0) {
+    fail(`${file}: runtime messages must wait for background startup`);
+  }
+  if (startupComplete < stateRestore) {
+    fail(`${file}: background startup must not complete before state restore`);
+  }
+}
+
 await checkTsconfigTargets();
 await checkLegacyTargets();
 await checkBundleTargetDefaults();
 await checkClassicScriptEntrypoints();
+await checkBackgroundPersistentListeners();
 
 if (failures.length > 0) {
   console.error('Build assumption checks failed:');

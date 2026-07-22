@@ -1,5 +1,5 @@
 import {callBackground} from './background_client';
-import {connectRuntimePort} from './browser_env';
+import {connectRuntimePort, runtimeLastErrorMessage} from './browser_env';
 
 export type OptionsHandoffAction = 'apply' | 'discard';
 
@@ -91,6 +91,7 @@ export function connectOptionsHandoff(onMessage: (message: OptionsHandoffPortMes
     }
   };
   const handleDisconnect = () => {
+    runtimeLastErrorMessage();
     connected = false;
     port = null;
     if (!disposed && reconnectTimer == null) {

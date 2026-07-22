@@ -713,6 +713,15 @@ type BackgroundExtensionRuntime = {
   let webDavSyncFailureCount = 0;
   let webDavSyncAlarmListenerInstalled = false;
   let webDavSyncRestorePromise: Promise<unknown> | null = null;
+  const optionsHandoffPorts: Record<number, OptionsHandoffPortEntry> = {};
+  const optionsHandoffs: Record<string, OptionsHandoffEntry> = {};
+  let resolveBackgroundStartup!: () => void;
+  const backgroundStartup = new Promise<void>((resolve) => {
+    resolveBackgroundStartup = resolve;
+  });
+
+  chrome.runtime.onConnect.addListener(onOptionsHandoffConnect);
+  chrome.runtime.onMessage.addListener(onBackgroundMessage);
 
   function statusCodeForError(error: unknown) {
     const candidate = error as
@@ -1907,9 +1916,6 @@ type BackgroundExtensionRuntime = {
     );
   }
 
-  const optionsHandoffPorts: Record<number, OptionsHandoffPortEntry> = {};
-  const optionsHandoffs: Record<string, OptionsHandoffEntry> = {};
-
   function optionsHandoffId() {
     return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   }
@@ -2167,7 +2173,7 @@ type BackgroundExtensionRuntime = {
     }
   }
 
-  chrome.runtime.onConnect.addListener((port: ChromeRuntimePort) => {
+  function onOptionsHandoffConnect(port: ChromeRuntimePort) {
     if (port.name !== 'optionsHandoff') {
       return;
     }
@@ -2241,9 +2247,9 @@ type BackgroundExtensionRuntime = {
         }
       }
     });
-  });
+  }
 
-  chrome.runtime.onMessage.addListener((request: unknown, _sender: unknown, respond: BackgroundRespond) => {
+  function onBackgroundMessage(request: unknown, _sender: unknown, respond: BackgroundRespond) {
     if (!isRecord(request) || typeof request.method !== 'string') {
       return;
     }
@@ -2258,7 +2264,7 @@ type BackgroundExtensionRuntime = {
       return;
     }
     const typedRequest = backgroundRequest as BackgroundRequest;
-    readinessForRequest(typedRequest).then(
+    backgroundStartup.then(() => readinessForRequest(typedRequest)).then(
       () => {
         const dispatch = resolveBackgroundDispatch(backgroundRequest);
         if (!dispatch) {
@@ -2326,5 +2332,7 @@ type BackgroundExtensionRuntime = {
     if (!backgroundRequest.noReply) {
       return true;
     }
-  });
+  }
+
+  resolveBackgroundStartup();
 })();
