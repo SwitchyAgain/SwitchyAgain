@@ -1356,17 +1356,6 @@ function ProfileScopeMenuItem({
             </a>
           </li>
           {profileGroups.visible.map(profileItem)}
-          {profileGroups.groups.map((group) => (
-            <ProfileScopeGroupMenuItem
-              key={group.id}
-              activeProfileName={activeProfileName}
-              group={group}
-              open={profileGroupOpen === group.id}
-              state={state}
-              onProfileChange={onProfileChange}
-              onToggle={() => setProfileGroupOpen(profileGroupOpen === group.id ? '' : group.id)}
-            />
-          ))}
           {profileGroups.hidden.length > 0 && (
             <li className={`sa-popup-nav-item sa-popup-hidden-scope-profiles ${hiddenOpen ? 'sa-popup-open' : ''}`}>
               <a
@@ -1380,7 +1369,7 @@ function ProfileScopeMenuItem({
                 }}
               >
                 <span className="glyphicon glyphicon-eye-close" />
-                <span>
+                <span className="sa-popup-menu-label">
                   <span>{popupMessage('popup_hiddenProfilesMenu', 'Hidden')}</span>
                   <span className="sa-popup-caret" />
                 </span>
@@ -1388,6 +1377,17 @@ function ProfileScopeMenuItem({
               {hiddenOpen && <ul className="sa-popup-scope-hidden-list">{profileGroups.hidden.map(profileItem)}</ul>}
             </li>
           )}
+          {profileGroups.groups.map((group) => (
+            <ProfileScopeGroupMenuItem
+              key={group.id}
+              activeProfileName={activeProfileName}
+              group={group}
+              open={profileGroupOpen === group.id}
+              state={state}
+              onProfileChange={onProfileChange}
+              onToggle={() => setProfileGroupOpen(profileGroupOpen === group.id ? '' : group.id)}
+            />
+          ))}
         </ul>
       )}
     </li>
@@ -1426,7 +1426,7 @@ function ProfileScopeGroupMenuItem({
         }}
       >
         <ProfileGroupIcon group={group} />
-        <span>
+        <span className="sa-popup-menu-label">
           <span>{group.name}</span>
           <span className="sa-popup-caret" />
         </span>
