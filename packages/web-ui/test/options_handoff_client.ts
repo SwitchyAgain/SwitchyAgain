@@ -63,34 +63,50 @@ function createRuntimePort() {
 }
 
 describe('options handoff client', () => {
-  it('stops sending messages after the runtime port disconnects', () => {
-    const runtimePort = createRuntimePort();
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('reconnects after the runtime port disconnects and restores the latest state', async () => {
+    vi.useFakeTimers();
+    const firstPort = createRuntimePort();
+    const secondPort = createRuntimePort();
+    const connect = vi.fn().mockReturnValueOnce(firstPort.port).mockReturnValue(secondPort.port);
     testGlobal().chrome = {
       runtime: {
-        connect: vi.fn(() => runtimePort.port)
+        connect
       }
     };
     const onMessage = vi.fn();
     const connection = connectOptionsHandoff(onMessage);
 
     connection?.updateState(true);
-    expect(runtimePort.port.postMessage).toHaveBeenCalledWith({
+    expect(firstPort.port.postMessage).toHaveBeenCalledWith({
       dirty: true,
       type: 'optionsHandoffState'
     });
 
-    runtimePort.disconnectFromRuntime();
+    firstPort.disconnectFromRuntime();
+    connection?.updateState(false);
+    await vi.advanceTimersByTimeAsync(100);
 
-    expect(() => connection?.updateState(false)).not.toThrow();
-    expect(() => connection?.claim('handoff-1')).not.toThrow();
-    expect(() => connection?.resolved('handoff-1', 'apply', true)).not.toThrow();
-    expect(() => connection?.dispose()).not.toThrow();
-    expect(runtimePort.port.postMessage).toHaveBeenCalledTimes(1);
+    expect(connect).toHaveBeenCalledTimes(2);
+    expect(secondPort.port.postMessage).toHaveBeenCalledWith({
+      dirty: false,
+      type: 'optionsHandoffState'
+    });
 
-    runtimePort.emit({
+    secondPort.emit({
       handoffId: 'handoff-1',
       type: 'optionsHandoffLock'
     });
-    expect(onMessage).not.toHaveBeenCalled();
+    expect(onMessage).toHaveBeenCalledWith({
+      handoffId: 'handoff-1',
+      type: 'optionsHandoffLock'
+    });
+
+    connection?.dispose();
+    await vi.advanceTimersByTimeAsync(100);
+    expect(connect).toHaveBeenCalledTimes(2);
   });
 });

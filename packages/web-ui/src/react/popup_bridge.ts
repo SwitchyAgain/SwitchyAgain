@@ -2,7 +2,15 @@ import {message} from './i18n_client';
 import type {OptionsPatch, RequestExplanation} from './options_client_types';
 import type {NamedProfile, ProfileKey} from './profile_types';
 import {callBackground, callBackgroundWithRefresh} from './background_client';
-import {closeWindow, extensionChrome, extensionRuntime, reloadHistory, runtimeLastErrorMessage, setBodyOpacity} from './browser_env';
+import {
+  closeWindow,
+  extensionBrowserName,
+  extensionChrome,
+  extensionRuntime,
+  reloadHistory,
+  runtimeLastErrorMessage,
+  setBodyOpacity
+} from './browser_env';
 
 export type {ProfileKey};
 
@@ -143,6 +151,19 @@ type PopupTabsApi = {
   update?: (tabId: number, props: {active?: boolean; url?: string}, callback?: (tab?: PopupTab) => void) => void;
 };
 
+type PopupWindow = {
+  state?: 'docked' | 'fullscreen' | 'maximized' | 'minimized' | 'normal';
+};
+
+type PopupWindowsApi = {
+  get?: (windowId: number, callback: (window?: PopupWindow) => void) => void;
+  update?: (
+    windowId: number,
+    props: {focused?: boolean; state?: 'fullscreen' | 'maximized' | 'minimized' | 'normal'},
+    callback?: (window?: PopupWindow) => void
+  ) => void;
+};
+
 const localStatePrefix = 'state.';
 
 export function closePopup() {
@@ -153,6 +174,10 @@ export function closePopup() {
 
 function popupTabs() {
   return extensionChrome().tabs as PopupTabsApi | undefined;
+}
+
+function popupWindows() {
+  return extensionChrome().windows as PopupWindowsApi | undefined;
 }
 
 function popupTabUrl(tab?: PopupTab | null) {
@@ -182,21 +207,73 @@ function queryTabs(queryInfo: {active?: boolean; lastFocusedWindow?: boolean; ur
 }
 
 function createTab(url: string) {
-  return new Promise<void>((resolve, reject) => {
+  return new Promise<PopupTab | undefined>((resolve, reject) => {
     const tabsApi = popupTabs();
     const create = tabsApi?.create;
     if (!create) {
       reject(new Error('tabs.create is unavailable.'));
       return;
     }
-    create.call(tabsApi, {url}, () => {
+    create.call(tabsApi, {url}, (tab) => {
       if (runtimeLastErrorMessage()) {
         reject(extensionApiError('Unable to create browser tab.'));
+        return;
+      }
+      resolve(tab);
+    });
+  });
+}
+
+function getPopupWindow(windowId: number) {
+  return new Promise<PopupWindow | undefined>((resolve, reject) => {
+    const windowsApi = popupWindows();
+    const get = windowsApi?.get;
+    if (!get) {
+      resolve(undefined);
+      return;
+    }
+    get.call(windowsApi, windowId, (window) => {
+      if (runtimeLastErrorMessage()) {
+        reject(extensionApiError('Unable to get browser window.'));
+        return;
+      }
+      resolve(window);
+    });
+  });
+}
+
+function updatePopupWindow(windowId: number, props: {focused?: boolean; state?: 'fullscreen' | 'maximized' | 'minimized' | 'normal'}) {
+  return new Promise<void>((resolve, reject) => {
+    const windowsApi = popupWindows();
+    const update = windowsApi?.update;
+    if (!update) {
+      resolve();
+      return;
+    }
+    update.call(windowsApi, windowId, props, () => {
+      if (runtimeLastErrorMessage()) {
+        reject(extensionApiError('Unable to update browser window.'));
         return;
       }
       resolve();
     });
   });
+}
+
+async function focusPopupWindow(windowId?: number) {
+  if (typeof windowId !== 'number') {
+    return;
+  }
+  const window = await getPopupWindow(windowId);
+  if (window?.state === 'minimized') {
+    await updatePopupWindow(windowId, {state: 'normal'});
+  }
+  await updatePopupWindow(windowId, {focused: true});
+}
+
+async function createFocusedTab(url: string) {
+  const tab = await createTab(url);
+  await focusPopupWindow(tab?.windowId);
 }
 
 function updateTab(tabId: number, props: {active?: boolean; url?: string}) {
@@ -245,6 +322,9 @@ function cacheActivePageInfo(info?: PageInfo | null) {
 }
 
 function optionsTabSameWindowType(tab: PopupTab | undefined, currentTab: PopupTab | undefined) {
+  if (extensionBrowserName() !== 'firefox') {
+    return true;
+  }
   if (typeof tab?.incognito !== 'boolean' || typeof currentTab?.incognito !== 'boolean') {
     return true;
   }
@@ -343,23 +423,25 @@ export async function openPopupOptions(hash?: string | null) {
   const targetTab = sameWindowTypeTab || optionTabs[0];
   const targetUrl = optionsUrlForOpen(optionsUrl, targetTab?.url, hash);
   if (!targetTab) {
-    await createTab(targetUrl);
+    await createFocusedTab(targetUrl);
     return;
   }
   if (optionsTabSameWindowType(targetTab, currentTab)) {
     if (typeof targetTab.id !== 'number') {
-      await createTab(targetUrl);
+      await createFocusedTab(targetUrl);
       return;
     }
     try {
       await updateTab(targetTab.id, {active: true, ...(hash ? {url: targetUrl} : {})});
     } catch (_) {
-      await createTab(targetUrl);
+      await createFocusedTab(targetUrl);
+      return;
     }
+    await focusPopupWindow(targetTab.windowId);
     return;
   }
   if (typeof targetTab.id !== 'number') {
-    await createTab(targetUrl);
+    await createFocusedTab(targetUrl);
     return;
   }
   const state = await callBackground('getOptionsPageState', targetTab.id);
@@ -368,11 +450,11 @@ export async function openPopupOptions(hash?: string | null) {
   }
   if (!state.dirty) {
     await removeTab(targetTab.id);
-    await createTab(targetUrl);
+    await createFocusedTab(targetUrl);
     return;
   }
   const handoffId = await callBackground('beginOptionsHandoff', targetTab.id);
-  await createTab(optionsUrlWithHandoff(targetUrl, handoffId));
+  await createFocusedTab(optionsUrlWithHandoff(targetUrl, handoffId));
 }
 
 export function openExtensionManager() {

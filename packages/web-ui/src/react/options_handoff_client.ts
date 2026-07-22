@@ -76,13 +76,14 @@ export function clearOptionsHandoffFromLocation() {
 }
 
 export function connectOptionsHandoff(onMessage: (message: OptionsHandoffPortMessage) => void) {
-  const port = connectRuntimePort('optionsHandoff');
-  if (!port) {
-    return null;
-  }
-  let connected = true;
+  let connected = false;
+  let dirty = false;
+  let disposed = false;
+  let hasState = false;
+  let port: ReturnType<typeof connectRuntimePort> = null;
+  let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   const handleMessage = (message: unknown) => {
-    if (!connected) {
+    if (!connected || disposed) {
       return;
     }
     if (isOptionsHandoffPortMessage(message)) {
@@ -91,26 +92,56 @@ export function connectOptionsHandoff(onMessage: (message: OptionsHandoffPortMes
   };
   const handleDisconnect = () => {
     connected = false;
+    port = null;
+    if (!disposed && reconnectTimer == null) {
+      reconnectTimer = setTimeout(() => {
+        reconnectTimer = null;
+        connect();
+      }, 100);
+    }
   };
   const postMessage = (message: unknown) => {
-    if (!connected) {
+    if (!connected || disposed) {
       return;
     }
     try {
-      port.postMessage?.(message);
+      port?.postMessage?.(message);
     } catch (_err) {
-      connected = false;
+      handleDisconnect();
     }
   };
-  port.onMessage?.addListener?.(handleMessage);
-  port.onDisconnect?.addListener?.(handleDisconnect);
+  const connect = () => {
+    if (disposed) {
+      return;
+    }
+    port = connectRuntimePort('optionsHandoff');
+    if (!port) {
+      handleDisconnect();
+      return;
+    }
+    connected = true;
+    port.onMessage?.addListener?.(handleMessage);
+    port.onDisconnect?.addListener?.(handleDisconnect);
+    if (hasState) {
+      postMessage({
+        dirty,
+        type: 'optionsHandoffState'
+      });
+    }
+  };
+  connect();
   return {
     dispose() {
+      disposed = true;
       connected = false;
-      port.onMessage?.removeListener?.(handleMessage);
-      port.onDisconnect?.removeListener?.(handleDisconnect);
+      if (reconnectTimer != null) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+      }
+      port?.onMessage?.removeListener?.(handleMessage);
+      port?.onDisconnect?.removeListener?.(handleDisconnect);
       try {
-        port.disconnect?.();
+        port?.disconnect?.();
       } catch (_err) {}
     },
     claim(handoffId: string) {
@@ -129,7 +160,9 @@ export function connectOptionsHandoff(onMessage: (message: OptionsHandoffPortMes
       };
       postMessage(message);
     },
-    updateState(dirty: boolean) {
+    updateState(nextDirty: boolean) {
+      dirty = nextDirty;
+      hasState = true;
       const message: OptionsHandoffStateMessage = {
         dirty,
         type: 'optionsHandoffState'

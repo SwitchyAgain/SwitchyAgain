@@ -33,6 +33,7 @@ export type ExtensionChromeApi = {
     getUILanguage?: () => string;
   };
   runtime?: ExtensionRuntimeApi;
+  windows?: unknown;
   tabs?: {
     create?: (props: {url: string}, callback?: () => void) => void;
     query?: (queryInfo: {url?: string}, callback: (tabs: Array<{id?: number; url?: string}>) => void) => void;
