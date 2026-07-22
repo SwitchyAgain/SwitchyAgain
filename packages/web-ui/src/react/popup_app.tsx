@@ -895,7 +895,7 @@ export function PopupApp() {
             }}
           >
             <span className="glyphicon glyphicon-eye-close" />
-            <span>
+            <span className="sa-popup-menu-label">
               <span>{popupMessage('popup_hiddenProfilesMenu', 'Hidden')}</span>
               <span className="sa-popup-caret" />
             </span>
@@ -1236,7 +1236,7 @@ function ProfileGroupMenuItem({
         }}
       >
         <ProfileGroupIcon group={group} />
-        <span>
+        <span className="sa-popup-menu-label">
           <span>{group.name}</span>
           <span className="sa-popup-caret" />
         </span>
@@ -1336,7 +1336,7 @@ function ProfileScopeMenuItem({
         }}
       >
         <span className={`glyphicon ${icon}`} />
-        <span>
+        <span className="sa-popup-menu-label">
           <span>{text}</span>
           <span className="sa-popup-caret" />
         </span>

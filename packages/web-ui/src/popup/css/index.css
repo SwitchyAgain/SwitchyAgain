@@ -255,7 +255,8 @@ body {
   margin-left: 0;
 }
 
-.sa-popup-profile-inline-menu .sa-popup-profile-name::before {
+.sa-popup-profile-inline-menu .sa-popup-profile-name::before,
+.sa-popup-menu-label::before {
   content: ' ';
   white-space: pre;
 }
