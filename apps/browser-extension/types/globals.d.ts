@@ -1,11 +1,3 @@
-interface DynamicGlobalValue {
-  (...args: unknown[]): DynamicGlobalValue;
-  new (...args: unknown[]): DynamicGlobalValue;
-  [index: number]: DynamicGlobalValue;
-  [key: string]: DynamicGlobalValue;
-  [Symbol.iterator](): Iterator<DynamicGlobalValue>;
-}
-
 type ChromeListener = (...args: unknown[]) => unknown;
 
 type ChromeContextMenuClickInfo = Record<string, unknown> & {
@@ -299,27 +291,33 @@ type ProxyProfileScheme = {
   scheme?: string;
 };
 
-interface ProxyEngineApi extends DynamicGlobalValue {
-  Conditions: DynamicGlobalValue & {
+interface ProxyEngineApi {
+  Conditions: {
     localHosts: string[];
     match(condition: unknown, request: unknown): boolean;
-    requestFromUrl(url: string): unknown;
+    requestFromUrl(url: string): Record<string, unknown>;
     str(condition: unknown): string;
   };
-  PacGenerator: DynamicGlobalValue & {
+  PacGenerator: {
     ascii(value: unknown): string;
+    compress(ast: any): any;
+    script(options: unknown, profile: unknown, args?: Record<string, unknown>): any;
   };
-  Profiles: DynamicGlobalValue & {
-    byKey(key: unknown, options?: unknown): DynamicGlobalValue;
-    byName(name: unknown, options?: unknown): DynamicGlobalValue;
-    create(profile: unknown): DynamicGlobalValue;
-    each(options: unknown, callback: (key: string, profile: DynamicGlobalValue) => unknown): unknown;
-    match(profile: unknown, request: unknown): DynamicGlobalValue;
+  Profiles: {
+    allReferenceSet(profile: unknown, options: unknown, args?: Record<string, unknown>): Record<string, string>;
+    byKey(key: unknown, options?: unknown): any;
+    byName(name: unknown, options?: unknown): any;
+    create(profile: unknown, profileType?: string): any;
+    each(options: unknown, callback: (key: string, profile: any) => unknown): unknown;
+    isFileUrl(url?: unknown): boolean;
+    isInclusive(profile: unknown): boolean;
+    match(profile: unknown, request: unknown): any;
     nameAsKey(profileName: unknown): string;
     schemes: ProxyProfileScheme[];
-    pacResult(value: unknown): string;
+    pacResult(value?: unknown): string;
+    updateRevision(profile: unknown): unknown;
   };
-  Revision: DynamicGlobalValue & {
+  Revision: {
     compare(left: unknown, right: unknown): number;
   };
   getBaseDomain(hostname: string | null | undefined): string;
@@ -573,16 +571,8 @@ type ProxyFindFunction = (url: string, host: string, details?: unknown) => unkno
 declare var chrome: ChromeGlobal;
 declare var browser: BrowserGlobal;
 declare var FindProxyForURL: ProxyFindFunction;
-declare var ProxyEngine: ProxyEngineApi;
-declare var ExtensionRuntime: ExtensionRuntimeModule;
-declare var BrowserExtensionRuntime: DynamicGlobalValue;
 declare var PopupBridge: PopupBridgeApi;
 declare function importScripts(...urls: string[]): void;
-declare function drawActionIcon(
-  context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-  resultColor: string,
-  profileColor?: string
-): void;
 
 declare module '@switchyagain/extension-runtime' {
   const value: ExtensionRuntimeModule;
@@ -591,7 +581,5 @@ declare module '@switchyagain/extension-runtime' {
 
 interface Window {
   FindProxyForURL: ProxyFindFunction;
-  ContextMenuClickHandlers: Record<string, (info: ChromeContextMenuClickInfo, tab: ChromeTab) => unknown>;
-  ContextMenuQuickSwitchHandler: (info: {checked: boolean}) => unknown;
   PopupBridge: PopupBridgeApi;
 }

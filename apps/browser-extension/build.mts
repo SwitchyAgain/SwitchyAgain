@@ -12,14 +12,13 @@ const isRelease = process.argv.includes('release');
 type PathFilter = (filePath: string) => boolean;
 
 type BundleOptions = {
+  alias?: Record<string, string>;
   entry: string;
-  globalName: string;
   minify?: boolean;
 };
 
 type BrowserEntrypoints = {
   background: {
-    documentScriptExclusions?: string[];
     serviceWorkerScripts: string[];
   };
 };
@@ -75,11 +74,11 @@ async function writeBundle(dest: string, options: BundleOptions) {
   await ensureDir(dest);
   await esbuild.build({
     absWorkingDir: root,
+    alias: options.alias,
     bundle: true,
     define: {global: 'globalThis'},
     entryPoints: [options.entry],
     format: 'iife',
-    globalName: options.globalName,
     legalComments: 'eof',
     minify: isRelease && !!options.minify,
     outfile: dest,
@@ -94,18 +93,12 @@ async function readBrowserEntrypoints() {
 }
 
 function backgroundDocumentScripts(entrypoints: BrowserEntrypoints) {
-  const exclusions = new Set(entrypoints.background.documentScriptExclusions || []);
-  return entrypoints.background.serviceWorkerScripts.filter((script) => !exclusions.has(script));
+  return entrypoints.background.serviceWorkerScripts;
 }
 
 async function writeServiceWorker(dest: string, scripts: string[]) {
   await ensureDir(dest);
-  await fsp.writeFile(dest, [
-    'importScripts(',
-    ...scripts.map((script, index) => `  '${script}'${index === scripts.length - 1 ? '' : ','}`),
-    ');',
-    ''
-  ].join('\n'));
+  await fsp.writeFile(dest, `importScripts(${scripts.map((script) => `'${script}'`).join(', ')});\n`);
 }
 
 async function writeBackgroundHtml(dest: string, scripts: string[]) {
@@ -124,6 +117,12 @@ async function writeBackgroundHtml(dest: string, scripts: string[]) {
     '</html>',
     ''
   ].join('\n'));
+}
+
+async function writeBuildManifest(dest: string, entrypoints: BrowserEntrypoints) {
+  const manifest = JSON.parse(await fsp.readFile(path.join(root, 'overlay/manifest.json'), 'utf8')) as ReleaseManifest;
+  manifest.background.scripts = backgroundDocumentScripts(entrypoints);
+  await fsp.writeFile(dest, JSON.stringify(manifest, null, 2) + '\n');
 }
 
 function parsePoString(value: string) {
@@ -225,7 +224,7 @@ async function writeLocale(dest: string, src: string) {
   await fsp.writeFile(dest, JSON.stringify(await convertPo(src)));
 }
 
-async function writeReleaseManifest(dest: string, target: ReleaseTarget) {
+async function writeReleaseManifest(dest: string, target: ReleaseTarget, entrypoints: BrowserEntrypoints) {
   const manifestPath = path.join(root, 'overlay/manifest.json');
   const manifest = JSON.parse(await fsp.readFile(manifestPath, 'utf8')) as ReleaseManifest;
   if (target === 'chromium') {
@@ -235,6 +234,7 @@ async function writeReleaseManifest(dest: string, target: ReleaseTarget) {
     manifest.permissions = manifest.permissions.filter((permission) => permission !== 'contextualIdentities');
   }
   if (target === 'firefox') {
+    manifest.background.scripts = backgroundDocumentScripts(entrypoints);
     delete manifest.key;
     delete manifest.minimum_chrome_version;
   }
@@ -294,14 +294,12 @@ async function main() {
 
   const browserEntrypoints = await readBrowserEntrypoints();
 
-  const indexSource = path.join(root, 'src/module/index.ts');
-  await writeBundle(path.join(root, 'index.js'), {
-    entry: indexSource,
-    globalName: 'BrowserExtensionRuntime'
-  });
-  await writeBundle(path.join(root, 'browser_extension_runtime.min.js'), {
-    entry: indexSource,
-    globalName: 'BrowserExtensionRuntime',
+  await writeBundle(path.join(root, 'build/js/background.js'), {
+    alias: {
+      '@switchyagain/extension-runtime': path.join(workspaceRoot, 'packages/extension-runtime/src/index.ts'),
+      '@switchyagain/proxy-engine': path.join(workspaceRoot, 'packages/proxy-engine/src/index.ts')
+    },
+    entry: path.join(root, 'src/module/background.ts'),
     minify: true
   });
   const fontFilter = (base: string): PathFilter => (filePath: string) => {
@@ -310,16 +308,11 @@ async function main() {
   };
   const webBuildRoot = path.join(workspaceRoot, 'packages/web-ui/build');
   await copyTree(webBuildRoot, path.join(root, 'build'), fontFilter(webBuildRoot));
-  await copyFile(path.join(workspaceRoot, 'packages/extension-runtime/extension_runtime.min.js'), path.join(root, 'build/js/extension_runtime.min.js'));
-  await copyFile(path.join(root, 'browser_extension_runtime.min.js'), path.join(root, 'build/js/browser_extension_runtime.min.js'));
   await copyFile(path.join(root, 'build-ts/js/popup_bridge.js'), path.join(root, 'build/js/popup_bridge.js'));
-  await copyFile(path.join(root, 'build-ts/js/runtime_preload.js'), path.join(root, 'build/js/runtime_preload.js'));
-  for (const script of ['background.js', 'background_preload.js']) {
-    await copyFile(path.join(root, 'build-ts/js', script), path.join(root, 'build/js', script));
-  }
   await writeServiceWorker(path.join(root, 'build/service_worker.js'), browserEntrypoints.background.serviceWorkerScripts);
   await copyTree(path.join(root, 'overlay'), path.join(root, 'build'));
   await writeBackgroundHtml(path.join(root, 'build/background.html'), backgroundDocumentScripts(browserEntrypoints));
+  await writeBuildManifest(path.join(root, 'build/manifest.json'), browserEntrypoints);
   await copyFile(path.join(workspaceRoot, 'COPYING'), path.join(root, 'build/COPYING'));
   await copyFile(path.join(workspaceRoot, 'AUTHORS'), path.join(root, 'build/AUTHORS'));
 
@@ -337,8 +330,8 @@ async function main() {
     const releaseDir = path.join(root, 'release');
     const chromiumManifest = path.join(root, 'tmp/manifest-chromium.json');
     const firefoxManifest = path.join(root, 'tmp/manifest-firefox.json');
-    await writeReleaseManifest(chromiumManifest, 'chromium');
-    await writeReleaseManifest(firefoxManifest, 'firefox');
+    await writeReleaseManifest(chromiumManifest, 'chromium', browserEntrypoints);
+    await writeReleaseManifest(firefoxManifest, 'firefox', browserEntrypoints);
     await zipRelease(path.join(releaseDir, 'chromium-sideload.zip'), chromiumManifest);
     await zipRelease(path.join(releaseDir, 'firefox-unsigned.xpi'), firefoxManifest);
   }

@@ -7,9 +7,6 @@ const generatedAndThirdParty = [
   '**/node_modules/**',
   'dist/**',
   'packages/proxy-engine/proxy_engine.min.js',
-  'packages/extension-runtime/extension_runtime.min.js',
-  'apps/browser-extension/index.js',
-  'apps/browser-extension/browser_extension_runtime.min.js',
   'packages/**/build/**',
   'packages/**/build-ts/**',
   'packages/**/tmp/**',
@@ -98,12 +95,6 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-misused-new': 'off',
       'no-var': 'off'
-    }
-  },
-  {
-    files: ['packages/web-ui/src/js/draw_action_icon.ts'],
-    rules: {
-      '@typescript-eslint/no-unused-vars': 'off'
     }
   },
   {

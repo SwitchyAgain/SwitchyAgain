@@ -1,13 +1,8 @@
-type ActionIconCanvasContext = {
-  globalCompositeOperation: string;
-  fillStyle: string;
-  beginPath(): void;
-  arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, counterclockwise?: boolean): void;
-  closePath(): void;
-  fill(): void;
-};
-
-function drawActionIcon(ctx: ActionIconCanvasContext, outerCircleColor: string, innerCircleColor?: string | null) {
+export default function drawActionIcon(
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  outerCircleColor: string,
+  innerCircleColor?: string | null
+) {
   ctx.globalCompositeOperation = 'source-over';
   ctx.fillStyle = outerCircleColor;
   ctx.beginPath();

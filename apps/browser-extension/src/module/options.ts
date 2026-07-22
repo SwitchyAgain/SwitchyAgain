@@ -1,5 +1,6 @@
 import ExtensionRuntime from '@switchyagain/extension-runtime';
 import ChromePort from './chrome_port';
+import {setContextMenuQuickSwitchHandler} from './context_menu';
 import fetchUrl from './fetch_url';
 import {tabUrl} from './tabs';
 import WebRequestMonitor from './web_request_monitor';
@@ -2740,7 +2741,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
     this._quickSwitchCanEnable = canEnable;
     if (!this._quickSwitchHandlerReady) {
       this._quickSwitchHandlerReady = true;
-      window.ContextMenuQuickSwitchHandler = (info: {checked: boolean}) => {
+      setContextMenuQuickSwitchHandler((info: {checked: boolean}) => {
         const changes: Record<string, unknown> = {};
         changes['-enableQuickSwitch'] = info.checked;
         const setOptions = this._setOptions(changes);
@@ -2751,7 +2752,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
             });
           });
         }
-      };
+      });
     }
     const api = chrome.action;
     if (quickSwitch || api.setPopup == null) {

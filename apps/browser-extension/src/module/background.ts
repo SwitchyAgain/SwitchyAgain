@@ -1,3 +1,7 @@
+import {initializeBackgroundContextMenu} from './context_menu';
+import drawActionIcon from './draw_action_icon';
+import browserExtensionRuntime from './index';
+
 type BackgroundMethodArgs = {
   addCondition: [condition: unknown, profileName: string, addToBottom: boolean];
   addProfile: [profile: unknown];
@@ -324,6 +328,7 @@ type BackgroundExtensionRuntime = {
     parseImportedOptions(content: string): RuntimeOptionsData;
   };
   OptionsSync: new (storage: unknown) => BackgroundSync;
+  ProxyEngine: ProxyEngineApi;
   Storage: new (areaName: string, namespace?: string) => BackgroundState;
   Url: UrlModule;
   proxy: {
@@ -342,15 +347,12 @@ type BackgroundExtensionRuntime = {
 (async function () {
   const hasProp = {}.hasOwnProperty;
 
-  const BrowserExtensionRuntimeModule = BrowserExtensionRuntime as unknown as BackgroundExtensionRuntime & {
-    default?: BackgroundExtensionRuntime;
-  };
-  const ExtensionRuntimeBase = BrowserExtensionRuntimeModule.default || BrowserExtensionRuntimeModule;
-  const ExtensionRuntimeCurrent = Object.create(ExtensionRuntimeBase) as BackgroundExtensionRuntime;
+  const ExtensionRuntimeCurrent = browserExtensionRuntime as unknown as BackgroundExtensionRuntime;
+  const ProxyEngine = ExtensionRuntimeCurrent.ProxyEngine;
 
-  ExtensionRuntimeCurrent.Log = Object.create(ExtensionRuntimeCurrent.Log);
+  initializeBackgroundContextMenu();
 
-  const Log = ExtensionRuntimeCurrent.Log;
+  const Log = Object.create(ExtensionRuntimeCurrent.Log) as BackgroundLog;
   const MAX_PERSISTED_LOG_LENGTH = 256 * 1024;
   const logStorage = new ExtensionRuntimeCurrent.Storage('local', 'log');
   let persistedLog = '';
@@ -405,6 +407,10 @@ type BackgroundExtensionRuntime = {
     const content = args.map(Log.str.bind(Log)).join(' ');
     return writePersistentLog('ERROR: ' + content + '\n', content);
   };
+
+  globalThis.addEventListener('error', (event) => {
+    Log.error(event.error || `${event.filename}:${event.lineno}:${event.colno}: ${event.message}`);
+  });
 
   const unhandledPromises: unknown[] = [];
 
@@ -2323,4 +2329,4 @@ type BackgroundExtensionRuntime = {
       return true;
     }
   });
-}).call(this);
+})();

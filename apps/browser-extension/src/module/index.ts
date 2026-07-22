@@ -26,6 +26,7 @@ const Url = {
 };
 
 const browserExtensionRuntime: Record<string, unknown> = {
+  ...extensionRuntime,
   Storage,
   WebDavStorage,
   Options,
@@ -36,12 +37,6 @@ const browserExtensionRuntime: Record<string, unknown> = {
   Url,
   proxy
 };
-
-for (const name of Object.keys(extensionRuntime)) {
-  if (browserExtensionRuntime[name] == null) {
-    browserExtensionRuntime[name] = extensionRuntime[name];
-  }
-}
 
 export {ChromeTabs, ExternalApi, Options, OptionsImport, Storage, Url, WebDavStorage, WebRequestMonitor, proxy};
 

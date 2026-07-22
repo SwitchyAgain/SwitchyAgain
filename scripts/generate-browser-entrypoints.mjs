@@ -11,16 +11,13 @@ async function readJson(relativePath) {
 }
 
 function backgroundDocumentScripts(entrypoints) {
-  const exclusions = new Set(entrypoints.background.documentScriptExclusions || []);
-  return entrypoints.background.serviceWorkerScripts.filter((script) => !exclusions.has(script));
+  return entrypoints.background.serviceWorkerScripts;
 }
 
 function renderServiceWorker(scripts) {
   return [
     `// Generated from ${entrypointsPath}. Do not edit directly.`,
-    'importScripts(',
-    ...scripts.map((script, index) => `  '${script}'${index === scripts.length - 1 ? '' : ','}`),
-    ');',
+    `importScripts(${scripts.map((script) => `'${script}'`).join(', ')});`,
     ''
   ].join('\n');
 }

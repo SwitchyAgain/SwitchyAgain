@@ -2,14 +2,10 @@
   "name": "@switchyagain/browser-extension",
   "version": "0.0.1",
   "private": true,
-  "main": "./index",
   "dependencies": {
     "@switchyagain/extension-runtime": "0.0.1",
     "@switchyagain/web-ui": "0.0.1",
     "@switchyagain/proxy-engine": "0.0.1"
-  },
-  "browser": {
-    "@switchyagain/extension-runtime": "./build-ts/module/extension_runtime_shim.js"
   },
   "scripts": {
     "build": "npm run build --workspace @switchyagain/proxy-engine && npm run build --workspace @switchyagain/extension-runtime && npm run build --workspace @switchyagain/web-ui && npm run clean:dist && npm run build:ts && node build-ts/build.mjs",

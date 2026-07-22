@@ -35,8 +35,7 @@ async function readBrowserEntrypoints() {
 }
 
 function backgroundDocumentScripts(entrypoints) {
-  const exclusions = new Set(entrypoints.background.documentScriptExclusions || []);
-  return entrypoints.background.serviceWorkerScripts.filter((script) => !exclusions.has(script));
+  return entrypoints.background.serviceWorkerScripts;
 }
 
 function fail(message) {
@@ -119,6 +118,11 @@ function parseHtmlScripts(source) {
 
 async function checkClassicScriptEntrypoints() {
   const entrypoints = await readBrowserEntrypoints();
+  assertEqual(
+    entrypoints.background.serviceWorkerScripts,
+    ['js/background.js'],
+    'background must use one shared classic IIFE bundle'
+  );
   const serviceWorker = await readText('apps/browser-extension/src/js/service_worker.ts');
   assertEqual(
     parseImportScripts(serviceWorker),

@@ -134,8 +134,6 @@ async function main() {
       await copyFile(src, dest);
     }
   }
-  await copyFile('build-ts/js/draw_action_icon.js', 'build/img/icons/draw_action_icon.js');
-
   await writeRootReactHtml('build/options.html', 'SwitchyAgain Options', 'react/options_app.js', [
     'js/log_error.js',
     'js/proxy_engine.min.js'

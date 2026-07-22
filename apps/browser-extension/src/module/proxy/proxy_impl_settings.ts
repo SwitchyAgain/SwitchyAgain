@@ -369,7 +369,7 @@ class SettingsProxyImpl extends ProxyImpl {
         }
         if (typeof profileName === 'string' && profileName && revision) {
           profile = ProxyEngine.Profiles.byName(profileName, options);
-          if (ProxyEngine.Revision.compare(profile.revision, revision) === 0) {
+          if (profile && ProxyEngine.Revision.compare(profile.revision, revision) === 0) {
             return profile;
           }
         }
@@ -451,25 +451,25 @@ class SettingsProxyImpl extends ProxyImpl {
       return profile;
     }
 
-    profile = ProxyEngine.Profiles.create({
+    const fixedProfile = ProxyEngine.Profiles.create({
       profileType: 'FixedProfile',
       name: ''
-    });
+    }) as ProxyProfile;
     for (const prop of FIXED_PROXY_RULE_KEYS) {
       const proxy = rules[prop] as ProxyServer | undefined;
       if (proxy) {
         if (prop === 'singleProxy') {
-          profile.fallbackProxy = proxy;
+          fixedProfile.fallbackProxy = proxy;
         } else {
-          profile[prop] = proxy;
+          fixedProfile[prop] = proxy;
         }
       }
     }
-    profile.bypassList = Object.keys(bypassSet).map((pattern) => ({
+    fixedProfile.bypassList = Object.keys(bypassSet).map((pattern) => ({
       conditionType: 'BypassCondition',
       pattern
     }));
-    return profile;
+    return fixedProfile;
   }
 }
 

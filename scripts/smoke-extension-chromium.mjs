@@ -60,6 +60,17 @@ try {
   if (!extensionId) {
     throw new Error(`Unable to derive extension id from service worker URL: ${serviceWorker.url()}`);
   }
+  const backgroundGlobals = await serviceWorker.evaluate(() => ({
+    BrowserExtensionRuntime: typeof globalThis.BrowserExtensionRuntime,
+    ExtensionRuntime: typeof globalThis.ExtensionRuntime,
+    ProxyEngine: typeof globalThis.ProxyEngine,
+    window: typeof globalThis.window
+  }));
+  for (const [name, type] of Object.entries(backgroundGlobals)) {
+    if (type !== 'undefined') {
+      throw new Error(`Legacy background global ${name} is still exposed as ${type}.`);
+    }
+  }
 
   const optionsPage = await context.newPage();
   const optionsGuard = installBrowserErrorGuards(optionsPage, 'chromium extension options');
