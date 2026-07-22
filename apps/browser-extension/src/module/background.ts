@@ -353,6 +353,7 @@ type BackgroundExtensionRuntime = {
   initializeBackgroundContextMenu();
 
   const Log = Object.create(ExtensionRuntimeCurrent.Log) as BackgroundLog;
+  const proxyImpl = ExtensionRuntimeCurrent.proxy.getProxyImpl(Log);
   const MAX_PERSISTED_LOG_LENGTH = 256 * 1024;
   const logStorage = new ExtensionRuntimeCurrent.Storage('local', 'log');
   let persistedLog = '';
@@ -707,7 +708,6 @@ type BackgroundExtensionRuntime = {
   let options: BackgroundOptions;
   let state: BackgroundState;
   let tabs: BackgroundTabs;
-  let proxyImpl: BackgroundProxyImpl;
   let activeSyncProvider: SyncProvider = '';
   let browserSync: BackgroundSync | undefined;
   let webDavSyncFailureCount = 0;
@@ -1333,8 +1333,6 @@ type BackgroundExtensionRuntime = {
   if (sync && (savedProvider === 'webdav' || getLocalState<string>('syncOptions') !== 'sync')) {
     sync.enabled = false;
   }
-
-  proxyImpl = ExtensionRuntimeCurrent.proxy.getProxyImpl(Log);
 
   state.set({
     proxyImplFeatures: proxyImpl.features
