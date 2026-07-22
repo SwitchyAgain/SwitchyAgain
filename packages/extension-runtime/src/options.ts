@@ -1214,7 +1214,7 @@ class Options {
     const profile = this._currentProfileName ? this.currentProfile() : null;
     const profiles: Record<string, AvailableProfile> = {};
     const currentIncludable = profile && ProxyEngine.Profiles.isIncludable(profile);
-    const scopeAssignableProfiles = profile && !this._isSystem ? this.scopeAssignableProfileNames() : [];
+    const scopeAssignableProfiles = profile ? this.scopeAssignableProfileNames() : [];
     let allReferenceSet: Record<string, string> | null = null;
     let results: string[] | null = null;
     if (!profile || !ProxyEngine.Profiles.isInclusive(profile)) {

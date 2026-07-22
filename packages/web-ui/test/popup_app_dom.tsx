@@ -231,7 +231,7 @@ describe('popup app', () => {
     expect(screen.queryByText('Route Info')).toBeNull();
   });
 
-  it('keeps profile groups in scope menus', async () => {
+  it('keeps profile groups in scope menus while the global profile is system', async () => {
     window.location.hash = '';
     currentPageInfo = {
       profileScope: {
@@ -254,9 +254,13 @@ describe('popup app', () => {
           profileType: 'FixedProfile'
         }
       },
+      currentProfileCanAddRule: false,
+      currentProfileName: 'system',
+      isSystemProfile: true,
       profileGroups: [{id: 'work', name: 'Work'}],
       profileGroupsEnabled: true,
-      scopeAssignableProfiles: ['plain', 'grouped']
+      scopeAssignableProfiles: ['plain', 'grouped'],
+      validResultProfiles: []
     });
 
     const {container} = render(<PopupApp />);

@@ -1165,7 +1165,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
     if (!chrome?.contextMenus || !chrome?.tabs || !chrome?.i18n?.getMessage) {
       return [];
     }
-    if (this._isSystem || !this._currentProfileName) {
+    if (!this._currentProfileName) {
       return [];
     }
     return this.contextMenuProfilesMatching((name) => this.isScopeAssignableProfileName(name));

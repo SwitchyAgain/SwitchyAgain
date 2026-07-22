@@ -285,7 +285,7 @@ describe('Options', function () {
       });
     });
 
-    it('should clear scope assignable profiles while the current profile is system proxy', function () {
+    it('should expose scope assignable profiles while the current profile is system proxy', function () {
       const options = Object.create(Options.prototype);
       const state = stateRecorder();
       options._options = {
@@ -300,7 +300,7 @@ describe('Options', function () {
 
       return options._setAvailableProfiles().then(() => {
         const available = state.calls[0];
-        assert.deepStrictEqual(available.scopeAssignableProfiles, []);
+        assert.deepStrictEqual(available.scopeAssignableProfiles, ['proxy', 'direct', 'system']);
         assert.deepStrictEqual(available.validResultProfiles, []);
       });
     });
