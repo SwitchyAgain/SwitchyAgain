@@ -617,7 +617,7 @@ export function PopupApp() {
       .catch((err: unknown) => setError(popupErrorMessage(err)));
   }
 
-  function setProfileScope(scope: 'container' | 'group' | 'normal' | 'private' | 'site' | 'tab', profileName?: string) {
+  function setProfileScope(scope: 'container' | 'group' | 'normal' | 'page' | 'private' | 'site' | 'tab', profileName?: string) {
     const info = pageInfo?.profileScope;
     setPopupProfileScope({
       cookieStoreId: info?.cookieStoreId,
@@ -822,10 +822,11 @@ export function PopupApp() {
   const showTabScope = !!(profileScope?.enabled?.tab && profileScope.tabId != null && hasScopeAssignableProfiles);
   const showGroupScope = !!(profileScope?.enabled?.group && profileScope.groupId != null && hasScopeAssignableProfiles);
   const showContainerScope = !!(profileScope?.enabled?.container && profileScope.isContainer && hasScopeAssignableProfiles);
+  const showPageScope = !!(profileScope?.enabled?.site && isSiteScopeUrl(pageInfo?.url) && hasScopeAssignableProfiles);
   const showSiteScope = !!(profileScope?.enabled?.site && isSiteScopeUrl(pageInfo?.url) && hasScopeAssignableProfiles);
   const windowScope = profileScope?.incognito ? 'private' : 'normal';
   const showWindowScope = !!(profileScope?.enabled?.window && hasScopeAssignableProfiles);
-  const showProfileScopes = showTabScope || showGroupScope || showContainerScope || showSiteScope || showWindowScope;
+  const showProfileScopes = showTabScope || showGroupScope || showContainerScope || showPageScope || showSiteScope || showWindowScope;
   const activeProfileGroup = menuProfiles.groups.find((group) =>
     group.profiles.some((profile) => profile.name === state.currentProfileName)
   );
@@ -993,6 +994,19 @@ export function PopupApp() {
               state={state}
               onToggle={() => setProfileScopeMenuOpen(profileScopeMenuOpen === 'container' ? '' : 'container')}
               onProfileChange={(profileName) => setProfileScope('container', profileName)}
+            />
+          )}
+          {showPageScope && (
+            <ProfileScopeMenuItem
+              scope="page"
+              icon="glyphicon-file"
+              label={popupMessage('popup_profileScopePage', 'This Page')}
+              activeProfileName={profileScope?.pageProfileName}
+              open={profileScopeMenuOpen === 'page'}
+              profiles={scopeAssignableProfiles}
+              state={state}
+              onToggle={() => setProfileScopeMenuOpen(profileScopeMenuOpen === 'page' ? '' : 'page')}
+              onProfileChange={(profileName) => setProfileScope('page', profileName)}
             />
           )}
           {showSiteScope && (

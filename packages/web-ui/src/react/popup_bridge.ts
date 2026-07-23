@@ -58,17 +58,26 @@ export type ProfileScopeInfo = {
     containers?: Record<string, string>;
     normalDefaultProfileName?: string;
     privateDefaultProfileName?: string;
+    rules?: Array<{
+      condition: Record<string, unknown>;
+      profileName: string;
+      quickKey?: string;
+      quickTarget?: 'page' | 'site';
+      [key: string]: unknown;
+    }>;
   };
   capabilities?: ProfileScopeSettings;
   containerProfileName?: string;
   cookieStoreId?: string;
   effectiveProfileName?: string;
-  effectiveScope?: 'container' | 'current' | 'group' | 'normal' | 'private' | 'tab';
+  effectiveScope?: 'container' | 'current' | 'group' | 'normal' | 'private' | 'page' | 'site' | 'tab';
   enabled?: ProfileScopeSettings;
   groupId?: number;
   groupProfileName?: string;
   incognito?: boolean;
   isContainer?: boolean;
+  pageProfileName?: string;
+  pageUrl?: string;
   siteProfileName?: string;
   tabId?: number;
   tabProfileName?: string;
@@ -89,7 +98,7 @@ export type ProfileScopeSetRequest = {
   groupId?: number;
   incognito?: boolean;
   profileName?: string;
-  scope: 'container' | 'group' | 'normal' | 'private' | 'site' | 'tab';
+  scope: 'container' | 'group' | 'normal' | 'page' | 'private' | 'site' | 'tab';
   tabId?: number;
   url?: string;
   windowId?: number;

@@ -69,6 +69,15 @@ type ProfileScopeAssignments = {
   containers: Record<string, string>;
   normalDefaultProfileName?: string;
   privateDefaultProfileName?: string;
+  rules: ProfileScopeRule[];
+};
+
+type ProfileScopeRule = {
+  condition: Record<string, unknown>;
+  profileName: string;
+  quickKey?: string;
+  quickTarget?: 'page' | 'site';
+  [key: string]: unknown;
 };
 
 type ContextMenuOptions = {
@@ -77,6 +86,8 @@ type ContextMenuOptions = {
   linkProfileNewPrivateWindow: boolean;
   linkProfileNewTab: boolean;
   linkProfileNewWindow: boolean;
+  pageProfile: boolean;
+  siteProfile: boolean;
   switchProfile: boolean;
   tabProfile: boolean;
   windowProfile: boolean;
@@ -132,13 +143,38 @@ function normalizeProfileScopeAssignments(value: unknown): ProfileScopeAssignmen
       containers[key] = profileName;
     }
   }
-  const assignments: ProfileScopeAssignments = {containers};
+  const assignments: ProfileScopeAssignments = {containers, rules: []};
   if (typeof rawAssignments.normalDefaultProfileName === 'string' && rawAssignments.normalDefaultProfileName) {
     assignments.normalDefaultProfileName = rawAssignments.normalDefaultProfileName;
   }
   if (typeof rawAssignments.privateDefaultProfileName === 'string' && rawAssignments.privateDefaultProfileName) {
     assignments.privateDefaultProfileName = rawAssignments.privateDefaultProfileName;
   }
+  const rules: ProfileScopeRule[] = [];
+  if (Array.isArray(rawAssignments.rules)) {
+    for (const rawRule of rawAssignments.rules) {
+      if (!isRecordValue(rawRule) || !isRecordValue(rawRule.condition)) {
+        continue;
+      }
+      if (typeof rawRule.condition.conditionType !== 'string' || typeof rawRule.profileName !== 'string' || !rawRule.profileName) {
+        continue;
+      }
+      const rule: ProfileScopeRule = {
+        ...rawRule,
+        condition: {...rawRule.condition},
+        profileName: rawRule.profileName
+      };
+      if (rawRule.quickTarget !== 'page' && rawRule.quickTarget !== 'site') {
+        delete rule.quickTarget;
+        delete rule.quickKey;
+      } else if (typeof rawRule.quickKey !== 'string' || !rawRule.quickKey) {
+        delete rule.quickTarget;
+        delete rule.quickKey;
+      }
+      rules.push(rule);
+    }
+  }
+  assignments.rules = rules;
   return assignments;
 }
 
@@ -149,6 +185,8 @@ function normalizeContextMenuOptions(value: unknown): ContextMenuOptions {
     tabProfile: raw.tabProfile === true,
     groupProfile: raw.groupProfile === true,
     containerProfile: raw.containerProfile === true,
+    pageProfile: raw.pageProfile === true,
+    siteProfile: raw.siteProfile === true,
     windowProfile: raw.windowProfile === true,
     linkProfileNewTab: raw.linkProfileNewTab === true,
     linkProfileNewWindow: raw.linkProfileNewWindow === true,
@@ -187,6 +225,8 @@ function contextMenuOptionsEqual(left: ContextMenuOptions, right: unknown) {
     'tabProfile',
     'groupProfile',
     'containerProfile',
+    'pageProfile',
+    'siteProfile',
     'windowProfile',
     'linkProfileNewTab',
     'linkProfileNewWindow',
@@ -197,6 +237,8 @@ function contextMenuOptionsEqual(left: ContextMenuOptions, right: unknown) {
     left.tabProfile === right.tabProfile &&
     left.groupProfile === right.groupProfile &&
     left.containerProfile === right.containerProfile &&
+    left.pageProfile === right.pageProfile &&
+    left.siteProfile === right.siteProfile &&
     left.windowProfile === right.windowProfile &&
     left.linkProfileNewTab === right.linkProfileNewTab &&
     left.linkProfileNewWindow === right.linkProfileNewWindow &&
@@ -209,9 +251,8 @@ function replaceProfileScopeAssignmentRef(assignments: ProfileScopeAssignments, 
   let changed = false;
   const next: ProfileScopeAssignments = {
     ...assignments,
-    containers: {
-      ...assignments.containers
-    }
+    containers: {...assignments.containers},
+    rules: assignments.rules.map((rule) => ({...rule, condition: {...rule.condition}}))
   };
   if (next.normalDefaultProfileName === fromName) {
     next.normalDefaultProfileName = toName;
@@ -224,6 +265,12 @@ function replaceProfileScopeAssignmentRef(assignments: ProfileScopeAssignments, 
   for (const [cookieStoreId, profileName] of Object.entries(next.containers)) {
     if (profileName === fromName) {
       next.containers[cookieStoreId] = toName;
+      changed = true;
+    }
+  }
+  for (const rule of next.rules) {
+    if (rule.profileName === fromName) {
+      rule.profileName = toName;
       changed = true;
     }
   }

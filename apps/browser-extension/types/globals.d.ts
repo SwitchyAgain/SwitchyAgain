@@ -218,7 +218,15 @@ interface BrowserProxyApi {
   onError: ChromeEvent<(error: unknown) => void>;
   onProxyError: ChromeEvent<(error: {message?: string}) => void>;
   onRequest: ChromeEvent<
-    (details: {cookieStoreId?: string; groupId?: number; incognito?: boolean; tabId?: number; url: string; windowId?: number}) => unknown
+    (details: {
+      cookieStoreId?: string;
+      groupId?: number;
+      incognito?: boolean;
+      tabId?: number;
+      type?: string;
+      url: string;
+      windowId?: number;
+    }) => unknown
   >;
   [key: string]: unknown;
 }
@@ -348,9 +356,18 @@ interface RuntimeOptionsData extends Record<string, unknown> {
     containers?: Record<string, string>;
     normalDefaultProfileName?: string;
     privateDefaultProfileName?: string;
+    rules?: Array<{
+      condition: Record<string, unknown>;
+      profileName: string;
+      quickKey?: string;
+      quickTarget?: 'page' | 'site';
+      [key: string]: unknown;
+    }>;
   };
   '-profileScopes'?: {
     container?: boolean;
+    group?: boolean;
+    site?: boolean;
     tab?: boolean;
     window?: boolean;
   };

@@ -100,13 +100,13 @@ type ProfileScopeSetArgs = {
   groupId?: number;
   incognito?: boolean;
   profileName?: string;
-  scope: 'container' | 'group' | 'normal' | 'private' | 'site' | 'tab';
+  scope: 'container' | 'group' | 'normal' | 'page' | 'private' | 'site' | 'tab';
   tabId?: number;
   url?: string;
   windowId?: number;
 };
 
-type ProfileScopeName = 'container' | 'current' | 'group' | 'normal' | 'private' | 'tab';
+type ProfileScopeName = 'container' | 'current' | 'group' | 'normal' | 'page' | 'private' | 'site' | 'tab';
 
 type ProfileScopeMarker = Exclude<ProfileScopeName, 'current'>;
 
@@ -120,6 +120,7 @@ type ProfileScopeInfoArgs = {
   groupId?: number;
   incognito?: boolean;
   tabId?: number;
+  url?: string;
   windowId?: number;
 };
 
@@ -451,6 +452,8 @@ type BackgroundExtensionRuntime = {
     tab: '#3d8bfd',
     group: '#0f766e',
     container: '#8f6ed5',
+    page: '#d97706',
+    site: '#2563eb',
     normal: '#38a169',
     private: '#c47f17'
   };
@@ -550,6 +553,8 @@ type BackgroundExtensionRuntime = {
       case 'tab':
       case 'group':
       case 'container':
+      case 'page':
+      case 'site':
       case 'normal':
       case 'private':
         return scope;
@@ -563,6 +568,8 @@ type BackgroundExtensionRuntime = {
       tab: 'popup_profileScopeTab',
       group: 'popup_profileScopeGroup',
       container: 'popup_profileScopeContainer',
+      page: 'popup_profileScopePage',
+      site: 'popup_profileScopeSite',
       normal: 'popup_profileScopeNormal',
       private: 'popup_profileScopePrivate'
     }[scope];
@@ -570,6 +577,8 @@ type BackgroundExtensionRuntime = {
       tab: 'This Tab',
       group: 'Tab Group',
       container: 'Container',
+      page: 'This Page',
+      site: 'This Site',
       normal: 'Normal',
       private: 'Private'
     }[scope];
@@ -1114,6 +1123,7 @@ type BackgroundExtensionRuntime = {
           groupId: tab.groupId,
           incognito: tab.incognito,
           tabId: tab.id,
+          url,
           windowId: tab.windowId
         });
         const scopeMarker = profileScopeMarker(profileScope.effectiveScope);

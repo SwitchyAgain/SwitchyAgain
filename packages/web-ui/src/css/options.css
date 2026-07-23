@@ -1830,6 +1830,27 @@ main .profile-header {
   max-width: 720px;
 }
 
+.profile-scope-rules-table {
+  max-width: 1120px;
+}
+
+.profile-scope-rules-table > tbody > tr > td:nth-child(1) {
+  min-width: 92px;
+}
+
+.profile-scope-rules-table > tbody > tr > td:nth-child(2) {
+  min-width: 190px;
+}
+
+.profile-scope-rules-table > tbody > tr > td:nth-child(3) {
+  min-width: 280px;
+}
+
+.profile-scope-rule-actions {
+  min-width: 190px;
+  white-space: nowrap;
+}
+
 .profile-groups-assignment-table {
   max-width: 900px;
 }

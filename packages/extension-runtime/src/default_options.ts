@@ -21,7 +21,8 @@ export default function defaultOptions() {
       window: false
     },
     '-profileScopeAssignments': {
-      containers: {}
+      containers: {},
+      rules: []
     },
     '-profileGroupsEnabled': false,
     '-profileGroups': [] as Array<{color?: string; icon?: string; id: string; name: string; order?: number}>,
@@ -30,6 +31,8 @@ export default function defaultOptions() {
       tabProfile: false,
       groupProfile: false,
       containerProfile: false,
+      pageProfile: false,
+      siteProfile: false,
       windowProfile: false,
       linkProfileNewTab: false,
       linkProfileNewWindow: false,

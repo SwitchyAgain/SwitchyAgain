@@ -45,6 +45,8 @@ type ContextMenuOptions = {
   linkProfileNewPrivateWindow: boolean;
   linkProfileNewTab: boolean;
   linkProfileNewWindow: boolean;
+  pageProfile: boolean;
+  siteProfile: boolean;
   switchProfile: boolean;
   tabProfile: boolean;
   windowProfile: boolean;
@@ -105,6 +107,8 @@ function contextMenuOptionsForOptions(options?: Options | null): ContextMenuOpti
     tabProfile: contextMenuOptions.tabProfile === true,
     groupProfile: contextMenuOptions.groupProfile === true,
     containerProfile: contextMenuOptions.containerProfile === true,
+    pageProfile: contextMenuOptions.pageProfile === true,
+    siteProfile: contextMenuOptions.siteProfile === true,
     windowProfile: contextMenuOptions.windowProfile === true,
     linkProfileNewTab: contextMenuOptions.linkProfileNewTab === true,
     linkProfileNewWindow: contextMenuOptions.linkProfileNewWindow === true,
@@ -133,6 +137,8 @@ function contextMenuCapabilitiesForProfileScope(profileScopeCapabilities: Profil
     tabProfile: tabSupported,
     groupProfile: profileScopeCapabilities.group === true,
     containerProfile: profileScopeCapabilities.container === true,
+    pageProfile: profileScopeCapabilities.site === true,
+    siteProfile: profileScopeCapabilities.site === true,
     windowProfile: profileScopeCapabilities.window === true,
     linkProfileNewTab: tabSupported,
     linkProfileNewWindow: tabSupported,
@@ -154,6 +160,9 @@ function contextMenuOptionVisible(optionKey: keyof ContextMenuOptions, profileSc
       return profileScopeCapabilities.group === true;
     case 'containerProfile':
       return profileScopeCapabilities.container === true;
+    case 'pageProfile':
+    case 'siteProfile':
+      return profileScopeCapabilities.site === true;
   }
 }
 
@@ -679,9 +688,9 @@ export function UiSettings({
         <ProfileScopeCheckbox
           scope="site"
           messageKey="options_profileScopeSite"
-          fallback="Site profiles"
+          fallback="Page / Site profiles"
           helpKey="options_profileScopeSiteHelp"
-          helpFallback="Allow assigning a profile to the current site from the popup. Firefox only."
+          helpFallback="Allow persistent page and site rules from the popup, page context menu, and Profile Scope settings. Firefox only."
         />
         <ProfileScopeCheckbox
           scope="window"
@@ -897,6 +906,8 @@ export function UiSettings({
           messageKey="options_contextMenuContainerProfile"
           fallback="Show container profile switching"
         />
+        <ContextMenuCheckbox optionKey="pageProfile" messageKey="options_contextMenuPageProfile" fallback="Show page profile switching" />
+        <ContextMenuCheckbox optionKey="siteProfile" messageKey="options_contextMenuSiteProfile" fallback="Show site profile switching" />
         <ContextMenuCheckbox
           optionKey="windowProfile"
           messageKey="options_contextMenuWindowProfile"

@@ -5,7 +5,7 @@ import fetchUrl from './fetch_url';
 import {tabUrl} from './tabs';
 import WebRequestMonitor from './web_request_monitor';
 import {optionsWithProxyExceptions} from './proxy_exceptions';
-import type {ProxyImplInstance, ProxyProfile, ProxyRequestDetails} from './proxy/proxy_types';
+import type {ProxyCondition, ProxyImplInstance, ProxyProfile, ProxyRequestDetails} from './proxy/proxy_types';
 
 const ProxyEngine = ExtensionRuntime.ProxyEngine;
 
@@ -23,6 +23,12 @@ const CLEAR_GROUP_PROFILE_CONTEXT_MENU_ID = `${GROUP_PROFILE_CONTEXT_MENU_ROOT_I
 const CONTAINER_PROFILE_CONTEXT_MENU_ROOT_ID = 'useProfileForThisContainer';
 const CONTAINER_PROFILE_CONTEXT_MENU_ITEM_PREFIX = `${CONTAINER_PROFILE_CONTEXT_MENU_ROOT_ID}:`;
 const CLEAR_CONTAINER_PROFILE_CONTEXT_MENU_ID = `${CONTAINER_PROFILE_CONTEXT_MENU_ROOT_ID}:clear`;
+const PAGE_PROFILE_CONTEXT_MENU_ROOT_ID = 'useProfileForThisPage';
+const PAGE_PROFILE_CONTEXT_MENU_ITEM_PREFIX = `${PAGE_PROFILE_CONTEXT_MENU_ROOT_ID}:`;
+const CLEAR_PAGE_PROFILE_CONTEXT_MENU_ID = `${PAGE_PROFILE_CONTEXT_MENU_ROOT_ID}:clear`;
+const SITE_PROFILE_CONTEXT_MENU_ROOT_ID = 'useProfileForThisSite';
+const SITE_PROFILE_CONTEXT_MENU_ITEM_PREFIX = `${SITE_PROFILE_CONTEXT_MENU_ROOT_ID}:`;
+const CLEAR_SITE_PROFILE_CONTEXT_MENU_ID = `${SITE_PROFILE_CONTEXT_MENU_ROOT_ID}:clear`;
 const NORMAL_WINDOW_PROFILE_CONTEXT_MENU_ROOT_ID = 'useProfileForNormalWindows';
 const NORMAL_WINDOW_PROFILE_CONTEXT_MENU_ITEM_PREFIX = `${NORMAL_WINDOW_PROFILE_CONTEXT_MENU_ROOT_ID}:`;
 const CLEAR_NORMAL_WINDOW_PROFILE_CONTEXT_MENU_ID = `${NORMAL_WINDOW_PROFILE_CONTEXT_MENU_ROOT_ID}:clear`;
@@ -227,6 +233,8 @@ type ContextMenuOptions = {
   linkProfileNewPrivateWindow: boolean;
   linkProfileNewTab: boolean;
   linkProfileNewWindow: boolean;
+  pageProfile: boolean;
+  siteProfile: boolean;
   switchProfile: boolean;
   tabProfile: boolean;
   windowProfile: boolean;
@@ -236,6 +244,15 @@ type ProfileScopeAssignments = {
   containers: Record<string, string>;
   normalDefaultProfileName?: string;
   privateDefaultProfileName?: string;
+  rules: ProfileScopeRule[];
+};
+
+type ProfileScopeRule = {
+  condition: ProxyCondition;
+  profileName: string;
+  quickKey?: string;
+  quickTarget?: 'page' | 'site';
+  [key: string]: unknown;
 };
 
 type ProfileScopeContainerInfo = {
@@ -252,7 +269,7 @@ type ProfileScopeSetArgs = {
   groupId?: number;
   incognito?: boolean;
   profileName?: string;
-  scope: 'container' | 'group' | 'normal' | 'private' | 'site' | 'tab';
+  scope: 'container' | 'group' | 'normal' | 'private' | 'page' | 'site' | 'tab';
   tabId?: number;
   url?: string;
   windowId?: number;
@@ -262,6 +279,7 @@ type ProfileScopeInfoArgs = {
   cookieStoreId?: string;
   groupId?: number;
   incognito?: boolean;
+  url?: string;
   tabId?: number;
   windowId?: number;
 };
@@ -270,6 +288,7 @@ type TabProfileContext = {
   cookieStoreId?: string;
   groupId?: number;
   incognito?: boolean;
+  pageUrl?: string;
   windowId?: number;
 };
 
@@ -358,14 +377,121 @@ function normalizeProfileScopeAssignments(value: unknown): ProfileScopeAssignmen
       containers[cookieStoreId] = profileName;
     }
   }
-  const assignments: ProfileScopeAssignments = {containers};
+  const assignments: ProfileScopeAssignments = {containers, rules: []};
   if (typeof rawAssignments.normalDefaultProfileName === 'string' && rawAssignments.normalDefaultProfileName) {
     assignments.normalDefaultProfileName = rawAssignments.normalDefaultProfileName;
   }
   if (typeof rawAssignments.privateDefaultProfileName === 'string' && rawAssignments.privateDefaultProfileName) {
     assignments.privateDefaultProfileName = rawAssignments.privateDefaultProfileName;
   }
+  const rules: ProfileScopeRule[] = [];
+  if (Array.isArray(rawAssignments.rules)) {
+    for (const rawRule of rawAssignments.rules) {
+      if (!isRecordValue(rawRule) || !isRecordValue(rawRule.condition)) {
+        continue;
+      }
+      if (typeof rawRule.condition.conditionType !== 'string' || typeof rawRule.profileName !== 'string' || !rawRule.profileName) {
+        continue;
+      }
+      const rule: ProfileScopeRule = {
+        ...rawRule,
+        condition: {...rawRule.condition} as ProxyCondition,
+        profileName: rawRule.profileName
+      };
+      if (rawRule.quickTarget !== 'page' && rawRule.quickTarget !== 'site') {
+        delete rule.quickTarget;
+        delete rule.quickKey;
+      } else if (typeof rawRule.quickKey !== 'string' || !rawRule.quickKey) {
+        delete rule.quickTarget;
+        delete rule.quickKey;
+      }
+      rules.push(rule);
+    }
+  }
+  assignments.rules = rules;
   return assignments;
+}
+
+function scopeUrl(value?: string) {
+  if (typeof value !== 'string' || !value) {
+    return undefined;
+  }
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return undefined;
+    }
+    // Page identity intentionally excludes credentials and fragments. URL.origin
+    // also normalizes the default port, while pathname/search retain the full
+    // path and query identity.
+    return `${parsed.origin}${parsed.pathname || '/'}${parsed.search}`;
+  } catch (_error) {
+    return undefined;
+  }
+}
+
+function scopeSitePattern(value?: string) {
+  const normalized = scopeUrl(value);
+  if (!normalized) {
+    return undefined;
+  }
+  try {
+    return ProxyEngine.wildcardForUrl(normalized);
+  } catch (_error) {
+    return undefined;
+  }
+}
+
+function regexEscape(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function profileScopeRuleForTarget(target: 'page' | 'site', url?: string): {condition: ProxyCondition; key: string} | undefined {
+  if (target === 'page') {
+    const normalized = scopeUrl(url);
+    if (!normalized) {
+      return undefined;
+    }
+    return {
+      condition: {
+        conditionType: 'UrlRegexCondition',
+        pattern: `^${regexEscape(normalized)}$`
+      },
+      key: normalized
+    };
+  }
+  const pattern = scopeSitePattern(url);
+  if (!pattern) {
+    return undefined;
+  }
+  return {
+    condition: {
+      conditionType: 'HostWildcardCondition',
+      pattern
+    },
+    key: pattern
+  };
+}
+
+function profileScopeRuleTarget(rule: ProfileScopeRule): 'page' | 'site' {
+  return rule.condition.conditionType === 'UrlRegexCondition' || rule.condition.conditionType === 'UrlWildcardCondition' ? 'page' : 'site';
+}
+
+function isMatchingQuickProfileScopeRule(
+  rule: ProfileScopeRule,
+  target: 'page' | 'site',
+  generated: {condition: ProxyCondition; key: string}
+) {
+  return (
+    rule.quickTarget === target &&
+    rule.quickKey === generated.key &&
+    rule.condition.conditionType === generated.condition.conditionType &&
+    rule.condition.pattern === generated.condition.pattern
+  );
+}
+
+function isScopeRequestUrl(value?: string) {
+  return scopeUrl(value) != null;
 }
 
 function normalizeContextMenuOptions(value: unknown, capabilities?: ContextMenuOptions): ContextMenuOptions {
@@ -375,6 +501,8 @@ function normalizeContextMenuOptions(value: unknown, capabilities?: ContextMenuO
     tabProfile: raw.tabProfile === true,
     groupProfile: raw.groupProfile === true,
     containerProfile: raw.containerProfile === true,
+    pageProfile: raw.pageProfile === true,
+    siteProfile: raw.siteProfile === true,
     windowProfile: raw.windowProfile === true,
     linkProfileNewTab: raw.linkProfileNewTab === true,
     linkProfileNewWindow: raw.linkProfileNewWindow === true,
@@ -388,6 +516,8 @@ function normalizeContextMenuOptions(value: unknown, capabilities?: ContextMenuO
     tabProfile: options.tabProfile && capabilities.tabProfile,
     groupProfile: options.groupProfile && capabilities.groupProfile,
     containerProfile: options.containerProfile && capabilities.containerProfile,
+    pageProfile: options.pageProfile && capabilities.pageProfile,
+    siteProfile: options.siteProfile && capabilities.siteProfile,
     windowProfile: options.windowProfile && capabilities.windowProfile,
     linkProfileNewTab: options.linkProfileNewTab && capabilities.linkProfileNewTab,
     linkProfileNewWindow: options.linkProfileNewWindow && capabilities.linkProfileNewWindow,
@@ -757,8 +887,11 @@ class ChromeOptions extends ExtensionRuntime.Options {
       delete this._tabProfileNames[removed];
       delete this._tabProfileContexts[removed];
     });
-    chrome.tabs.onUpdated.addListener((tabId: number, _changeInfo: Record<string, unknown>, tab: ChromeTab) => {
-      this.updateTabProfileContext(tabId, tab);
+    chrome.tabs.onUpdated.addListener((tabId: number, changeInfo: Record<string, unknown>, tab: ChromeTab) => {
+      this.updateTabProfileContext(tabId, {
+        ...tab,
+        url: typeof changeInfo.url === 'string' ? changeInfo.url : tab.url
+      });
     });
     chrome.tabs.onActivated.addListener((info) => {
       chrome.tabs.get(info.tabId, (tab: ChromeTab) => {
@@ -811,9 +944,27 @@ class ChromeOptions extends ExtensionRuntime.Options {
       }
       this.updateContextMenuWindowIncognitoFromCurrentTab(true);
     });
+    const webNavigation = (typeof browser !== 'undefined' ? (browser as unknown as Record<string, unknown>).webNavigation : undefined) as
+      | {
+          onCommitted?: {addListener(callback: (details: {tabId?: number; url?: string}) => void): void};
+          onHistoryStateUpdated?: {addListener(callback: (details: {tabId?: number; url?: string}) => void): void};
+          onReferenceFragmentUpdated?: {addListener(callback: (details: {tabId?: number; url?: string}) => void): void};
+        }
+      | undefined;
+    const rememberNavigationUrl = (details: {tabId?: number; url?: string}) => {
+      if (typeof details.tabId === 'number' && typeof details.url === 'string') {
+        this.updateTabProfileContext(details.tabId, {url: details.url});
+      }
+    };
+    webNavigation?.onCommitted?.addListener(rememberNavigationUrl);
+    webNavigation?.onHistoryStateUpdated?.addListener(rememberNavigationUrl);
+    webNavigation?.onReferenceFragmentUpdated?.addListener(rememberNavigationUrl);
   }
 
-  private updateTabProfileContext(tabId: number, tab: Pick<ChromeTab, 'cookieStoreId' | 'groupId' | 'incognito' | 'windowId'>) {
+  private updateTabProfileContext(
+    tabId: number,
+    tab: Pick<ChromeTab, 'cookieStoreId' | 'groupId' | 'incognito' | 'windowId'> & {pendingUrl?: string; url?: string}
+  ) {
     if (isFirefoxContainerId(tab.cookieStoreId)) {
       this.rememberProfileScopeContainer(tab.cookieStoreId);
     }
@@ -821,6 +972,12 @@ class ChromeOptions extends ExtensionRuntime.Options {
       cookieStoreId: typeof tab.cookieStoreId === 'string' ? tab.cookieStoreId : this._tabProfileContexts[tabId]?.cookieStoreId,
       groupId: typeof tab.groupId === 'number' ? tab.groupId : this._tabProfileContexts[tabId]?.groupId,
       incognito: typeof tab.incognito === 'boolean' ? tab.incognito : this._tabProfileContexts[tabId]?.incognito,
+      pageUrl:
+        typeof tab.pendingUrl === 'string'
+          ? tab.pendingUrl
+          : typeof tab.url === 'string'
+            ? tab.url
+            : this._tabProfileContexts[tabId]?.pageUrl,
       windowId: typeof tab.windowId === 'number' ? tab.windowId : this._tabProfileContexts[tabId]?.windowId
     };
   }
@@ -1045,6 +1202,8 @@ class ChromeOptions extends ExtensionRuntime.Options {
       tabProfile: capabilities.tab,
       groupProfile: capabilities.group,
       containerProfile: capabilities.container,
+      pageProfile: capabilities.site,
+      siteProfile: capabilities.site,
       windowProfile: capabilities.window,
       linkProfileNewTab: capabilities.tab,
       linkProfileNewWindow: capabilities.tab,
@@ -1594,11 +1753,13 @@ class ChromeOptions extends ExtensionRuntime.Options {
       return [];
     }
     this.updateTabProfileContext(tab.id, tab);
+    const url = tab.pendingUrl || tab.url;
     const profileScope = this.getProfileScopeInfo({
       cookieStoreId: tab.cookieStoreId,
       groupId: tab.groupId,
       incognito: tab.incognito,
       tabId: tab.id,
+      url,
       windowId: tab.windowId
     });
     const contextMenuOptions = this.contextMenuOptions();
@@ -1644,6 +1805,36 @@ class ChromeOptions extends ExtensionRuntime.Options {
           scope: 'container'
         },
         titleKey: 'contextMenu_useProfileForThisContainer'
+      });
+    }
+    if (contextMenuOptions.pageProfile && profileScope.enabled.site && isScopeRequestUrl(url)) {
+      targets.push({
+        activeProfileName: profileScope.pageProfileName,
+        clearId: CLEAR_PAGE_PROFILE_CONTEXT_MENU_ID,
+        fallbackTitle: 'Use Profile for This Page',
+        itemPrefix: PAGE_PROFILE_CONTEXT_MENU_ITEM_PREFIX,
+        rootId: PAGE_PROFILE_CONTEXT_MENU_ROOT_ID,
+        setArgs: {
+          scope: 'page',
+          tabId: profileScope.tabId,
+          url
+        },
+        titleKey: 'contextMenu_useProfileForThisPage'
+      });
+    }
+    if (contextMenuOptions.siteProfile && profileScope.enabled.site && isScopeRequestUrl(url)) {
+      targets.push({
+        activeProfileName: profileScope.siteProfileName,
+        clearId: CLEAR_SITE_PROFILE_CONTEXT_MENU_ID,
+        fallbackTitle: 'Use Profile for This Site',
+        itemPrefix: SITE_PROFILE_CONTEXT_MENU_ITEM_PREFIX,
+        rootId: SITE_PROFILE_CONTEXT_MENU_ROOT_ID,
+        setArgs: {
+          scope: 'site',
+          tabId: profileScope.tabId,
+          url
+        },
+        titleKey: 'contextMenu_useProfileForThisSite'
       });
     }
     if (contextMenuOptions.windowProfile && profileScope.enabled.window) {
@@ -1804,7 +1995,12 @@ class ChromeOptions extends ExtensionRuntime.Options {
   private useStaticWindowProfileContextMenu() {
     const capabilities = this.profileScopeCapabilities();
     return (
-      capabilities.window && !capabilities.tab && !capabilities.group && !capabilities.container && !this.contextMenuItemIconsSupported()
+      capabilities.window &&
+      !capabilities.tab &&
+      !capabilities.group &&
+      !capabilities.container &&
+      !capabilities.site &&
+      !this.contextMenuItemIconsSupported()
     );
   }
 
@@ -2374,7 +2570,14 @@ class ChromeOptions extends ExtensionRuntime.Options {
           });
           return;
         }
-        setScope(selection);
+        setScope(
+          selection.scope === 'page' || selection.scope === 'site'
+            ? {
+                ...selection,
+                url: currentTab.pendingUrl || currentTab.url || selection.url
+              }
+            : selection
+        );
       });
       return;
     }
@@ -2407,11 +2610,16 @@ class ChromeOptions extends ExtensionRuntime.Options {
   ): Required<Pick<ProfileScopeInfoArgs, 'tabId'>> & TabProfileContext {
     const tabId = typeof args.tabId === 'number' ? args.tabId : -1;
     const cached = tabId >= 0 ? this._tabProfileContexts[tabId] : undefined;
+    const requestType = typeof (args as Record<string, unknown>).type === 'string' ? String((args as Record<string, unknown>).type) : '';
+    const isProxyRequest = Object.prototype.hasOwnProperty.call(args, 'url') && requestType !== '';
+    const explicitUrl = typeof args.url === 'string' ? args.url : undefined;
+    const pageUrl = isProxyRequest ? (requestType === 'main_frame' ? explicitUrl : cached?.pageUrl) : explicitUrl || cached?.pageUrl;
     const context = {
       tabId,
       cookieStoreId: typeof args.cookieStoreId === 'string' ? args.cookieStoreId : cached?.cookieStoreId,
       groupId: typeof args.groupId === 'number' ? args.groupId : cached?.groupId,
       incognito: typeof args.incognito === 'boolean' ? args.incognito : cached?.incognito,
+      pageUrl,
       windowId: typeof args.windowId === 'number' ? args.windowId : cached?.windowId
     };
     if (tabId >= 0) {
@@ -2419,10 +2627,49 @@ class ChromeOptions extends ExtensionRuntime.Options {
         cookieStoreId: context.cookieStoreId,
         groupId: context.groupId,
         incognito: context.incognito,
+        pageUrl: context.pageUrl,
         windowId: context.windowId
       };
     }
     return context;
+  }
+
+  private matchingProfileScopeRule(pageUrl?: string) {
+    const normalized = scopeUrl(pageUrl);
+    if (!normalized) {
+      return undefined;
+    }
+    const request = ProxyEngine.Conditions.requestFromUrl(normalized);
+    const assignments = this.profileScopeAssignments();
+    for (const rule of assignments.rules) {
+      const profileName = this.validProfileName(rule.profileName);
+      if (!profileName || !rule.condition || typeof rule.condition.conditionType !== 'string') {
+        continue;
+      }
+      try {
+        if (ProxyEngine.Conditions.match(rule.condition, request)) {
+          return {
+            profileName,
+            rule,
+            scope: profileScopeRuleTarget(rule)
+          } as const;
+        }
+      } catch (_error) {
+        // Ignore malformed user-entered conditions and continue with the next rule.
+      }
+    }
+    return undefined;
+  }
+
+  private quickProfileScopeRule(target: 'page' | 'site', pageUrl?: string) {
+    const generated = profileScopeRuleForTarget(target, pageUrl);
+    if (!generated) {
+      return undefined;
+    }
+    const assignments = this.profileScopeAssignments();
+    return assignments.rules.find(
+      (rule) => isMatchingQuickProfileScopeRule(rule, target, generated) && this.validProfileName(rule.profileName)
+    );
   }
 
   private scopeProfileName(args: ProfileScopeInfoArgs | ProxyRequestDetails) {
@@ -2452,6 +2699,15 @@ class ChromeOptions extends ExtensionRuntime.Options {
         profileName: containerProfileName,
         scope: 'container'
       };
+    }
+    if (scopes.site) {
+      const pageRule = this.matchingProfileScopeRule(context.pageUrl);
+      if (pageRule?.profileName) {
+        return {
+          profileName: pageRule.profileName,
+          scope: pageRule.scope
+        };
+      }
     }
     if (scopes.window) {
       const windowProfileName = this.validProfileName(
@@ -2552,6 +2808,11 @@ class ChromeOptions extends ExtensionRuntime.Options {
         names.add(profileName);
       }
     }
+    for (const rule of assignments.rules) {
+      if (this.validProfileName(rule.profileName)) {
+        names.add(rule.profileName);
+      }
+    }
     if (this.validProfileName(assignments.normalDefaultProfileName)) {
       names.add(assignments.normalDefaultProfileName as string);
     }
@@ -2575,6 +2836,8 @@ class ChromeOptions extends ExtensionRuntime.Options {
     const windowProfileName = this.validProfileName(
       context.incognito ? assignments.privateDefaultProfileName : assignments.normalDefaultProfileName
     );
+    const pageProfileName = this.validProfileName(this.quickProfileScopeRule('page', context.pageUrl)?.profileName);
+    const siteProfileName = this.validProfileName(this.quickProfileScopeRule('site', context.pageUrl)?.profileName);
     const effective = this.scopeProfileName(args);
     return {
       assignments,
@@ -2587,6 +2850,9 @@ class ChromeOptions extends ExtensionRuntime.Options {
       groupProfileName,
       incognito: !!context.incognito,
       isContainer: isFirefoxContainerId(context.cookieStoreId),
+      pageProfileName,
+      pageUrl: scopeUrl(context.pageUrl),
+      siteProfileName,
       tabId: context.tabId >= 0 ? context.tabId : undefined,
       tabProfileName,
       windowId: context.windowId,
@@ -2644,12 +2910,28 @@ class ChromeOptions extends ExtensionRuntime.Options {
         '-profileScopeAssignments': assignments
       });
     }
-    if (args.scope === 'site') {
-      if (!capabilities.site || !scopes.site || !args.url) {
+    if (args.scope === 'page' || args.scope === 'site') {
+      if (!capabilities.site || !scopes.site) {
         return Promise.resolve();
       }
-      // Site assignment storage and matching will be added after the rule model is finalized.
-      return Promise.resolve();
+      const target = args.scope;
+      const generated = profileScopeRuleForTarget(target, args.url);
+      if (!generated) {
+        return Promise.resolve();
+      }
+      const assignments = this.profileScopeAssignments();
+      assignments.rules = assignments.rules.filter((rule) => !isMatchingQuickProfileScopeRule(rule, target, generated));
+      if (profileName) {
+        assignments.rules.unshift({
+          condition: generated.condition,
+          profileName,
+          quickKey: generated.key,
+          quickTarget: target
+        });
+      }
+      return this._setOptions({
+        '-profileScopeAssignments': assignments
+      });
     }
     if (args.scope === 'normal' || args.scope === 'private') {
       if (!capabilities.window || !scopes.window) {
@@ -3056,11 +3338,13 @@ class ChromeOptions extends ExtensionRuntime.Options {
     const networkRequestIgnoreListEnabled = failedRequestDetectionEnabled && isNetworkRequestIgnoreListEnabled(this._options);
     const effectiveIgnoreList = networkRequestIgnoreListEnabled ? networkRequestIgnoreList : [];
     const filteredInfo = effectiveFailedRequestInfo(this._options, tabInfo);
+    const profileScopeUrl = tabInfoPageUrl(tabInfo, url);
     const profileScope = this.getProfileScopeInfo({
       cookieStoreId,
       groupId,
       incognito,
       tabId,
+      url: profileScopeUrl,
       windowId
     });
     const errorCount = filteredInfo.errorCount;
@@ -3077,7 +3361,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
         }
       : null;
     this.clearBadge();
-    url = tabInfoPageUrl(tabInfo, url);
+    url = profileScopeUrl;
     if (!url) {
       return result;
     }

@@ -3,6 +3,8 @@ import {message} from './i18n_client';
 import type {Options} from './options_client_types';
 import {cloneOptions} from './options_logic';
 import {ProfileSelect, profileOrder, scopeAssignableProfilesForOptions} from './profile_widgets';
+import {conditionTypesForMode} from './switch_profile_runtime';
+import type {ConditionTypeOption, SwitchRuleCondition, SwitchRuleEditableConditionType} from './switch_profile_runtime';
 
 export type ProfileScopeCapabilities = {
   container?: boolean;
@@ -33,6 +35,15 @@ type ProfileScopeAssignments = {
   containers: Record<string, string>;
   normalDefaultProfileName?: string;
   privateDefaultProfileName?: string;
+  rules: ProfileScopeRule[];
+};
+
+type ProfileScopeRule = {
+  condition: SwitchRuleCondition;
+  profileName: string;
+  quickKey?: string;
+  quickTarget?: 'page' | 'site';
+  [key: string]: unknown;
 };
 
 type ProfileScopeContainerRow = ProfileScopeContainerInfo & {
@@ -90,7 +101,8 @@ function assignmentsForOptions(options?: Options | null): ProfileScopeAssignment
   const assignments = isRecordValue(raw) ? raw : {};
   const containers = isRecordValue(assignments.containers) ? assignments.containers : {};
   const result: ProfileScopeAssignments = {
-    containers: {}
+    containers: {},
+    rules: []
   };
   for (const [cookieStoreId, profileName] of Object.entries(containers)) {
     if (isFirefoxContainerId(cookieStoreId) && typeof profileName === 'string') {
@@ -102,6 +114,29 @@ function assignmentsForOptions(options?: Options | null): ProfileScopeAssignment
   }
   if (typeof assignments.privateDefaultProfileName === 'string') {
     result.privateDefaultProfileName = assignments.privateDefaultProfileName;
+  }
+  if (Array.isArray(assignments.rules)) {
+    for (const rawRule of assignments.rules) {
+      if (!isRecordValue(rawRule) || !isRecordValue(rawRule.condition)) {
+        continue;
+      }
+      if (typeof rawRule.condition.conditionType !== 'string' || typeof rawRule.profileName !== 'string' || !rawRule.profileName) {
+        continue;
+      }
+      const rule: ProfileScopeRule = {
+        ...rawRule,
+        condition: {...rawRule.condition} as SwitchRuleCondition,
+        profileName: rawRule.profileName
+      };
+      if (rawRule.quickTarget !== 'page' && rawRule.quickTarget !== 'site') {
+        delete rule.quickTarget;
+        delete rule.quickKey;
+      } else if (typeof rawRule.quickKey !== 'string' || !rawRule.quickKey) {
+        delete rule.quickTarget;
+        delete rule.quickKey;
+      }
+      result.rules.push(rule);
+    }
   }
   return result;
 }
@@ -193,6 +228,151 @@ function ContainerIdentity({container}: {container: ProfileScopeContainerRow}) {
   );
 }
 
+function profileScopeConditionTypes(rules: ProfileScopeRule[], showConditionTypes: number) {
+  const options = conditionTypesForMode(showConditionTypes);
+  const known = new Set(options.map((option) => option.type));
+  for (const rule of rules) {
+    const type = rule.condition.conditionType;
+    if (typeof type === 'string' && type && !known.has(type as SwitchRuleEditableConditionType)) {
+      options.push({
+        group: 'condition_group_special',
+        type: type as SwitchRuleEditableConditionType
+      });
+      known.add(type as SwitchRuleEditableConditionType);
+    }
+  }
+  return options;
+}
+
+function groupedConditionTypes(options: ConditionTypeOption[]) {
+  const groups: Array<{group: ConditionTypeOption['group']; types: ConditionTypeOption[]}> = [];
+  for (const option of options) {
+    let group = groups.find((candidate) => candidate.group === option.group);
+    if (!group) {
+      group = {group: option.group, types: []};
+      groups.push(group);
+    }
+    group.types.push(option);
+  }
+  return groups;
+}
+
+function conditionScopeLabel(condition: SwitchRuleCondition) {
+  return condition.conditionType === 'UrlRegexCondition' || condition.conditionType === 'UrlWildcardCondition'
+    ? message('options_profileScopeRulePage', 'Page')
+    : message('options_profileScopeRuleSite', 'Site');
+}
+
+function conditionIpValue(condition: SwitchRuleCondition) {
+  if (!condition.ip) {
+    return '';
+  }
+  try {
+    return ProxyEngine.Conditions.str(condition as never).split(' ', 2)[1] || '';
+  } catch (_error) {
+    return String(condition.ip);
+  }
+}
+
+function weekdayList(condition: SwitchRuleCondition) {
+  try {
+    return ProxyEngine.Conditions.getWeekdayList(condition as never) || [];
+  } catch (_error) {
+    return [];
+  }
+}
+
+function ProfileScopeConditionDetails({
+  condition,
+  onChange,
+  onIpChange,
+  onWeekdayChange
+}: {
+  condition: SwitchRuleCondition;
+  onChange: (field: 'endHour' | 'maxValue' | 'minValue' | 'pattern' | 'startHour', value: string) => void;
+  onIpChange: (value: string) => void;
+  onWeekdayChange: (dayIndex: number, selected: boolean) => void;
+}) {
+  switch (condition.conditionType) {
+    case 'FalseCondition':
+      return <span className="text-muted">{message('condition_details_FalseCondition', '(Condition ignored when matching)')}</span>;
+    case 'HostLevelsCondition':
+      return (
+        <span className="host-levels-details">
+          <input
+            className="form-control"
+            type="number"
+            min={1}
+            max={99}
+            value={String(condition.minValue ?? '')}
+            onChange={(event) => onChange('minValue', event.currentTarget.value)}
+          />{' '}
+          <span>{message('options_hostLevelsBetween', '≤ host levels ≤')}</span>{' '}
+          <input
+            className="form-control"
+            type="number"
+            min={1}
+            max={99}
+            value={String(condition.maxValue ?? '')}
+            onChange={(event) => onChange('maxValue', event.currentTarget.value)}
+          />
+        </span>
+      );
+    case 'IpCondition':
+      return (
+        <input
+          className="form-control"
+          type="text"
+          placeholder="127.0.0.1/8"
+          value={conditionIpValue(condition)}
+          onChange={(event) => onIpChange(event.currentTarget.value)}
+        />
+      );
+    case 'TimeCondition':
+      return (
+        <span className="host-levels-details">
+          <input
+            className="form-control"
+            type="number"
+            min={0}
+            max={23}
+            value={String(condition.startHour ?? '')}
+            onChange={(event) => onChange('startHour', event.currentTarget.value)}
+          />{' '}
+          <span>{message('options_hourBetween', '≤ current hour ≤')}</span>{' '}
+          <input
+            className="form-control"
+            type="number"
+            min={0}
+            max={23}
+            value={String(condition.endHour ?? '')}
+            onChange={(event) => onChange('endHour', event.currentTarget.value)}
+          />
+        </span>
+      );
+    case 'WeekdayCondition':
+      return (
+        <span>
+          {weekdayList(condition).map((selected, dayIndex) => (
+            <label className="checkbox-inline" key={dayIndex}>
+              <input type="checkbox" checked={!!selected} onChange={(event) => onWeekdayChange(dayIndex, event.currentTarget.checked)} />{' '}
+              {message(`options_weekDayShort_${dayIndex}`, String(dayIndex))}
+            </label>
+          ))}
+        </span>
+      );
+    default:
+      return (
+        <input
+          className="form-control"
+          type="text"
+          value={condition.pattern || ''}
+          onChange={(event) => onChange('pattern', event.currentTarget.value)}
+        />
+      );
+  }
+}
+
 export function ProfileScopeSettingsPage({
   appliedOptions,
   capabilities = DEFAULT_PROFILE_SCOPE_CAPABILITIES,
@@ -216,6 +396,10 @@ export function ProfileScopeSettingsPage({
   const assignments = assignmentsForOptions(options);
   const appliedAssignments = assignmentsForOptions(appliedOptions || options);
   const profiles = useMemo(() => scopeAssignableProfilesForOptions(options).slice().sort(profileOrder), [options]);
+  const conditionTypeGroups = useMemo(
+    () => groupedConditionTypes(profileScopeConditionTypes(assignments.rules, Number(options['-showConditionTypes']) || 0)),
+    [assignments.rules, options]
+  );
   const rows = useMemo(
     () => containerRows(containers, assignments, appliedAssignments, showDefaultContainers, showDeletedContainers),
     [appliedAssignments, assignments, containers, showDefaultContainers, showDeletedContainers]
@@ -253,6 +437,99 @@ export function ProfileScopeSettingsPage({
       } else {
         delete nextAssignments.containers[cookieStoreId];
       }
+    });
+  }
+
+  function editRule(index: number, updater: (rule: ProfileScopeRule) => void) {
+    updateAssignments((nextAssignments) => {
+      const rule = nextAssignments.rules[index];
+      if (!rule) {
+        return;
+      }
+      updater(rule);
+      delete rule.quickKey;
+      delete rule.quickTarget;
+    });
+  }
+
+  function addRule() {
+    const profileName = profiles[0]?.name;
+    if (!profileName) {
+      return;
+    }
+    updateAssignments((nextAssignments) => {
+      nextAssignments.rules.unshift({
+        condition: {
+          conditionType: 'HostWildcardCondition',
+          pattern: ''
+        },
+        profileName
+      });
+    });
+  }
+
+  function cloneRule(index: number) {
+    updateAssignments((nextAssignments) => {
+      const source = nextAssignments.rules[index];
+      if (!source) {
+        return;
+      }
+      const clone: ProfileScopeRule = {
+        ...source,
+        condition: {...source.condition}
+      };
+      delete clone.quickKey;
+      delete clone.quickTarget;
+      nextAssignments.rules.splice(index + 1, 0, clone);
+    });
+  }
+
+  function removeRule(index: number) {
+    updateAssignments((nextAssignments) => {
+      nextAssignments.rules.splice(index, 1);
+    });
+  }
+
+  function moveRule(index: number, offset: -1 | 1) {
+    updateAssignments((nextAssignments) => {
+      const nextIndex = index + offset;
+      if (nextIndex < 0 || nextIndex >= nextAssignments.rules.length) {
+        return;
+      }
+      const [rule] = nextAssignments.rules.splice(index, 1);
+      nextAssignments.rules.splice(nextIndex, 0, rule);
+    });
+  }
+
+  function updateRuleField(index: number, field: 'endHour' | 'maxValue' | 'minValue' | 'pattern' | 'startHour', value: string) {
+    editRule(index, (rule) => {
+      if (field === 'pattern') {
+        rule.condition.pattern = value;
+      } else {
+        rule.condition[field] = value === '' ? null : Number(value);
+      }
+    });
+  }
+
+  function updateRuleIp(index: number, value: string) {
+    editRule(index, (rule) => {
+      rule.condition = value
+        ? (ProxyEngine.Conditions.fromStr(`Ip: ${value}`) as unknown as SwitchRuleCondition)
+        : {
+            conditionType: 'IpCondition',
+            ip: '0.0.0.0',
+            prefixLength: 0
+          };
+    });
+  }
+
+  function updateRuleWeekday(index: number, dayIndex: number, selected: boolean) {
+    editRule(index, (rule) => {
+      rule.condition.days || (rule.condition.days = '-------');
+      const char = selected ? 'SMTWtFs'[dayIndex] : '-';
+      rule.condition.days = rule.condition.days.slice(0, dayIndex) + char + rule.condition.days.slice(dayIndex + 1);
+      delete rule.condition.startDay;
+      delete rule.condition.endDay;
     });
   }
 
@@ -308,13 +585,119 @@ export function ProfileScopeSettingsPage({
 
       {visible.site && (
         <section className="settings-group profile-scope-settings-group">
-          <h3>{message('options_profileScopeSitesSection', 'Sites')}</h3>
+          <div className="settings-section-heading">
+            <h3>{message('options_profileScopeSitesSection', 'Pages / Sites')}</h3>
+            <button className="btn btn-default btn-xs" type="button" onClick={addRule} disabled={!profiles.length}>
+              <span className="glyphicon glyphicon-plus" aria-hidden="true" /> {message('options_profileScopeAddRule', 'Add Rule')}
+            </button>
+          </div>
           <p className="help-block">
             {message(
               'options_profileScopeSitesHelp',
-              'Site matching and profile assignment settings will be added here after the matching rules are finalized.'
+              'The first matching rule sets the starting profile for every request in the current tab. URL conditions are page rules; host and other conditions are site rules.'
+            )}
+            <br />
+            {message(
+              'options_profileScopeQuickRulesHelp',
+              'This Page uses scheme, host, port, exact path, and the full query; URL fragments are ignored. This Site uses the existing host wildcard semantics.'
             )}
           </p>
+          {assignments.rules.length ? (
+            <table className="table table-striped profile-scope-table profile-scope-rules-table">
+              <thead>
+                <tr>
+                  <th>{message('options_profileScopeRuleOrderColumn', 'Order')}</th>
+                  <th>{message('options_conditionType', 'Condition Type')}</th>
+                  <th>{message('options_conditionDetails', 'Condition Details')}</th>
+                  <th>{message('options_profileScopeProfileColumn', 'Profile')}</th>
+                  <th>{message('options_profileScopeRuleActionsColumn', 'Actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {assignments.rules.map((rule, index) => (
+                  <tr key={`${index}:${rule.quickTarget || ''}:${rule.quickKey || ''}`}>
+                    <td>
+                      <span>{index + 1}</span> <span className="label label-default">{conditionScopeLabel(rule.condition)}</span>
+                    </td>
+                    <td>
+                      <select
+                        className="form-control"
+                        value={rule.condition.conditionType || ''}
+                        onChange={(event) =>
+                          editRule(index, (nextRule) => {
+                            nextRule.condition.conditionType = event.currentTarget.value as SwitchRuleEditableConditionType;
+                          })
+                        }
+                      >
+                        {conditionTypeGroups.map((group) => (
+                          <optgroup key={group.group} label={message(group.group, group.group)}>
+                            {group.types.map((type) => (
+                              <option key={type.type} value={type.type}>
+                                {message(`condition_${type.type}`, type.type)}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+                    </td>
+                    <td>
+                      <ProfileScopeConditionDetails
+                        condition={rule.condition}
+                        onChange={(field, value) => updateRuleField(index, field, value)}
+                        onIpChange={(value) => updateRuleIp(index, value)}
+                        onWeekdayChange={(dayIndex, selected) => updateRuleWeekday(index, dayIndex, selected)}
+                      />
+                    </td>
+                    <td>
+                      <ProfileSelect
+                        name={rule.profileName}
+                        onChange={(name) => editRule(index, (nextRule) => (nextRule.profileName = name))}
+                        profiles={profiles}
+                      />
+                    </td>
+                    <td className="profile-scope-rule-actions">
+                      <button
+                        className="btn btn-default btn-sm"
+                        type="button"
+                        title={message('options_moveUp', 'Move up')}
+                        disabled={index === 0}
+                        onClick={() => moveRule(index, -1)}
+                      >
+                        <span className="glyphicon glyphicon-chevron-up" aria-hidden="true" />
+                      </button>{' '}
+                      <button
+                        className="btn btn-default btn-sm"
+                        type="button"
+                        title={message('options_moveDown', 'Move down')}
+                        disabled={index === assignments.rules.length - 1}
+                        onClick={() => moveRule(index, 1)}
+                      >
+                        <span className="glyphicon glyphicon-chevron-down" aria-hidden="true" />
+                      </button>{' '}
+                      <button
+                        className="btn btn-default btn-sm"
+                        type="button"
+                        title={message('options_cloneRule', 'Clone')}
+                        onClick={() => cloneRule(index)}
+                      >
+                        <span className="glyphicon glyphicon-duplicate" aria-hidden="true" />
+                      </button>{' '}
+                      <button
+                        className="btn btn-danger btn-sm"
+                        type="button"
+                        title={message('dialog_delete', 'Delete')}
+                        onClick={() => removeRule(index)}
+                      >
+                        <span className="glyphicon glyphicon-trash" aria-hidden="true" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="text-muted">{message('options_profileScopeRulesEmpty', 'No page or site rules.')}</p>
+          )}
         </section>
       )}
 

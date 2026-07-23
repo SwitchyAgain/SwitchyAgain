@@ -91,6 +91,8 @@ export type OptionsData = {
     linkProfileNewPrivateWindow?: boolean;
     linkProfileNewTab?: boolean;
     linkProfileNewWindow?: boolean;
+    pageProfile?: boolean;
+    siteProfile?: boolean;
     switchProfile?: boolean;
     tabProfile?: boolean;
     windowProfile?: boolean;
@@ -108,10 +110,18 @@ export type OptionsData = {
     containers?: Record<string, string>;
     normalDefaultProfileName?: string;
     privateDefaultProfileName?: string;
+    rules?: Array<{
+      condition: Record<string, unknown>;
+      profileName: string;
+      quickKey?: string;
+      quickTarget?: 'page' | 'site';
+      [key: string]: unknown;
+    }>;
   };
   '-profileScopes'?: {
     container?: boolean;
     group?: boolean;
+    site?: boolean;
     tab?: boolean;
     window?: boolean;
   };

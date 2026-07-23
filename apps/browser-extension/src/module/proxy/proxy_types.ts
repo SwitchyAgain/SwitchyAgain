@@ -66,6 +66,7 @@ export type ProxyRequestDetails = {
   groupId?: number;
   incognito?: boolean;
   tabId?: number;
+  type?: string;
   url: string;
   windowId?: number;
   [key: string]: unknown;

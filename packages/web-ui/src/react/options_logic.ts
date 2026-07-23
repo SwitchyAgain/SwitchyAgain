@@ -311,6 +311,7 @@ export function deleteProfileScopeAssignments(options: Options, profileName: str
     containers?: Record<string, string>;
     normalDefaultProfileName?: string;
     privateDefaultProfileName?: string;
+    rules?: Array<{profileName?: string}>;
   };
   if (assignments.normalDefaultProfileName === profileName) {
     delete assignments.normalDefaultProfileName;
@@ -324,6 +325,9 @@ export function deleteProfileScopeAssignments(options: Options, profileName: str
         delete assignments.containers[cookieStoreId];
       }
     }
+  }
+  if (Array.isArray(assignments.rules)) {
+    assignments.rules = assignments.rules.filter((rule) => rule?.profileName !== profileName);
   }
 }
 
