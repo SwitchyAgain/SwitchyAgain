@@ -1802,13 +1802,13 @@ msgid "options_profileScopeContainer"
 msgstr "Container profiles"
 
 msgid "options_profileScopeContainerHelp"
-msgstr "Allow assigning profiles to Firefox containers from the popup or page context menu. Firefox only."
+msgstr "Allow assigning profiles to Firefox containers from the popup, page context menu, or the Profile Scope page. Firefox only."
 
 msgid "options_profileScopeWindow"
 msgstr "Normal/private defaults"
 
 msgid "options_profileScopeWindowHelp"
-msgstr "Allow separate default profiles for normal and private windows from the popup or page context menu."
+msgstr "Allow assigning separate default profiles for normal and private windows from the popup, page context menu, or the Profile Scope page."
 
 msgid "popup_profileScopeTab"
 msgstr "This Tab"

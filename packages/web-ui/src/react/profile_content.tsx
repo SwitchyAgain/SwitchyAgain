@@ -2643,7 +2643,7 @@ export function SwitchRulesSection({
             style={rulesWrapperMinHeight ? {minHeight: `${rulesWrapperMinHeight}px`} : undefined}
           >
             {loadRules && (
-              <table className="switch-rules table table-bordered table-condensed width-limit-xl">
+              <table className="switch-rules rule-editor-table table table-bordered table-condensed width-limit-xl">
                 <thead>
                   <SwitchRuleTableHeader onToggleConditionHelp={onToggleConditionHelp} showNotes={showNotes} />
                 </thead>

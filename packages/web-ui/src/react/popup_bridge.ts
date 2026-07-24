@@ -60,6 +60,7 @@ export type ProfileScopeInfo = {
     privateDefaultProfileName?: string;
     rules?: Array<{
       condition: Record<string, unknown>;
+      note?: string;
       profileName: string;
       quickKey?: string;
       quickTarget?: 'page' | 'site';
@@ -77,8 +78,10 @@ export type ProfileScopeInfo = {
   incognito?: boolean;
   isContainer?: boolean;
   pageProfileName?: string;
+  pageQuickProfileName?: string;
   pageUrl?: string;
   siteProfileName?: string;
+  siteQuickProfileName?: string;
   tabId?: number;
   tabProfileName?: string;
   windowId?: number;

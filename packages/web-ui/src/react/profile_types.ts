@@ -112,6 +112,7 @@ export type OptionsData = {
     privateDefaultProfileName?: string;
     rules?: Array<{
       condition: Record<string, unknown>;
+      note?: string;
       profileName: string;
       quickKey?: string;
       quickTarget?: 'page' | 'site';

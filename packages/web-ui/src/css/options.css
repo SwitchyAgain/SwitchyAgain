@@ -17,6 +17,8 @@
   --sa-active-bg: #337ab7;
   --sa-active-text: #fff;
   --sa-focus: #66afe9;
+  --sa-profile-scope-page-bg: #fff4e5;
+  --sa-profile-scope-site-bg: #fdecec;
 }
 
 :root.theme-dark {
@@ -36,6 +38,8 @@
   --sa-active-bg: #337ab7;
   --sa-active-text: #fff;
   --sa-focus: #86b7fe;
+  --sa-profile-scope-page-bg: #3d2b13;
+  --sa-profile-scope-site-bg: #421f24;
 }
 
 .clear-padding {
@@ -1797,7 +1801,7 @@ main .profile-header {
 }
 
 .fixed-servers td,
-.switch-rules td {
+.rule-editor-table td {
   vertical-align: middle !important;
 }
 
@@ -1830,25 +1834,22 @@ main .profile-header {
   max-width: 720px;
 }
 
-.profile-scope-rules-table {
-  max-width: 1120px;
-}
-
-.profile-scope-rules-table > tbody > tr > td:nth-child(1) {
-  min-width: 92px;
-}
-
-.profile-scope-rules-table > tbody > tr > td:nth-child(2) {
-  min-width: 190px;
-}
-
-.profile-scope-rules-table > tbody > tr > td:nth-child(3) {
-  min-width: 280px;
-}
-
-.profile-scope-rule-actions {
-  min-width: 190px;
+.profile-scope-rule-sort,
+.profile-scope-rule-scope {
+  text-align: center;
   white-space: nowrap;
+}
+
+.profile-scope-rule-label {
+  color: var(--sa-text);
+}
+
+.profile-scope-rule-label-page {
+  background-color: var(--sa-profile-scope-page-bg);
+}
+
+.profile-scope-rule-label-site {
+  background-color: var(--sa-profile-scope-site-bg);
 }
 
 .profile-groups-assignment-table {
@@ -2452,19 +2453,23 @@ main .profile-header {
   touch-action: none;
 }
 
+.rule-editor-dragging-active,
 .switch-rule-dragging-active {
   cursor: grabbing;
   user-select: none;
 }
 
+.rule-editor-row-dragging,
 .switch-rule-row-dragging {
   visibility: hidden;
 }
 
+.rule-editor-row-dragging .sort-bar,
 .switch-rule-row-dragging .sort-bar {
   cursor: grabbing;
 }
 
+.rule-editor-drag-helper,
 .switch-rule-drag-helper {
   position: fixed;
   z-index: 1040;
@@ -2478,11 +2483,14 @@ main .profile-header {
   background-color: #fff;
 }
 
+.theme-dark .rule-editor-drag-helper,
+.theme-dark .rule-editor-drag-helper td,
 .theme-dark .switch-rule-drag-helper,
 .theme-dark .switch-rule-drag-helper td {
   background-color: var(--sa-panel-bg);
 }
 
+.rule-editor-drag-helper .sort-bar,
 .switch-rule-drag-helper .sort-bar {
   cursor: grabbing;
 }

@@ -126,6 +126,7 @@ type ProfileScopeContextMenuUpdateOptions = {
 type ProfileScopeContextMenuTarget = {
   activeProfileName?: string;
   clearId: string;
+  clearable?: boolean;
   fallbackTitle: string;
   itemPrefix: string;
   rootId: string;
@@ -249,6 +250,7 @@ type ProfileScopeAssignments = {
 
 type ProfileScopeRule = {
   condition: ProxyCondition;
+  note?: string;
   profileName: string;
   quickKey?: string;
   quickTarget?: 'page' | 'site';
@@ -398,6 +400,9 @@ function normalizeProfileScopeAssignments(value: unknown): ProfileScopeAssignmen
         condition: {...rawRule.condition} as ProxyCondition,
         profileName: rawRule.profileName
       };
+      if (typeof rawRule.note !== 'string') {
+        delete rule.note;
+      }
       if (rawRule.quickTarget !== 'page' && rawRule.quickTarget !== 'site') {
         delete rule.quickTarget;
         delete rule.quickKey;
@@ -1793,6 +1798,48 @@ class ChromeOptions extends ExtensionRuntime.Options {
         titleKey: 'contextMenu_useProfileForThisTabGroup'
       });
     }
+    if (
+      contextMenuOptions.pageProfile &&
+      profileScope.enabled.site &&
+      isScopeRequestUrl(url) &&
+      (!profileScope.pageProfileName || profileScope.pageQuickProfileName)
+    ) {
+      targets.push({
+        activeProfileName: profileScope.pageQuickProfileName,
+        clearId: CLEAR_PAGE_PROFILE_CONTEXT_MENU_ID,
+        clearable: Boolean(profileScope.pageQuickProfileName),
+        fallbackTitle: 'Use Profile for This Page',
+        itemPrefix: PAGE_PROFILE_CONTEXT_MENU_ITEM_PREFIX,
+        rootId: PAGE_PROFILE_CONTEXT_MENU_ROOT_ID,
+        setArgs: {
+          scope: 'page',
+          tabId: profileScope.tabId,
+          url
+        },
+        titleKey: 'contextMenu_useProfileForThisPage'
+      });
+    }
+    if (
+      contextMenuOptions.siteProfile &&
+      profileScope.enabled.site &&
+      isScopeRequestUrl(url) &&
+      (!profileScope.siteProfileName || profileScope.siteQuickProfileName)
+    ) {
+      targets.push({
+        activeProfileName: profileScope.siteQuickProfileName,
+        clearId: CLEAR_SITE_PROFILE_CONTEXT_MENU_ID,
+        clearable: Boolean(profileScope.siteQuickProfileName),
+        fallbackTitle: 'Use Profile for This Site',
+        itemPrefix: SITE_PROFILE_CONTEXT_MENU_ITEM_PREFIX,
+        rootId: SITE_PROFILE_CONTEXT_MENU_ROOT_ID,
+        setArgs: {
+          scope: 'site',
+          tabId: profileScope.tabId,
+          url
+        },
+        titleKey: 'contextMenu_useProfileForThisSite'
+      });
+    }
     if (contextMenuOptions.containerProfile && profileScope.enabled.container && profileScope.isContainer && profileScope.cookieStoreId) {
       targets.push({
         activeProfileName: profileScope.containerProfileName,
@@ -1805,36 +1852,6 @@ class ChromeOptions extends ExtensionRuntime.Options {
           scope: 'container'
         },
         titleKey: 'contextMenu_useProfileForThisContainer'
-      });
-    }
-    if (contextMenuOptions.pageProfile && profileScope.enabled.site && isScopeRequestUrl(url)) {
-      targets.push({
-        activeProfileName: profileScope.pageProfileName,
-        clearId: CLEAR_PAGE_PROFILE_CONTEXT_MENU_ID,
-        fallbackTitle: 'Use Profile for This Page',
-        itemPrefix: PAGE_PROFILE_CONTEXT_MENU_ITEM_PREFIX,
-        rootId: PAGE_PROFILE_CONTEXT_MENU_ROOT_ID,
-        setArgs: {
-          scope: 'page',
-          tabId: profileScope.tabId,
-          url
-        },
-        titleKey: 'contextMenu_useProfileForThisPage'
-      });
-    }
-    if (contextMenuOptions.siteProfile && profileScope.enabled.site && isScopeRequestUrl(url)) {
-      targets.push({
-        activeProfileName: profileScope.siteProfileName,
-        clearId: CLEAR_SITE_PROFILE_CONTEXT_MENU_ID,
-        fallbackTitle: 'Use Profile for This Site',
-        itemPrefix: SITE_PROFILE_CONTEXT_MENU_ITEM_PREFIX,
-        rootId: SITE_PROFILE_CONTEXT_MENU_ROOT_ID,
-        setArgs: {
-          scope: 'site',
-          tabId: profileScope.tabId,
-          url
-        },
-        titleKey: 'contextMenu_useProfileForThisSite'
       });
     }
     if (contextMenuOptions.windowProfile && profileScope.enabled.window) {
@@ -1902,7 +1919,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
     }
     nextIds.push(target.rootId);
     this.createContextMenuItem(rootItem);
-    if (target.activeProfileName) {
+    if (target.clearable ?? Boolean(target.activeProfileName)) {
       nextIds.push(target.clearId);
       nextSelections[target.clearId] = target.setArgs;
       this.createContextMenuItem({
@@ -2634,7 +2651,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
     return context;
   }
 
-  private matchingProfileScopeRule(pageUrl?: string) {
+  private matchingProfileScopeRule(pageUrl?: string, target?: 'page' | 'site') {
     const normalized = scopeUrl(pageUrl);
     if (!normalized) {
       return undefined;
@@ -2646,12 +2663,16 @@ class ChromeOptions extends ExtensionRuntime.Options {
       if (!profileName || !rule.condition || typeof rule.condition.conditionType !== 'string') {
         continue;
       }
+      const scope = profileScopeRuleTarget(rule);
+      if (target && scope !== target) {
+        continue;
+      }
       try {
         if (ProxyEngine.Conditions.match(rule.condition, request)) {
           return {
             profileName,
             rule,
-            scope: profileScopeRuleTarget(rule)
+            scope
           } as const;
         }
       } catch (_error) {
@@ -2659,17 +2680,6 @@ class ChromeOptions extends ExtensionRuntime.Options {
       }
     }
     return undefined;
-  }
-
-  private quickProfileScopeRule(target: 'page' | 'site', pageUrl?: string) {
-    const generated = profileScopeRuleForTarget(target, pageUrl);
-    if (!generated) {
-      return undefined;
-    }
-    const assignments = this.profileScopeAssignments();
-    return assignments.rules.find(
-      (rule) => isMatchingQuickProfileScopeRule(rule, target, generated) && this.validProfileName(rule.profileName)
-    );
   }
 
   private scopeProfileName(args: ProfileScopeInfoArgs | ProxyRequestDetails) {
@@ -2691,15 +2701,6 @@ class ChromeOptions extends ExtensionRuntime.Options {
         scope: 'group'
       };
     }
-    const containerProfileName = isFirefoxContainerId(context.cookieStoreId)
-      ? this.validProfileName(assignments.containers[context.cookieStoreId as string])
-      : undefined;
-    if (scopes.container && containerProfileName) {
-      return {
-        profileName: containerProfileName,
-        scope: 'container'
-      };
-    }
     if (scopes.site) {
       const pageRule = this.matchingProfileScopeRule(context.pageUrl);
       if (pageRule?.profileName) {
@@ -2708,6 +2709,15 @@ class ChromeOptions extends ExtensionRuntime.Options {
           scope: pageRule.scope
         };
       }
+    }
+    const containerProfileName = isFirefoxContainerId(context.cookieStoreId)
+      ? this.validProfileName(assignments.containers[context.cookieStoreId as string])
+      : undefined;
+    if (scopes.container && containerProfileName) {
+      return {
+        profileName: containerProfileName,
+        scope: 'container'
+      };
     }
     if (scopes.window) {
       const windowProfileName = this.validProfileName(
@@ -2836,8 +2846,20 @@ class ChromeOptions extends ExtensionRuntime.Options {
     const windowProfileName = this.validProfileName(
       context.incognito ? assignments.privateDefaultProfileName : assignments.normalDefaultProfileName
     );
-    const pageProfileName = this.validProfileName(this.quickProfileScopeRule('page', context.pageUrl)?.profileName);
-    const siteProfileName = this.validProfileName(this.quickProfileScopeRule('site', context.pageUrl)?.profileName);
+    const pageRule = this.matchingProfileScopeRule(context.pageUrl, 'page');
+    const siteRule = this.matchingProfileScopeRule(context.pageUrl, 'site');
+    const generatedPageRule = profileScopeRuleForTarget('page', context.pageUrl);
+    const generatedSiteRule = profileScopeRuleForTarget('site', context.pageUrl);
+    const pageProfileName = this.validProfileName(pageRule?.profileName);
+    const siteProfileName = this.validProfileName(siteRule?.profileName);
+    const pageQuickProfileName =
+      pageRule && generatedPageRule && isMatchingQuickProfileScopeRule(pageRule.rule, 'page', generatedPageRule)
+        ? pageProfileName
+        : undefined;
+    const siteQuickProfileName =
+      siteRule && generatedSiteRule && isMatchingQuickProfileScopeRule(siteRule.rule, 'site', generatedSiteRule)
+        ? siteProfileName
+        : undefined;
     const effective = this.scopeProfileName(args);
     return {
       assignments,
@@ -2851,8 +2873,10 @@ class ChromeOptions extends ExtensionRuntime.Options {
       incognito: !!context.incognito,
       isContainer: isFirefoxContainerId(context.cookieStoreId),
       pageProfileName,
+      pageQuickProfileName,
       pageUrl: scopeUrl(context.pageUrl),
       siteProfileName,
+      siteQuickProfileName,
       tabId: context.tabId >= 0 ? context.tabId : undefined,
       tabProfileName,
       windowId: context.windowId,
@@ -2920,14 +2944,51 @@ class ChromeOptions extends ExtensionRuntime.Options {
         return Promise.resolve();
       }
       const assignments = this.profileScopeAssignments();
-      assignments.rules = assignments.rules.filter((rule) => !isMatchingQuickProfileScopeRule(rule, target, generated));
-      if (profileName) {
-        assignments.rules.unshift({
+      const matchingRule = this.matchingProfileScopeRule(args.url, target);
+      const matchingRuleIsQuick = Boolean(matchingRule && isMatchingQuickProfileScopeRule(matchingRule.rule, target, generated));
+      if (!profileName) {
+        if (!matchingRuleIsQuick) {
+          return Promise.resolve();
+        }
+        assignments.rules = assignments.rules.filter((rule) => !isMatchingQuickProfileScopeRule(rule, target, generated));
+      } else if (matchingRule) {
+        if (!matchingRuleIsQuick) {
+          return Promise.resolve();
+        }
+        const index = assignments.rules.findIndex((rule) => isMatchingQuickProfileScopeRule(rule, target, generated));
+        if (index < 0) {
+          return Promise.resolve();
+        }
+        assignments.rules[index].profileName = profileName;
+      } else {
+        const rule: ProfileScopeRule = {
           condition: generated.condition,
           profileName,
           quickKey: generated.key,
           quickTarget: target
-        });
+        };
+        if (target === 'page') {
+          assignments.rules.unshift(rule);
+        } else {
+          const normalized = scopeUrl(args.url);
+          const request = normalized ? ProxyEngine.Conditions.requestFromUrl(normalized) : undefined;
+          let insertIndex = 0;
+          if (request) {
+            assignments.rules.forEach((candidate, index) => {
+              if (profileScopeRuleTarget(candidate) !== 'page' || !this.validProfileName(candidate.profileName)) {
+                return;
+              }
+              try {
+                if (ProxyEngine.Conditions.match(candidate.condition, request)) {
+                  insertIndex = index + 1;
+                }
+              } catch (_error) {
+                // Ignore malformed Page rules when choosing a safe Site insertion point.
+              }
+            });
+          }
+          assignments.rules.splice(insertIndex, 0, rule);
+        }
       }
       return this._setOptions({
         '-profileScopeAssignments': assignments

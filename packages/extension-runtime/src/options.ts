@@ -74,6 +74,7 @@ type ProfileScopeAssignments = {
 
 type ProfileScopeRule = {
   condition: Record<string, unknown>;
+  note?: string;
   profileName: string;
   quickKey?: string;
   quickTarget?: 'page' | 'site';
@@ -164,6 +165,9 @@ function normalizeProfileScopeAssignments(value: unknown): ProfileScopeAssignmen
         condition: {...rawRule.condition},
         profileName: rawRule.profileName
       };
+      if (typeof rawRule.note !== 'string') {
+        delete rule.note;
+      }
       if (rawRule.quickTarget !== 'page' && rawRule.quickTarget !== 'site') {
         delete rule.quickTarget;
         delete rule.quickKey;

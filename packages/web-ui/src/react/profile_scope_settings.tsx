@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {message} from './i18n_client';
 import type {Options} from './options_client_types';
 import {cloneOptions} from './options_logic';
@@ -40,10 +40,22 @@ type ProfileScopeAssignments = {
 
 type ProfileScopeRule = {
   condition: SwitchRuleCondition;
+  note?: string;
   profileName: string;
   quickKey?: string;
   quickTarget?: 'page' | 'site';
   [key: string]: unknown;
+};
+
+type ProfileScopeRuleDrag = {
+  cellWidths: number[];
+  clientY: number;
+  pointerId: number;
+  pointerOffsetY: number;
+  rowLeft: number;
+  rowWidth: number;
+  startIndex: number;
+  targetIndex: number;
 };
 
 type ProfileScopeContainerRow = ProfileScopeContainerInfo & {
@@ -128,6 +140,9 @@ function assignmentsForOptions(options?: Options | null): ProfileScopeAssignment
         condition: {...rawRule.condition} as SwitchRuleCondition,
         profileName: rawRule.profileName
       };
+      if (typeof rawRule.note !== 'string') {
+        delete rule.note;
+      }
       if (rawRule.quickTarget !== 'page' && rawRule.quickTarget !== 'site') {
         delete rule.quickTarget;
         delete rule.quickKey;
@@ -257,8 +272,12 @@ function groupedConditionTypes(options: ConditionTypeOption[]) {
   return groups;
 }
 
+function conditionScope(condition: SwitchRuleCondition): 'page' | 'site' {
+  return condition.conditionType === 'UrlRegexCondition' || condition.conditionType === 'UrlWildcardCondition' ? 'page' : 'site';
+}
+
 function conditionScopeLabel(condition: SwitchRuleCondition) {
-  return condition.conditionType === 'UrlRegexCondition' || condition.conditionType === 'UrlWildcardCondition'
+  return conditionScope(condition) === 'page'
     ? message('options_profileScopeRulePage', 'Page')
     : message('options_profileScopeRuleSite', 'Site');
 }
@@ -395,6 +414,11 @@ export function ProfileScopeSettingsPage({
   const visible = visibleScopes || visibleProfileScopes(options, capabilities);
   const assignments = assignmentsForOptions(options);
   const appliedAssignments = assignmentsForOptions(appliedOptions || options);
+  const [notesForcedVisible, setNotesForcedVisible] = useState(() => assignments.rules.some((rule) => Boolean(rule.note)));
+  const [ruleDrag, setRuleDrag] = useState<ProfileScopeRuleDrag | null>(null);
+  const rulesBodyRef = useRef<HTMLTableSectionElement>(null);
+  const ruleDragRef = useRef<ProfileScopeRuleDrag | null>(null);
+  const ruleDragTargetIndexRef = useRef<(clientY: number) => number>(() => 0);
   const profiles = useMemo(() => scopeAssignableProfilesForOptions(options).slice().sort(profileOrder), [options]);
   const conditionTypeGroups = useMemo(
     () => groupedConditionTypes(profileScopeConditionTypes(assignments.rules, Number(options['-showConditionTypes']) || 0)),
@@ -411,6 +435,56 @@ export function ProfileScopeSettingsPage({
     containers.some(
       (container) => isFirefoxContainerId(container.cookieStoreId) && appliedAssignments.containers[container.cookieStoreId] == null
     );
+  const showRuleNotes = notesForcedVisible || assignments.rules.some((rule) => Boolean(rule.note));
+  const activeRuleDragPointerId = ruleDrag?.pointerId;
+
+  useEffect(() => {
+    if (activeRuleDragPointerId == null) {
+      return;
+    }
+
+    document.body.classList.add('rule-editor-dragging-active');
+    const updateTarget = (event: PointerEvent) => {
+      const current = ruleDragRef.current;
+      if (!current || event.pointerId !== current.pointerId) {
+        return;
+      }
+      event.preventDefault();
+      updateRuleDrag({
+        ...current,
+        clientY: event.clientY,
+        targetIndex: ruleDragTargetIndexRef.current(event.clientY)
+      });
+    };
+    const finishDrag = (event: PointerEvent) => {
+      const current = ruleDragRef.current;
+      if (!current || event.pointerId !== current.pointerId) {
+        return;
+      }
+      event.preventDefault();
+      updateRuleDrag(null);
+      if (current.startIndex !== current.targetIndex) {
+        moveRule(current.startIndex, current.targetIndex);
+      }
+    };
+    const cancelDrag = (event: PointerEvent) => {
+      const current = ruleDragRef.current;
+      if (!current || event.pointerId !== current.pointerId) {
+        return;
+      }
+      updateRuleDrag(null);
+    };
+
+    window.addEventListener('pointermove', updateTarget, {passive: false});
+    window.addEventListener('pointerup', finishDrag);
+    window.addEventListener('pointercancel', cancelDrag);
+    return () => {
+      document.body.classList.remove('rule-editor-dragging-active');
+      window.removeEventListener('pointermove', updateTarget);
+      window.removeEventListener('pointerup', finishDrag);
+      window.removeEventListener('pointercancel', cancelDrag);
+    };
+  }, [activeRuleDragPointerId]);
 
   function updateAssignments(updater: (nextAssignments: ProfileScopeAssignments) => void) {
     const nextOptions = cloneOptions(options);
@@ -490,14 +564,81 @@ export function ProfileScopeSettingsPage({
     });
   }
 
-  function moveRule(index: number, offset: -1 | 1) {
+  function moveRule(fromIndex: number, toIndex: number) {
     updateAssignments((nextAssignments) => {
-      const nextIndex = index + offset;
-      if (nextIndex < 0 || nextIndex >= nextAssignments.rules.length) {
+      if (fromIndex < 0 || fromIndex >= nextAssignments.rules.length || toIndex < 0 || toIndex >= nextAssignments.rules.length) {
         return;
       }
-      const [rule] = nextAssignments.rules.splice(index, 1);
-      nextAssignments.rules.splice(nextIndex, 0, rule);
+      const [rule] = nextAssignments.rules.splice(fromIndex, 1);
+      delete rule.quickKey;
+      delete rule.quickTarget;
+      nextAssignments.rules.splice(toIndex, 0, rule);
+    });
+  }
+
+  function updateRuleNote(index: number, note: string) {
+    editRule(index, (rule) => {
+      if (note) {
+        rule.note = note;
+      } else {
+        delete rule.note;
+      }
+    });
+  }
+
+  function updateRuleDrag(nextDrag: ProfileScopeRuleDrag | null) {
+    ruleDragRef.current = nextDrag;
+    setRuleDrag(nextDrag);
+  }
+
+  function visualRuleIndices() {
+    const indices = assignments.rules.map((_rule, index) => index);
+    if (!ruleDrag || ruleDrag.startIndex === ruleDrag.targetIndex) {
+      return indices;
+    }
+    const [index] = indices.splice(ruleDrag.startIndex, 1);
+    indices.splice(ruleDrag.targetIndex, 0, index);
+    return indices;
+  }
+
+  function ruleDragTargetIndex(clientY: number) {
+    const body = rulesBodyRef.current;
+    if (!body || !assignments.rules.length) {
+      return 0;
+    }
+    const rows = Array.from(body.querySelectorAll<HTMLTableRowElement>('.profile-scope-rule-row'));
+    let targetIndex = Math.max(0, rows.length - 1);
+    for (let index = 0; index < rows.length; index++) {
+      const rect = rows[index].getBoundingClientRect();
+      if (clientY < rect.top + rect.height / 2) {
+        targetIndex = index;
+        break;
+      }
+    }
+    return Math.max(0, Math.min(targetIndex, assignments.rules.length - 1));
+  }
+  ruleDragTargetIndexRef.current = ruleDragTargetIndex;
+
+  function beginRuleDrag(index: number, event: React.PointerEvent<HTMLTableCellElement>) {
+    if (assignments.rules.length < 2 || (event.pointerType === 'mouse' && event.button !== 0)) {
+      return;
+    }
+    const row = event.currentTarget.closest<HTMLTableRowElement>('.profile-scope-rule-row');
+    if (!row) {
+      return;
+    }
+    const rowRect = row.getBoundingClientRect();
+    event.preventDefault();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    updateRuleDrag({
+      cellWidths: Array.from(row.cells).map((cell) => cell.getBoundingClientRect().width),
+      clientY: event.clientY,
+      pointerId: event.pointerId,
+      pointerOffsetY: event.clientY - rowRect.top,
+      rowLeft: rowRect.left,
+      rowWidth: rowRect.width,
+      startIndex: index,
+      targetIndex: index
     });
   }
 
@@ -531,6 +672,109 @@ export function ProfileScopeSettingsPage({
       delete rule.condition.startDay;
       delete rule.condition.endDay;
     });
+  }
+
+  function renderRuleRow(index: number, preview = false, cellWidths?: number[]) {
+    const rule = assignments.rules[index];
+    if (!rule) {
+      return null;
+    }
+    const cellStyle = (cellIndex: number): React.CSSProperties | undefined =>
+      cellWidths?.[cellIndex] != null ? {width: `${cellWidths[cellIndex]}px`} : undefined;
+
+    return (
+      <tr
+        className={`profile-scope-rule-row ${!preview && ruleDrag?.startIndex === index ? 'rule-editor-row-dragging' : ''}`}
+        data-rule-index={preview ? undefined : index}
+      >
+        <td
+          className="sort-bar profile-scope-rule-sort"
+          style={cellStyle(0)}
+          onPointerDown={preview ? undefined : (event) => beginRuleDrag(index, event)}
+        >
+          <span className="glyphicon glyphicon-sort" aria-hidden="true" />
+        </td>
+        <td className="profile-scope-rule-scope" style={cellStyle(1)}>
+          <span className={`label profile-scope-rule-label profile-scope-rule-label-${conditionScope(rule.condition)}`}>
+            {conditionScopeLabel(rule.condition)}
+          </span>
+        </td>
+        <td style={cellStyle(2)}>
+          <select
+            className="form-control"
+            value={rule.condition.conditionType || ''}
+            onChange={(event) =>
+              editRule(index, (nextRule) => {
+                nextRule.condition.conditionType = event.currentTarget.value as SwitchRuleEditableConditionType;
+              })
+            }
+          >
+            {conditionTypeGroups.map((group) => (
+              <optgroup key={group.group} label={message(group.group, group.group)}>
+                {group.types.map((type) => (
+                  <option key={type.type} value={type.type}>
+                    {message(`condition_${type.type}`, type.type)}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </td>
+        <td style={cellStyle(3)}>
+          <ProfileScopeConditionDetails
+            condition={rule.condition}
+            onChange={(field, value) => updateRuleField(index, field, value)}
+            onIpChange={(value) => updateRuleIp(index, value)}
+            onWeekdayChange={(dayIndex, selected) => updateRuleWeekday(index, dayIndex, selected)}
+          />
+        </td>
+        <td style={cellStyle(4)}>
+          <ProfileSelect
+            name={rule.profileName}
+            onChange={(name) => editRule(index, (nextRule) => (nextRule.profileName = name))}
+            profiles={profiles}
+          />
+        </td>
+        <td className="profile-scope-rule-actions" style={cellStyle(5)}>
+          <button
+            className="btn btn-danger btn-sm"
+            type="button"
+            title={message('dialog_delete', 'Delete')}
+            onClick={() => removeRule(index)}
+          >
+            <span className="glyphicon glyphicon-trash" aria-hidden="true" />
+          </button>{' '}
+          <button
+            className="btn btn-default btn-sm"
+            type="button"
+            title={message('options_cloneRule', 'Clone')}
+            onClick={() => cloneRule(index)}
+          >
+            <span className="glyphicon glyphicon-duplicate" aria-hidden="true" />
+          </button>{' '}
+          {!showRuleNotes && (
+            <button
+              className="btn btn-default btn-sm"
+              type="button"
+              title={message('options_ruleNote', 'Note')}
+              onClick={() => setNotesForcedVisible(true)}
+            >
+              <span className="glyphicon glyphicon-comment" aria-hidden="true" />
+            </button>
+          )}
+        </td>
+        {showRuleNotes && (
+          <td className="profile-scope-rule-note" style={cellStyle(6)}>
+            <input
+              className="form-control"
+              type="text"
+              value={rule.note || ''}
+              onChange={(event) => updateRuleNote(index, event.currentTarget.value)}
+            />
+          </td>
+        )}
+      </tr>
+    );
   }
 
   function removeDeletedContainers() {
@@ -583,130 +827,12 @@ export function ProfileScopeSettingsPage({
         </section>
       )}
 
-      {visible.site && (
-        <section className="settings-group profile-scope-settings-group">
-          <div className="settings-section-heading">
-            <h3>{message('options_profileScopeSitesSection', 'Pages / Sites')}</h3>
-            <button className="btn btn-default btn-xs" type="button" onClick={addRule} disabled={!profiles.length}>
-              <span className="glyphicon glyphicon-plus" aria-hidden="true" /> {message('options_profileScopeAddRule', 'Add Rule')}
-            </button>
-          </div>
-          <p className="help-block">
-            {message(
-              'options_profileScopeSitesHelp',
-              'The first matching rule sets the starting profile for every request in the current tab. URL conditions are page rules; host and other conditions are site rules.'
-            )}
-            <br />
-            {message(
-              'options_profileScopeQuickRulesHelp',
-              'This Page uses scheme, host, port, exact path, and the full query; URL fragments are ignored. This Site uses the existing host wildcard semantics.'
-            )}
-          </p>
-          {assignments.rules.length ? (
-            <table className="table table-striped profile-scope-table profile-scope-rules-table">
-              <thead>
-                <tr>
-                  <th>{message('options_profileScopeRuleOrderColumn', 'Order')}</th>
-                  <th>{message('options_conditionType', 'Condition Type')}</th>
-                  <th>{message('options_conditionDetails', 'Condition Details')}</th>
-                  <th>{message('options_profileScopeProfileColumn', 'Profile')}</th>
-                  <th>{message('options_profileScopeRuleActionsColumn', 'Actions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {assignments.rules.map((rule, index) => (
-                  <tr key={`${index}:${rule.quickTarget || ''}:${rule.quickKey || ''}`}>
-                    <td>
-                      <span>{index + 1}</span> <span className="label label-default">{conditionScopeLabel(rule.condition)}</span>
-                    </td>
-                    <td>
-                      <select
-                        className="form-control"
-                        value={rule.condition.conditionType || ''}
-                        onChange={(event) =>
-                          editRule(index, (nextRule) => {
-                            nextRule.condition.conditionType = event.currentTarget.value as SwitchRuleEditableConditionType;
-                          })
-                        }
-                      >
-                        {conditionTypeGroups.map((group) => (
-                          <optgroup key={group.group} label={message(group.group, group.group)}>
-                            {group.types.map((type) => (
-                              <option key={type.type} value={type.type}>
-                                {message(`condition_${type.type}`, type.type)}
-                              </option>
-                            ))}
-                          </optgroup>
-                        ))}
-                      </select>
-                    </td>
-                    <td>
-                      <ProfileScopeConditionDetails
-                        condition={rule.condition}
-                        onChange={(field, value) => updateRuleField(index, field, value)}
-                        onIpChange={(value) => updateRuleIp(index, value)}
-                        onWeekdayChange={(dayIndex, selected) => updateRuleWeekday(index, dayIndex, selected)}
-                      />
-                    </td>
-                    <td>
-                      <ProfileSelect
-                        name={rule.profileName}
-                        onChange={(name) => editRule(index, (nextRule) => (nextRule.profileName = name))}
-                        profiles={profiles}
-                      />
-                    </td>
-                    <td className="profile-scope-rule-actions">
-                      <button
-                        className="btn btn-default btn-sm"
-                        type="button"
-                        title={message('options_moveUp', 'Move up')}
-                        disabled={index === 0}
-                        onClick={() => moveRule(index, -1)}
-                      >
-                        <span className="glyphicon glyphicon-chevron-up" aria-hidden="true" />
-                      </button>{' '}
-                      <button
-                        className="btn btn-default btn-sm"
-                        type="button"
-                        title={message('options_moveDown', 'Move down')}
-                        disabled={index === assignments.rules.length - 1}
-                        onClick={() => moveRule(index, 1)}
-                      >
-                        <span className="glyphicon glyphicon-chevron-down" aria-hidden="true" />
-                      </button>{' '}
-                      <button
-                        className="btn btn-default btn-sm"
-                        type="button"
-                        title={message('options_cloneRule', 'Clone')}
-                        onClick={() => cloneRule(index)}
-                      >
-                        <span className="glyphicon glyphicon-duplicate" aria-hidden="true" />
-                      </button>{' '}
-                      <button
-                        className="btn btn-danger btn-sm"
-                        type="button"
-                        title={message('dialog_delete', 'Delete')}
-                        onClick={() => removeRule(index)}
-                      >
-                        <span className="glyphicon glyphicon-trash" aria-hidden="true" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p className="text-muted">{message('options_profileScopeRulesEmpty', 'No page or site rules.')}</p>
-          )}
-        </section>
-      )}
-
       {visible.container && (
         <section className="settings-group profile-scope-settings-group">
           <div className="settings-section-heading">
             <h3>{message('options_profileScopeContainersSection', 'Containers')}</h3>
             {showRefreshButton && (
-              <button className="btn btn-default btn-xs" type="button" onClick={onRefreshContainers}>
+              <button className="btn btn-default" type="button" onClick={onRefreshContainers}>
                 <span className="glyphicon glyphicon-refresh" aria-hidden="true" />{' '}
                 {message('options_profileScopeRefreshContainers', 'Refresh')}
               </button>
@@ -772,6 +898,69 @@ export function ProfileScopeSettingsPage({
             </table>
           ) : (
             <p className="text-muted">{containersEmptyMessage()}</p>
+          )}
+        </section>
+      )}
+
+      {visible.site && (
+        <section className="settings-group profile-scope-settings-group">
+          <div className="settings-section-heading">
+            <h3>{message('options_profileScopeSitesSection', 'Pages / Sites')}</h3>
+            <button className="btn btn-default" type="button" onClick={addRule} disabled={!profiles.length}>
+              <span className="glyphicon glyphicon-plus" aria-hidden="true" /> {message('options_profileScopeAddRule', 'Add Rule')}
+            </button>
+          </div>
+          <p className="help-block">
+            {message(
+              'options_profileScopeSitesHelp',
+              'The first matching rule sets the starting profile for every request in the current tab. URL conditions are page rules; host and other conditions are site rules.'
+            )}
+            <br />
+            {message(
+              'options_profileScopeQuickRulesHelp',
+              'This Page uses scheme, host, port, exact path, and the full query; URL fragments are ignored. This Site uses the existing host wildcard semantics.'
+            )}
+          </p>
+          {assignments.rules.length ? (
+            <div className="table-responsive rule-editor-wrapper profile-scope-rules-wrapper">
+              <table className="rule-editor-table table table-bordered table-condensed width-limit-xl profile-scope-rules-table">
+                <thead>
+                  <tr>
+                    <th className="profile-scope-rule-sort">{message('options_sort', 'Sort')}</th>
+                    <th className="profile-scope-rule-scope">{message('options_profileScopeRuleScopeColumn', 'Scope')}</th>
+                    <th>{message('options_conditionType', 'Condition Type')}</th>
+                    <th>{message('options_conditionDetails', 'Condition Details')}</th>
+                    <th>{message('options_profileScopeProfileColumn', 'Profile')}</th>
+                    <th>{message('options_profileScopeRuleActionsColumn', 'Actions')}</th>
+                    {showRuleNotes && <th>{message('options_ruleNote', 'Note')}</th>}
+                  </tr>
+                </thead>
+                <tbody ref={rulesBodyRef}>
+                  {visualRuleIndices().map((index) => (
+                    <React.Fragment
+                      key={`${index}:${assignments.rules[index]?.quickTarget || ''}:${assignments.rules[index]?.quickKey || ''}`}
+                    >
+                      {renderRuleRow(index)}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+              {ruleDrag && (
+                <table
+                  aria-hidden="true"
+                  className="rule-editor-table rule-editor-drag-helper table table-bordered table-condensed width-limit-xl profile-scope-rules-table"
+                  style={{
+                    left: `${ruleDrag.rowLeft}px`,
+                    top: `${ruleDrag.clientY - ruleDrag.pointerOffsetY}px`,
+                    width: `${ruleDrag.rowWidth}px`
+                  }}
+                >
+                  <tbody>{renderRuleRow(ruleDrag.startIndex, true, ruleDrag.cellWidths)}</tbody>
+                </table>
+              )}
+            </div>
+          ) : (
+            <p className="text-muted">{message('options_profileScopeRulesEmpty', 'No page or site rules.')}</p>
           )}
         </section>
       )}

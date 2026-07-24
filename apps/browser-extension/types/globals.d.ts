@@ -358,6 +358,7 @@ interface RuntimeOptionsData extends Record<string, unknown> {
     privateDefaultProfileName?: string;
     rules?: Array<{
       condition: Record<string, unknown>;
+      note?: string;
       profileName: string;
       quickKey?: string;
       quickTarget?: 'page' | 'site';

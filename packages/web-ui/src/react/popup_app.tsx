@@ -983,19 +983,6 @@ export function PopupApp() {
               onProfileChange={(profileName) => setProfileScope('group', profileName)}
             />
           )}
-          {showContainerScope && (
-            <ProfileScopeMenuItem
-              scope="container"
-              icon="glyphicon-tags"
-              label={popupMessage('popup_profileScopeContainer', 'Container')}
-              activeProfileName={profileScope?.containerProfileName}
-              open={profileScopeMenuOpen === 'container'}
-              profiles={scopeAssignableProfiles}
-              state={state}
-              onToggle={() => setProfileScopeMenuOpen(profileScopeMenuOpen === 'container' ? '' : 'container')}
-              onProfileChange={(profileName) => setProfileScope('container', profileName)}
-            />
-          )}
           {showPageScope && (
             <ProfileScopeMenuItem
               scope="page"
@@ -1004,6 +991,8 @@ export function PopupApp() {
               activeProfileName={profileScope?.pageProfileName}
               open={profileScopeMenuOpen === 'page'}
               profiles={scopeAssignableProfiles}
+              readOnly={Boolean(profileScope?.pageProfileName && !profileScope.pageQuickProfileName)}
+              showUseDefault={Boolean(profileScope?.pageQuickProfileName)}
               state={state}
               onToggle={() => setProfileScopeMenuOpen(profileScopeMenuOpen === 'page' ? '' : 'page')}
               onProfileChange={(profileName) => setProfileScope('page', profileName)}
@@ -1017,9 +1006,24 @@ export function PopupApp() {
               activeProfileName={profileScope?.siteProfileName}
               open={profileScopeMenuOpen === 'site'}
               profiles={scopeAssignableProfiles}
+              readOnly={Boolean(profileScope?.siteProfileName && !profileScope.siteQuickProfileName)}
+              showUseDefault={Boolean(profileScope?.siteQuickProfileName)}
               state={state}
               onToggle={() => setProfileScopeMenuOpen(profileScopeMenuOpen === 'site' ? '' : 'site')}
               onProfileChange={(profileName) => setProfileScope('site', profileName)}
+            />
+          )}
+          {showContainerScope && (
+            <ProfileScopeMenuItem
+              scope="container"
+              icon="glyphicon-tags"
+              label={popupMessage('popup_profileScopeContainer', 'Container')}
+              activeProfileName={profileScope?.containerProfileName}
+              open={profileScopeMenuOpen === 'container'}
+              profiles={scopeAssignableProfiles}
+              state={state}
+              onToggle={() => setProfileScopeMenuOpen(profileScopeMenuOpen === 'container' ? '' : 'container')}
+              onProfileChange={(profileName) => setProfileScope('container', profileName)}
             />
           )}
           {showWindowScope && (
@@ -1313,7 +1317,9 @@ function ProfileScopeMenuItem({
   onToggle,
   open,
   profiles,
+  readOnly = false,
   scope,
+  showUseDefault = true,
   state
 }: {
   activeProfileName?: string;
@@ -1323,7 +1329,9 @@ function ProfileScopeMenuItem({
   onToggle: () => void;
   open: boolean;
   profiles: Profile[];
+  readOnly?: boolean;
   scope: string;
+  showUseDefault?: boolean;
   state: PopupState;
 }) {
   const dropdown = useFloatingDropdown<HTMLLIElement>(open);
@@ -1364,38 +1372,45 @@ function ProfileScopeMenuItem({
   return (
     <li
       ref={dropdown.anchorRef}
-      className={`sa-popup-nav-item sa-popup-nav-profile-scope sa-popup-has-dropdown ${activeProfile ? 'sa-popup-active' : ''} ${open ? 'sa-popup-open' : ''}`}
+      className={`sa-popup-nav-item sa-popup-nav-profile-scope ${readOnly ? 'sa-popup-readonly' : 'sa-popup-has-dropdown'} ${activeProfile ? 'sa-popup-active' : ''} ${!readOnly && open ? 'sa-popup-open' : ''}`}
       data-profile-scope={scope}
     >
       <a
-        aria-expanded={open}
-        href="#"
-        role="button"
-        onClick={(event) => {
-          event.preventDefault();
-          onToggle();
-        }}
+        aria-disabled={readOnly || undefined}
+        aria-expanded={readOnly ? undefined : open}
+        href={readOnly ? undefined : '#'}
+        role={readOnly ? undefined : 'button'}
+        onClick={
+          readOnly
+            ? undefined
+            : (event) => {
+                event.preventDefault();
+                onToggle();
+              }
+        }
       >
         <span className={`glyphicon ${icon}`} />
         <span className="sa-popup-menu-label">
           <span>{text}</span>
-          <span className="sa-popup-caret" />
+          {!readOnly && <span className="sa-popup-caret" />}
         </span>
       </a>
-      {open && (
+      {!readOnly && open && (
         <ul ref={dropdown.dropdownRef} className="sa-popup-dropdown sa-popup-floating-dropdown" style={dropdown.dropdownStyle}>
-          <li className={`sa-popup-nav-item ${activeProfileName ? '' : 'sa-popup-active'}`}>
-            <a
-              href="#"
-              role="button"
-              onClick={(event) => {
-                event.preventDefault();
-                onProfileChange();
-              }}
-            >
-              <span className="glyphicon glyphicon-share-alt" /> {popupMessage('popup_profileScopeUseDefault', 'Use Default')}
-            </a>
-          </li>
+          {showUseDefault && (
+            <li className={`sa-popup-nav-item ${activeProfileName ? '' : 'sa-popup-active'}`}>
+              <a
+                href="#"
+                role="button"
+                onClick={(event) => {
+                  event.preventDefault();
+                  onProfileChange();
+                }}
+              >
+                <span className="glyphicon glyphicon-share-alt" /> {popupMessage('popup_profileScopeUseDefault', 'Use Default')}
+              </a>
+            </li>
+          )}
           {profileGroups.visible.map(profileItem)}
           {profileGroups.hidden.length > 0 && (
             <li className={`sa-popup-nav-item sa-popup-hidden-scope-profiles ${hiddenOpen ? 'sa-popup-open' : ''}`}>
