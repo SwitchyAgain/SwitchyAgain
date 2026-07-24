@@ -296,6 +296,72 @@ describe('popup app', () => {
     }
   });
 
+  it('sends page selections and clears quick site selections with the current page context', async () => {
+    window.location.hash = '';
+    currentPageInfo = {
+      profileScope: {
+        cookieStoreId: 'firefox-container-1',
+        enabled: {
+          site: true
+        },
+        groupId: 2,
+        incognito: true,
+        siteProfileName: 'proxy',
+        siteQuickProfileName: 'proxy',
+        tabId: 7,
+        windowId: 3
+      },
+      url: 'https://www.example.com/path?mode=1'
+    };
+    popupBridgeMock.getPopupState.mockResolvedValue({
+      ...popupState(),
+      availableProfiles: {
+        ...popupState().availableProfiles,
+        '+proxy': {
+          name: 'proxy',
+          profileType: 'FixedProfile'
+        }
+      },
+      currentProfileCanAddRule: false,
+      scopeAssignableProfiles: ['proxy']
+    });
+
+    const {container} = render(<PopupApp />);
+
+    await screen.findByText('This Page');
+    const pageMenu = container.querySelector<HTMLElement>('[data-profile-scope="page"]');
+    const siteMenu = container.querySelector<HTMLElement>('[data-profile-scope="site"]');
+    expect(pageMenu).toBeTruthy();
+    expect(siteMenu).toBeTruthy();
+
+    fireEvent.click(within(pageMenu!).getByRole('button', {name: 'This Page'}));
+    fireEvent.click(within(pageMenu!).getByRole('button', {name: 'proxy'}));
+    await waitFor(() =>
+      expect(popupBridgeMock.setPopupProfileScope).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          profileName: 'proxy',
+          scope: 'page',
+          url: 'https://www.example.com/path?mode=1'
+        })
+      )
+    );
+
+    fireEvent.click(within(siteMenu!).getByRole('button', {name: 'This Site: proxy'}));
+    fireEvent.click(within(siteMenu!).getByRole('button', {name: 'Use Default'}));
+    await waitFor(() =>
+      expect(popupBridgeMock.setPopupProfileScope).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          profileName: undefined,
+          scope: 'site',
+          url: 'https://www.example.com/path?mode=1'
+        })
+      )
+    );
+    expect(popupBridgeMock.setPopupProfileScope).toHaveBeenCalledTimes(2);
+  });
+
   it('keeps profile groups in scope menus while the global profile is system', async () => {
     window.location.hash = '';
     currentPageInfo = {
