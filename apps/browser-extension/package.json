@@ -14,6 +14,8 @@
     "clean:dist": "node --input-type=module -e \"import {readdirSync, rmSync} from 'node:fs'; for (const file of readdirSync('.')) if (file === 'index.js' || file.endsWith('.min.js')) rmSync(file, {force: true})\"",
     "dev": "npm link @switchyagain/extension-runtime && npm link @switchyagain/web-ui && npm link @switchyagain/proxy-engine",
     "release": "node ../../scripts/generate-browser-entrypoints.mjs --check && npm run build --workspace @switchyagain/proxy-engine && npm run build --workspace @switchyagain/extension-runtime && npm run build --workspace @switchyagain/web-ui && npm run clean:dist && npm run build:ts && node build-ts/build.mjs release",
-    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.scripts.json --noEmit && tsc -p tsconfig.build-script.json --noEmit"
+    "test": "npm run typecheck:test && vitest run",
+    "typecheck:test": "tsc -p tsconfig.test.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.scripts.json --noEmit && tsc -p tsconfig.build-script.json --noEmit && npm run typecheck:test"
   }
 }

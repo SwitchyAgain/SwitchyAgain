@@ -7,9 +7,42 @@ type ContextMenuOptions = Record<string, unknown> & {
 };
 
 type ContextMenuClickHandler = (info: ChromeContextMenuClickInfo, tab: ChromeTab) => unknown;
+type ContextMenuRefreshTask = () => Promise<void> | void;
 
 const clickHandlers: Record<string, ContextMenuClickHandler> = {};
 let quickSwitchHandler: (info: {checked: boolean}) => unknown = () => null;
+let backgroundContextMenuInitialization: Promise<void> | null = null;
+
+export class ContextMenuRefreshQueue {
+  private onError: (error: unknown) => void;
+  private pendingTask: ContextMenuRefreshTask | null = null;
+  private running: Promise<void> | null = null;
+
+  constructor(onError: (error: unknown) => void = () => undefined) {
+    this.onError = onError;
+  }
+
+  request(task: ContextMenuRefreshTask) {
+    this.pendingTask = task;
+    if (this.running == null) {
+      this.running = this.drain();
+    }
+    return this.running;
+  }
+
+  private async drain() {
+    while (this.pendingTask != null) {
+      const task = this.pendingTask;
+      this.pendingTask = null;
+      try {
+        await task();
+      } catch (error) {
+        this.onError(error);
+      }
+    }
+    this.running = null;
+  }
+}
 
 export function setContextMenuQuickSwitchHandler(handler: (info: {checked: boolean}) => unknown) {
   quickSwitchHandler = handler;
@@ -18,7 +51,7 @@ export function setContextMenuQuickSwitchHandler(handler: (info: {checked: boole
 function addContextMenu(options: ContextMenuOptions, onclick?: ContextMenuClickHandler) {
   const contextMenus = chrome.contextMenus;
   if (contextMenus == null) {
-    return;
+    return Promise.resolve();
   }
   if (onclick) {
     if (!options.id) {
@@ -26,10 +59,22 @@ function addContextMenu(options: ContextMenuOptions, onclick?: ContextMenuClickH
     }
     clickHandlers[options.id] = onclick;
   }
-  return contextMenus.create(options);
+  return new Promise<void>((resolve) => {
+    try {
+      contextMenus.create(options, () => {
+        chrome.runtime.lastError;
+        resolve();
+      });
+    } catch (_error) {
+      resolve();
+    }
+  });
 }
 
 export function initializeBackgroundContextMenu() {
+  if (backgroundContextMenuInitialization != null) {
+    return backgroundContextMenuInitialization;
+  }
   if (chrome.contextMenus?.onClicked != null) {
     chrome.contextMenus.onClicked.addListener((info: ChromeContextMenuClickInfo, tab: ChromeTab) => {
       const handler = clickHandlers[info.menuItemId];
@@ -38,11 +83,12 @@ export function initializeBackgroundContextMenu() {
   }
 
   if (chrome.contextMenus == null) {
-    return;
+    backgroundContextMenuInitialization = Promise.resolve();
+    return backgroundContextMenuInitialization;
   }
   const createContextMenus = () => {
     if (chrome.i18n.getUILanguage == null) {
-      return;
+      return Promise.resolve();
     }
     return addContextMenu(
       {
@@ -55,9 +101,20 @@ export function initializeBackgroundContextMenu() {
       (info: ChromeContextMenuClickInfo) => quickSwitchHandler({checked: info.checked === true})
     );
   };
-  if (chrome.contextMenus.removeAll != null) {
-    chrome.contextMenus.removeAll(createContextMenus);
-  } else {
-    createContextMenus();
-  }
+  backgroundContextMenuInitialization = new Promise<void>((resolve) => {
+    const createAfterRemoval = () => {
+      chrome.runtime.lastError;
+      createContextMenus().then(resolve);
+    };
+    if (chrome.contextMenus?.removeAll != null) {
+      try {
+        chrome.contextMenus.removeAll(createAfterRemoval);
+      } catch (_error) {
+        createAfterRemoval();
+      }
+      return;
+    }
+    createAfterRemoval();
+  });
+  return backgroundContextMenuInitialization;
 }

@@ -1,6 +1,6 @@
 import ExtensionRuntime from '@switchyagain/extension-runtime';
 import ChromePort from './chrome_port';
-import {setContextMenuQuickSwitchHandler} from './context_menu';
+import {ContextMenuRefreshQueue, setContextMenuQuickSwitchHandler} from './context_menu';
 import fetchUrl from './fetch_url';
 import {tabUrl} from './tabs';
 import WebRequestMonitor from './web_request_monitor';
@@ -797,12 +797,15 @@ class ChromeOptions extends ExtensionRuntime.Options {
   private _linkProfileContextMenuClickReady: boolean;
   private _linkProfileContextMenuIds: string[];
   private _linkProfileContextMenuSelections: Record<string, LinkProfileContextMenuSelection>;
+  private _linkProfileContextMenuRefreshQueue: ContextMenuRefreshQueue;
   private _linkProfileContextMenuRefreshToken: number;
   private _switchProfileContextMenuIds: string[];
   private _switchProfileContextMenuProfiles: Record<string, string>;
+  private _switchProfileContextMenuRefreshQueue: ContextMenuRefreshQueue;
   private _switchProfileContextMenuRefreshToken: number;
   private _profileScopeContextMenuIds: string[];
   private _profileScopeContextMenuSelections: Record<string, ProfileScopeContextMenuSelection>;
+  private _profileScopeContextMenuRefreshQueue: ContextMenuRefreshQueue;
   private _profileScopeContextMenuRefreshToken: number;
   private _profileScopeContextMenuSignature: string;
   private _contextMenuWindowIncognito: boolean;
@@ -824,12 +827,21 @@ class ChromeOptions extends ExtensionRuntime.Options {
     this._linkProfileContextMenuClickReady = false;
     this._linkProfileContextMenuIds = [];
     this._linkProfileContextMenuSelections = {};
+    this._linkProfileContextMenuRefreshQueue = new ContextMenuRefreshQueue((error) => {
+      this.log.error('Refreshing link profile context menu failed.', error);
+    });
     this._linkProfileContextMenuRefreshToken = 0;
     this._switchProfileContextMenuIds = [];
     this._switchProfileContextMenuProfiles = {};
+    this._switchProfileContextMenuRefreshQueue = new ContextMenuRefreshQueue((error) => {
+      this.log.error('Refreshing switch profile context menu failed.', error);
+    });
     this._switchProfileContextMenuRefreshToken = 0;
     this._profileScopeContextMenuIds = [];
     this._profileScopeContextMenuSelections = {};
+    this._profileScopeContextMenuRefreshQueue = new ContextMenuRefreshQueue((error) => {
+      this.log.error('Refreshing profile scope context menu failed.', error);
+    });
     this._profileScopeContextMenuRefreshToken = 0;
     this._profileScopeContextMenuSignature = '';
     this._contextMenuWindowIncognito = false;
@@ -1329,7 +1341,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
           checked: options.checked === true
         }
       : baseItem;
-    this.createContextMenuItem(
+    return this.createContextMenuItem(
       options.useIcons
         ? {
             ...baseItem,
@@ -1436,29 +1448,26 @@ class ChromeOptions extends ExtensionRuntime.Options {
     };
   }
 
-  private removeContextMenuItems(ids: string[], callback: () => void) {
+  private removeContextMenuItems(ids: string[]) {
     const contextMenus = chrome.contextMenus;
     if (!ids.length || contextMenus == null) {
-      callback();
-      return;
+      return Promise.resolve();
     }
-    let remaining = ids.length;
-    const done = () => {
-      remaining--;
-      if (remaining === 0) {
-        callback();
-      }
-    };
-    for (const id of ids) {
-      try {
-        contextMenus.remove(id, () => {
-          chrome.runtime.lastError;
-          done();
-        });
-      } catch (_error) {
-        done();
-      }
-    }
+    return Promise.all(
+      ids.map(
+        (id) =>
+          new Promise<void>((resolve) => {
+            try {
+              contextMenus.remove(id, () => {
+                chrome.runtime.lastError;
+                resolve();
+              });
+            } catch (_error) {
+              resolve();
+            }
+          })
+      )
+    ).then(() => undefined);
   }
 
   private ensureLinkProfileContextMenuClickListener() {
@@ -1483,25 +1492,39 @@ class ChromeOptions extends ExtensionRuntime.Options {
   private createContextMenuItem(properties: Record<string, unknown>, fallbackProperties?: Record<string, unknown>) {
     const contextMenus = chrome.contextMenus;
     if (contextMenus == null) {
-      return;
+      return Promise.resolve();
     }
-    contextMenus.create(properties, () => {
-      const error = chrome.runtime.lastError;
-      if (!error) {
-        return;
+    return new Promise<void>((resolve) => {
+      try {
+        contextMenus.create(properties, () => {
+          const error = chrome.runtime.lastError;
+          if (!error) {
+            resolve();
+            return;
+          }
+          if (properties.icons == null) {
+            this.log.error('Creating context menu item failed.', error.message || error);
+            resolve();
+            return;
+          }
+          this.log.error('Creating context menu item with icons failed; retrying without icons.', error.message || error);
+          const fallback = {
+            ...(fallbackProperties || properties)
+          };
+          delete fallback.icons;
+          try {
+            contextMenus.create(fallback, () => {
+              chrome.runtime.lastError;
+              resolve();
+            });
+          } catch (_error) {
+            resolve();
+          }
+        });
+      } catch (error) {
+        this.log.error('Creating context menu item failed.', error);
+        resolve();
       }
-      if (properties.icons == null) {
-        this.log.error('Creating context menu item failed.', error.message || error);
-        return;
-      }
-      this.log.error('Creating context menu item with icons failed; retrying without icons.', error.message || error);
-      const fallback = {
-        ...(fallbackProperties || properties)
-      };
-      delete fallback.icons;
-      contextMenus.create(fallback, () => {
-        chrome.runtime.lastError;
-      });
     });
   }
 
@@ -1539,27 +1562,31 @@ class ChromeOptions extends ExtensionRuntime.Options {
     }
     this.ensureLinkProfileContextMenuClickListener();
     const token = ++this._linkProfileContextMenuRefreshToken;
-    const contextMenuOptions = this.contextMenuOptions();
-    const roots = LINK_PROFILE_CONTEXT_MENU_ROOTS.filter((root) => contextMenuOptions[root.optionKey]);
-    const profiles = roots.length ? this.linkProfileContextMenuProfiles() : [];
-    const oldIds = this._linkProfileContextMenuIds;
-    this._linkProfileContextMenuIds = [];
-    this._linkProfileContextMenuSelections = {};
-    this.removeContextMenuItems(oldIds, () => {
+    return this._linkProfileContextMenuRefreshQueue.request(async () => {
+      const contextMenuOptions = this.contextMenuOptions();
+      const roots = LINK_PROFILE_CONTEXT_MENU_ROOTS.filter((root) => contextMenuOptions[root.optionKey]);
+      const profiles = roots.length ? this.linkProfileContextMenuProfiles() : [];
+      const oldIds = this._linkProfileContextMenuIds;
+      this._linkProfileContextMenuIds = [];
+      this._linkProfileContextMenuSelections = {};
+      await this.removeContextMenuItems(oldIds);
       if (token !== this._linkProfileContextMenuRefreshToken || profiles.length === 0) {
         return;
       }
       const nextIds: string[] = [];
       const nextSelections: Record<string, LinkProfileContextMenuSelection> = {};
+      const creations: Promise<void>[] = [];
       const useIcons = this.contextMenuItemIconsSupported();
       for (const root of roots) {
         const profileGroups = this.splitContextMenuProfiles(profiles);
-        this.createContextMenuItem({
-          id: root.id,
-          title: chrome.i18n.getMessage(root.titleKey) || root.fallbackTitle,
-          contexts: ['link'],
-          targetUrlPatterns: WEB_LINK_PATTERNS
-        });
+        creations.push(
+          this.createContextMenuItem({
+            id: root.id,
+            title: chrome.i18n.getMessage(root.titleKey) || root.fallbackTitle,
+            contexts: ['link'],
+            targetUrlPatterns: WEB_LINK_PATTERNS
+          })
+        );
         nextIds.push(root.id);
         profileGroups.visible.forEach((profile, index) => {
           const id = `${root.itemPrefix}${index}`;
@@ -1568,26 +1595,30 @@ class ChromeOptions extends ExtensionRuntime.Options {
             profileName: profile.name,
             target: root.target
           };
-          this.createContextMenuProfileItem({
-            id,
-            parentId: root.id,
-            profile,
-            contexts: ['link'],
-            targetUrlPatterns: WEB_LINK_PATTERNS,
-            useIcons
-          });
+          creations.push(
+            this.createContextMenuProfileItem({
+              id,
+              parentId: root.id,
+              profile,
+              contexts: ['link'],
+              targetUrlPatterns: WEB_LINK_PATTERNS,
+              useIcons
+            })
+          );
         });
         profileGroups.groups.forEach((group, groupIndex) => {
           const groupRootId = `${root.id}:group:${groupIndex}`;
           const groupItemPrefix = `${root.itemPrefix}group:${groupIndex}:`;
           nextIds.push(groupRootId);
-          this.createContextMenuItem({
-            id: groupRootId,
-            parentId: root.id,
-            title: group.name,
-            contexts: ['link'],
-            targetUrlPatterns: WEB_LINK_PATTERNS
-          });
+          creations.push(
+            this.createContextMenuItem({
+              id: groupRootId,
+              parentId: root.id,
+              title: group.name,
+              contexts: ['link'],
+              targetUrlPatterns: WEB_LINK_PATTERNS
+            })
+          );
           group.profiles.forEach((profile, index) => {
             const id = `${groupItemPrefix}${index}`;
             nextIds.push(id);
@@ -1595,27 +1626,31 @@ class ChromeOptions extends ExtensionRuntime.Options {
               profileName: profile.name,
               target: root.target
             };
-            this.createContextMenuProfileItem({
-              id,
-              parentId: groupRootId,
-              profile,
-              contexts: ['link'],
-              targetUrlPatterns: WEB_LINK_PATTERNS,
-              useIcons
-            });
+            creations.push(
+              this.createContextMenuProfileItem({
+                id,
+                parentId: groupRootId,
+                profile,
+                contexts: ['link'],
+                targetUrlPatterns: WEB_LINK_PATTERNS,
+                useIcons
+              })
+            );
           });
         });
         if (profileGroups.hidden.length > 0) {
           const hiddenRootId = `${root.id}:hidden`;
           const hiddenItemPrefix = `${root.itemPrefix}hidden:`;
           nextIds.push(hiddenRootId);
-          this.createContextMenuItem({
-            id: hiddenRootId,
-            parentId: root.id,
-            title: chrome.i18n.getMessage('popup_hiddenProfilesMenu') || 'Hidden',
-            contexts: ['link'],
-            targetUrlPatterns: WEB_LINK_PATTERNS
-          });
+          creations.push(
+            this.createContextMenuItem({
+              id: hiddenRootId,
+              parentId: root.id,
+              title: chrome.i18n.getMessage('popup_hiddenProfilesMenu') || 'Hidden',
+              contexts: ['link'],
+              targetUrlPatterns: WEB_LINK_PATTERNS
+            })
+          );
           profileGroups.hidden.forEach((profile, index) => {
             const id = `${hiddenItemPrefix}${index}`;
             nextIds.push(id);
@@ -1623,19 +1658,22 @@ class ChromeOptions extends ExtensionRuntime.Options {
               profileName: profile.name,
               target: root.target
             };
-            this.createContextMenuProfileItem({
-              id,
-              parentId: hiddenRootId,
-              profile,
-              contexts: ['link'],
-              targetUrlPatterns: WEB_LINK_PATTERNS,
-              useIcons
-            });
+            creations.push(
+              this.createContextMenuProfileItem({
+                id,
+                parentId: hiddenRootId,
+                profile,
+                contexts: ['link'],
+                targetUrlPatterns: WEB_LINK_PATTERNS,
+                useIcons
+              })
+            );
           });
         }
       }
       this._linkProfileContextMenuIds = nextIds;
       this._linkProfileContextMenuSelections = nextSelections;
+      await Promise.all(creations);
     });
   }
 
@@ -1646,20 +1684,24 @@ class ChromeOptions extends ExtensionRuntime.Options {
     }
     this.ensureLinkProfileContextMenuClickListener();
     const token = ++this._switchProfileContextMenuRefreshToken;
-    const profiles = this.switchProfileContextMenuProfiles();
-    const oldIds = this._switchProfileContextMenuIds;
-    this._switchProfileContextMenuIds = [];
-    this._switchProfileContextMenuProfiles = {};
-    this.removeContextMenuItems(oldIds, () => {
+    return this._switchProfileContextMenuRefreshQueue.request(async () => {
+      const profiles = this.switchProfileContextMenuProfiles();
+      const oldIds = this._switchProfileContextMenuIds;
+      this._switchProfileContextMenuIds = [];
+      this._switchProfileContextMenuProfiles = {};
+      await this.removeContextMenuItems(oldIds);
       if (token !== this._switchProfileContextMenuRefreshToken || profiles.length === 0) {
         return;
       }
-      this.createContextMenuItem({
-        id: SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID,
-        title: chrome.i18n.getMessage('contextMenu_switchProfile') || 'Switch Profile',
-        contexts: ['page'],
-        documentUrlPatterns: WEB_LINK_PATTERNS
-      });
+      const creations: Promise<void>[] = [];
+      creations.push(
+        this.createContextMenuItem({
+          id: SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID,
+          title: chrome.i18n.getMessage('contextMenu_switchProfile') || 'Switch Profile',
+          contexts: ['page'],
+          documentUrlPatterns: WEB_LINK_PATTERNS
+        })
+      );
       const nextIds = [SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID];
       const nextProfiles: Record<string, string> = {};
       const useIcons = this.contextMenuItemIconsSupported();
@@ -1669,16 +1711,18 @@ class ChromeOptions extends ExtensionRuntime.Options {
         const checked = profile.name === this._currentProfileName;
         nextIds.push(id);
         nextProfiles[id] = profile.name;
-        this.createContextMenuProfileItem({
-          id,
-          parentId: SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID,
-          profile,
-          checked,
-          contexts: ['page'],
-          documentUrlPatterns: WEB_LINK_PATTERNS,
-          radio: true,
-          useIcons
-        });
+        creations.push(
+          this.createContextMenuProfileItem({
+            id,
+            parentId: SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID,
+            profile,
+            checked,
+            contexts: ['page'],
+            documentUrlPatterns: WEB_LINK_PATTERNS,
+            radio: true,
+            useIcons
+          })
+        );
       });
       const activeGroup = profileGroups.groups.find((group) => group.profiles.some((profile) => profile.name === this._currentProfileName));
       const activeGroupedProfile = activeGroup?.profiles.find((profile) => profile.name === this._currentProfileName);
@@ -1686,70 +1730,81 @@ class ChromeOptions extends ExtensionRuntime.Options {
         const id = `${SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID}:groupedCurrent`;
         nextIds.push(id);
         nextProfiles[id] = activeGroupedProfile.name;
-        this.createContextMenuProfileItem({
-          id,
-          parentId: SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID,
-          profile: activeGroupedProfile,
-          checked: true,
-          contexts: ['page'],
-          documentUrlPatterns: WEB_LINK_PATTERNS,
-          radio: true,
-          title: this.contextMenuGroupedProfileTitle(activeGroup, activeGroupedProfile, useIcons),
-          useIcons
-        });
+        creations.push(
+          this.createContextMenuProfileItem({
+            id,
+            parentId: SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID,
+            profile: activeGroupedProfile,
+            checked: true,
+            contexts: ['page'],
+            documentUrlPatterns: WEB_LINK_PATTERNS,
+            radio: true,
+            title: this.contextMenuGroupedProfileTitle(activeGroup, activeGroupedProfile, useIcons),
+            useIcons
+          })
+        );
       }
       profileGroups.groups.forEach((group, groupIndex) => {
         const groupRootId = `${SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID}:group:${groupIndex}`;
         const groupItemPrefix = `${SWITCH_PROFILE_CONTEXT_MENU_ITEM_PREFIX}group:${groupIndex}:`;
         nextIds.push(groupRootId);
-        this.createContextMenuItem({
-          id: groupRootId,
-          parentId: SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID,
-          title: group.name,
-          contexts: ['page'],
-          documentUrlPatterns: WEB_LINK_PATTERNS
-        });
+        creations.push(
+          this.createContextMenuItem({
+            id: groupRootId,
+            parentId: SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID,
+            title: group.name,
+            contexts: ['page'],
+            documentUrlPatterns: WEB_LINK_PATTERNS
+          })
+        );
         group.profiles.forEach((profile, index) => {
           const id = `${groupItemPrefix}${index}`;
           nextIds.push(id);
           nextProfiles[id] = profile.name;
-          this.createContextMenuProfileItem({
-            id,
-            parentId: groupRootId,
-            profile,
-            checked: profile.name === this._currentProfileName,
-            contexts: ['page'],
-            documentUrlPatterns: WEB_LINK_PATTERNS,
-            radio: true,
-            useIcons
-          });
+          creations.push(
+            this.createContextMenuProfileItem({
+              id,
+              parentId: groupRootId,
+              profile,
+              checked: profile.name === this._currentProfileName,
+              contexts: ['page'],
+              documentUrlPatterns: WEB_LINK_PATTERNS,
+              radio: true,
+              useIcons
+            })
+          );
         });
       });
       if (profileGroups.hidden.length > 0) {
         nextIds.push(SWITCH_PROFILE_HIDDEN_CONTEXT_MENU_ROOT_ID);
-        this.createContextMenuItem({
-          id: SWITCH_PROFILE_HIDDEN_CONTEXT_MENU_ROOT_ID,
-          parentId: SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID,
-          title: chrome.i18n.getMessage('popup_hiddenProfilesMenu') || 'Hidden',
-          contexts: ['page'],
-          documentUrlPatterns: WEB_LINK_PATTERNS
-        });
+        creations.push(
+          this.createContextMenuItem({
+            id: SWITCH_PROFILE_HIDDEN_CONTEXT_MENU_ROOT_ID,
+            parentId: SWITCH_PROFILE_CONTEXT_MENU_ROOT_ID,
+            title: chrome.i18n.getMessage('popup_hiddenProfilesMenu') || 'Hidden',
+            contexts: ['page'],
+            documentUrlPatterns: WEB_LINK_PATTERNS
+          })
+        );
         profileGroups.hidden.forEach((profile, index) => {
           const id = `${SWITCH_PROFILE_HIDDEN_CONTEXT_MENU_ITEM_PREFIX}${index}`;
           nextIds.push(id);
           nextProfiles[id] = profile.name;
-          this.createContextMenuProfileItem({
-            id,
-            parentId: SWITCH_PROFILE_HIDDEN_CONTEXT_MENU_ROOT_ID,
-            profile,
-            contexts: ['page'],
-            documentUrlPatterns: WEB_LINK_PATTERNS,
-            useIcons
-          });
+          creations.push(
+            this.createContextMenuProfileItem({
+              id,
+              parentId: SWITCH_PROFILE_HIDDEN_CONTEXT_MENU_ROOT_ID,
+              profile,
+              contexts: ['page'],
+              documentUrlPatterns: WEB_LINK_PATTERNS,
+              useIcons
+            })
+          );
         });
       }
       this._switchProfileContextMenuIds = nextIds;
       this._switchProfileContextMenuProfiles = nextProfiles;
+      await Promise.all(creations);
     });
   }
 
@@ -1906,6 +1961,7 @@ class ChromeOptions extends ExtensionRuntime.Options {
     nextSelections: Record<string, ProfileScopeContextMenuSelection>,
     visible?: boolean
   ) {
+    const creations: Promise<void>[] = [];
     const profileGroups = this.splitContextMenuProfiles(profiles, target.activeProfileName);
     const useIcons = this.contextMenuItemIconsSupported();
     const rootItem: Record<string, unknown> = {
@@ -1918,17 +1974,19 @@ class ChromeOptions extends ExtensionRuntime.Options {
       rootItem.visible = visible;
     }
     nextIds.push(target.rootId);
-    this.createContextMenuItem(rootItem);
+    creations.push(this.createContextMenuItem(rootItem));
     if (target.clearable ?? Boolean(target.activeProfileName)) {
       nextIds.push(target.clearId);
       nextSelections[target.clearId] = target.setArgs;
-      this.createContextMenuItem({
-        id: target.clearId,
-        parentId: target.rootId,
-        title: chrome.i18n.getMessage('popup_profileScopeUseDefault') || 'Use Default',
-        contexts: ['page'],
-        documentUrlPatterns: WEB_LINK_PATTERNS
-      });
+      creations.push(
+        this.createContextMenuItem({
+          id: target.clearId,
+          parentId: target.rootId,
+          title: chrome.i18n.getMessage('popup_profileScopeUseDefault') || 'Use Default',
+          contexts: ['page'],
+          documentUrlPatterns: WEB_LINK_PATTERNS
+        })
+      );
     }
     profileGroups.visible.forEach((profile, index) => {
       const id = `${target.itemPrefix}${index}`;
@@ -1938,28 +1996,32 @@ class ChromeOptions extends ExtensionRuntime.Options {
         ...target.setArgs,
         profileName: profile.name
       };
-      this.createContextMenuProfileItem({
-        id,
-        parentId: target.rootId,
-        profile,
-        checked,
-        contexts: ['page'],
-        documentUrlPatterns: WEB_LINK_PATTERNS,
-        radio: true,
-        useIcons
-      });
+      creations.push(
+        this.createContextMenuProfileItem({
+          id,
+          parentId: target.rootId,
+          profile,
+          checked,
+          contexts: ['page'],
+          documentUrlPatterns: WEB_LINK_PATTERNS,
+          radio: true,
+          useIcons
+        })
+      );
     });
     profileGroups.groups.forEach((group, groupIndex) => {
       const groupRootId = `${target.rootId}:group:${groupIndex}`;
       const groupItemPrefix = `${target.itemPrefix}group:${groupIndex}:`;
       nextIds.push(groupRootId);
-      this.createContextMenuItem({
-        id: groupRootId,
-        parentId: target.rootId,
-        title: group.name,
-        contexts: ['page'],
-        documentUrlPatterns: WEB_LINK_PATTERNS
-      });
+      creations.push(
+        this.createContextMenuItem({
+          id: groupRootId,
+          parentId: target.rootId,
+          title: group.name,
+          contexts: ['page'],
+          documentUrlPatterns: WEB_LINK_PATTERNS
+        })
+      );
       group.profiles.forEach((profile, index) => {
         const id = `${groupItemPrefix}${index}`;
         nextIds.push(id);
@@ -1967,29 +2029,33 @@ class ChromeOptions extends ExtensionRuntime.Options {
           ...target.setArgs,
           profileName: profile.name
         };
-        this.createContextMenuProfileItem({
-          id,
-          parentId: groupRootId,
-          profile,
-          checked: profile.name === target.activeProfileName,
-          contexts: ['page'],
-          documentUrlPatterns: WEB_LINK_PATTERNS,
-          radio: true,
-          useIcons
-        });
+        creations.push(
+          this.createContextMenuProfileItem({
+            id,
+            parentId: groupRootId,
+            profile,
+            checked: profile.name === target.activeProfileName,
+            contexts: ['page'],
+            documentUrlPatterns: WEB_LINK_PATTERNS,
+            radio: true,
+            useIcons
+          })
+        );
       });
     });
     if (profileGroups.hidden.length > 0) {
       const hiddenRootId = `${target.rootId}:hidden`;
       const hiddenItemPrefix = `${target.itemPrefix}hidden:`;
       nextIds.push(hiddenRootId);
-      this.createContextMenuItem({
-        id: hiddenRootId,
-        parentId: target.rootId,
-        title: chrome.i18n.getMessage('popup_hiddenProfilesMenu') || 'Hidden',
-        contexts: ['page'],
-        documentUrlPatterns: WEB_LINK_PATTERNS
-      });
+      creations.push(
+        this.createContextMenuItem({
+          id: hiddenRootId,
+          parentId: target.rootId,
+          title: chrome.i18n.getMessage('popup_hiddenProfilesMenu') || 'Hidden',
+          contexts: ['page'],
+          documentUrlPatterns: WEB_LINK_PATTERNS
+        })
+      );
       profileGroups.hidden.forEach((profile, index) => {
         const id = `${hiddenItemPrefix}${index}`;
         nextIds.push(id);
@@ -1997,16 +2063,19 @@ class ChromeOptions extends ExtensionRuntime.Options {
           ...target.setArgs,
           profileName: profile.name
         };
-        this.createContextMenuProfileItem({
-          id,
-          parentId: hiddenRootId,
-          profile,
-          contexts: ['page'],
-          documentUrlPatterns: WEB_LINK_PATTERNS,
-          useIcons
-        });
+        creations.push(
+          this.createContextMenuProfileItem({
+            id,
+            parentId: hiddenRootId,
+            profile,
+            contexts: ['page'],
+            documentUrlPatterns: WEB_LINK_PATTERNS,
+            useIcons
+          })
+        );
       });
     }
+    return creations;
   }
 
   private useStaticWindowProfileContextMenu() {
@@ -2173,6 +2242,12 @@ class ChromeOptions extends ExtensionRuntime.Options {
     });
   }
 
+  private resolveCurrentContextMenuWindowIncognitoAsync(hintTab: ChromeTab | undefined) {
+    return new Promise<boolean>((resolve) => {
+      this.resolveCurrentContextMenuWindowIncognito(hintTab, resolve);
+    });
+  }
+
   private updateContextMenuWindowIncognitoFromCurrentTab(refreshStaticMenu = false, hintWindowId?: number) {
     this.getCurrentContextMenuTab((tab) => {
       const apply = (privateWindow: boolean) => {
@@ -2237,11 +2312,12 @@ class ChromeOptions extends ExtensionRuntime.Options {
       return;
     }
     const token = ++this._profileScopeContextMenuRefreshToken;
-    const oldIds = this._profileScopeContextMenuIds;
-    this._profileScopeContextMenuIds = [];
-    this._profileScopeContextMenuSelections = {};
-    this._profileScopeContextMenuSignature = '';
-    this.removeContextMenuItems(oldIds, () => {
+    return this._profileScopeContextMenuRefreshQueue.request(async () => {
+      const oldIds = this._profileScopeContextMenuIds;
+      this._profileScopeContextMenuIds = [];
+      this._profileScopeContextMenuSelections = {};
+      this._profileScopeContextMenuSignature = '';
+      await this.removeContextMenuItems(oldIds);
       if (
         token !== this._profileScopeContextMenuRefreshToken ||
         profiles.length === 0 ||
@@ -2253,19 +2329,20 @@ class ChromeOptions extends ExtensionRuntime.Options {
       }
       const nextIds: string[] = [];
       const nextSelections: Record<string, ProfileScopeContextMenuSelection> = {};
-      this.resolveCurrentContextMenuWindowIncognito(tab, (privateWindow) => {
-        if (token !== this._profileScopeContextMenuRefreshToken) {
-          return;
-        }
-        for (const target of targets) {
-          const visible = privateWindow ? target.setArgs.scope === 'private' : target.setArgs.scope === 'normal';
-          this.createProfileScopeContextMenuTarget(target, profiles, nextIds, nextSelections, visible);
-        }
-        this._profileScopeContextMenuIds = nextIds;
-        this._profileScopeContextMenuSelections = nextSelections;
-        this._profileScopeContextMenuSignature = signature;
-        this.refreshContextMenuItems();
-      });
+      const privateWindow = await this.resolveCurrentContextMenuWindowIncognitoAsync(tab);
+      if (token !== this._profileScopeContextMenuRefreshToken) {
+        return;
+      }
+      const creations: Promise<void>[] = [];
+      for (const target of targets) {
+        const visible = privateWindow ? target.setArgs.scope === 'private' : target.setArgs.scope === 'normal';
+        creations.push(...this.createProfileScopeContextMenuTarget(target, profiles, nextIds, nextSelections, visible));
+      }
+      this._profileScopeContextMenuIds = nextIds;
+      this._profileScopeContextMenuSelections = nextSelections;
+      this._profileScopeContextMenuSignature = signature;
+      await Promise.all(creations);
+      this.refreshContextMenuItems();
     });
   }
 
@@ -2275,17 +2352,17 @@ class ChromeOptions extends ExtensionRuntime.Options {
       return;
     }
     if (this.useStaticWindowProfileContextMenu()) {
-      this.updateStaticWindowProfileContextMenuForTab(tab, options);
-      return;
+      return this.updateStaticWindowProfileContextMenuForTab(tab, options);
     }
     this.ensureLinkProfileContextMenuClickListener();
     const token = ++this._profileScopeContextMenuRefreshToken;
-    const profiles = this.profileScopeContextMenuProfiles();
-    const oldIds = this._profileScopeContextMenuIds;
-    this._profileScopeContextMenuIds = [];
-    this._profileScopeContextMenuSelections = {};
-    this._profileScopeContextMenuSignature = '';
-    this.removeContextMenuItems(oldIds, () => {
+    return this._profileScopeContextMenuRefreshQueue.request(async () => {
+      const profiles = this.profileScopeContextMenuProfiles();
+      const oldIds = this._profileScopeContextMenuIds;
+      this._profileScopeContextMenuIds = [];
+      this._profileScopeContextMenuSelections = {};
+      this._profileScopeContextMenuSignature = '';
+      await this.removeContextMenuItems(oldIds);
       if (token !== this._profileScopeContextMenuRefreshToken || profiles.length === 0) {
         this.refreshContextMenuItems();
         return;
@@ -2304,11 +2381,13 @@ class ChromeOptions extends ExtensionRuntime.Options {
       }
       const nextIds: string[] = [];
       const nextSelections: Record<string, ProfileScopeContextMenuSelection> = {};
+      const creations: Promise<void>[] = [];
       for (const target of targets) {
-        this.createProfileScopeContextMenuTarget(target, profiles, nextIds, nextSelections);
+        creations.push(...this.createProfileScopeContextMenuTarget(target, profiles, nextIds, nextSelections));
       }
       this._profileScopeContextMenuIds = nextIds;
       this._profileScopeContextMenuSelections = nextSelections;
+      await Promise.all(creations);
       this.refreshContextMenuItems();
     });
   }

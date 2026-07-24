@@ -352,7 +352,7 @@ type BackgroundExtensionRuntime = {
   const ExtensionRuntimeCurrent = browserExtensionRuntime as unknown as BackgroundExtensionRuntime;
   const ProxyEngine = ExtensionRuntimeCurrent.ProxyEngine;
 
-  initializeBackgroundContextMenu();
+  const backgroundContextMenuReady = initializeBackgroundContextMenu();
 
   const Log = Object.create(ExtensionRuntimeCurrent.Log) as BackgroundLog;
   const proxyImpl = ExtensionRuntimeCurrent.proxy.getProxyImpl(Log);
@@ -1358,6 +1358,7 @@ type BackgroundExtensionRuntime = {
     proxyImplFeatures: proxyImpl.features
   });
 
+  await backgroundContextMenuReady;
   options = new ExtensionRuntimeCurrent.Options(null, storage, state, Log, sync, proxyImpl);
   ensureWebDavSyncAlarmListener();
   restoreActiveWebDavSyncFromState().catch((error: unknown) => {

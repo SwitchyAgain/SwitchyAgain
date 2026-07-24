@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": false,
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
+    "module": "es2022",
+    "moduleDetection": "force",
+    "noEmit": true,
+    "paths": {
+      "@switchyagain/extension-runtime": ["../../packages/extension-runtime/src/index.ts"],
+      "@switchyagain/proxy-engine": ["../../packages/proxy-engine/src/index.ts"]
+    },
+    "target": "es2022",
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["src/test/**/*.ts", "types/**/*.d.ts", "../../packages/extension-runtime/types/**/*.d.ts", "../../packages/proxy-engine/types/**/*.d.ts"]
+}
