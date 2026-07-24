@@ -91,7 +91,7 @@ describe('Options', function () {
         });
     });
 
-    it('should preserve tab group profile scope settings during upgrade', function () {
+    it('should normalize profile scope settings during upgrade', function () {
       const options = Object.create(Options.prototype);
       return options
         .upgrade({
@@ -111,9 +111,10 @@ describe('Options', function () {
             tab: true,
             group: true,
             container: false,
+            site: false,
             window: true
           });
-          assert.strictEqual(changes['-profileScopes'], undefined);
+          assert.deepStrictEqual(changes['-profileScopes'], upgraded['-profileScopes']);
         });
     });
 
@@ -132,6 +133,8 @@ describe('Options', function () {
             tabProfile: false,
             groupProfile: false,
             containerProfile: false,
+            pageProfile: false,
+            siteProfile: false,
             windowProfile: false,
             linkProfileNewTab: false,
             linkProfileNewWindow: false,
