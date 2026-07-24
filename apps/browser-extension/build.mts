@@ -25,9 +25,12 @@ type BrowserEntrypoints = {
 
 type LocaleMessage = {
   message: string;
-  placeholders?: Record<string, {
-    content: string;
-  }>;
+  placeholders?: Record<
+    string,
+    {
+      content: string;
+    }
+  >;
 };
 
 type ReleaseManifest = Record<string, unknown> & {
@@ -103,20 +106,23 @@ async function writeServiceWorker(dest: string, scripts: string[]) {
 
 async function writeBackgroundHtml(dest: string, scripts: string[]) {
   await ensureDir(dest);
-  await fsp.writeFile(dest, [
-    '<!DOCTYPE html>',
-    '<html lang="en">',
-    '<head>',
-    '  <meta charset="utf-8" />',
-    '  <title>SwitchyAgain Background</title>',
-    '</head>',
-    '<body>',
-    '  <canvas id="canvas-icon"></canvas>',
-    ...scripts.map((script) => `  <script src="${script}"></script>`),
-    '</body>',
-    '</html>',
-    ''
-  ].join('\n'));
+  await fsp.writeFile(
+    dest,
+    [
+      '<!DOCTYPE html>',
+      '<html lang="en">',
+      '<head>',
+      '  <meta charset="utf-8" />',
+      '  <title>SwitchyAgain Background</title>',
+      '</head>',
+      '<body>',
+      '  <canvas id="canvas-icon"></canvas>',
+      ...scripts.map((script) => `  <script src="${script}"></script>`),
+      '</body>',
+      '</html>',
+      ''
+    ].join('\n')
+  );
 }
 
 async function writeBuildManifest(dest: string, entrypoints: BrowserEntrypoints) {
@@ -277,8 +283,7 @@ async function zipRelease(archivePath: string, manifestPath: string) {
   const buildDir = path.join(root, 'build');
   const files = await listFiles(buildDir, (filePath) => {
     const rel = path.relative(buildDir, filePath).replace(/\\/g, '/');
-    return rel !== 'manifest.json' &&
-      !/^lib\/bootstrap\/fonts\/[^/]+\.(eot|svg|ttf)$/.test(rel);
+    return rel !== 'manifest.json' && !/^lib\/bootstrap\/fonts\/[^/]+\.(eot|svg|ttf)$/.test(rel);
   });
   for (const file of files) {
     archive.file(file, {name: path.relative(buildDir, file).replace(/\\/g, '/')});
@@ -302,10 +307,12 @@ async function main() {
     entry: path.join(root, 'src/module/background.ts'),
     minify: true
   });
-  const fontFilter = (base: string): PathFilter => (filePath: string) => {
-    const rel = path.relative(base, filePath).replace(/\\/g, '/');
-    return !/^lib\/bootstrap\/fonts\/[^/]+\.(eot|svg|ttf)$/.test(rel);
-  };
+  const fontFilter =
+    (base: string): PathFilter =>
+    (filePath: string) => {
+      const rel = path.relative(base, filePath).replace(/\\/g, '/');
+      return !/^lib\/bootstrap\/fonts\/[^/]+\.(eot|svg|ttf)$/.test(rel);
+    };
   const webBuildRoot = path.join(workspaceRoot, 'packages/web-ui/build');
   await copyTree(webBuildRoot, path.join(root, 'build'), fontFilter(webBuildRoot));
   await writeServiceWorker(path.join(root, 'build/service_worker.js'), browserEntrypoints.background.serviceWorkerScripts);

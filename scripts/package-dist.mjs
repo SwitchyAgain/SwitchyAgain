@@ -1,6 +1,6 @@
-import { copyFile, mkdir, readFile } from 'node:fs/promises';
+import {copyFile, mkdir, readFile} from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {fileURLToPath} from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dryRun = process.argv.includes('--dry-run');
@@ -18,11 +18,11 @@ if (typeof version !== 'string' || version.length === 0) {
 
 const packages = [
   ['chromium-sideload.zip', `switchyagain-v${version}-chromium-sideload.zip`],
-  ['firefox-unsigned.xpi', `switchyagain-v${version}-firefox-unsigned.xpi`],
+  ['firefox-unsigned.xpi', `switchyagain-v${version}-firefox-unsigned.xpi`]
 ];
 
 if (!dryRun) {
-  await mkdir(distDir, { recursive: true });
+  await mkdir(distDir, {recursive: true});
 }
 
 for (const [sourceName, targetName] of packages) {

@@ -294,21 +294,29 @@ export function installBrowserErrorGuards(page, label) {
 }
 
 export async function expectText(page, text, label) {
-  await page.getByText(text, {exact: false}).first().waitFor({
-    state: 'visible',
-    timeout: 7000
-  }).catch((error) => {
-    throw new Error(`${label}: expected visible text ${JSON.stringify(text)}: ${error.message}`);
-  });
+  await page
+    .getByText(text, {exact: false})
+    .first()
+    .waitFor({
+      state: 'visible',
+      timeout: 7000
+    })
+    .catch((error) => {
+      throw new Error(`${label}: expected visible text ${JSON.stringify(text)}: ${error.message}`);
+    });
 }
 
 export async function expectSelector(page, selector, label) {
-  await page.locator(selector).first().waitFor({
-    state: 'visible',
-    timeout: 7000
-  }).catch((error) => {
-    throw new Error(`${label}: expected visible selector ${selector}: ${error.message}`);
-  });
+  await page
+    .locator(selector)
+    .first()
+    .waitFor({
+      state: 'visible',
+      timeout: 7000
+    })
+    .catch((error) => {
+      throw new Error(`${label}: expected visible selector ${selector}: ${error.message}`);
+    });
 }
 
 export function loadEnglishMessages() {
@@ -330,8 +338,7 @@ export function loadPackage(packageName, packagePath = packageName, helpText = '
       const nodeModules = path.dirname(entry);
       try {
         return createRequire(path.join(nodeModules, packageName, 'package.json'))(packagePath);
-      } catch (_innerError) {
-      }
+      } catch (_innerError) {}
     }
     const hint = helpText ? ` ${helpText}` : '';
     throw new Error(`${packagePath} is unavailable.${hint}`);

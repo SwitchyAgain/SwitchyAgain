@@ -49,11 +49,14 @@ export default tseslint.config(
       ...js.configs.recommended.rules,
       'no-empty': ['warn', {allowEmptyCatch: true}],
       'no-unused-expressions': 'off',
-      'no-unused-vars': ['warn', {
-        args: 'none',
-        caughtErrors: 'none',
-        varsIgnorePattern: '^_'
-      }],
+      'no-unused-vars': [
+        'warn',
+        {
+          args: 'none',
+          caughtErrors: 'none',
+          varsIgnorePattern: '^_'
+        }
+      ],
       'prefer-const': 'off',
       'prefer-rest-params': 'off'
     }
@@ -81,11 +84,14 @@ export default tseslint.config(
       '@typescript-eslint/no-empty-object-type': 'warn',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-expressions': 'off',
-      '@typescript-eslint/no-unused-vars': ['warn', {
-        args: 'none',
-        caughtErrors: 'none',
-        varsIgnorePattern: '^_'
-      }],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          args: 'none',
+          caughtErrors: 'none',
+          varsIgnorePattern: '^_'
+        }
+      ],
       '@typescript-eslint/no-unsafe-declaration-merging': 'warn'
     }
   },

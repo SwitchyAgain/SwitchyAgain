@@ -54,13 +54,7 @@ async function writeOrCheck(relativePath, content) {
 
 const entrypoints = await readJson(entrypointsPath);
 
-await writeOrCheck(
-  'apps/browser-extension/src/js/service_worker.ts',
-  renderServiceWorker(entrypoints.background.serviceWorkerScripts)
-);
-await writeOrCheck(
-  'apps/browser-extension/overlay/background.html',
-  renderBackgroundHtml(backgroundDocumentScripts(entrypoints))
-);
+await writeOrCheck('apps/browser-extension/src/js/service_worker.ts', renderServiceWorker(entrypoints.background.serviceWorkerScripts));
+await writeOrCheck('apps/browser-extension/overlay/background.html', renderBackgroundHtml(backgroundDocumentScripts(entrypoints)));
 
 console.log(check ? 'ok generated browser entrypoints' : 'generated browser entrypoints');

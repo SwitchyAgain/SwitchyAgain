@@ -118,11 +118,7 @@ function parseHtmlScripts(source) {
 
 async function checkClassicScriptEntrypoints() {
   const entrypoints = await readBrowserEntrypoints();
-  assertEqual(
-    entrypoints.background.serviceWorkerScripts,
-    ['js/background.js'],
-    'background must use one shared classic IIFE bundle'
-  );
+  assertEqual(entrypoints.background.serviceWorkerScripts, ['js/background.js'], 'background must use one shared classic IIFE bundle');
   const serviceWorker = await readText('apps/browser-extension/src/js/service_worker.ts');
   assertEqual(
     parseImportScripts(serviceWorker),

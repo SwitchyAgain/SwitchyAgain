@@ -5,3 +5,5 @@ build-ts
 coverage
 packages/*/build-ts
 apps/*/build-ts
+**/*.min.js
+**/vendor/**

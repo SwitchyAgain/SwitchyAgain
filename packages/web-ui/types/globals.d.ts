@@ -33,10 +33,7 @@ type ProxyEngineSwitchRule = {
 };
 
 type ProxyEnginePrintedScript = {
-  print_to_string: (options?: {
-    beautify?: boolean;
-    comments?: boolean;
-  }) => string;
+  print_to_string: (options?: {beautify?: boolean; comments?: boolean}) => string;
 };
 
 type ProxyEngineGlobal = {

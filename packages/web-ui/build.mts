@@ -81,7 +81,7 @@ async function listJsFiles(dir: string) {
   for (const entry of entries) {
     const entryPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      files.push(...await listJsFiles(entryPath));
+      files.push(...(await listJsFiles(entryPath)));
     } else if (entry.isFile() && entry.name.endsWith('.js')) {
       files.push(entryPath);
     }
@@ -134,14 +134,17 @@ async function main() {
       await copyFile(src, dest);
     }
   }
-  await writeRootReactHtml('build/options.html', 'SwitchyAgain Options', 'react/options_app.js', [
-    'js/log_error.js',
-    'js/proxy_engine.min.js'
-  ], 'module');
+  await writeRootReactHtml(
+    'build/options.html',
+    'SwitchyAgain Options',
+    'react/options_app.js',
+    ['js/log_error.js', 'js/proxy_engine.min.js'],
+    'module'
+  );
   await bundleReactEntries({
     options_app: 'src/react/options_entry.tsx',
     popup_app: 'src/react/popup_app.tsx',
-    proxy_not_controllable: 'src/react/proxy_not_controllable.tsx',
+    proxy_not_controllable: 'src/react/proxy_not_controllable.tsx'
   });
   await disableRawHtmlAssignments(path.join(root, 'build/react'));
 }

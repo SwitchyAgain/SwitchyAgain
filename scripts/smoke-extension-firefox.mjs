@@ -4,14 +4,7 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
-import {
-  assertExtensionBuild,
-  extensionBuildDir,
-  loadEnglishMessages,
-  loadManifest,
-  loadPackage,
-  temporaryDir
-} from './smoke-lib.mjs';
+import {assertExtensionBuild, extensionBuildDir, loadEnglishMessages, loadManifest, loadPackage, temporaryDir} from './smoke-lib.mjs';
 
 assertExtensionBuild();
 
@@ -54,9 +47,7 @@ function findOnPath(names) {
 function resolveFirefoxBinary() {
   const explicit = process.env.FIREFOX_BIN?.trim();
   if (explicit) {
-    const resolved = explicit.includes(path.sep) || path.isAbsolute(explicit)
-      ? path.resolve(explicit)
-      : findOnPath([explicit]);
+    const resolved = explicit.includes(path.sep) || path.isAbsolute(explicit) ? path.resolve(explicit) : findOnPath([explicit]);
     if (resolved && isExecutable(resolved)) {
       return resolved;
     }
@@ -97,35 +88,28 @@ function firefoxManifestFromBuild(buildManifest) {
 
 async function writeFirefoxExtension(tempExtensionDir) {
   await fsp.cp(extensionBuildDir, tempExtensionDir, {recursive: true});
-  await fsp.writeFile(
-    path.join(tempExtensionDir, 'manifest.json'),
-    JSON.stringify(firefoxManifestFromBuild(manifest))
-  );
+  await fsp.writeFile(path.join(tempExtensionDir, 'manifest.json'), JSON.stringify(firefoxManifestFromBuild(manifest)));
 }
 
 async function expectText(driver, text, label) {
-  await driver.wait(async () => {
-    try {
-      const body = await driver.findElement(By.css('body'));
-      const bodyText = await body.getText();
-      return bodyText.includes(text);
-    } catch (_error) {
-      return false;
-    }
-  }, 10000, `${label}: expected visible text ${JSON.stringify(text)}`);
+  await driver.wait(
+    async () => {
+      try {
+        const body = await driver.findElement(By.css('body'));
+        const bodyText = await body.getText();
+        return bodyText.includes(text);
+      } catch (_error) {
+        return false;
+      }
+    },
+    10000,
+    `${label}: expected visible text ${JSON.stringify(text)}`
+  );
 }
 
 async function expectSelector(driver, selector, label) {
-  const element = await driver.wait(
-    until.elementLocated(By.css(selector)),
-    10000,
-    `${label}: expected visible selector ${selector}`
-  );
-  await driver.wait(
-    until.elementIsVisible(element),
-    10000,
-    `${label}: expected visible selector ${selector}`
-  );
+  const element = await driver.wait(until.elementLocated(By.css(selector)), 10000, `${label}: expected visible selector ${selector}`);
+  await driver.wait(until.elementIsVisible(element), 10000, `${label}: expected visible selector ${selector}`);
 }
 
 async function withFirefoxChromeContext(driver, callback) {
@@ -164,11 +148,13 @@ async function waitForExtensionUuid(driver, extensionIds) {
     await new Promise((resolve) => setTimeout(resolve, 250));
   } while (Date.now() < deadline);
 
-  throw new Error([
-    'Unable to find Firefox internal UUID for installed extension.',
-    `Expected extension ids: ${extensionIds.filter(Boolean).join(', ') || '(none)'}.`,
-    `Known extension ids: ${Object.keys(uuids).sort().join(', ') || '(none)'}.`
-  ].join(' '));
+  throw new Error(
+    [
+      'Unable to find Firefox internal UUID for installed extension.',
+      `Expected extension ids: ${extensionIds.filter(Boolean).join(', ') || '(none)'}.`,
+      `Known extension ids: ${Object.keys(uuids).sort().join(', ') || '(none)'}.`
+    ].join(' ')
+  );
 }
 
 async function expectBackgroundMessaging(driver, label) {
@@ -176,7 +162,8 @@ async function expectBackgroundMessaging(driver, label) {
 }
 
 async function callBackground(driver, method, args = [], label = method) {
-  const response = await driver.executeAsyncScript(`
+  const response = await driver.executeAsyncScript(
+    `
     const method = arguments[0];
     const args = arguments[1];
     const done = arguments[arguments.length - 1];
@@ -196,7 +183,10 @@ async function callBackground(driver, method, args = [], label = method) {
     } catch (error) {
       done({ok: false, error: error && (error.stack || error.message) || String(error)});
     }
-  `, method, args);
+  `,
+    method,
+    args
+  );
   if (!response?.ok) {
     throw new Error(`${label}: background messaging failed: ${response?.error || 'unknown error'}`);
   }
@@ -246,10 +236,7 @@ try {
     .setPreference('extensions.systemAddon.update.enabled', false)
     .setPreference('xpinstall.signatures.required', false);
 
-  driver = await new Builder()
-    .forBrowser('firefox')
-    .setFirefoxOptions(options)
-    .build();
+  driver = await new Builder().forBrowser('firefox').setFirefoxOptions(options).build();
 
   const addonId = await driver.installAddon(tempExtensionDir, true);
   const manifestExtensionId = manifest.browser_specific_settings?.gecko?.id;
@@ -275,12 +262,17 @@ try {
   );
 
   const optionsBeforeScopeTest = await callBackground(driver, 'getAll');
-  await callBackground(driver, 'patch', [
-    {
-      '-profileScopeAssignments': [optionsBeforeScopeTest['-profileScopeAssignments'], {containers: {}, rules: []}],
-      '-profileScopes': [optionsBeforeScopeTest['-profileScopes'], allProfileScopes]
-    }
-  ], 'firefox profile scope options setup');
+  await callBackground(
+    driver,
+    'patch',
+    [
+      {
+        '-profileScopeAssignments': [optionsBeforeScopeTest['-profileScopeAssignments'], {containers: {}, rules: []}],
+        '-profileScopes': [optionsBeforeScopeTest['-profileScopes'], allProfileScopes]
+      }
+    ],
+    'firefox profile scope options setup'
+  );
 
   await callBackground(driver, 'setProfileScope', [
     {

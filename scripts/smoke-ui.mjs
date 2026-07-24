@@ -29,120 +29,111 @@ const extensionServer = await serveExtensionBuild();
 
 function messageForKey(key, substitutions) {
   let text = messages[key]?.message || '';
-  const values = Array.isArray(substitutions)
-    ? substitutions
-    : substitutions == null
-      ? []
-      : [substitutions];
+  const values = Array.isArray(substitutions) ? substitutions : substitutions == null ? [] : [substitutions];
   for (let i = 0; i < values.length; i++) {
-    text = text
-      .replaceAll(`$${i}$`, String(values[i]))
-      .replaceAll(`$${i + 1}$`, String(values[i]));
+    text = text.replaceAll(`$${i}$`, String(values[i])).replaceAll(`$${i + 1}$`, String(values[i]));
   }
   return text;
 }
 
 async function installExtensionApi(page, initialState = {}) {
-  await page.addInitScript(({mockInitialState, mockManifest, mockOptions, mockPageInfo, mockPopupState}) => {
-    const localState = new Map(Object.entries(mockInitialState || {}));
-    function pageInfoForRequest(args) {
-      const result = structuredClone(mockPageInfo);
-      if (!args?.includeExplanations) {
-        delete result.requestExplanations;
-      }
-      return result;
-    }
-    const runtime = {
-      id: 'switchyagain-smoke',
-      getManifest: () => mockManifest,
-      getURL: (relativePath) => new URL(String(relativePath || '').replace(/^\/+/, ''), `${window.location.origin}/`).href,
-      lastError: null,
-      sendMessage(message, callback) {
-        const method = message?.method;
-        let result;
-        if (method === 'getAll') {
-          result = structuredClone(mockOptions);
-        } else if (method === 'getState') {
-          const keys = message.args?.[0] || [];
-          result = {};
-          for (const key of Array.isArray(keys) ? keys : [keys]) {
-            result[key] =
-              key === 'proxyNotControllable' && window.location.pathname.includes('proxy_not_controllable')
-                ? 'app'
-                : localState.has(key)
-                  ? localState.get(key)
-                  : mockPopupState[key];
-          }
-        } else if (method === 'setState') {
-          const values = message.args?.[0] || {};
-          for (const [key, value] of Object.entries(values)) {
-            localState.set(key, value);
-          }
-          result = values;
-        } else if (method === 'patch' || method === 'reset') {
-          result = structuredClone(mockOptions);
-        } else if (method === 'resetOptionsSync' || method === 'setOptionsSync') {
-          result = undefined;
-        } else if (method === 'updateProfile') {
-          result = {};
-        } else if (method === 'renameProfile' || method === 'replaceRef') {
-          result = structuredClone(mockOptions);
-        } else if (method === 'getPageInfo') {
-          result = pageInfoForRequest(message.args?.[0]);
-        } else {
-          result = {};
+  await page.addInitScript(
+    ({mockInitialState, mockManifest, mockOptions, mockPageInfo, mockPopupState}) => {
+      const localState = new Map(Object.entries(mockInitialState || {}));
+      function pageInfoForRequest(args) {
+        const result = structuredClone(mockPageInfo);
+        if (!args?.includeExplanations) {
+          delete result.requestExplanations;
         }
-        window.setTimeout(() => callback?.({result}), 0);
+        return result;
       }
-    };
+      const runtime = {
+        id: 'switchyagain-smoke',
+        getManifest: () => mockManifest,
+        getURL: (relativePath) => new URL(String(relativePath || '').replace(/^\/+/, ''), `${window.location.origin}/`).href,
+        lastError: null,
+        sendMessage(message, callback) {
+          const method = message?.method;
+          let result;
+          if (method === 'getAll') {
+            result = structuredClone(mockOptions);
+          } else if (method === 'getState') {
+            const keys = message.args?.[0] || [];
+            result = {};
+            for (const key of Array.isArray(keys) ? keys : [keys]) {
+              result[key] =
+                key === 'proxyNotControllable' && window.location.pathname.includes('proxy_not_controllable')
+                  ? 'app'
+                  : localState.has(key)
+                    ? localState.get(key)
+                    : mockPopupState[key];
+            }
+          } else if (method === 'setState') {
+            const values = message.args?.[0] || {};
+            for (const [key, value] of Object.entries(values)) {
+              localState.set(key, value);
+            }
+            result = values;
+          } else if (method === 'patch' || method === 'reset') {
+            result = structuredClone(mockOptions);
+          } else if (method === 'resetOptionsSync' || method === 'setOptionsSync') {
+            result = undefined;
+          } else if (method === 'updateProfile') {
+            result = {};
+          } else if (method === 'renameProfile' || method === 'replaceRef') {
+            result = structuredClone(mockOptions);
+          } else if (method === 'getPageInfo') {
+            result = pageInfoForRequest(message.args?.[0]);
+          } else {
+            result = {};
+          }
+          window.setTimeout(() => callback?.({result}), 0);
+        }
+      };
 
-    window.chrome = {
-      i18n: {
-        getMessage(key, substitutions) {
-          const messages = window.__switchyAgainSmokeMessages || {};
-          let text = messages[key]?.message || '';
-          const values = Array.isArray(substitutions)
-            ? substitutions
-            : substitutions == null
-              ? []
-              : [substitutions];
-          for (let i = 0; i < values.length; i++) {
-            text = text
-              .replaceAll(`$${i}$`, String(values[i]))
-              .replaceAll(`$${i + 1}$`, String(values[i]));
+      window.chrome = {
+        i18n: {
+          getMessage(key, substitutions) {
+            const messages = window.__switchyAgainSmokeMessages || {};
+            let text = messages[key]?.message || '';
+            const values = Array.isArray(substitutions) ? substitutions : substitutions == null ? [] : [substitutions];
+            for (let i = 0; i < values.length; i++) {
+              text = text.replaceAll(`$${i}$`, String(values[i])).replaceAll(`$${i + 1}$`, String(values[i]));
+            }
+            return text;
+          },
+          getUILanguage: () => 'en-US'
+        },
+        runtime,
+        tabs: {
+          create(_props, callback) {
+            callback?.();
+          },
+          query(queryInfo, callback) {
+            if (queryInfo?.active) {
+              callback([{id: 1, url: mockPageInfo.url}]);
+              return;
+            }
+            callback([]);
+          },
+          update(_tabId, _props, callback) {
+            callback?.();
           }
-          return text;
-        },
-        getUILanguage: () => 'en-US'
-      },
-      runtime,
-      tabs: {
-        create(_props, callback) {
-          callback?.();
-        },
-        query(queryInfo, callback) {
-          if (queryInfo?.active) {
-            callback([{id: 1, url: mockPageInfo.url}]);
-            return;
-          }
-          callback([]);
-        },
-        update(_tabId, _props, callback) {
-          callback?.();
         }
-      }
-    };
-    window.browser = {
-      proxy: {}
-    };
-    window.__switchyAgainSmokeMessages = {};
-  }, {
-    mockInitialState: initialState,
-    mockManifest: manifest,
-    mockOptions: options,
-    mockPageInfo: popupPageInfo(),
-    mockPopupState: popupStateForPath('')
-  });
+      };
+      window.browser = {
+        proxy: {}
+      };
+      window.__switchyAgainSmokeMessages = {};
+    },
+    {
+      mockInitialState: initialState,
+      mockManifest: manifest,
+      mockOptions: options,
+      mockPageInfo: popupPageInfo(),
+      mockPopupState: popupStateForPath('')
+    }
+  );
   await page.addInitScript((mockMessages) => {
     window.__switchyAgainSmokeMessages = mockMessages;
   }, messages);

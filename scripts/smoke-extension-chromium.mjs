@@ -26,38 +26,40 @@ function messageForKey(key) {
 }
 
 async function callRuntime(page, method, args = []) {
-  return page.evaluate(({args, method}) => {
-    return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage({method, args}, (response) => {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message || 'Unknown runtime error.'));
-          return;
-        }
-        if (response?.error) {
-          reject(new Error(response.error.message || response.error.reason || JSON.stringify(response.error)));
-          return;
-        }
-        resolve(response?.result);
+  return page.evaluate(
+    ({args, method}) => {
+      return new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({method, args}, (response) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message || 'Unknown runtime error.'));
+            return;
+          }
+          if (response?.error) {
+            reject(new Error(response.error.message || response.error.reason || JSON.stringify(response.error)));
+            return;
+          }
+          resolve(response?.result);
+        });
       });
-    });
-  }, {args, method});
+    },
+    {args, method}
+  );
 }
 
 async function getProfileScopeInfo(page, tab, incognito) {
-  const pageInfo = await callRuntime(page, 'getPageInfo', [{
-    incognito,
-    tabId: tab.id,
-    url: 'https://www.example.com/',
-    windowId: tab.windowId
-  }]);
+  const pageInfo = await callRuntime(page, 'getPageInfo', [
+    {
+      incognito,
+      tabId: tab.id,
+      url: 'https://www.example.com/',
+      windowId: tab.windowId
+    }
+  ]);
   return pageInfo.profileScope;
 }
 
 const context = await chromium.launchPersistentContext(userDataDir, {
-  args: [
-    `--disable-extensions-except=${extensionPath}`,
-    `--load-extension=${extensionPath}`
-  ],
+  args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
   executablePath: chromium.executablePath(),
   headless: true
 });
@@ -241,18 +243,22 @@ try {
   assert.equal(privateWindowScope.effectiveScope, 'private');
   assert.equal(privateWindowScope.effectiveProfileName, 'proxy');
 
-  const pageInfo = await callRuntime(optionsPage, 'getPageInfo', [{
-    tabId: activeTab.id,
-    url: 'https://www.example.com/'
-  }]);
+  const pageInfo = await callRuntime(optionsPage, 'getPageInfo', [
+    {
+      tabId: activeTab.id,
+      url: 'https://www.example.com/'
+    }
+  ]);
   if (pageInfo.requestExplanations) {
     throw new Error('getPageInfo should not compute request explanations for the popup menu path.');
   }
-  const explainedPageInfo = await callRuntime(optionsPage, 'getPageInfo', [{
-    includeExplanations: true,
-    tabId: activeTab.id,
-    url: 'https://www.example.com/'
-  }]);
+  const explainedPageInfo = await callRuntime(optionsPage, 'getPageInfo', [
+    {
+      includeExplanations: true,
+      tabId: activeTab.id,
+      url: 'https://www.example.com/'
+    }
+  ]);
   if (!Array.isArray(explainedPageInfo.requestExplanations) || explainedPageInfo.requestExplanations.length === 0) {
     throw new Error('getPageInfo did not return request explanations on demand.');
   }
