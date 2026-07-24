@@ -963,6 +963,108 @@ describe('options app', () => {
     expect(getAllRequests(requests)).toHaveLength(1);
   });
 
+  it('edits page and site profile scope rules through the top-level apply flow', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '-profileScopes': {
+        site: true
+      },
+      '-profileScopeAssignments': {
+        containers: {},
+        rules: [
+          {
+            condition: {
+              conditionType: 'HostWildcardCondition',
+              pattern: '*.example.com'
+            },
+            profileName: 'proxy',
+            quickKey: 's',
+            quickTarget: 'site'
+          },
+          {
+            condition: {
+              conditionType: 'UrlWildcardCondition',
+              pattern: 'https://old.example/*'
+            },
+            profileName: 'pac'
+          }
+        ]
+      }
+    };
+    const {requests} = installBackground({
+      options: loadedOptions,
+      profileScopeCapabilities: {
+        container: false,
+        group: false,
+        site: true,
+        tab: false,
+        window: false
+      }
+    });
+    window.location.hash = '#/profileScope';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: 'Pages / Sites'});
+    const rulesTable = screen.getByRole('table');
+    const firstRule = within(rulesTable).getByDisplayValue('*.example.com').closest('tr') as HTMLElement;
+    expect(within(firstRule).getByText('Site')).toBeTruthy();
+    fireEvent.change(within(firstRule).getByRole('combobox'), {
+      target: {
+        value: 'UrlWildcardCondition'
+      }
+    });
+    const changedConditionRule = within(rulesTable).getByDisplayValue('*.example.com').closest('tr') as HTMLElement;
+    fireEvent.change(within(changedConditionRule).getByRole('textbox'), {
+      target: {
+        value: 'https://www.example.com/path?mode=1'
+      }
+    });
+    const changedPageRule = within(rulesTable).getByDisplayValue('https://www.example.com/path?mode=1').closest('tr') as HTMLElement;
+    fireEvent.click(within(changedPageRule).getByRole('listbox'));
+    fireEvent.click(within(changedPageRule).getByRole('option', {name: 'pac'}).querySelector('a') as HTMLAnchorElement);
+    expect(within(changedPageRule).getByText('Page')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', {name: 'Add Rule'}));
+    const addedRule = within(rulesTable).getAllByRole('row')[1];
+    fireEvent.change(within(addedRule).getByRole('textbox'), {
+      target: {
+        value: '*.new.example.com'
+      }
+    });
+    const configuredAddedRule = within(rulesTable).getByDisplayValue('*.new.example.com').closest('tr') as HTMLElement;
+    fireEvent.click(within(configuredAddedRule).getByRole('listbox'));
+    fireEvent.click(within(configuredAddedRule).getByRole('option', {name: 'proxy'}).querySelector('a') as HTMLAnchorElement);
+    expect(within(configuredAddedRule).getByText('Site')).toBeTruthy();
+
+    const oldRule = within(rulesTable).getByDisplayValue('https://old.example/*').closest('tr') as HTMLElement;
+    fireEvent.click(within(oldRule).getByRole('button', {name: 'Delete'}));
+
+    fireEvent.click(screen.getByRole('button', {name: 'Apply changes'}));
+
+    await waitFor(() => expect(window.onbeforeunload).toBeNull());
+    expect(optionPatchValue<Record<string, unknown>>(firstPatch(requests), '-profileScopeAssignments')).toEqual({
+      containers: {},
+      rules: [
+        {
+          condition: {
+            conditionType: 'HostWildcardCondition',
+            pattern: '*.new.example.com'
+          },
+          profileName: 'proxy'
+        },
+        {
+          condition: {
+            conditionType: 'UrlWildcardCondition',
+            pattern: 'https://www.example.com/path?mode=1'
+          },
+          profileName: 'pac'
+        }
+      ]
+    });
+    expect(getAllRequests(requests)).toHaveLength(1);
+  });
+
   it('saves fixed profile proxy edits through the top-level apply flow', async () => {
     const loadedOptions = optionsFixture();
     const patchedOptions: Options = {
