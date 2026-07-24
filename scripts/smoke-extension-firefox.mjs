@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
+import assert from 'node:assert/strict';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {
@@ -171,10 +172,16 @@ async function waitForExtensionUuid(driver, extensionIds) {
 }
 
 async function expectBackgroundMessaging(driver, label) {
+  await callBackground(driver, 'getState', ['firstRun'], label);
+}
+
+async function callBackground(driver, method, args = [], label = method) {
   const response = await driver.executeAsyncScript(`
+    const method = arguments[0];
+    const args = arguments[1];
     const done = arguments[arguments.length - 1];
     try {
-      chrome.runtime.sendMessage({method: 'getState', args: ['firstRun']}, (message) => {
+      chrome.runtime.sendMessage({method, args}, (message) => {
         const lastError = chrome.runtime.lastError;
         if (lastError) {
           done({ok: false, error: lastError.message || String(lastError)});
@@ -189,10 +196,34 @@ async function expectBackgroundMessaging(driver, label) {
     } catch (error) {
       done({ok: false, error: error && (error.stack || error.message) || String(error)});
     }
-  `);
+  `, method, args);
   if (!response?.ok) {
     throw new Error(`${label}: background messaging failed: ${response?.error || 'unknown error'}`);
   }
+  return response.result;
+}
+
+async function activeTab(driver) {
+  const tab = await driver.executeAsyncScript(`
+    const done = arguments[arguments.length - 1];
+    chrome.tabs.query({active: true, lastFocusedWindow: true}, (tabs) => done(tabs[0] || null));
+  `);
+  if (!tab || typeof tab.id !== 'number' || typeof tab.windowId !== 'number') {
+    throw new Error('Unable to find an active Firefox tab for profile scope smoke tests.');
+  }
+  return tab;
+}
+
+async function profileScopeInfo(driver, tab, values = {}) {
+  const pageInfo = await callBackground(driver, 'getPageInfo', [
+    {
+      tabId: tab.id,
+      url: 'https://www.example.com/profile/path?mode=1',
+      windowId: tab.windowId,
+      ...values
+    }
+  ]);
+  return pageInfo.profileScope;
 }
 
 const tempRoot = await temporaryDir('switchyagain-smoke-firefox-');
@@ -227,6 +258,114 @@ try {
   await driver.get(`moz-extension://${extensionUuid}/options.html#/about`);
   await expectText(driver, messageForKey('about_title') || 'About', 'firefox extension options');
   await expectBackgroundMessaging(driver, 'firefox extension options');
+  await callBackground(driver, 'applyProfile', ['auto switch'], 'firefox profile scope setup');
+  const tab = await activeTab(driver);
+  const allProfileScopes = {
+    container: true,
+    group: true,
+    site: true,
+    tab: true,
+    window: true
+  };
+  const capabilityState = await callBackground(driver, 'getState', ['profileScopeCapabilities']);
+  assert.deepStrictEqual(
+    capabilityState.profileScopeCapabilities,
+    allProfileScopes,
+    'Firefox should expose all profile scope capabilities'
+  );
+
+  const optionsBeforeScopeTest = await callBackground(driver, 'getAll');
+  await callBackground(driver, 'patch', [
+    {
+      '-profileScopeAssignments': [optionsBeforeScopeTest['-profileScopeAssignments'], {containers: {}, rules: []}],
+      '-profileScopes': [optionsBeforeScopeTest['-profileScopes'], allProfileScopes]
+    }
+  ], 'firefox profile scope options setup');
+
+  await callBackground(driver, 'setProfileScope', [
+    {
+      profileName: 'direct',
+      scope: 'page',
+      url: 'https://www.example.com/profile/path?mode=1'
+    }
+  ]);
+  let scope = await profileScopeInfo(driver, tab);
+  assert.equal(scope.effectiveScope, 'page');
+  assert.equal(scope.effectiveProfileName, 'direct');
+  scope = await profileScopeInfo(driver, tab, {url: 'https://www.example.com/profile/path?mode=2'});
+  assert.notEqual(scope.effectiveScope, 'page');
+  await callBackground(driver, 'setProfileScope', [
+    {
+      scope: 'page',
+      url: 'https://www.example.com/profile/path?mode=1'
+    }
+  ]);
+
+  await callBackground(driver, 'setProfileScope', [
+    {
+      profileName: 'proxy',
+      scope: 'site',
+      url: 'https://www.example.com/profile/path?mode=1'
+    }
+  ]);
+  scope = await profileScopeInfo(driver, tab, {url: 'https://www.example.com/another-path'});
+  assert.equal(scope.effectiveScope, 'site');
+  assert.equal(scope.effectiveProfileName, 'proxy');
+  await callBackground(driver, 'setProfileScope', [
+    {
+      scope: 'site',
+      url: 'https://www.example.com/profile/path?mode=1'
+    }
+  ]);
+
+  await callBackground(driver, 'setProfileScope', [
+    {
+      profileName: 'direct',
+      scope: 'tab',
+      tabId: tab.id
+    }
+  ]);
+  scope = await profileScopeInfo(driver, tab);
+  assert.equal(scope.effectiveScope, 'tab');
+  assert.equal(scope.effectiveProfileName, 'direct');
+  await callBackground(driver, 'setProfileScope', [{scope: 'tab', tabId: tab.id}]);
+
+  const groupId = 7;
+  await callBackground(driver, 'setProfileScope', [
+    {
+      groupId,
+      profileName: 'proxy',
+      scope: 'group',
+      windowId: tab.windowId
+    }
+  ]);
+  scope = await profileScopeInfo(driver, tab, {groupId});
+  assert.equal(scope.effectiveScope, 'group');
+  assert.equal(scope.effectiveProfileName, 'proxy');
+  await callBackground(driver, 'setProfileScope', [{groupId, scope: 'group', windowId: tab.windowId}]);
+
+  const cookieStoreId = 'firefox-container-1';
+  await callBackground(driver, 'setProfileScope', [
+    {
+      cookieStoreId,
+      profileName: 'direct',
+      scope: 'container'
+    }
+  ]);
+  scope = await profileScopeInfo(driver, tab, {cookieStoreId});
+  assert.equal(scope.effectiveScope, 'container');
+  assert.equal(scope.effectiveProfileName, 'direct');
+  await callBackground(driver, 'setProfileScope', [{cookieStoreId, scope: 'container'}]);
+
+  await callBackground(driver, 'setProfileScope', [{profileName: 'direct', scope: 'normal'}]);
+  await callBackground(driver, 'setProfileScope', [{profileName: 'proxy', scope: 'private'}]);
+  const normalScope = await profileScopeInfo(driver, tab, {incognito: false});
+  const privateScope = await profileScopeInfo(driver, tab, {incognito: true});
+  assert.equal(normalScope.effectiveScope, 'normal');
+  assert.equal(normalScope.effectiveProfileName, 'direct');
+  assert.equal(privateScope.effectiveScope, 'private');
+  assert.equal(privateScope.effectiveProfileName, 'proxy');
+
   console.log(`ok firefox extension options (${manifest.version})`);
 
   await driver.get(`moz-extension://${extensionUuid}/popup/index.html`);
