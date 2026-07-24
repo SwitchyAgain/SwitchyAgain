@@ -34,7 +34,8 @@
   --sa-dialog-link-hover: #9ec5fe;
 }
 
-body, html {
+body,
+html {
   background-color: var(--sa-dialog-bg);
   color: var(--sa-dialog-text);
   margin: 0;
@@ -51,24 +52,24 @@ p {
   font-size: 14px;
 }
 
-  .sa-popup-text-danger {
-    color: var(--sa-dialog-danger);
-  }
+.sa-popup-text-danger {
+  color: var(--sa-dialog-danger);
+}
 
-  .sa-popup-dialog-help {
-    display: block;
-    margin-top: 5px;
-    margin-bottom: 10px;
-    color: var(--sa-dialog-muted);
-  }
+.sa-popup-dialog-help {
+  display: block;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  color: var(--sa-dialog-muted);
+}
 
-  .sa-popup-dialog-controls {
-    margin-bottom: 0;
-  }
+.sa-popup-dialog-controls {
+  margin-bottom: 0;
+}
 
-  .sa-popup-dialog-controls .sa-popup-btn-primary {
-    float: right;
-  }
+.sa-popup-dialog-controls .sa-popup-btn-primary {
+  float: right;
+}
 
 /* Button */
 
@@ -87,13 +88,14 @@ p {
   user-select: none;
   background-image: none;
   border: 1px solid transparent;
-  border-radius: 4px
+  border-radius: 4px;
 }
 
-.sa-popup-btn.active, .sa-popup-btn:active {
+.sa-popup-btn.active,
+.sa-popup-btn:active {
   background-image: none;
   outline: 0;
-  box-shadow: inset 0 3px 5px rgba(0,0,0,.125);
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
 }
 
 .sa-popup-btn-default {
