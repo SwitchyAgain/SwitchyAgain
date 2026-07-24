@@ -1,5 +1,6 @@
 import fsp from 'node:fs/promises';
 import path from 'node:path';
+import assert from 'node:assert/strict';
 import {
   assertExtensionBuild,
   expectSelector,
@@ -40,6 +41,16 @@ async function callRuntime(page, method, args = []) {
       });
     });
   }, {args, method});
+}
+
+async function getProfileScopeInfo(page, tab, incognito) {
+  const pageInfo = await callRuntime(page, 'getPageInfo', [{
+    incognito,
+    tabId: tab.id,
+    url: 'https://www.example.com/',
+    windowId: tab.windowId
+  }]);
+  return pageInfo.profileScope;
 }
 
 const context = await chromium.launchPersistentContext(userDataDir, {
@@ -112,6 +123,124 @@ try {
       });
     });
   });
+  const chromiumProfileScopes = {
+    container: false,
+    group: false,
+    site: false,
+    tab: false,
+    window: true
+  };
+  const capabilityState = await callRuntime(optionsPage, 'getState', ['profileScopeCapabilities']);
+  assert.deepStrictEqual(
+    capabilityState.profileScopeCapabilities,
+    chromiumProfileScopes,
+    'Chromium should expose only Window profile scope capability'
+  );
+
+  const optionsBeforeScopeTest = await callRuntime(optionsPage, 'getAll');
+  const forcedAssignments = {
+    containers: {},
+    rules: [
+      {
+        condition: {
+          conditionType: 'HostWildcardCondition',
+          pattern: 'www.example.com'
+        },
+        profileName: 'direct'
+      }
+    ]
+  };
+  await callRuntime(optionsPage, 'patch', [
+    {
+      '-profileScopeAssignments': [optionsBeforeScopeTest['-profileScopeAssignments'], forcedAssignments],
+      '-profileScopes': [
+        optionsBeforeScopeTest['-profileScopes'],
+        {
+          container: true,
+          group: true,
+          site: true,
+          tab: true,
+          window: true
+        }
+      ]
+    }
+  ]);
+
+  const forcedProfileScope = await getProfileScopeInfo(optionsPage, activeTab, false);
+  assert.deepStrictEqual(
+    forcedProfileScope.capabilities,
+    chromiumProfileScopes,
+    'Profile scope capabilities should remain gated after forcing all options on'
+  );
+  assert.deepStrictEqual(
+    forcedProfileScope.enabled,
+    chromiumProfileScopes,
+    'Unsupported profile scopes should not become effective when raw options are enabled'
+  );
+  assert.equal(forcedProfileScope.siteProfileName, 'direct');
+  assert.equal(forcedProfileScope.effectiveScope, 'current');
+
+  const assignmentsBeforeUnsupportedSet = (await callRuntime(optionsPage, 'getAll'))['-profileScopeAssignments'];
+  const unsupportedScopeRequests = [
+    {
+      profileName: 'direct',
+      scope: 'tab',
+      tabId: activeTab.id
+    },
+    {
+      groupId: 1,
+      profileName: 'direct',
+      scope: 'group',
+      windowId: activeTab.windowId
+    },
+    {
+      cookieStoreId: 'firefox-container-1',
+      profileName: 'direct',
+      scope: 'container'
+    },
+    {
+      profileName: 'direct',
+      scope: 'page',
+      url: 'https://www.example.com/'
+    },
+    {
+      profileName: 'direct',
+      scope: 'site',
+      url: 'https://www.example.com/'
+    }
+  ];
+  for (const request of unsupportedScopeRequests) {
+    await callRuntime(optionsPage, 'setProfileScope', [request]);
+  }
+  const assignmentsAfterUnsupportedSet = (await callRuntime(optionsPage, 'getAll'))['-profileScopeAssignments'];
+  assert.deepStrictEqual(
+    assignmentsAfterUnsupportedSet,
+    assignmentsBeforeUnsupportedSet,
+    'Unsupported profile scope requests should not modify assignments'
+  );
+
+  await callRuntime(optionsPage, 'setProfileScope', [
+    {
+      profileName: 'direct',
+      scope: 'normal'
+    }
+  ]);
+  await callRuntime(optionsPage, 'setProfileScope', [
+    {
+      profileName: 'proxy',
+      scope: 'private'
+    }
+  ]);
+  const windowScopeOptions = await callRuntime(optionsPage, 'getAll');
+  assert.equal(windowScopeOptions['-profileScopeAssignments'].normalDefaultProfileName, 'direct');
+  assert.equal(windowScopeOptions['-profileScopeAssignments'].privateDefaultProfileName, 'proxy');
+  const normalWindowScope = await getProfileScopeInfo(optionsPage, activeTab, false);
+  const privateWindowScope = await getProfileScopeInfo(optionsPage, activeTab, true);
+  assert.equal(normalWindowScope.effectiveScope, 'normal');
+  assert.equal(normalWindowScope.effectiveProfileName, 'direct');
+  assert.equal(privateWindowScope.effectiveScope, 'private');
+  assert.equal(privateWindowScope.effectiveProfileName, 'proxy');
+
   const pageInfo = await callRuntime(optionsPage, 'getPageInfo', [{
     tabId: activeTab.id,
     url: 'https://www.example.com/'
