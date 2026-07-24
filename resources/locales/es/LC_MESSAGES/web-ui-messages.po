@@ -391,6 +391,12 @@ msgstr "Mostrar cambio de perfil de grupo de pestañas"
 msgid "options_contextMenuContainerProfile"
 msgstr "Mostrar cambio de perfil de contenedor"
 
+msgid "options_contextMenuPageProfile"
+msgstr "Mostrar cambio de perfil de página"
+
+msgid "options_contextMenuSiteProfile"
+msgstr "Mostrar cambio de perfil de sitio"
+
 msgid "options_contextMenuWindowProfile"
 msgstr "Mostrar cambio de perfil predeterminado para ventanas normales/privadas"
 
@@ -1846,23 +1852,35 @@ msgstr "Perfiles de grupos de pestañas"
 msgid "options_profileScopeGroupHelp"
 msgstr "Permite asignar un perfil al grupo de pestañas actual desde el menú emergente o el menú contextual de la página. Solo Firefox."
 
+msgid "options_profileScopeSite"
+msgstr "Perfiles de página y sitio"
+
+msgid "options_profileScopeSiteHelp"
+msgstr "Permite asignar perfiles a páginas y sitios desde la página Ámbito del perfil. Solo Firefox."
+
 msgid "options_profileScopeContainer"
 msgstr "Perfiles de contenedor"
 
 msgid "options_profileScopeContainerHelp"
-msgstr "Permite asignar perfiles a contenedores de Firefox desde el menú emergente o el menú contextual de la página. Solo Firefox."
+msgstr "Permite asignar perfiles a contenedores de Firefox desde el menú emergente, el menú contextual de la página o la página Ámbito del perfil. Solo Firefox."
 
 msgid "options_profileScopeWindow"
 msgstr "Predeterminados normal/privado"
 
 msgid "options_profileScopeWindowHelp"
-msgstr "Permite perfiles predeterminados separados para ventanas normales y privadas desde el menú emergente o el menú contextual de la página."
+msgstr "Permite asignar perfiles predeterminados separados para ventanas normales y privadas desde el menú emergente, el menú contextual de la página o la página Ámbito del perfil."
 
 msgid "popup_profileScopeTab"
 msgstr "Esta pestaña"
 
 msgid "popup_profileScopeGroup"
 msgstr "Grupo de pestañas"
+
+msgid "popup_profileScopePage"
+msgstr "Esta página"
+
+msgid "popup_profileScopeSite"
+msgstr "Este sitio"
 
 msgid "popup_profileScopeContainer"
 msgstr "Contenedor"
@@ -1921,6 +1939,30 @@ msgstr "Eliminado"
 msgid "options_profileScopeContainerName"
 msgstr "Contenedor $1:NUMBER$"
 
+msgid "options_profileScopeSitesSection"
+msgstr "Páginas / Sitios"
+
+msgid "options_profileScopeAddRule"
+msgstr "Añadir regla"
+
+msgid "options_profileScopeSitesHelp"
+msgstr "La primera regla coincidente establece el perfil inicial para cada solicitud de la pestaña actual. Las condiciones de URL son reglas de página; las condiciones de servidor y demás condiciones son reglas de sitio."
+
+msgid "options_profileScopeQuickRulesHelp"
+msgstr "Esta página utiliza el esquema, el servidor, el puerto, la ruta exacta y la consulta completa; los fragmentos de URL se ignoran. Este sitio utiliza la semántica existente de los patrones de servidor."
+
+msgid "options_profileScopeRuleScopeColumn"
+msgstr "Ámbito"
+
+msgid "options_profileScopeRulePage"
+msgstr "Página"
+
+msgid "options_profileScopeRuleSite"
+msgstr "Sitio"
+
+msgid "options_profileScopeRulesEmpty"
+msgstr "No hay reglas de página ni de sitio."
+
 msgid "options_profileScopeTabsSection"
 msgstr "Pestañas / Grupos de pestañas"
 
@@ -1944,6 +1986,12 @@ msgstr "Usar perfil para esta pestaña"
 
 msgid "contextMenu_useProfileForThisTabGroup"
 msgstr "Usar perfil para este grupo de pestañas"
+
+msgid "contextMenu_useProfileForThisPage"
+msgstr "Usar perfil para esta página"
+
+msgid "contextMenu_useProfileForThisSite"
+msgstr "Usar perfil para este sitio"
 
 msgid "contextMenu_useProfileForThisContainer"
 msgstr "Usar perfil para este contenedor"

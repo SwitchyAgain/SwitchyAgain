@@ -339,6 +339,12 @@ msgstr "Vis bytte av fanegruppeprofil"
 msgid "options_contextMenuContainerProfile"
 msgstr "Vis bytte av containerprofil"
 
+msgid "options_contextMenuPageProfile"
+msgstr "Vis bytte av sideprofil"
+
+msgid "options_contextMenuSiteProfile"
+msgstr "Vis bytte av nettstedsprofil"
+
 msgid "options_contextMenuWindowProfile"
 msgstr "Vis bytte av standardprofil for normale/private vinduer"
 
@@ -1649,23 +1655,35 @@ msgstr "Fanegruppeprofiler"
 msgid "options_profileScopeGroupHelp"
 msgstr "Tillat å tilordne en profil til gjeldende fanegruppe fra sprettoppmenyen eller sidens kontekstmeny. Bare Firefox."
 
+msgid "options_profileScopeSite"
+msgstr "Side- og nettstedsprofiler"
+
+msgid "options_profileScopeSiteHelp"
+msgstr "Tillat å tilordne profiler til sider og nettsteder fra siden Profilomfang. Bare Firefox."
+
 msgid "options_profileScopeContainer"
 msgstr "Beholderprofiler"
 
 msgid "options_profileScopeContainerHelp"
-msgstr "Tillat å tilordne profiler til Firefox-beholdere fra sprettoppmenyen eller sidens kontekstmeny. Bare Firefox."
+msgstr "Tillat å tilordne profiler til Firefox-beholdere fra sprettoppmenyen, sidens kontekstmeny eller siden Profilomfang. Bare Firefox."
 
 msgid "options_profileScopeWindow"
 msgstr "Standarder for normal/privat"
 
 msgid "options_profileScopeWindowHelp"
-msgstr "Tillat separate standardprofiler for normale og private vinduer fra sprettoppmenyen eller sidens kontekstmeny."
+msgstr "Tillat å tilordne separate standardprofiler for normale og private vinduer fra sprettoppmenyen, sidens kontekstmeny eller siden Profilomfang."
 
 msgid "popup_profileScopeTab"
 msgstr "Denne fanen"
 
 msgid "popup_profileScopeGroup"
 msgstr "Fanegruppe"
+
+msgid "popup_profileScopePage"
+msgstr "Denne siden"
+
+msgid "popup_profileScopeSite"
+msgstr "Dette nettstedet"
 
 msgid "popup_profileScopeContainer"
 msgstr "Beholder"
@@ -1724,6 +1742,30 @@ msgstr "Slettet"
 msgid "options_profileScopeContainerName"
 msgstr "Beholder $1:NUMBER$"
 
+msgid "options_profileScopeSitesSection"
+msgstr "Sider / Nettsteder"
+
+msgid "options_profileScopeAddRule"
+msgstr "Legg til regel"
+
+msgid "options_profileScopeSitesHelp"
+msgstr "Den første samsvarende regelen angir startprofilen for hver forespørsel i gjeldende fane. Nettadressebetingelser er sideregler; verts- og andre betingelser er nettstedsregler."
+
+msgid "options_profileScopeQuickRulesHelp"
+msgstr "Denne siden bruker skjema, vert, port, nøyaktig bane og hele spørringen; nettadressefragmenter ignoreres. Dette nettstedet bruker den eksisterende semantikken for vertsjokertegn."
+
+msgid "options_profileScopeRuleScopeColumn"
+msgstr "Omfang"
+
+msgid "options_profileScopeRulePage"
+msgstr "Side"
+
+msgid "options_profileScopeRuleSite"
+msgstr "Nettsted"
+
+msgid "options_profileScopeRulesEmpty"
+msgstr "Ingen side- eller nettstedsregler."
+
 msgid "options_profileScopeTabsSection"
 msgstr "Faner / Fanegrupper"
 
@@ -1747,6 +1789,12 @@ msgstr "Bruk profil for denne fanen"
 
 msgid "contextMenu_useProfileForThisTabGroup"
 msgstr "Bruk profil for denne fanegruppen"
+
+msgid "contextMenu_useProfileForThisPage"
+msgstr "Bruk profil for denne siden"
+
+msgid "contextMenu_useProfileForThisSite"
+msgstr "Bruk profil for dette nettstedet"
 
 msgid "contextMenu_useProfileForThisContainer"
 msgstr "Bruk profil for denne beholderen"

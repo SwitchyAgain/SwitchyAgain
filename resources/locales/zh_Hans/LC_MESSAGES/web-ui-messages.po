@@ -356,6 +356,12 @@ msgstr "显示标签组情景模式切换"
 msgid "options_contextMenuContainerProfile"
 msgstr "显示容器情景模式切换"
 
+msgid "options_contextMenuPageProfile"
+msgstr "显示页面情景模式切换"
+
+msgid "options_contextMenuSiteProfile"
+msgstr "显示网站情景模式切换"
+
 msgid "options_contextMenuWindowProfile"
 msgstr "显示普通/隐私窗口默认情景模式切换"
 
@@ -1648,23 +1654,35 @@ msgstr "标签组情景模式"
 msgid "options_profileScopeGroupHelp"
 msgstr "允许在弹出菜单或网页右键菜单中为当前标签组指定情景模式。仅 Firefox 支持。"
 
+msgid "options_profileScopeSite"
+msgstr "页面和网站情景模式"
+
+msgid "options_profileScopeSiteHelp"
+msgstr "允许在「作用范围」页面中为页面和网站指定情景模式。仅 Firefox 支持。"
+
 msgid "options_profileScopeContainer"
 msgstr "容器情景模式"
 
 msgid "options_profileScopeContainerHelp"
-msgstr "允许在弹出菜单或网页右键菜单中为 Firefox 容器指定情景模式。仅 Firefox 支持。"
+msgstr "允许在弹出菜单、网页右键菜单或「作用范围」页面中为 Firefox 容器指定情景模式。仅 Firefox 支持。"
 
 msgid "options_profileScopeWindow"
 msgstr "普通/隐私默认情景模式"
 
 msgid "options_profileScopeWindowHelp"
-msgstr "允许在弹出菜单或网页右键菜单中为普通窗口和隐私窗口分别设置默认情景模式。"
+msgstr "允许在弹出菜单、网页右键菜单或「作用范围」页面中为普通窗口和隐私窗口分别设置默认情景模式。"
 
 msgid "popup_profileScopeTab"
 msgstr "当前标签页"
 
 msgid "popup_profileScopeGroup"
 msgstr "标签组"
+
+msgid "popup_profileScopePage"
+msgstr "当前页面"
+
+msgid "popup_profileScopeSite"
+msgstr "当前网站"
 
 msgid "popup_profileScopeContainer"
 msgstr "容器"
@@ -1723,6 +1741,30 @@ msgstr "已删除"
 msgid "options_profileScopeContainerName"
 msgstr "容器 $1:NUMBER$"
 
+msgid "options_profileScopeSitesSection"
+msgstr "页面 / 网站"
+
+msgid "options_profileScopeAddRule"
+msgstr "添加规则"
+
+msgid "options_profileScopeSitesHelp"
+msgstr "第一条匹配的规则会为当前标签页中的每个请求设置初始情景模式。网址条件是页面规则；主机及其他条件是网站规则。"
+
+msgid "options_profileScopeQuickRulesHelp"
+msgstr "「当前页面」使用网址协议、主机、端口、精确路径和完整查询，并忽略网址片段。「当前网站」沿用现有的主机通配符语义。"
+
+msgid "options_profileScopeRuleScopeColumn"
+msgstr "作用范围"
+
+msgid "options_profileScopeRulePage"
+msgstr "页面"
+
+msgid "options_profileScopeRuleSite"
+msgstr "网站"
+
+msgid "options_profileScopeRulesEmpty"
+msgstr "没有页面或网站规则。"
+
 msgid "options_profileScopeTabsSection"
 msgstr "标签页 / 标签组"
 
@@ -1746,6 +1788,12 @@ msgstr "为当前标签页使用情景模式"
 
 msgid "contextMenu_useProfileForThisTabGroup"
 msgstr "为当前标签组使用情景模式"
+
+msgid "contextMenu_useProfileForThisPage"
+msgstr "为当前页面使用情景模式"
+
+msgid "contextMenu_useProfileForThisSite"
+msgstr "为当前网站使用情景模式"
 
 msgid "contextMenu_useProfileForThisContainer"
 msgstr "为当前容器使用情景模式"

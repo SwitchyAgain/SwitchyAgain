@@ -350,6 +350,12 @@ msgstr "Sekme grubu profili geçişini göster"
 msgid "options_contextMenuContainerProfile"
 msgstr "Konteyner profili geçişini göster"
 
+msgid "options_contextMenuPageProfile"
+msgstr "Sayfa profili geçişini göster"
+
+msgid "options_contextMenuSiteProfile"
+msgstr "Site profili geçişini göster"
+
 msgid "options_contextMenuWindowProfile"
 msgstr "Normal/gizli varsayılan profil geçişini göster"
 
@@ -1646,23 +1652,35 @@ msgstr "Sekme grubu profilleri"
 msgid "options_profileScopeGroupHelp"
 msgstr "Açılır menüden veya sayfa bağlam menüsünden geçerli sekme grubuna profil atamaya izin ver. Yalnızca Firefox."
 
+msgid "options_profileScopeSite"
+msgstr "Sayfa ve site profilleri"
+
+msgid "options_profileScopeSiteHelp"
+msgstr "Profil Kapsamı sayfasından sayfalara ve sitelere profil atamaya izin ver. Yalnızca Firefox."
+
 msgid "options_profileScopeContainer"
 msgstr "Kapsayıcı profilleri"
 
 msgid "options_profileScopeContainerHelp"
-msgstr "Açılır menüden veya sayfa bağlam menüsünden Firefox kapsayıcılarına profil atamaya izin ver. Yalnızca Firefox."
+msgstr "Açılır menüden, sayfa bağlam menüsünden veya Profil Kapsamı sayfasından Firefox kapsayıcılarına profil atamaya izin ver. Yalnızca Firefox."
 
 msgid "options_profileScopeWindow"
 msgstr "Normal/gizli varsayılanları"
 
 msgid "options_profileScopeWindowHelp"
-msgstr "Açılır menüden veya sayfa bağlam menüsünden normal ve gizli pencereler için ayrı varsayılan profillere izin ver."
+msgstr "Açılır menüden, sayfa bağlam menüsünden veya Profil Kapsamı sayfasından normal ve gizli pencereler için ayrı varsayılan profiller atamaya izin ver."
 
 msgid "popup_profileScopeTab"
 msgstr "Bu Sekme"
 
 msgid "popup_profileScopeGroup"
 msgstr "Sekme Grubu"
+
+msgid "popup_profileScopePage"
+msgstr "Bu Sayfa"
+
+msgid "popup_profileScopeSite"
+msgstr "Bu Site"
 
 msgid "popup_profileScopeContainer"
 msgstr "Kapsayıcı"
@@ -1721,6 +1739,30 @@ msgstr "Silindi"
 msgid "options_profileScopeContainerName"
 msgstr "Kapsayıcı $1:NUMBER$"
 
+msgid "options_profileScopeSitesSection"
+msgstr "Sayfalar / Siteler"
+
+msgid "options_profileScopeAddRule"
+msgstr "Kural ekle"
+
+msgid "options_profileScopeSitesHelp"
+msgstr "İlk eşleşen kural, geçerli sekmedeki her istek için başlangıç profilini ayarlar. URL koşulları sayfa kurallarıdır; sunucu ve diğer koşullar site kurallarıdır."
+
+msgid "options_profileScopeQuickRulesHelp"
+msgstr "Bu Sayfa şema, sunucu, port, tam yol ve tam sorguyu kullanır; URL parçaları yok sayılır. Bu Site mevcut sunucu joker karakteri davranışını kullanır."
+
+msgid "options_profileScopeRuleScopeColumn"
+msgstr "Kapsam"
+
+msgid "options_profileScopeRulePage"
+msgstr "Sayfa"
+
+msgid "options_profileScopeRuleSite"
+msgstr "Site"
+
+msgid "options_profileScopeRulesEmpty"
+msgstr "Sayfa veya site kuralı yok."
+
 msgid "options_profileScopeTabsSection"
 msgstr "Sekmeler / Sekme grupları"
 
@@ -1744,6 +1786,12 @@ msgstr "Bu sekme için profil kullan"
 
 msgid "contextMenu_useProfileForThisTabGroup"
 msgstr "Bu sekme grubu için profil kullan"
+
+msgid "contextMenu_useProfileForThisPage"
+msgstr "Bu sayfa için profil kullan"
+
+msgid "contextMenu_useProfileForThisSite"
+msgstr "Bu site için profil kullan"
 
 msgid "contextMenu_useProfileForThisContainer"
 msgstr "Bu kapsayıcı için profil kullan"

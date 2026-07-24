@@ -351,6 +351,12 @@ msgstr "顯示分頁群組情境模式切換"
 msgid "options_contextMenuContainerProfile"
 msgstr "顯示容器情境模式切換"
 
+msgid "options_contextMenuPageProfile"
+msgstr "顯示頁面情境模式切換"
+
+msgid "options_contextMenuSiteProfile"
+msgstr "顯示網站情境模式切換"
+
 msgid "options_contextMenuWindowProfile"
 msgstr "顯示一般/隱私視窗預設情境模式切換"
 
@@ -1635,23 +1641,35 @@ msgstr "分頁群組情境模式"
 msgid "options_profileScopeGroupHelp"
 msgstr "允許在彈出選單或網頁右鍵選單中為目前分頁群組指定情境模式。僅 Firefox 支援。"
 
+msgid "options_profileScopeSite"
+msgstr "頁面與網站情境模式"
+
+msgid "options_profileScopeSiteHelp"
+msgstr "允許在「作用範圍」頁面中為頁面與網站指定情境模式。僅 Firefox 支援。"
+
 msgid "options_profileScopeContainer"
 msgstr "容器情境模式"
 
 msgid "options_profileScopeContainerHelp"
-msgstr "允許在彈出選單或網頁右鍵選單中為 Firefox 容器指定情境模式。僅 Firefox 支援。"
+msgstr "允許在彈出選單、網頁右鍵選單或「作用範圍」頁面中為 Firefox 容器指定情境模式。僅 Firefox 支援。"
 
 msgid "options_profileScopeWindow"
 msgstr "一般/隱私預設情境模式"
 
 msgid "options_profileScopeWindowHelp"
-msgstr "允許在彈出選單或網頁右鍵選單中為一般視窗與隱私視窗分別設定預設情境模式。"
+msgstr "允許在彈出選單、網頁右鍵選單或「作用範圍」頁面中為一般視窗與隱私視窗分別設定預設情境模式。"
 
 msgid "popup_profileScopeTab"
 msgstr "目前分頁"
 
 msgid "popup_profileScopeGroup"
 msgstr "分頁群組"
+
+msgid "popup_profileScopePage"
+msgstr "目前頁面"
+
+msgid "popup_profileScopeSite"
+msgstr "目前網站"
 
 msgid "popup_profileScopeContainer"
 msgstr "容器"
@@ -1710,6 +1728,30 @@ msgstr "已刪除"
 msgid "options_profileScopeContainerName"
 msgstr "容器 $1:NUMBER$"
 
+msgid "options_profileScopeSitesSection"
+msgstr "頁面 / 網站"
+
+msgid "options_profileScopeAddRule"
+msgstr "加入規則"
+
+msgid "options_profileScopeSitesHelp"
+msgstr "第一條比對成功的規則會為目前分頁中的每個請求設定初始情境模式。網址條件是頁面規則；主機及其他條件是網站規則。"
+
+msgid "options_profileScopeQuickRulesHelp"
+msgstr "「目前頁面」使用網址協定、主機、連接埠、精確路徑和完整查詢，並忽略網址片段。「目前網站」沿用現有的主機萬用字元語意。"
+
+msgid "options_profileScopeRuleScopeColumn"
+msgstr "作用範圍"
+
+msgid "options_profileScopeRulePage"
+msgstr "頁面"
+
+msgid "options_profileScopeRuleSite"
+msgstr "網站"
+
+msgid "options_profileScopeRulesEmpty"
+msgstr "沒有頁面或網站規則。"
+
 msgid "options_profileScopeTabsSection"
 msgstr "分頁 / 分頁群組"
 
@@ -1733,6 +1775,12 @@ msgstr "為目前分頁使用情境模式"
 
 msgid "contextMenu_useProfileForThisTabGroup"
 msgstr "為目前分頁群組使用情境模式"
+
+msgid "contextMenu_useProfileForThisPage"
+msgstr "為目前頁面使用情境模式"
+
+msgid "contextMenu_useProfileForThisSite"
+msgstr "為目前網站使用情境模式"
 
 msgid "contextMenu_useProfileForThisContainer"
 msgstr "為目前容器使用情境模式"

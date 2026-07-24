@@ -931,7 +931,7 @@ export function ProfileScopeSettingsPage({
                     <th>{message('options_conditionType', 'Condition Type')}</th>
                     <th>{message('options_conditionDetails', 'Condition Details')}</th>
                     <th>{message('options_profileScopeProfileColumn', 'Profile')}</th>
-                    <th>{message('options_profileScopeRuleActionsColumn', 'Actions')}</th>
+                    <th>{message('options_conditionActions', 'Actions')}</th>
                     {showRuleNotes && <th>{message('options_ruleNote', 'Note')}</th>}
                   </tr>
                 </thead>

@@ -379,6 +379,12 @@ msgstr "Show tab group profile switching"
 msgid "options_contextMenuContainerProfile"
 msgstr "Show container profile switching"
 
+msgid "options_contextMenuPageProfile"
+msgstr "Show page profile switching"
+
+msgid "options_contextMenuSiteProfile"
+msgstr "Show site profile switching"
+
 msgid "options_contextMenuWindowProfile"
 msgstr "Show normal/private default switching"
 
@@ -1798,6 +1804,12 @@ msgstr "Tab group profiles"
 msgid "options_profileScopeGroupHelp"
 msgstr "Allow assigning a profile to the current tab group from the popup or page context menu. Firefox only."
 
+msgid "options_profileScopeSite"
+msgstr "Page and site profiles"
+
+msgid "options_profileScopeSiteHelp"
+msgstr "Allow assigning profiles to pages and sites from the Profile Scope page. Firefox only."
+
 msgid "options_profileScopeContainer"
 msgstr "Container profiles"
 
@@ -1815,6 +1827,12 @@ msgstr "This Tab"
 
 msgid "popup_profileScopeGroup"
 msgstr "Tab Group"
+
+msgid "popup_profileScopePage"
+msgstr "This Page"
+
+msgid "popup_profileScopeSite"
+msgstr "This Site"
 
 msgid "popup_profileScopeContainer"
 msgstr "Container"
@@ -1873,6 +1891,30 @@ msgstr "Deleted"
 msgid "options_profileScopeContainerName"
 msgstr "Container $1:NUMBER$"
 
+msgid "options_profileScopeSitesSection"
+msgstr "Pages / Sites"
+
+msgid "options_profileScopeAddRule"
+msgstr "Add Rule"
+
+msgid "options_profileScopeSitesHelp"
+msgstr "The first matching rule sets the starting profile for every request in the current tab. URL conditions are page rules; host and other conditions are site rules."
+
+msgid "options_profileScopeQuickRulesHelp"
+msgstr "This Page uses scheme, host, port, exact path, and the full query; URL fragments are ignored. This Site uses the existing host wildcard semantics."
+
+msgid "options_profileScopeRuleScopeColumn"
+msgstr "Scope"
+
+msgid "options_profileScopeRulePage"
+msgstr "Page"
+
+msgid "options_profileScopeRuleSite"
+msgstr "Site"
+
+msgid "options_profileScopeRulesEmpty"
+msgstr "No page or site rules."
+
 msgid "options_profileScopeTabsSection"
 msgstr "Tabs / Tab Groups"
 
@@ -1896,6 +1938,12 @@ msgstr "Use Profile for This Tab"
 
 msgid "contextMenu_useProfileForThisTabGroup"
 msgstr "Use Profile for This Tab Group"
+
+msgid "contextMenu_useProfileForThisPage"
+msgstr "Use Profile for This Page"
+
+msgid "contextMenu_useProfileForThisSite"
+msgstr "Use Profile for This Site"
 
 msgid "contextMenu_useProfileForThisContainer"
 msgstr "Use Profile for This Container"

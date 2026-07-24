@@ -384,6 +384,12 @@ msgstr "نمایش تغییر نمایهٔ گروه تب"
 msgid "options_contextMenuContainerProfile"
 msgstr "نمایش تغییر نمایهٔ کانتینر"
 
+msgid "options_contextMenuPageProfile"
+msgstr "نمایش تغییر نمایهٔ صفحه"
+
+msgid "options_contextMenuSiteProfile"
+msgstr "نمایش تغییر نمایهٔ وب‌سایت"
+
 msgid "options_contextMenuWindowProfile"
 msgstr "نمایش تغییر نمایهٔ پیش‌فرض پنجرهٔ عادی/خصوصی"
 
@@ -1805,23 +1811,35 @@ msgstr "نمایه‌های گروه زبانه"
 msgid "options_profileScopeGroupHelp"
 msgstr "اجازه دهید از پنجره بازشو یا منوی زمینه صفحه یک نمایه به گروه زبانه فعلی اختصاص داده شود. فقط Firefox."
 
+msgid "options_profileScopeSite"
+msgstr "نمایه‌های صفحه و وب‌سایت"
+
+msgid "options_profileScopeSiteHelp"
+msgstr "اجازه دهید از صفحهٔ دامنه نمایه، نمایه‌هایی به صفحه‌ها و وب‌سایت‌ها اختصاص داده شوند. فقط Firefox."
+
 msgid "options_profileScopeContainer"
 msgstr "نمایه‌های کانتینر"
 
 msgid "options_profileScopeContainerHelp"
-msgstr "اجازه دهید از پنجره بازشو یا منوی زمینهٔ صفحه نمایه‌هایی به کانتینرهای Firefox اختصاص داده شوند. فقط Firefox."
+msgstr "اجازه دهید از پنجره بازشو، منوی زمینهٔ صفحه یا صفحهٔ دامنه نمایه، نمایه‌هایی به کانتینرهای Firefox اختصاص داده شوند. فقط Firefox."
 
 msgid "options_profileScopeWindow"
 msgstr "پیش‌فرض‌های عادی/خصوصی"
 
 msgid "options_profileScopeWindowHelp"
-msgstr "اجازه دهید از پنجره بازشو یا منوی زمینهٔ صفحه برای پنجره‌های عادی و خصوصی نمایه‌های پیش‌فرض جداگانه تنظیم شود."
+msgstr "اجازه دهید از پنجره بازشو، منوی زمینهٔ صفحه یا صفحهٔ دامنه نمایه برای پنجره‌های عادی و خصوصی نمایه‌های پیش‌فرض جداگانه تنظیم شود."
 
 msgid "popup_profileScopeTab"
 msgstr "این زبانه"
 
 msgid "popup_profileScopeGroup"
 msgstr "گروه زبانه"
+
+msgid "popup_profileScopePage"
+msgstr "این صفحه"
+
+msgid "popup_profileScopeSite"
+msgstr "این وب‌سایت"
 
 msgid "popup_profileScopeContainer"
 msgstr "کانتینر"
@@ -1880,6 +1898,30 @@ msgstr "حذف‌شده"
 msgid "options_profileScopeContainerName"
 msgstr "کانتینر $1:NUMBER$"
 
+msgid "options_profileScopeSitesSection"
+msgstr "صفحه‌ها / وب‌سایت‌ها"
+
+msgid "options_profileScopeAddRule"
+msgstr "افزودن قانون"
+
+msgid "options_profileScopeSitesHelp"
+msgstr "نخستین قانون منطبق، نمایهٔ آغازین را برای هر درخواست در زبانهٔ فعلی تنظیم می‌کند. شرط‌های نشانی، قوانین صفحه هستند؛ شرط‌های میزبان و دیگر شرط‌ها، قوانین وب‌سایت هستند."
+
+msgid "options_profileScopeQuickRulesHelp"
+msgstr "این صفحه از طرحواره، میزبان، درگاه، مسیر دقیق و پرس‌وجوی کامل استفاده می‌کند؛ قطعه‌های نشانی نادیده گرفته می‌شوند. این وب‌سایت از رفتار فعلی وایلدکارد میزبان استفاده می‌کند."
+
+msgid "options_profileScopeRuleScopeColumn"
+msgstr "دامنه"
+
+msgid "options_profileScopeRulePage"
+msgstr "صفحه"
+
+msgid "options_profileScopeRuleSite"
+msgstr "وب‌سایت"
+
+msgid "options_profileScopeRulesEmpty"
+msgstr "هیچ قانون صفحه یا وب‌سایتی وجود ندارد."
+
 msgid "options_profileScopeTabsSection"
 msgstr "زبانه‌ها / گروه‌های زبانه"
 
@@ -1903,6 +1945,12 @@ msgstr "استفاده از نمایه برای این زبانه"
 
 msgid "contextMenu_useProfileForThisTabGroup"
 msgstr "استفاده از نمایه برای این گروه زبانه"
+
+msgid "contextMenu_useProfileForThisPage"
+msgstr "استفاده از نمایه برای این صفحه"
+
+msgid "contextMenu_useProfileForThisSite"
+msgstr "استفاده از نمایه برای این وب‌سایت"
 
 msgid "contextMenu_useProfileForThisContainer"
 msgstr "استفاده از نمایه برای این کانتینر"

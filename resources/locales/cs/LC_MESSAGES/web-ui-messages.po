@@ -382,6 +382,12 @@ msgstr "Zobrazit přepínání profilu skupiny záložek"
 msgid "options_contextMenuContainerProfile"
 msgstr "Zobrazit přepínání profilu kontejneru"
 
+msgid "options_contextMenuPageProfile"
+msgstr "Zobrazit přepínání profilu stránky"
+
+msgid "options_contextMenuSiteProfile"
+msgstr "Zobrazit přepínání profilu webu"
+
 msgid "options_contextMenuWindowProfile"
 msgstr "Zobrazit přepínání výchozího profilu pro normální/soukromá okna"
 
@@ -1796,23 +1802,35 @@ msgstr "Profily skupin karet"
 msgid "options_profileScopeGroupHelp"
 msgstr "Umožní přiřadit profil aktuální skupině karet z vyskakovací nabídky nebo kontextové nabídky stránky. Pouze Firefox."
 
+msgid "options_profileScopeSite"
+msgstr "Profily stránek a webů"
+
+msgid "options_profileScopeSiteHelp"
+msgstr "Umožní přiřadit profily stránkám a webům na stránce Rozsah profilu. Pouze Firefox."
+
 msgid "options_profileScopeContainer"
 msgstr "Profily kontejnerů"
 
 msgid "options_profileScopeContainerHelp"
-msgstr "Umožní přiřadit profily kontejnerům Firefoxu z vyskakovací nabídky nebo kontextové nabídky stránky. Pouze Firefox."
+msgstr "Umožní přiřadit profily kontejnerům Firefoxu z vyskakovací nabídky, kontextové nabídky stránky nebo na stránce Rozsah profilu. Pouze Firefox."
 
 msgid "options_profileScopeWindow"
 msgstr "Výchozí pro normální/soukromá okna"
 
 msgid "options_profileScopeWindowHelp"
-msgstr "Umožní samostatné výchozí profily pro normální a soukromá okna z vyskakovací nabídky nebo kontextové nabídky stránky."
+msgstr "Umožní nastavit samostatné výchozí profily pro normální a soukromá okna z vyskakovací nabídky, kontextové nabídky stránky nebo na stránce Rozsah profilu."
 
 msgid "popup_profileScopeTab"
 msgstr "Tato karta"
 
 msgid "popup_profileScopeGroup"
 msgstr "Skupina karet"
+
+msgid "popup_profileScopePage"
+msgstr "Tato stránka"
+
+msgid "popup_profileScopeSite"
+msgstr "Tento web"
 
 msgid "popup_profileScopeContainer"
 msgstr "Kontejner"
@@ -1871,6 +1889,30 @@ msgstr "Odstraněno"
 msgid "options_profileScopeContainerName"
 msgstr "Kontejner $1:NUMBER$"
 
+msgid "options_profileScopeSitesSection"
+msgstr "Stránky / Weby"
+
+msgid "options_profileScopeAddRule"
+msgstr "Přidat pravidlo"
+
+msgid "options_profileScopeSitesHelp"
+msgstr "První odpovídající pravidlo nastaví počáteční profil pro každý požadavek na aktuální kartě. Podmínky URL jsou pravidla stránek; podmínky hostitele a ostatní podmínky jsou pravidla webů."
+
+msgid "options_profileScopeQuickRulesHelp"
+msgstr "Tato stránka používá schéma, hostitele, port, přesnou cestu a celý dotaz; fragmenty URL jsou ignorovány. Tento web používá stávající sémantiku zástupných znaků hostitele."
+
+msgid "options_profileScopeRuleScopeColumn"
+msgstr "Rozsah"
+
+msgid "options_profileScopeRulePage"
+msgstr "Stránka"
+
+msgid "options_profileScopeRuleSite"
+msgstr "Web"
+
+msgid "options_profileScopeRulesEmpty"
+msgstr "Žádná pravidla stránek ani webů."
+
 msgid "options_profileScopeTabsSection"
 msgstr "Karty / Skupiny karet"
 
@@ -1894,6 +1936,12 @@ msgstr "Použít profil pro tuto kartu"
 
 msgid "contextMenu_useProfileForThisTabGroup"
 msgstr "Použít profil pro tuto skupinu karet"
+
+msgid "contextMenu_useProfileForThisPage"
+msgstr "Použít profil pro tuto stránku"
+
+msgid "contextMenu_useProfileForThisSite"
+msgstr "Použít profil pro tento web"
 
 msgid "contextMenu_useProfileForThisContainer"
 msgstr "Použít profil pro tento kontejner"
