@@ -159,9 +159,9 @@ async function checkBackgroundPersistentListeners() {
       fail(`${file}: ${listener} must be registered before the first asynchronous state restore`);
     }
   }
-  const startupGate = source.indexOf('backgroundStartup.then(() => readinessForRequest(typedRequest))');
+  const startupGate = /backgroundStartup\s*\.then\(\s*\(\)\s*=>\s*readinessForRequest\(typedRequest\)\s*\)/.test(source);
   const startupComplete = source.indexOf('resolveBackgroundStartup();');
-  if (startupGate < 0) {
+  if (!startupGate) {
     fail(`${file}: runtime messages must wait for background startup`);
   }
   if (startupComplete < stateRestore) {
