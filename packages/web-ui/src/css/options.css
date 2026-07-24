@@ -19,6 +19,8 @@
   --sa-focus: #66afe9;
   --sa-profile-scope-page-bg: #fff4e5;
   --sa-profile-scope-site-bg: #fdecec;
+  --sa-profile-scope-page-text: #9a5a00;
+  --sa-profile-scope-site-text: #a13f3f;
 }
 
 :root.theme-dark {
@@ -40,6 +42,8 @@
   --sa-focus: #86b7fe;
   --sa-profile-scope-page-bg: #3d2b13;
   --sa-profile-scope-site-bg: #421f24;
+  --sa-profile-scope-page-text: #e6ad52;
+  --sa-profile-scope-site-text: #e88989;
 }
 
 .clear-padding {
@@ -1846,10 +1850,12 @@ main .profile-header {
 
 .profile-scope-rule-label-page {
   background-color: var(--sa-profile-scope-page-bg);
+  color: var(--sa-profile-scope-page-text);
 }
 
 .profile-scope-rule-label-site {
   background-color: var(--sa-profile-scope-site-bg);
+  color: var(--sa-profile-scope-site-text);
 }
 
 .profile-groups-assignment-table {
