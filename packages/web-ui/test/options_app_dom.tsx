@@ -793,6 +793,7 @@ describe('options app', () => {
     expect(patchedOptionValue<Record<string, boolean>>(firstPatch(requests), '-profileScopes')).toEqual({
       container: true,
       group: true,
+      site: false,
       tab: true,
       window: true
     });
@@ -824,6 +825,70 @@ describe('options app', () => {
     expect(
       screen.getByText('Tab and tab group profile assignments are temporary and stay with the tab or tab group where they were set.')
     ).toBeTruthy();
+  });
+
+  it('shows only window profile scope settings for Chromium capabilities', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '-profileScopes': {
+        container: true,
+        group: true,
+        site: true,
+        tab: true,
+        window: true
+      }
+    };
+    installBackground({
+      options: loadedOptions,
+      profileScopeCapabilities: {
+        container: false,
+        group: false,
+        site: false,
+        tab: false,
+        window: true
+      }
+    });
+    window.location.hash = '#/profileScope';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: 'Profile Scope'});
+    expect(screen.getByRole('heading', {name: 'Normal / Private'})).toBeTruthy();
+    expect(screen.queryByRole('heading', {name: 'Containers'})).toBeNull();
+    expect(screen.queryByRole('heading', {name: 'Pages / Sites'})).toBeNull();
+    expect(screen.queryByRole('heading', {name: 'Tabs / Tab Groups'})).toBeNull();
+  });
+
+  it('shows all enabled profile scope settings for Firefox capabilities', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '-profileScopes': {
+        container: true,
+        group: true,
+        site: true,
+        tab: true,
+        window: true
+      }
+    };
+    installBackground({
+      options: loadedOptions,
+      profileScopeCapabilities: {
+        container: true,
+        group: true,
+        site: true,
+        tab: true,
+        window: true
+      }
+    });
+    window.location.hash = '#/profileScope';
+
+    render(<OptionsApp />);
+
+    await screen.findByRole('heading', {name: 'Profile Scope'});
+    expect(screen.getByRole('heading', {name: 'Normal / Private'})).toBeTruthy();
+    expect(screen.getByRole('heading', {name: 'Containers'})).toBeTruthy();
+    expect(screen.getByRole('heading', {name: 'Pages / Sites'})).toBeTruthy();
+    expect(screen.getByRole('heading', {name: 'Tabs / Tab Groups'})).toBeTruthy();
   });
 
   it('saves profile scope assignments through the top-level apply flow', async () => {
@@ -892,7 +957,8 @@ describe('options app', () => {
         'firefox-container-1': 'auto'
       },
       normalDefaultProfileName: 'pac',
-      privateDefaultProfileName: 'virtual'
+      privateDefaultProfileName: 'virtual',
+      rules: []
     });
     expect(getAllRequests(requests)).toHaveLength(1);
   });

@@ -342,6 +342,7 @@ describe('ui settings component', () => {
             {
               container: false,
               group: false,
+              site: false,
               tab: true,
               window: false
             }
@@ -355,10 +356,20 @@ describe('ui settings component', () => {
     });
   });
 
-  it('hides unsupported context menu options', async () => {
+  it('gates unsupported Chromium profile scope options', async () => {
+    const loadedOptions: Options = {
+      ...optionsFixture(),
+      '-profileScopes': {
+        container: true,
+        group: true,
+        site: true,
+        tab: true,
+        window: true
+      }
+    };
     const sendMessage = vi.fn((request, callback) => {
       if (request.method === 'getAll') {
-        callback({result: optionsFixture()});
+        callback({result: loadedOptions});
         return;
       }
       if (request.method === 'getState') {
@@ -377,11 +388,21 @@ describe('ui settings component', () => {
     render(<UiSettings />);
 
     await screen.findByRole('heading', {name: 'Context Menu'});
+    for (const label of ['Tab profiles', 'Tab group profiles', 'Page and site profiles', 'Container profiles']) {
+      const checkbox = screen.getByLabelText(label) as HTMLInputElement;
+      expect(checkbox.disabled).toBe(true);
+      expect(checkbox.checked).toBe(false);
+    }
+    const windowProfiles = screen.getByLabelText('Normal/private defaults') as HTMLInputElement;
+    expect(windowProfiles.disabled).toBe(false);
+    expect(windowProfiles.checked).toBe(true);
     expect(screen.getByLabelText('Show Switch Profile')).toBeTruthy();
     expect(screen.getByLabelText('Show normal/private default switching')).toBeTruthy();
     expect(screen.queryByLabelText('Show tab profile switching')).toBeNull();
     expect(screen.queryByLabelText('Show tab group profile switching')).toBeNull();
     expect(screen.queryByLabelText('Show container profile switching')).toBeNull();
+    expect(screen.queryByLabelText('Show page profile switching')).toBeNull();
+    expect(screen.queryByLabelText('Show site profile switching')).toBeNull();
     expect(screen.queryByLabelText('Show Open Link in New Tab with Profile')).toBeNull();
     expect(screen.queryByLabelText('Show Open Link in New Window with Profile')).toBeNull();
     expect(screen.queryByLabelText('Show Open Link in New Private Window with Profile')).toBeNull();

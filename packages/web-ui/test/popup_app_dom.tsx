@@ -231,6 +231,71 @@ describe('popup app', () => {
     expect(screen.queryByText('Route Info')).toBeNull();
   });
 
+  it('shows only the window profile scope menu for Chromium state', async () => {
+    window.location.hash = '';
+    currentPageInfo = {
+      profileScope: {
+        enabled: {
+          container: false,
+          group: false,
+          site: false,
+          tab: false,
+          window: true
+        },
+        incognito: false,
+        tabId: 1,
+        windowId: 1
+      },
+      url: 'https://www.example.com/'
+    };
+    popupBridgeMock.getPopupState.mockResolvedValue({
+      ...popupState(),
+      currentProfileCanAddRule: false,
+      scopeAssignableProfiles: ['direct']
+    });
+
+    const {container} = render(<PopupApp />);
+
+    await waitFor(() => expect(container.querySelector('[data-profile-scope="normal"]')).toBeTruthy());
+    for (const scope of ['tab', 'group', 'page', 'site', 'container']) {
+      expect(container.querySelector(`[data-profile-scope="${scope}"]`)).toBeNull();
+    }
+  });
+
+  it('shows all enabled profile scope menus for Firefox state', async () => {
+    window.location.hash = '';
+    currentPageInfo = {
+      profileScope: {
+        cookieStoreId: 'firefox-container-1',
+        enabled: {
+          container: true,
+          group: true,
+          site: true,
+          tab: true,
+          window: true
+        },
+        groupId: 2,
+        incognito: false,
+        isContainer: true,
+        tabId: 1,
+        windowId: 1
+      },
+      url: 'https://www.example.com/'
+    };
+    popupBridgeMock.getPopupState.mockResolvedValue({
+      ...popupState(),
+      currentProfileCanAddRule: false,
+      scopeAssignableProfiles: ['direct']
+    });
+
+    const {container} = render(<PopupApp />);
+
+    await waitFor(() => expect(container.querySelector('[data-profile-scope="tab"]')).toBeTruthy());
+    for (const scope of ['group', 'page', 'site', 'container', 'normal']) {
+      expect(container.querySelector(`[data-profile-scope="${scope}"]`)).toBeTruthy();
+    }
+  });
+
   it('keeps profile groups in scope menus while the global profile is system', async () => {
     window.location.hash = '';
     currentPageInfo = {
